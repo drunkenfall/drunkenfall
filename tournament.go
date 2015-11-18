@@ -5,9 +5,9 @@ import (
 	"time"
 )
 
-// Tournament is the main container of data for this app.
+// Tournamennt is the main container of data for this app.
 type Tournament struct {
-	Players     [24]Player
+	Players     []Player
 	Judges      []Judge
 	Tryouts     []Match
 	Semis       []Match
@@ -16,6 +16,31 @@ type Tournament struct {
 	Ended       time.Time
 	length      int
 	finalLength int
+}
+
+// NewTournament returns a completely new Tournament
+func NewTournament() (*Tournament, error) {
+	t := Tournament{}
+	return &t, nil
+}
+
+// StartTournament will generate the tournament.
+//
+// This includes:
+//  Generating Tryout matches
+//  Setting Started date
+//
+// It will fail if there are not between 8 and 24 players.
+func (t *Tournament) StartTournament() error {
+	if len(t.Players) < 8 {
+		return fmt.Errorf("Tournament needs at least 8 players, got %s", t.Players)
+	}
+	if len(t.Players) > 24 {
+		return fmt.Errorf("Tournament can only host 24 players, got %s", t.Players)
+	}
+
+	t.Started = time.Now()
+	return nil
 }
 
 func main() {

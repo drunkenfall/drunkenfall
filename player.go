@@ -10,6 +10,7 @@ type Participant interface {
 
 // Player is a Participant that is actively participating in battles.
 type Player struct {
+	name           string
 	preferredColor string
 }
 
