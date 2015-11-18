@@ -1,5 +1,9 @@
 package main
 
+import (
+	"sort"
+)
+
 // Participant someone having a role in the tournament
 type Participant interface {
 	ID() string
@@ -129,6 +133,28 @@ func (p *Player) RemoveExplosion() {
 	p.explosions--
 	p.RemoveShot()
 	p.RemoveKill()
+}
+
+// ByScore is a sort.Interface that sorts players by their score
+type ByScore []Player
+
+func (s ByScore) Len() int {
+	return len(s)
+
+}
+func (s ByScore) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+
+}
+func (s ByScore) Less(i, j int) bool {
+	// Technically not Less, but we want biggest first...
+	return s[i].Score() > s[j].Score()
+}
+
+// SortByScore returns a list in order of the score the players have
+func SortByScore(ps []Player) []Player {
+	sort.Sort(ByScore(ps))
+	return ps
 }
 
 // Judge is a Participant that has access to the judge functions
