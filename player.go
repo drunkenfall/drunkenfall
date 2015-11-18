@@ -26,8 +26,8 @@ func NewPlayer() Player {
 	return p
 }
 
-// RunnerupScore calculates the score to determine runnerup positions.
-func (p *Player) RunnerupScore() (out int) {
+// Score calculates the score to determine runnerup positions.
+func (p *Player) Score() (out int) {
 	// This algorithm is probably flawed, but at least it should be able to
 	// determine who is the most entertaining.
 	// When executed, a sweep is basically 11 points since scoring a sweep

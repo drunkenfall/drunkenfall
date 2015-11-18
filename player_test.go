@@ -5,57 +5,57 @@ import (
 	"testing"
 )
 
-func TestRunnerupScoreWithShots(t *testing.T) {
+func TestScoreWithShots(t *testing.T) {
 	assert := assert.New(t)
 	p := NewPlayer()
 	p.AddShot()
 
-	assert.Equal(3, p.RunnerupScore())
+	assert.Equal(3, p.Score())
 	p.AddShot()
-	assert.Equal(6, p.RunnerupScore())
+	assert.Equal(6, p.Score())
 }
 
-func TestRunnerupScoreWithSweeps(t *testing.T) {
+func TestScoreWithSweeps(t *testing.T) {
 	assert := assert.New(t)
 	p := NewPlayer()
 	p.AddSweep()
 
-	assert.Equal(14, p.RunnerupScore())
+	assert.Equal(14, p.Score())
 	p.AddSweep()
-	assert.Equal(28, p.RunnerupScore())
+	assert.Equal(28, p.Score())
 }
 
-func TestRunnerupScoreWithKills(t *testing.T) {
+func TestScoreWithKills(t *testing.T) {
 	assert := assert.New(t)
 	p := NewPlayer()
 	p.AddKill()
 
-	assert.Equal(2, p.RunnerupScore())
+	assert.Equal(2, p.Score())
 	p.AddKill()
-	assert.Equal(4, p.RunnerupScore())
+	assert.Equal(4, p.Score())
 }
 
-func TestRunnerupScoreWithSelfs(t *testing.T) {
+func TestScoreWithSelfs(t *testing.T) {
 	assert := assert.New(t)
 	p := NewPlayer()
 	p.AddSelf()
 
-	assert.Equal(4, p.RunnerupScore())
+	assert.Equal(4, p.Score())
 	p.AddSelf()
-	assert.Equal(8, p.RunnerupScore())
+	assert.Equal(8, p.Score())
 }
 
-func TestRunnerupScoreWithExplosions(t *testing.T) {
+func TestScoreWithExplosions(t *testing.T) {
 	assert := assert.New(t)
 	p := NewPlayer()
 	p.AddExplosion()
 
-	assert.Equal(6, p.RunnerupScore())
+	assert.Equal(6, p.Score())
 	p.AddExplosion()
-	assert.Equal(12, p.RunnerupScore())
+	assert.Equal(12, p.Score())
 }
 
-func TestRunnerupScoreWithAll(t *testing.T) {
+func TestScoreWithAll(t *testing.T) {
 	assert := assert.New(t)
 	p := NewPlayer()
 	p.AddShot()
@@ -63,7 +63,7 @@ func TestRunnerupScoreWithAll(t *testing.T) {
 	p.AddKill()
 	p.AddSelf()
 	p.AddExplosion()
-	assert.Equal(29, p.RunnerupScore())
+	assert.Equal(29, p.Score())
 }
 
 func TestAddShot(t *testing.T) {
