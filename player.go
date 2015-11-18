@@ -61,18 +61,26 @@ func (p *Player) RemoveShot() {
 	p.shots--
 }
 
-// AddSweep increases the sweep count
+// AddSweep increases the sweep count, gives three kills and a shot.
 func (p *Player) AddSweep() {
 	p.sweeps++
+	p.AddShot()
+	p.AddKill()
+	p.AddKill()
+	p.AddKill()
 }
 
-// RemoveSweep decreases the sweep count
+// RemoveSweep decreases the sweep count, three kills and a shot
 // Fails silently if sweeps are zero.
 func (p *Player) RemoveSweep() {
 	if p.sweeps == 0 {
 		return
 	}
 	p.sweeps--
+	p.RemoveShot()
+	p.RemoveKill()
+	p.RemoveKill()
+	p.RemoveKill()
 }
 
 // AddKill increases the kill count

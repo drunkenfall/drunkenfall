@@ -20,9 +20,9 @@ func TestRunnerupScoreWithSweeps(t *testing.T) {
 	p := NewPlayer()
 	p.AddSweep()
 
-	assert.Equal(5, p.RunnerupScore())
+	assert.Equal(14, p.RunnerupScore())
 	p.AddSweep()
-	assert.Equal(10, p.RunnerupScore())
+	assert.Equal(28, p.RunnerupScore())
 }
 
 func TestRunnerupScoreWithKills(t *testing.T) {
@@ -63,7 +63,7 @@ func TestRunnerupScoreWithAll(t *testing.T) {
 	p.AddKill()
 	p.AddSelf()
 	p.AddExplosion()
-	assert.Equal(12, p.RunnerupScore())
+	assert.Equal(21, p.RunnerupScore())
 }
 
 func TestAddShot(t *testing.T) {
@@ -93,19 +93,30 @@ func TestAddSweep(t *testing.T) {
 
 	p.AddSweep()
 	assert.Equal(1, p.sweeps)
+	assert.Equal(1, p.shots)
+	assert.Equal(3, p.kills)
+
 	p.AddSweep()
 	assert.Equal(2, p.sweeps)
+	assert.Equal(2, p.shots)
+	assert.Equal(6, p.kills)
 }
 
 func TestRemoveSweep(t *testing.T) {
 	assert := assert.New(t)
 	p := NewPlayer()
 	p.sweeps = 1
+	p.shots = 1
+	p.kills = 3
 
 	p.RemoveSweep()
 	assert.Equal(0, p.sweeps)
+	assert.Equal(0, p.shots)
+	assert.Equal(0, p.kills)
 	p.RemoveSweep()
 	assert.Equal(0, p.sweeps)
+	assert.Equal(0, p.shots)
+	assert.Equal(0, p.kills)
 }
 
 func TestAddKill(t *testing.T) {
