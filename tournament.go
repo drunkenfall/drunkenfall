@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 	"time"
 )
 
@@ -45,6 +46,12 @@ func (t *Tournament) StartTournament() error {
 		return err
 	}
 
+	// Populate the matches with players
+	perr := t.PopulateMatches()
+	if perr != nil {
+		return perr
+	}
+
 	t.Started = time.Now()
 	return nil
 }
@@ -74,6 +81,32 @@ func (t *Tournament) GenerateMatches() error {
 	// Right now there are only cases where we have two matches in the semis.
 	t.Semis = []Match{NewMatch(), NewMatch()}
 	t.Final = NewMatch()
+
+	return nil
+}
+
+// PopulateMatches shuffles players into the matches
+func (t *Tournament) PopulateMatches() error {
+	// Make a copy of the players list and shuffle it
+	slice := t.Players
+	for i := range slice {
+		j := rand.Intn(i + 1)
+		slice[i], slice[j] = slice[j], slice[i]
+	}
+
+	// The case of eight players is different since they are to go directly
+	// to the finals.
+	if len(slice) == 8 {
+		for x, p := range slice {
+			t.Semis[x/4].AddPlayer(p)
+		}
+		return nil
+	}
+
+	// Fill the tryouts as much as possible!
+	for x, p := range slice {
+		t.Tryouts[x/4].AddPlayer(p)
+	}
 
 	return nil
 }

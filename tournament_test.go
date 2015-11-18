@@ -87,3 +87,48 @@ func TestStartingTournamentParticipantsToMatches(t *testing.T) {
 	assertMatches(a, 23, 6, 2)
 	assertMatches(a, 24, 6, 2)
 }
+
+func TestPopulateMatchesPopulatesSemisFor8Players(t *testing.T) {
+	assert := assert.New(t)
+	tm := testTournament(8)
+	tm.StartTournament()
+
+	assert.Equal(4, len(tm.Semis[0].Players))
+	assert.Equal(4, len(tm.Semis[1].Players))
+}
+
+func TestPopulateMatchesPopulatesAllMatchesFor24Players(t *testing.T) {
+	assert := assert.New(t)
+	tm := testTournament(24)
+	tm.StartTournament()
+
+	assert.Equal(4, len(tm.Tryouts[0].Players))
+	assert.Equal(4, len(tm.Tryouts[1].Players))
+	assert.Equal(4, len(tm.Tryouts[2].Players))
+	assert.Equal(4, len(tm.Tryouts[3].Players))
+	assert.Equal(4, len(tm.Tryouts[4].Players))
+	assert.Equal(4, len(tm.Tryouts[5].Players))
+}
+
+func TestPopulateMatchesFillsAsMuchAsPossibleFor10Players(t *testing.T) {
+	assert := assert.New(t)
+	tm := testTournament(10)
+	tm.StartTournament()
+
+	assert.Equal(4, len(tm.Tryouts[0].Players))
+	assert.Equal(4, len(tm.Tryouts[1].Players))
+	assert.Equal(2, len(tm.Tryouts[2].Players))
+}
+
+func TestPopulateMatchesFillsAsMuchAsPossibleFor18Players(t *testing.T) {
+	assert := assert.New(t)
+	tm := testTournament(18)
+	tm.StartTournament()
+
+	assert.Equal(4, len(tm.Tryouts[0].Players))
+	assert.Equal(4, len(tm.Tryouts[1].Players))
+	assert.Equal(4, len(tm.Tryouts[2].Players))
+	assert.Equal(4, len(tm.Tryouts[3].Players))
+	assert.Equal(2, len(tm.Tryouts[4].Players))
+	assert.Equal(0, len(tm.Tryouts[5].Players))
+}
