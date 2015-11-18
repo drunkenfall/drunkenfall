@@ -50,9 +50,9 @@ func TestRunnerupScoreWithExplosions(t *testing.T) {
 	p := NewPlayer()
 	p.AddExplosion()
 
-	assert.Equal(1, p.RunnerupScore())
+	assert.Equal(6, p.RunnerupScore())
 	p.AddExplosion()
-	assert.Equal(2, p.RunnerupScore())
+	assert.Equal(12, p.RunnerupScore())
 }
 
 func TestRunnerupScoreWithAll(t *testing.T) {
@@ -63,7 +63,7 @@ func TestRunnerupScoreWithAll(t *testing.T) {
 	p.AddKill()
 	p.AddSelf()
 	p.AddExplosion()
-	assert.Equal(24, p.RunnerupScore())
+	assert.Equal(29, p.RunnerupScore())
 }
 
 func TestAddShot(t *testing.T) {
@@ -172,8 +172,12 @@ func TestAddExplosion(t *testing.T) {
 
 	p.AddExplosion()
 	assert.Equal(1, p.explosions)
+	assert.Equal(1, p.shots)
+	assert.Equal(1, p.kills)
 	p.AddExplosion()
 	assert.Equal(2, p.explosions)
+	assert.Equal(2, p.shots)
+	assert.Equal(2, p.kills)
 }
 
 func TestRemoveExplosion(t *testing.T) {

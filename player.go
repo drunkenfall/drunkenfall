@@ -113,18 +113,22 @@ func (p *Player) RemoveSelf() {
 	p.RemoveShot()
 }
 
-// AddExplosion increases the explosion count
+// AddExplosion increases the explosion count, the kill count and gives a shot
 func (p *Player) AddExplosion() {
 	p.explosions++
+	p.AddShot()
+	p.AddKill()
 }
 
-// RemoveExplosion decreases the explosion count
+// RemoveExplosion decreases the explosion count, a shot and a kill
 // Fails silently if explosions are zero.
 func (p *Player) RemoveExplosion() {
 	if p.explosions == 0 {
 		return
 	}
 	p.explosions--
+	p.RemoveShot()
+	p.RemoveKill()
 }
 
 // Judge is a Participant that has access to the judge functions
