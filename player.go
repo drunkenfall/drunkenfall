@@ -26,6 +26,22 @@ func NewPlayer() Player {
 	return p
 }
 
+// RunnerupScore calculates the score to determine runnerup positions.
+func (p *Player) RunnerupScore() (out int) {
+	// This algorithm is probably flawed, but at least it should be able to
+	// determine who is the most entertaining.
+	// When executed, a sweep is basically 11 points since scoring a sweep
+	// also comes with a shot and three kills.
+
+	out += p.sweeps * 5
+	out += p.shots * 3
+	out += p.kills * 2
+	out += p.self
+	out += p.explosions
+
+	return
+}
+
 // Color returns the color that the player prefers.
 func (p *Player) Color() string {
 	return p.preferredColor
