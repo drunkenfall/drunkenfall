@@ -97,18 +97,20 @@ func (p *Player) RemoveKill() {
 	p.kills--
 }
 
-// AddSelf increases the self count
+// AddSelf increases the self count and gives a shot
 func (p *Player) AddSelf() {
 	p.self++
+	p.AddShot()
 }
 
-// RemoveSelf decreases the self count
+// RemoveSelf decreases the self count and a shot
 // Fails silently if selfs are zero.
 func (p *Player) RemoveSelf() {
 	if p.self == 0 {
 		return
 	}
 	p.self--
+	p.RemoveShot()
 }
 
 // AddExplosion increases the explosion count
