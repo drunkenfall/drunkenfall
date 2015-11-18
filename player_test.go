@@ -63,7 +63,7 @@ func TestScoreWithAll(t *testing.T) {
 	p.AddKill()
 	p.AddSelf()
 	p.AddExplosion()
-	assert.Equal(29, p.Score())
+	assert.Equal(27, p.Score())
 }
 
 func TestAddShot(t *testing.T) {

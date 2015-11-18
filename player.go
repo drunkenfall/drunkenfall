@@ -101,9 +101,10 @@ func (p *Player) RemoveKill() {
 	p.kills--
 }
 
-// AddSelf increases the self count and gives a shot
+// AddSelf increases the self count, decreases the kill, and gives a shot
 func (p *Player) AddSelf() {
 	p.self++
+	p.RemoveKill()
 	p.AddShot()
 }
 
@@ -114,6 +115,7 @@ func (p *Player) RemoveSelf() {
 		return
 	}
 	p.self--
+	p.AddKill()
 	p.RemoveShot()
 }
 
