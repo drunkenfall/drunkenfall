@@ -73,6 +73,7 @@ func (t *Tournament) GenerateMatches() error {
 
 	// Right now there are only cases where we have two matches in the semis.
 	t.Semis = []Match{Match{}, Match{}}
+	t.Final = Match{}
 
 	return nil
 }
