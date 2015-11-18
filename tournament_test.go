@@ -56,9 +56,33 @@ func TestStartingTournamentSetsStartedTimestamp(t *testing.T) {
 	assert.NotNil(tm.Started)
 }
 
-func TestStartingTournamentWith16ParticipantsLeadsToFourMatches(t *testing.T) {
-	assert := assert.New(t)
-	tm := testTournament(16)
+func assertParticipants(assert *assert.Assertions, players, matches int) {
+	tm := testTournament(players)
+	tm.StartTournament()
 
-	assert.Equal(len(tm.Tryouts), 0)
+	assert.Equal(len(tm.Tryouts), matches)
+}
+
+func TestStartingTournamentParticipantsToMatches(t *testing.T) {
+	// Assert that a given number of participants results in a number of matches.
+	// See docstring for GenerateTryouts()
+
+	a := assert.New(t)
+	assertParticipants(a, 8, 2)
+	assertParticipants(a, 9, 4)
+	assertParticipants(a, 10, 4)
+	assertParticipants(a, 11, 4)
+	assertParticipants(a, 12, 4)
+	assertParticipants(a, 13, 4)
+	assertParticipants(a, 14, 4)
+	assertParticipants(a, 15, 4)
+	assertParticipants(a, 16, 4)
+	assertParticipants(a, 17, 6)
+	assertParticipants(a, 18, 6)
+	assertParticipants(a, 19, 6)
+	assertParticipants(a, 20, 6)
+	assertParticipants(a, 21, 6)
+	assertParticipants(a, 22, 6)
+	assertParticipants(a, 23, 6)
+	assertParticipants(a, 24, 6)
 }

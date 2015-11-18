@@ -39,7 +39,38 @@ func (t *Tournament) StartTournament() error {
 		return fmt.Errorf("Tournament can only host 24 players, got %s", t.Players)
 	}
 
+	// Generate tryout matches
+	err := t.GenerateTryouts()
+	if err != nil {
+		return err
+	}
+
 	t.Started = time.Now()
+	return nil
+}
+
+// GenerateTryouts will generate the tryout matches
+//
+// The tournament model as it stands right now can handle matches sets of
+// 2, 4 and 6 matches. If the amount of players do not match, add sets of
+// two matches with runnerups.
+func (t *Tournament) GenerateTryouts() error {
+	var end int
+	p := len(t.Players)
+
+	switch p {
+	case 8:
+		end = 2
+	case 9, 10, 11, 12, 13, 14, 15, 16:
+		end = 4
+	default:
+		end = 6
+	}
+
+	for i := 0; i < end; i++ {
+		m := Match{}
+		t.Tryouts = append(t.Tryouts, m)
+	}
 	return nil
 }
 
