@@ -63,7 +63,7 @@ func (t *Tournament) StartTournament() error {
 // GenerateMatches will generate all the matches for the semis
 //
 // The tournament model as it stands right now can handle matches sets of
-// 2, 4 and 6 matches. If the amount of players do not match, add sets of
+// 2, 4 and 7 matches. If the amount of players do not match, add sets of
 // two matches with runnerups.
 func (t *Tournament) GenerateMatches() error {
 	var tryouts int
@@ -74,7 +74,9 @@ func (t *Tournament) GenerateMatches() error {
 	case 9, 10, 11, 12, 13, 14, 15, 16:
 		tryouts = 4
 	default:
-		tryouts = 6
+		// Six groups and one runnerup. Winners of groups and winner/second
+		// of runnerup goes to semis.
+		tryouts = 7
 	}
 
 	for i := 0; i < tryouts; i++ {

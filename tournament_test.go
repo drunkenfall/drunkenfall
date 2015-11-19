@@ -78,14 +78,14 @@ func TestStartingTournamentParticipantsToMatches(t *testing.T) {
 	assertMatches(a, 14, 4, 2)
 	assertMatches(a, 15, 4, 2)
 	assertMatches(a, 16, 4, 2)
-	assertMatches(a, 17, 6, 2)
-	assertMatches(a, 18, 6, 2)
-	assertMatches(a, 19, 6, 2)
-	assertMatches(a, 20, 6, 2)
-	assertMatches(a, 21, 6, 2)
-	assertMatches(a, 22, 6, 2)
-	assertMatches(a, 23, 6, 2)
-	assertMatches(a, 24, 6, 2)
+	assertMatches(a, 17, 7, 2)
+	assertMatches(a, 18, 7, 2)
+	assertMatches(a, 19, 7, 2)
+	assertMatches(a, 20, 7, 2)
+	assertMatches(a, 21, 7, 2)
+	assertMatches(a, 22, 7, 2)
+	assertMatches(a, 23, 7, 2)
+	assertMatches(a, 24, 7, 2)
 }
 
 func TestPopulateMatchesPopulatesSemisFor8Players(t *testing.T) {
