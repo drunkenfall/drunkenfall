@@ -27,3 +27,23 @@ func (m *Match) AddPlayer(p Player) error {
 	m.Players = append(m.Players, p)
 	return nil
 }
+
+// StartMatch starts the match
+func (m *Match) StartMatch() error {
+	if !m.Started.IsZero() {
+		return errors.New("match already started")
+	}
+
+	m.Started = time.Now()
+	return nil
+}
+
+// EndMatch signals that the match has ended
+func (m *Match) EndMatch() error {
+	if !m.Ended.IsZero() {
+		return errors.New("match already ended")
+	}
+
+	m.Ended = time.Now()
+	return nil
+}
