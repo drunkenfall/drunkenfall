@@ -6,13 +6,14 @@ import (
 	"time"
 )
 
-// Tournamennt is the main container of data for this app.
+// Tournament is the main container of data for this app.
 type Tournament struct {
 	Players     []Player
 	Judges      []Judge
 	Tryouts     []Match
 	Semis       []Match
 	Final       Match
+	Opened      time.Time
 	Started     time.Time
 	Ended       time.Time
 	length      int
@@ -21,7 +22,9 @@ type Tournament struct {
 
 // NewTournament returns a completely new Tournament
 func NewTournament() (*Tournament, error) {
-	t := Tournament{}
+	t := Tournament{
+		Opened: time.Now(),
+	}
 	return &t, nil
 }
 
