@@ -36,11 +36,12 @@ func NewTournament() (*Tournament, error) {
 //
 // It will fail if there are not between 8 and 24 players.
 func (t *Tournament) StartTournament() error {
-	if len(t.Players) < 8 {
-		return fmt.Errorf("Tournament needs at least 8 players, got %s", t.Players)
+	ps := len(t.Players)
+	if ps < 8 {
+		return fmt.Errorf("Tournament needs at least 8 players, got %d", ps)
 	}
-	if len(t.Players) > 24 {
-		return fmt.Errorf("Tournament can only host 24 players, got %s", t.Players)
+	if ps > 24 {
+		return fmt.Errorf("Tournament can only host 24 players, got %d", ps)
 	}
 
 	// Generate tryouts and semis
