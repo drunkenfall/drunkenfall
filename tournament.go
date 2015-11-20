@@ -138,6 +138,16 @@ func (t *Tournament) MovePlayers(m *Match) error {
 			}
 		}
 	}
+
+	if m.Kind == "semi" {
+		// For the semis, just place the winner and silver into the finall
+		for i, p := range SortByKills(m.Players) {
+			if i < 2 {
+				t.Final.AddPlayer(p)
+			}
+		}
+	}
+
 	return nil
 }
 
