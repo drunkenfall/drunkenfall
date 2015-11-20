@@ -88,8 +88,15 @@ func (p *Player) RemoveSweep() {
 }
 
 // AddKill increases the kill count
-func (p *Player) AddKill() {
-	p.kills++
+func (p *Player) AddKill(kills ...int) {
+	// This is basically only to help out with testing.
+	// Adding an optional argument with the amount of kills lets us just use
+	// one call to AddKill() rather than 10.
+	if len(kills) > 0 {
+		p.kills += kills[0]
+	} else {
+		p.kills++
+	}
 }
 
 // RemoveKill decreases the kill count
