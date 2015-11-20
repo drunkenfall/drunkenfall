@@ -165,6 +165,18 @@ func (t *Tournament) NextMatch() (m Match, err error) {
 	return m, errors.New("all matches have been played")
 }
 
+// AwardMedals places the winning players in the Winners position
+func (t *Tournament) AwardMedals(m *Match) error {
+	if m.Kind != "final" {
+		return errors.New("awarding medals outside of the final")
+	}
+
+	ps := SortByKills(m.Players)
+	t.Winners = ps[0:3]
+
+	return nil
+}
+
 func main() {
 	fmt.Println("...and thus there was light.")
 }

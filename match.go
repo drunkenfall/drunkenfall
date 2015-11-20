@@ -58,8 +58,11 @@ func (m *Match) EndMatch() error {
 		return errors.New("match already ended")
 	}
 
-	m.tournament.MovePlayers(m)
-
+	if m.Kind == "final" {
+		m.tournament.AwardMedals(m)
+	} else {
+		m.tournament.MovePlayers(m)
+	}
 	m.Ended = time.Now()
 	return nil
 }
