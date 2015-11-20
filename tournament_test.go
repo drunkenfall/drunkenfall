@@ -21,6 +21,20 @@ func testTournament(count int) (t *Tournament) {
 	return
 }
 
+func endTryouts(t *Tournament) {
+	for x := range t.Tryouts {
+		t.Tryouts[x].StartMatch()
+		t.Tryouts[x].EndMatch()
+	}
+}
+
+func endSemis(t *Tournament) {
+	for x := range t.Semis {
+		t.Semis[x].StartMatch()
+		t.Semis[x].EndMatch()
+	}
+}
+
 func TestStartingTournamentWithFewerThan8PlayersFail(t *testing.T) {
 	assert := assert.New(t)
 	tm := testTournament(7)
@@ -131,4 +145,53 @@ func TestPopulateMatchesFillsAsMuchAsPossibleFor18Players(t *testing.T) {
 	assert.Equal(4, len(tm.Tryouts[3].Players))
 	assert.Equal(2, len(tm.Tryouts[4].Players))
 	assert.Equal(0, len(tm.Tryouts[5].Players))
+}
+
+func TestNextMatchNoMatchesAreStartedWithTryouts(t *testing.T) {
+	assert := assert.New(t)
+	tm := testTournament(16)
+	tm.StartTournament()
+
+	m, err := tm.NextMatch()
+	assert.Nil(err)
+	assert.Equal(1, m.Index)
+	assert.Equal("tryout", m.Kind)
+}
+
+func TestNextMatchNoMatchesAreStartedWithTryoutsDone(t *testing.T) {
+	assert := assert.New(t)
+	tm := testTournament(16)
+	tm.StartTournament()
+	endTryouts(tm)
+
+	m, err := tm.NextMatch()
+	assert.Nil(err)
+	assert.Equal(1, m.Index)
+	assert.Equal("semi", m.Kind)
+}
+
+func TestNextMatchNoMatchesAreStartedWithTryoutsAndSemisDone(t *testing.T) {
+	assert := assert.New(t)
+	tm := testTournament(16)
+	tm.StartTournament()
+	endTryouts(tm)
+	endSemis(tm)
+
+	m, err := tm.NextMatch()
+	assert.Nil(err)
+	assert.Equal(1, m.Index)
+	assert.Equal("final", m.Kind)
+}
+
+func TestNextMatchEverythingDone(t *testing.T) {
+	assert := assert.New(t)
+	tm := testTournament(16)
+	tm.StartTournament()
+	endTryouts(tm)
+	endSemis(tm)
+	tm.Final.StartMatch()
+	tm.Final.EndMatch()
+
+	_, err := tm.NextMatch()
+	assert.NotNil(err)
 }

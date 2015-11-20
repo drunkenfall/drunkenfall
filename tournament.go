@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"math/rand"
 	"time"
@@ -115,6 +116,30 @@ func (t *Tournament) PopulateMatches() error {
 	}
 
 	return nil
+}
+
+// NextMatch returns the next match
+func (t *Tournament) NextMatch() (m Match, err error) {
+	// Firstly, check the tryouts
+	for _, match := range t.Tryouts {
+		if !match.IsStarted() {
+			return match, nil
+		}
+	}
+
+	// If we don't have any tryouts, or there are no tryouts left,
+	// check the semis
+	for _, match := range t.Semis {
+		if !match.IsStarted() {
+			return match, nil
+		}
+	}
+
+	if !t.Final.IsStarted() {
+		return t.Final, nil
+	}
+
+	return m, errors.New("all matches have been played")
 }
 
 func main() {

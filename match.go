@@ -52,3 +52,8 @@ func (m *Match) EndMatch() error {
 	m.Ended = time.Now()
 	return nil
 }
+
+// IsStarted returns boolean whether the match has started or not
+func (m *Match) IsStarted() bool {
+	return !m.Started.IsZero()
+}
