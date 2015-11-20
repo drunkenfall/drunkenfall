@@ -7,19 +7,21 @@ import (
 
 // Match represents a game being played
 type Match struct {
-	Players []Player
-	Judges  []Judge
-	Kind    string
-	Index   int
-	Started time.Time
-	Ended   time.Time
+	Players    []Player
+	Judges     []Judge
+	Kind       string
+	Index      int
+	Started    time.Time
+	Ended      time.Time
+	tournament *Tournament
 }
 
 // NewMatch creates a new Match for usage!
-func NewMatch(index int, kind string) Match {
+func NewMatch(t *Tournament, index int, kind string) Match {
 	return Match{
-		Index: index,
-		Kind:  kind,
+		Index:      index,
+		Kind:       kind,
+		tournament: t,
 	}
 }
 

@@ -6,9 +6,13 @@ import (
 	"time"
 )
 
+// These tests do not care about the tournaments,
+// but the reference is required in NewMatch()
+var tm *Tournament
+
 func TestAddPlayer(t *testing.T) {
 	assert := assert.New(t)
-	m := NewMatch(1, "test")
+	m := NewMatch(tm, 1, "test")
 	p := Player{}
 
 	err := m.AddPlayer(p)
@@ -19,7 +23,7 @@ func TestAddPlayer(t *testing.T) {
 
 func TestAddFifthPlayer(t *testing.T) {
 	assert := assert.New(t)
-	m := NewMatch(1, "test")
+	m := NewMatch(tm, 1, "test")
 	m.Players = []Player{Player{}, Player{}, Player{}, Player{}}
 	p := Player{}
 
@@ -30,7 +34,7 @@ func TestAddFifthPlayer(t *testing.T) {
 
 func TestStartAlreadyStartedMatch(t *testing.T) {
 	assert := assert.New(t)
-	m := NewMatch(1, "test")
+	m := NewMatch(tm, 1, "test")
 	m.Started = time.Now()
 
 	err := m.StartMatch()
@@ -39,7 +43,7 @@ func TestStartAlreadyStartedMatch(t *testing.T) {
 
 func TestStartMatch(t *testing.T) {
 	assert := assert.New(t)
-	m := NewMatch(1, "test")
+	m := NewMatch(tm, 1, "test")
 
 	err := m.StartMatch()
 	assert.Nil(err)
@@ -48,7 +52,7 @@ func TestStartMatch(t *testing.T) {
 
 func TestEndAlreadyEndedMatch(t *testing.T) {
 	assert := assert.New(t)
-	m := NewMatch(1, "test")
+	m := NewMatch(tm, 1, "test")
 	m.Ended = time.Now()
 
 	err := m.EndMatch()
@@ -57,7 +61,7 @@ func TestEndAlreadyEndedMatch(t *testing.T) {
 
 func TestEndMatch(t *testing.T) {
 	assert := assert.New(t)
-	m := NewMatch(1, "test")
+	m := NewMatch(tm, 1, "test")
 
 	err := m.EndMatch()
 	assert.Nil(err)
