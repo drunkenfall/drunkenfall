@@ -166,6 +166,28 @@ func SortByScore(ps []Player) []Player {
 	return ps
 }
 
+// ByKills is a sort.Interface that sorts players by their kills
+type ByKills []Player
+
+func (s ByKills) Len() int {
+	return len(s)
+
+}
+func (s ByKills) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+
+}
+func (s ByKills) Less(i, j int) bool {
+	// Technically not Less, but we want biggest first...
+	return s[i].kills > s[j].kills
+}
+
+// SortByKills returns a list in order of the kills the players have
+func SortByKills(ps []Player) []Player {
+	sort.Sort(ByKills(ps))
+	return ps
+}
+
 // Judge is a Participant that has access to the judge functions
 type Judge struct {
 }
