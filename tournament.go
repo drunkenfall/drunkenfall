@@ -81,13 +81,13 @@ func (t *Tournament) GenerateMatches() error {
 	}
 
 	for i := 0; i < tryouts; i++ {
-		m := NewMatch(t, i+1, "tryout")
+		m := NewMatch(t, i, "tryout")
 		t.Tryouts = append(t.Tryouts, m)
 	}
 
 	// Right now there are only cases where we have two matches in the semis.
-	t.Semis = []Match{NewMatch(t, 1, "semi"), NewMatch(t, 2, "semi")}
-	t.Final = NewMatch(t, 1, "final")
+	t.Semis = []Match{NewMatch(t, 0, "semi"), NewMatch(t, 1, "semi")}
+	t.Final = NewMatch(t, 0, "final")
 
 	return nil
 }

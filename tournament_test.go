@@ -154,7 +154,7 @@ func TestNextMatchNoMatchesAreStartedWithTryouts(t *testing.T) {
 
 	m, err := tm.NextMatch()
 	assert.Nil(err)
-	assert.Equal(1, m.Index)
+	assert.Equal(0, m.Index)
 	assert.Equal("tryout", m.Kind)
 }
 
@@ -166,7 +166,7 @@ func TestNextMatchNoMatchesAreStartedWithTryoutsDone(t *testing.T) {
 
 	m, err := tm.NextMatch()
 	assert.Nil(err)
-	assert.Equal(1, m.Index)
+	assert.Equal(0, m.Index)
 	assert.Equal("semi", m.Kind)
 }
 
@@ -179,7 +179,7 @@ func TestNextMatchNoMatchesAreStartedWithTryoutsAndSemisDone(t *testing.T) {
 
 	m, err := tm.NextMatch()
 	assert.Nil(err)
-	assert.Equal(1, m.Index)
+	assert.Equal(0, m.Index)
 	assert.Equal("final", m.Kind)
 }
 
