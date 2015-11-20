@@ -142,24 +142,26 @@ func (t *Tournament) MovePlayers(m *Match) error {
 }
 
 // NextMatch returns the next match
-func (t *Tournament) NextMatch() (m Match, err error) {
+func (t *Tournament) NextMatch() (m *Match, err error) {
 	// Firstly, check the tryouts
-	for _, match := range t.Tryouts {
-		if !match.IsStarted() {
-			return match, nil
+	for x := range t.Tryouts {
+		m = &t.Tryouts[x]
+		if !m.IsEnded() {
+			return
 		}
 	}
 
 	// If we don't have any tryouts, or there are no tryouts left,
 	// check the semis
-	for _, match := range t.Semis {
-		if !match.IsStarted() {
-			return match, nil
+	for x := range t.Semis {
+		m = &t.Semis[x]
+		if !m.IsEnded() {
+			return
 		}
 	}
 
-	if !t.Final.IsStarted() {
-		return t.Final, nil
+	if !t.Final.IsEnded() {
+		return &t.Final, nil
 	}
 
 	return m, errors.New("all matches have been played")
