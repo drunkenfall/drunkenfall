@@ -41,6 +41,10 @@ func (m *Match) StartMatch() error {
 		return errors.New("match already started")
 	}
 
+	for i := range m.Players {
+		m.Players[i].Reset()
+	}
+
 	m.Started = time.Now()
 	return nil
 }

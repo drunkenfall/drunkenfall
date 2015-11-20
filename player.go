@@ -144,6 +144,17 @@ func (p *Player) RemoveExplosion() {
 	p.RemoveKill()
 }
 
+// Reset resets the stats on a Player to 0
+//
+// It is to be run in Match.StartMatch()
+func (p *Player) Reset() {
+	p.shots = 0
+	p.sweeps = 0
+	p.kills = 0
+	p.self = 0
+	p.explosions = 0
+}
+
 // ByScore is a sort.Interface that sorts players by their score
 type ByScore []Player
 
