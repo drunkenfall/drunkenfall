@@ -195,3 +195,29 @@ func TestNextMatchEverythingDone(t *testing.T) {
 	_, err := tm.NextMatch()
 	assert.NotNil(err)
 }
+
+func TestEndMatch4MatchTryoutsPlacesWinnerAndSecondIntoSemisAndRestIntoRunnerups(t *testing.T) {
+	assert := assert.New(t)
+	tm := testTournament(16)
+	tm.StartTournament()
+	m, err := tm.NextMatch()
+	assert.Nil(err)
+
+	m.StartMatch()
+
+	m.Players[0].AddKill(5)
+	m.Players[1].AddKill(6)
+	m.Players[2].AddKill(7)
+	m.Players[3].AddKill(10)
+	winner := m.Players[3].name
+	silver := m.Players[2].name
+
+	m.EndMatch()
+
+	assert.Equal(1, len(tm.Semis[0].Players))
+	assert.Equal(1, len(tm.Semis[1].Players))
+	assert.Equal(2, len(tm.Runnerups))
+
+	assert.Equal(winner, tm.Semis[0].Players[0].name)
+	assert.Equal(silver, tm.Semis[1].Players[0].name)
+}

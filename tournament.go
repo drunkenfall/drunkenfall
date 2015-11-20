@@ -10,6 +10,8 @@ import (
 // Tournament is the main container of data for this app.
 type Tournament struct {
 	Players     []Player
+	Winners     []Player
+	Runnerups   []Player
 	Judges      []Judge
 	Tryouts     []Match
 	Semis       []Match
@@ -115,6 +117,27 @@ func (t *Tournament) PopulateMatches() error {
 		t.Tryouts[x/4].AddPlayer(p)
 	}
 
+	return nil
+}
+
+// MovePlayers moves the winner(s) of a Match into the next bracket of matches
+// or into the Runnerup bracket.
+func (t *Tournament) MovePlayers(m *Match) error {
+	if m.Kind == "tryout" {
+		for i, p := range SortByKills(m.Players) {
+			// If we are in a four-match tryout, both the winner and the second-place
+			// are to be sent to the semis
+			if len(t.Tryouts) == 4 && i < 2 || i == 0 {
+				// This spreads the winners into the semis so that the winners do not
+				// face off immediately in the semis
+				index := (i + m.Index) % 2
+				t.Semis[index].AddPlayer(p)
+			} else {
+				// Everyone else are runnerups
+				t.Runnerups = append(t.Runnerups, p)
+			}
+		}
+	}
 	return nil
 }
 

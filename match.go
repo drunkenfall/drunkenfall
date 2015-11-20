@@ -46,10 +46,15 @@ func (m *Match) StartMatch() error {
 }
 
 // EndMatch signals that the match has ended
+//
+// It is also the place that moves players into either the Runnerup bracket
+// or into their place in the semis.
 func (m *Match) EndMatch() error {
 	if !m.Ended.IsZero() {
 		return errors.New("match already ended")
 	}
+
+	m.tournament.MovePlayers(m)
 
 	m.Ended = time.Now()
 	return nil
