@@ -9,13 +9,18 @@ import (
 type Match struct {
 	Players []Player
 	Judges  []Judge
+	Kind    string
+	Index   int
 	Started time.Time
 	Ended   time.Time
 }
 
 // NewMatch creates a new Match for usage!
-func NewMatch() Match {
-	return Match{}
+func NewMatch(index int, kind string) Match {
+	return Match{
+		Index: index,
+		Kind:  kind,
+	}
 }
 
 // AddPlayer adds a player to the match
