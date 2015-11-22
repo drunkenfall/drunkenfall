@@ -104,3 +104,8 @@ func (m *Match) EndMatch() error {
 func (m *Match) IsStarted() bool {
 	return !m.Started.IsZero()
 }
+
+// IsEnded returns boolean whether the match has ended or not
+func (m *Match) IsEnded() bool {
+	return !m.Ended.IsZero()
+}
