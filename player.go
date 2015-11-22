@@ -146,7 +146,7 @@ func (p *Player) RemoveExplosion() {
 
 // Reset resets the stats on a Player to 0
 //
-// It is to be run in Match.StartMatch()
+// It is to be run in Match.Start()
 func (p *Player) Reset() {
 	p.shots = 0
 	p.sweeps = 0

@@ -37,15 +37,15 @@ func TestStartAlreadyStartedMatch(t *testing.T) {
 	m := NewMatch(tm, 1, "test")
 	m.Started = time.Now()
 
-	err := m.StartMatch()
+	err := m.Start()
 	assert.NotNil(err)
 }
 
-func TestStartMatch(t *testing.T) {
+func TestStart(t *testing.T) {
 	assert := assert.New(t)
 	m := NewMatch(tm, 1, "test")
 
-	err := m.StartMatch()
+	err := m.Start()
 	assert.Nil(err)
 	assert.Equal(false, m.Started.IsZero())
 }
@@ -55,15 +55,15 @@ func TestEndAlreadyEndedMatch(t *testing.T) {
 	m := NewMatch(tm, 1, "test")
 	m.Ended = time.Now()
 
-	err := m.EndMatch()
+	err := m.End()
 	assert.NotNil(err)
 }
 
-func TestEndMatch(t *testing.T) {
+func TestEnd(t *testing.T) {
 	assert := assert.New(t)
 	m := NewMatch(tm, 1, "test")
 
-	err := m.EndMatch()
+	err := m.End()
 	assert.Nil(err)
 	assert.Equal(false, m.Ended.IsZero())
 }
@@ -85,7 +85,7 @@ func TestString(t *testing.T) {
 	m2.AddPlayer(Player{name: "b"})
 	m2.AddPlayer(Player{name: "c"})
 	m2.AddPlayer(Player{name: "d"})
-	m2.StartMatch()
+	m2.Start()
 	ret2 := m2.String()
 
 	assert.Equal("Final: a / b / c / d - playing", ret2)

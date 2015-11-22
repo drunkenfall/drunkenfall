@@ -68,8 +68,8 @@ func (m *Match) AddPlayer(p Player) error {
 	return nil
 }
 
-// StartMatch starts the match
-func (m *Match) StartMatch() error {
+// Start starts the match
+func (m *Match) Start() error {
 	if !m.Started.IsZero() {
 		return errors.New("match already started")
 	}
@@ -82,11 +82,11 @@ func (m *Match) StartMatch() error {
 	return nil
 }
 
-// EndMatch signals that the match has ended
+// End signals that the match has ended
 //
 // It is also the place that moves players into either the Runnerup bracket
 // or into their place in the semis.
-func (m *Match) EndMatch() error {
+func (m *Match) End() error {
 	if !m.Ended.IsZero() {
 		return errors.New("match already ended")
 	}
