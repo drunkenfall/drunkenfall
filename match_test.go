@@ -67,3 +67,26 @@ func TestEndMatch(t *testing.T) {
 	assert.Nil(err)
 	assert.Equal(false, m.Ended.IsZero())
 }
+
+func TestString(t *testing.T) {
+	assert := assert.New(t)
+
+	m := NewMatch(tm, 0, "test")
+	m.AddPlayer(Player{name: "1"})
+	m.AddPlayer(Player{name: "2"})
+	m.AddPlayer(Player{name: "3"})
+	m.AddPlayer(Player{name: "4"})
+	ret := m.String()
+
+	assert.Equal("Test 1: 1 / 2 / 3 / 4 - not started", ret)
+
+	m2 := NewMatch(tm, 0, "final")
+	m2.AddPlayer(Player{name: "a"})
+	m2.AddPlayer(Player{name: "b"})
+	m2.AddPlayer(Player{name: "c"})
+	m2.AddPlayer(Player{name: "d"})
+	m2.StartMatch()
+	ret2 := m2.String()
+
+	assert.Equal("Final: a / b / c / d - playing", ret2)
+}

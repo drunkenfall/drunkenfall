@@ -2,6 +2,8 @@ package main
 
 import (
 	"errors"
+	"fmt"
+	"strings"
 	"time"
 )
 
@@ -23,6 +25,37 @@ func NewMatch(t *Tournament, index int, kind string) Match {
 		Kind:       kind,
 		tournament: t,
 	}
+}
+
+func (m *Match) String() string {
+	var tempo string
+	var name string
+
+	if !m.IsStarted() {
+		tempo = "not started"
+	} else if m.IsEnded() {
+		tempo = "ended"
+	} else {
+		tempo = "playing"
+	}
+
+	if m.Kind == "final" {
+		name = "Final"
+	} else {
+		name = fmt.Sprintf("%s %d", strings.Title(m.Kind), m.Index+1)
+	}
+
+	names := make([]string, 0, len(m.Players))
+	for _, p := range m.Players {
+		names = append(names, p.name)
+	}
+
+	return fmt.Sprintf(
+		"%s: %s - %s",
+		name,
+		strings.Join(names, " / "),
+		tempo,
+	)
 }
 
 // AddPlayer adds a player to the match
