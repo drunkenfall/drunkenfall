@@ -9,7 +9,7 @@ import (
 
 // Tournament is the main container of data for this app.
 type Tournament struct {
-	Players     []Player
+	Players     map[string]Player
 	Winners     []Player
 	Runnerups   []Player
 	Judges      []Judge
@@ -28,6 +28,7 @@ func NewTournament() (*Tournament, error) {
 	t := Tournament{
 		Opened: time.Now(),
 	}
+	t.Players = make(map[string]Player)
 	return &t, nil
 }
 
@@ -96,8 +97,13 @@ func (t *Tournament) GenerateMatches() error {
 
 // PopulateMatches shuffles players into the matches
 func (t *Tournament) PopulateMatches() error {
-	// Make a copy of the players list and shuffle it
-	slice := t.Players
+	// Make a copy of the players map...
+	slice := make([]Player, 0, len(t.Players))
+	for _, p := range t.Players {
+		slice = append(slice, p)
+	}
+
+	// ...and shuffle it!
 	for i := range slice {
 		j := rand.Intn(i + 1)
 		slice[i], slice[j] = slice[j], slice[i]
@@ -118,6 +124,30 @@ func (t *Tournament) PopulateMatches() error {
 	}
 
 	return nil
+}
+
+// PopulateRunnerups fills a match with the runnerups with best scores
+func (t *Tournament) PopulateRunnerups(m *Match) error {
+	r, err := t.GetRunnerups()
+	if err != nil {
+		return err
+	}
+
+	for _, p := range r {
+		m.AddPlayer(p)
+		if len(m.Players) == 4 {
+			return nil
+		}
+	}
+
+	return errors.New("not enough runnerups to populate match")
+}
+
+// GetRunnerups gets the runnerups for this tournament
+//
+// The returned list is sorted descending by score.
+func (t *Tournament) GetRunnerups() (ps []Player, err error) {
+	return
 }
 
 // MovePlayers moves the winner(s) of a Match into the next bracket of matches
@@ -188,6 +218,18 @@ func (t *Tournament) AwardMedals(m *Match) error {
 
 	return nil
 }
+
+// // UpdatePlayers will update the scores for the player objects in the
+// // tournament roster.
+// func (t *Tournament) UpdatePlayers() error {
+// 	// Update with scores from the tryouts
+// 	for x := range t.Tryouts {
+// 		m := t.Tryouts[x]
+
+// 	}
+
+// 	return nil
+// }
 
 func main() {
 	fmt.Println("...and thus there was light.")

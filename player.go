@@ -155,6 +155,13 @@ func (p *Player) Reset() {
 	p.explosions = 0
 }
 
+// Update updates a player with the scores of another
+//
+// This is primarily used by the tournament score calculator
+func (p *Player) Update(other Player) error {
+	return nil
+}
+
 // ByScore is a sort.Interface that sorts players by their score
 type ByScore []Player
 

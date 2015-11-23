@@ -15,8 +15,9 @@ func testTournament(count int) (t *Tournament) {
 	}
 
 	for i := 1; i <= count; i++ {
-		p := Player{name: strconv.Itoa(i)}
-		t.Players = append(t.Players, p)
+		name := strconv.Itoa(i)
+		p := Player{name: name}
+		t.Players[name] = p
 	}
 	return
 }

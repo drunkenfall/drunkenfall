@@ -74,6 +74,12 @@ func (m *Match) Start() error {
 		return errors.New("match already started")
 	}
 
+	// If there are not four players in the match, we need to populate
+	// the match with runnerups from the tournament
+	if len(m.Players) != 4 {
+		m.tournament.PopulateRunnerups(m)
+	}
+
 	for i := range m.Players {
 		m.Players[i].Reset()
 	}
