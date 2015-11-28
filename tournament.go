@@ -178,21 +178,11 @@ func (t *Tournament) GetRunnerups(amount int) (ps []Player, err error) {
 	for _, r := range t.Runnerups {
 		p = append(p, *r)
 	}
-	bs := ByScore(p)
+	bs := ByRunnerup(p)
 	for i := 0; i < amount; i++ {
 		// Add the runnerup to the return list
 		runnerup := bs[i]
 		ps = append(ps, runnerup)
-
-		// Also remove the runnerup from the runnerup roster since they now
-		// have been added to a match
-		for j := 0; j < len(t.Runnerups); j++ {
-			r := t.Runnerups[j]
-			if r.name == runnerup.name {
-				t.Runnerups = append(t.Runnerups[:j], t.Runnerups[j+1:]...)
-				break
-			}
-		}
 	}
 
 	if len(ps) != amount {
@@ -237,7 +227,7 @@ func (t *Tournament) UpdatePlayers() error {
 // MovePlayers moves the winner(s) of a Match into the next bracket of matches
 // or into the Runnerup bracket.
 func (t *Tournament) MovePlayers(m *Match) error {
-	if m.Kind == "tryout" {
+	if m.Kind == "tryout" || m.Kind == "runnerup" {
 		for i, p := range SortByKills(m.Players) {
 			// If we are in a four-match tryout, both the winner and the second-place
 			// are to be sent to the semis
@@ -246,8 +236,21 @@ func (t *Tournament) MovePlayers(m *Match) error {
 				// face off immediately in the semis
 				index := (i + m.Index) % 2
 				t.Semis[index].AddPlayer(p)
-			} else {
-				// Everyone else are runnerups
+
+				// If the player is also inside of the runnerups, move them from the
+				//runnerup roster since they now have advanced to the finals. This
+				// only happens for players that win the runnerup rounds.
+				for j := 0; j < len(t.Runnerups); j++ {
+					r := t.Runnerups[j]
+					if r.name == p.name {
+						t.Runnerups = append(t.Runnerups[:j], t.Runnerups[j+1:]...)
+						break
+					}
+				}
+
+			} else if m.Kind == "tryout" {
+				// If we are not already inside a runnerup match, put the non-winners
+				// in the runnerup bracket.
 				t.Runnerups = append(t.Runnerups, &p)
 			}
 		}

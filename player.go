@@ -23,6 +23,8 @@ type Player struct {
 	kills      int
 	self       int
 	explosions int
+
+	matches int
 }
 
 // NewPlayer returns a new instance of a player
@@ -166,6 +168,7 @@ func (p *Player) Reset() {
 	p.kills = 0
 	p.self = 0
 	p.explosions = 0
+	p.matches = 0
 }
 
 // Update updates a player with the scores of another
@@ -177,6 +180,10 @@ func (p *Player) Update(other *Player) error {
 	p.kills += other.kills
 	p.self += other.self
 	p.explosions += other.explosions
+
+	// Every call to this method is per match. Count every call
+	// as if a match.
+	p.matches++
 
 	return nil
 }
@@ -222,6 +229,36 @@ func (s ByKills) Less(i, j int) bool {
 // SortByKills returns a list in order of the kills the players have
 func SortByKills(ps []Player) []Player {
 	sort.Sort(ByKills(ps))
+	return ps
+}
+
+// ByRunnerup is a sort.Interface that sorts players by their runnerup status
+//
+// This is almost exactly the same as score, but the number of matches a player
+// has played factors in, and players that have played less matches are sorted
+// favorably.
+type ByRunnerup []Player
+
+func (s ByRunnerup) Len() int {
+	return len(s)
+
+}
+func (s ByRunnerup) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+
+}
+func (s ByRunnerup) Less(i, j int) bool {
+	if s[i].matches == s[j].matches {
+		// Same as by kills
+		return s[i].kills > s[j].kills
+	}
+	// Lower is better - the ones that have not played should be at the top
+	return s[i].matches < s[j].matches
+}
+
+// SortByRunnerup returns a list in order of the kills the players have
+func SortByRunnerup(ps []Player) []Player {
+	sort.Sort(ByRunnerup(ps))
 	return ps
 }
 

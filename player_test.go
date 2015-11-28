@@ -209,3 +209,27 @@ func TestSortPlayers(t *testing.T) {
 	assert.Equal(7, ret[1].Score())
 	assert.Equal(2, ret[2].Score())
 }
+
+func TestSortRunnerups(t *testing.T) {
+	assert := assert.New(t)
+	p1 := NewPlayer() // 10 points, 1 match
+	p2 := NewPlayer() // 20 points, 2 matches
+	p3 := NewPlayer() // 16 points, 1 match
+
+	p1.kills = 5
+	p1.matches = 1
+	p1.name = "second"
+	p2.kills = 10
+	p2.matches = 2
+	p2.name = "last"
+	p3.kills = 8
+	p3.matches = 1
+	p3.name = "first"
+
+	ps := []Player{p1, p2, p3}
+	ret := SortByRunnerup(ps)
+
+	assert.Equal("first", ret[0].name)
+	assert.Equal("second", ret[1].name)
+	assert.Equal("last", ret[2].name)
+}
