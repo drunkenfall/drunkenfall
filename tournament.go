@@ -306,18 +306,6 @@ func (t *Tournament) AwardMedals(m *Match) error {
 	return nil
 }
 
-// // UpdatePlayers will update the scores for the player objects in the
-// // tournament roster.
-// func (t *Tournament) UpdatePlayers() error {
-// 	// Update with scores from the tryouts
-// 	for x := range t.Tryouts {
-// 		m := t.Tryouts[x]
-
-// 	}
-
-// 	return nil
-// }
-
 func main() {
 	fmt.Println("...and thus there was light.")
 }
