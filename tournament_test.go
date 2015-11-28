@@ -352,10 +352,6 @@ func TestEndComplete16PlayerTournamentKillsOnly(t *testing.T) {
 
 	m4.End()
 
-	for _, s := range t.Semis {
-		t.Log(len(s.Players))
-	}
-
 	assert.Equal(4, len(tm.Semis[0].Players))
 	assert.Equal(4, len(tm.Semis[1].Players))
 	assert.Equal(8, len(tm.Runnerups))
@@ -425,7 +421,6 @@ func TestEndComplete16PlayerTournamentKillsOnly(t *testing.T) {
 
 	f.End()
 
-	t.Log(tm.Winners)
 	assert.Equal(gold, tm.Winners[0].name)
 	assert.Equal(lowe, tm.Winners[1].name)
 	assert.Equal(bronze, tm.Winners[2].name)
@@ -607,7 +602,6 @@ func TestEndComplete19PlayerTournamentKillsOnly(t *testing.T) {
 
 	f.End()
 
-	t.Log(tm.Winners)
 	assert.Equal(gold, tm.Winners[0].name)
 	assert.Equal(lowe, tm.Winners[1].name)
 	assert.Equal(bronze, tm.Winners[2].name)
