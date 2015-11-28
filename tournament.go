@@ -9,9 +9,10 @@ import (
 
 // Tournament is the main container of data for this app.
 type Tournament struct {
-	Players     map[string]Player
-	Winners     []Player
-	Runnerups   []Player
+	Players     []Player
+	playerRef   map[string]*Player
+	Winners     []Player // TODO: Refactor to pointer
+	Runnerups   []*Player
 	Judges      []Judge
 	Tryouts     []Match
 	Semis       []Match
@@ -28,8 +29,16 @@ func NewTournament() (*Tournament, error) {
 	t := Tournament{
 		Opened: time.Now(),
 	}
-	t.Players = make(map[string]Player)
+	t.playerRef = make(map[string]*Player)
 	return &t, nil
+}
+
+// AddPlayer adds a player into the tournament
+func (t *Tournament) AddPlayer(name string) error {
+	p := Player{name: name}
+	t.Players = append(t.Players, p)
+	t.playerRef[name] = &p
+	return nil
 }
 
 // StartTournament will generate the tournament.
@@ -71,8 +80,11 @@ func (t *Tournament) StartTournament() error {
 // two matches with runnerups.
 func (t *Tournament) GenerateMatches() error {
 	var tryouts int
+	var kind string
 
-	switch len(t.Players) {
+	ps := len(t.Players)
+
+	switch ps {
 	case 8:
 		tryouts = 0
 	case 9, 10, 11, 12, 13, 14, 15, 16:
@@ -84,7 +96,15 @@ func (t *Tournament) GenerateMatches() error {
 	}
 
 	for i := 0; i < tryouts; i++ {
-		m := NewMatch(t, i, "tryout")
+		// Matches that contain only new players are tryouts
+		// Any match that contains replayers are runnerups
+		if (i+1)*4 < ps {
+			kind = "tryout"
+		} else {
+			kind = "runnerup"
+		}
+
+		m := NewMatch(t, i, kind)
 		t.Tryouts = append(t.Tryouts, m)
 	}
 
@@ -128,26 +148,90 @@ func (t *Tournament) PopulateMatches() error {
 
 // PopulateRunnerups fills a match with the runnerups with best scores
 func (t *Tournament) PopulateRunnerups(m *Match) error {
-	r, err := t.GetRunnerups()
+	c := 4 - len(m.Players)
+	r, err := t.GetRunnerups(c)
 	if err != nil {
 		return err
 	}
 
 	for _, p := range r {
 		m.AddPlayer(p)
-		if len(m.Players) == 4 {
-			return nil
-		}
 	}
 
-	return errors.New("not enough runnerups to populate match")
+	if len(m.Players) != 4 {
+		return errors.New("not enough runnerups to populate match")
+	}
+
+	return nil
 }
 
 // GetRunnerups gets the runnerups for this tournament
 //
 // The returned list is sorted descending by score.
-func (t *Tournament) GetRunnerups() (ps []Player, err error) {
+func (t *Tournament) GetRunnerups(amount int) (ps []Player, err error) {
+	err = t.UpdatePlayers()
+	if err != nil {
+		return
+	}
+
+	p := make([]Player, 0, len(t.Runnerups))
+	for _, r := range t.Runnerups {
+		p = append(p, *r)
+	}
+	bs := ByScore(p)
+	for i := 0; i < amount; i++ {
+		// Add the runnerup to the return list
+		runnerup := bs[i]
+		ps = append(ps, runnerup)
+
+		// Also remove the runnerup from the runnerup roster since they now
+		// have been added to a match
+		for j := 0; j < len(t.Runnerups); j++ {
+			r := t.Runnerups[j]
+			if r.name == runnerup.name {
+				t.Runnerups = append(t.Runnerups[:j], t.Runnerups[j+1:]...)
+				break
+			}
+		}
+	}
+
+	if len(ps) != amount {
+		return ps, errors.New("not enough players added")
+	}
 	return
+}
+
+// UpdatePlayers updates all the player objects with their scores from
+// all the matches they have participated in.
+func (t *Tournament) UpdatePlayers() error {
+	var tp *Player
+
+	// Make sure all players have their score reset to nothing
+	for _, p := range t.Players {
+		tp = t.playerRef[p.name]
+		tp.Reset()
+	}
+
+	for _, m := range t.Tryouts {
+		for _, p := range m.Players {
+			tp = t.playerRef[p.name]
+			tp.Update(&p)
+		}
+	}
+
+	for _, m := range t.Semis {
+		for _, p := range m.Players {
+			tp = t.playerRef[p.name]
+			tp.Update(&p)
+		}
+	}
+
+	for _, p := range t.Final.Players {
+		tp = t.playerRef[p.name]
+		tp.Update(&p)
+	}
+
+	return nil
 }
 
 // MovePlayers moves the winner(s) of a Match into the next bracket of matches
@@ -164,13 +248,13 @@ func (t *Tournament) MovePlayers(m *Match) error {
 				t.Semis[index].AddPlayer(p)
 			} else {
 				// Everyone else are runnerups
-				t.Runnerups = append(t.Runnerups, p)
+				t.Runnerups = append(t.Runnerups, &p)
 			}
 		}
 	}
 
 	if m.Kind == "semi" {
-		// For the semis, just place the winner and silver into the finall
+		// For the semis, just place the winner and silver into the final
 		for i, p := range SortByKills(m.Players) {
 			if i < 2 {
 				t.Final.AddPlayer(p)

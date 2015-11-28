@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"sort"
 )
 
@@ -28,6 +29,18 @@ type Player struct {
 func NewPlayer() Player {
 	p := Player{}
 	return p
+}
+
+func (p *Player) String() string {
+	return fmt.Sprintf(
+		"%s: %dsh %dsw %dk %ds %de",
+		p.name,
+		p.shots,
+		p.sweeps,
+		p.kills,
+		p.self,
+		p.explosions,
+	)
 }
 
 // Score calculates the score to determine runnerup positions.
@@ -158,7 +171,13 @@ func (p *Player) Reset() {
 // Update updates a player with the scores of another
 //
 // This is primarily used by the tournament score calculator
-func (p *Player) Update(other Player) error {
+func (p *Player) Update(other *Player) error {
+	p.shots += other.shots
+	p.sweeps += other.sweeps
+	p.kills += other.kills
+	p.self += other.self
+	p.explosions += other.explosions
+
 	return nil
 }
 

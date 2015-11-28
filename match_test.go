@@ -44,6 +44,12 @@ func TestStartAlreadyStartedMatch(t *testing.T) {
 func TestStart(t *testing.T) {
 	assert := assert.New(t)
 	m := NewMatch(tm, 1, "test")
+	m.Players = []Player{
+		Player{name: "1"},
+		Player{name: "2"},
+		Player{name: "3"},
+		Player{name: "4"},
+	}
 
 	err := m.Start()
 	assert.Nil(err)
