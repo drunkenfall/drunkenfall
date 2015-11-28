@@ -90,15 +90,13 @@ func (t *Tournament) GenerateMatches() error {
 	case 9, 10, 11, 12, 13, 14, 15, 16:
 		tryouts = 4
 	default:
-		// Six groups and one runnerup. Winners of groups and winner/second
-		// of runnerup goes to semis.
-		tryouts = 7
+		tryouts = 8
 	}
 
 	for i := 0; i < tryouts; i++ {
 		// Matches that contain only new players are tryouts
 		// Any match that contains replayers are runnerups
-		if (i+1)*4 < ps {
+		if (i+1)*4 <= ps {
 			kind = "tryout"
 		} else {
 			kind = "runnerup"

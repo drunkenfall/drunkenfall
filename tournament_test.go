@@ -93,14 +93,14 @@ func TestStartingTournamentParticipantsToMatches(t *testing.T) {
 	assertMatches(a, 14, 4, 2)
 	assertMatches(a, 15, 4, 2)
 	assertMatches(a, 16, 4, 2)
-	assertMatches(a, 17, 7, 2)
-	assertMatches(a, 18, 7, 2)
-	assertMatches(a, 19, 7, 2)
-	assertMatches(a, 20, 7, 2)
-	assertMatches(a, 21, 7, 2)
-	assertMatches(a, 22, 7, 2)
-	assertMatches(a, 23, 7, 2)
-	assertMatches(a, 24, 7, 2)
+	assertMatches(a, 17, 8, 2)
+	assertMatches(a, 18, 8, 2)
+	assertMatches(a, 19, 8, 2)
+	assertMatches(a, 20, 8, 2)
+	assertMatches(a, 21, 8, 2)
+	assertMatches(a, 22, 8, 2)
+	assertMatches(a, 23, 8, 2)
+	assertMatches(a, 24, 8, 2)
 }
 
 func TestPopulateMatchesPopulatesSemisFor8Players(t *testing.T) {
@@ -440,7 +440,7 @@ func TestEndComplete19PlayerTournamentKillsOnly(t *testing.T) {
 	tm := testTournament(19)
 	tm.StartTournament()
 
-	assert.Equal(7, len(tm.Tryouts))
+	assert.Equal(8, len(tm.Tryouts))
 
 	// Tryout 1
 	m, err := tm.NextMatch()
