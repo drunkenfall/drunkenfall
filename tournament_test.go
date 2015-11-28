@@ -520,11 +520,13 @@ func TestEndComplete19PlayerTournamentKillsOnly(t *testing.T) {
 	// Tryout 5 / Runnerup 1
 	m5, err5 := tm.NextMatch()
 	assert.Nil(err5)
-	assert.Equal("runnerup1", m5.Kind)
+	assert.Equal("runnerup", m5.Kind)
 
 	m5.Start()
+	// Given the 19 player match, there are 3 players that have yet to contend
+	// and therefore we need to pick one of the runnerups.
 	assert.Equal(4, len(m5.Players))
-	assert.Equal(11, len(tm.Runnerups))
+	assert.Equal(12, len(tm.Runnerups))
 
 	m5.Players[0].AddKill(8)
 	m5.Players[1].AddKill(7)
@@ -536,9 +538,82 @@ func TestEndComplete19PlayerTournamentKillsOnly(t *testing.T) {
 
 	assert.Equal(3, len(tm.Semis[0].Players))
 	assert.Equal(2, len(tm.Semis[1].Players))
-	assert.Equal(14, len(tm.Runnerups))
+	assert.Equal(11, len(tm.Runnerups))
 
 	assert.Equal(winner5, tm.Semis[0].Players[2].name)
+
+	// Tryout 6 / Runnerup 2
+	m6, err6 := tm.NextMatch()
+	assert.Nil(err6)
+	assert.Equal("runnerup", m6.Kind)
+
+	m6.Start()
+	// Given the 19 player match, there are no new players.
+	// As such, the backfill is completely from the runnerups
+	assert.Equal(4, len(m6.Players))
+	assert.Equal(11, len(tm.Runnerups))
+
+	m6.Players[0].AddKill(10)
+	m6.Players[1].AddKill(3)
+	m6.Players[2].AddKill(1)
+	m6.Players[3].AddKill(8)
+	winner6 := m6.Players[0].name
+
+	m6.End()
+
+	assert.Equal(3, len(tm.Semis[0].Players))
+	assert.Equal(3, len(tm.Semis[1].Players))
+	assert.Equal(10, len(tm.Runnerups))
+
+	assert.Equal(winner6, tm.Semis[0].Players[2].name)
+
+	// Tryout 7 / Runnerup 3
+	m7, err7 := tm.NextMatch()
+	assert.Nil(err7)
+	assert.Equal("runnerup", m7.Kind)
+
+	m7.Start()
+
+	assert.Equal(4, len(m7.Players))
+	assert.Equal(10, len(tm.Runnerups))
+
+	m7.Players[0].AddKill(7)
+	m7.Players[1].AddKill(9)
+	m7.Players[2].AddKill(10)
+	m7.Players[3].AddKill(8)
+	winner7 := m7.Players[2].name
+
+	m7.End()
+
+	assert.Equal(4, len(tm.Semis[0].Players))
+	assert.Equal(3, len(tm.Semis[1].Players))
+	assert.Equal(9, len(tm.Runnerups))
+
+	assert.Equal(winner7, tm.Semis[0].Players[3].name)
+
+	// Tryout 8 / Runnerup 4
+	m8, err8 := tm.NextMatch()
+	assert.Nil(err8)
+	assert.Equal("runnerup", m8.Kind)
+
+	m8.Start()
+
+	assert.Equal(4, len(m8.Players))
+	assert.Equal(9, len(tm.Runnerups))
+
+	m8.Players[0].AddKill(10)
+	m8.Players[1].AddKill(5)
+	m8.Players[2].AddKill(6)
+	m8.Players[3].AddKill(9)
+	winner8 := m8.Players[0].name
+
+	m8.End()
+
+	assert.Equal(4, len(tm.Semis[0].Players))
+	assert.Equal(4, len(tm.Semis[1].Players))
+	assert.Equal(8, len(tm.Runnerups))
+
+	assert.Equal(winner8, tm.Semis[1].Players[3].name)
 
 	// Semi 1
 	s1, serr1 := tm.NextMatch()
