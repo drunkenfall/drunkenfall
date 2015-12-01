@@ -310,7 +310,3 @@ func (t *Tournament) AwardMedals(m *Match) error {
 
 	return nil
 }
-
-func main() {
-	fmt.Println("...and thus there was light.")
-}
