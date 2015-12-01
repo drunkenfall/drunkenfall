@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math/rand"
@@ -9,17 +10,17 @@ import (
 
 // Tournament is the main container of data for this app.
 type Tournament struct {
-	Players     []Player
+	Players     []Player  `json:"players"`
+	Winners     []Player  `json:"winners"` // TODO: Refactor to pointer
+	Runnerups   []*Player `json:"runnerups"`
+	Judges      []Judge   `json:"judges"`
+	Tryouts     []Match   `json:"tryouts"`
+	Semis       []Match   `json:"semis"`
+	Final       Match     `json:"final"`
+	Opened      time.Time `json:"opened"`
+	Started     time.Time `json:"started"`
+	Ended       time.Time `json:"ended"`
 	playerRef   map[string]*Player
-	Winners     []Player // TODO: Refactor to pointer
-	Runnerups   []*Player
-	Judges      []Judge
-	Tryouts     []Match
-	Semis       []Match
-	Final       Match
-	Opened      time.Time
-	Started     time.Time
-	Ended       time.Time
 	length      int
 	finalLength int
 }
@@ -33,9 +34,15 @@ func NewTournament() (*Tournament, error) {
 	return &t, nil
 }
 
+// JSON returns a JSON representation of the Tournament
+func (t *Tournament) JSON() (out []byte, err error) {
+	out, err = json.Marshal(t)
+	return
+}
+
 // AddPlayer adds a player into the tournament
 func (t *Tournament) AddPlayer(name string) error {
-	p := Player{name: name}
+	p := Player{Name: name}
 	t.Players = append(t.Players, p)
 	t.playerRef[name] = &p
 	return nil
@@ -196,26 +203,26 @@ func (t *Tournament) UpdatePlayers() error {
 
 	// Make sure all players have their score reset to nothing
 	for _, p := range t.Players {
-		tp = t.playerRef[p.name]
+		tp = t.playerRef[p.Name]
 		tp.Reset()
 	}
 
 	for _, m := range t.Tryouts {
 		for _, p := range m.Players {
-			tp = t.playerRef[p.name]
+			tp = t.playerRef[p.Name]
 			tp.Update(&p)
 		}
 	}
 
 	for _, m := range t.Semis {
 		for _, p := range m.Players {
-			tp = t.playerRef[p.name]
+			tp = t.playerRef[p.Name]
 			tp.Update(&p)
 		}
 	}
 
 	for _, p := range t.Final.Players {
-		tp = t.playerRef[p.name]
+		tp = t.playerRef[p.Name]
 		tp.Update(&p)
 	}
 
@@ -240,7 +247,7 @@ func (t *Tournament) MovePlayers(m *Match) error {
 				// only happens for players that win the runnerup rounds.
 				for j := 0; j < len(t.Runnerups); j++ {
 					r := t.Runnerups[j]
-					if r.name == p.name {
+					if r.Name == p.Name {
 						t.Runnerups = append(t.Runnerups[:j], t.Runnerups[j+1:]...)
 						break
 					}

@@ -9,12 +9,12 @@ import (
 
 // Match represents a game being played
 type Match struct {
-	Players    []Player
-	Judges     []Judge
-	Kind       string
-	Index      int
-	Started    time.Time
-	Ended      time.Time
+	Players    []Player  `json:"players"`
+	Judges     []Judge   `json:"judges"`
+	Kind       string    `json:"kind"`
+	Index      int       `json:"index"`
+	Started    time.Time `json:"started"`
+	Ended      time.Time `json:"ended"`
 	tournament *Tournament
 }
 
@@ -47,7 +47,7 @@ func (m *Match) String() string {
 
 	names := make([]string, 0, len(m.Players))
 	for _, p := range m.Players {
-		names = append(names, p.name)
+		names = append(names, p.Name)
 	}
 
 	return fmt.Sprintf(

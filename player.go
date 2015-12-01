@@ -8,23 +8,18 @@ import (
 // Participant someone having a role in the tournament
 type Participant interface {
 	ID() string
-	Name() string
-	// Matches returns three integers - matches participated, matches won, matches judged.
-	Matches() [3]int
 }
 
 // Player is a Participant that is actively participating in battles.
 type Player struct {
-	name           string
-	preferredColor string
-
-	shots      int
-	sweeps     int
-	kills      int
-	self       int
-	explosions int
-
-	matches int
+	Name           string `json:"name"`
+	PreferredColor string `json:"preferred_color"`
+	Shots          int    `json:"shots"`
+	Sweeps         int    `json:"sweeps"`
+	Kills          int    `json:"kills"`
+	Self           int    `json:"self"`
+	Explosions     int    `json:"explosions"`
+	Matches        int    `json:"matches"`
 }
 
 // NewPlayer returns a new instance of a player
@@ -36,12 +31,12 @@ func NewPlayer() Player {
 func (p *Player) String() string {
 	return fmt.Sprintf(
 		"%s: %dsh %dsw %dk %ds %de",
-		p.name,
-		p.shots,
-		p.sweeps,
-		p.kills,
-		p.self,
-		p.explosions,
+		p.Name,
+		p.Shots,
+		p.Sweeps,
+		p.Kills,
+		p.Self,
+		p.Explosions,
 	)
 }
 
@@ -52,37 +47,37 @@ func (p *Player) Score() (out int) {
 	// When executed, a sweep is basically 11 points since scoring a sweep
 	// also comes with a shot and three kills.
 
-	out += p.sweeps * 5
-	out += p.shots * 3
-	out += p.kills * 2
-	out += p.self
-	out += p.explosions
+	out += p.Sweeps * 5
+	out += p.Shots * 3
+	out += p.Kills * 2
+	out += p.Self
+	out += p.Explosions
 
 	return
 }
 
 // Color returns the color that the player prefers.
 func (p *Player) Color() string {
-	return p.preferredColor
+	return p.PreferredColor
 }
 
 // AddShot increases the shot count
 func (p *Player) AddShot() {
-	p.shots++
+	p.Shots++
 }
 
 // RemoveShot decreases the shot count
 // Fails silently if shots are zero.
 func (p *Player) RemoveShot() {
-	if p.shots == 0 {
+	if p.Shots == 0 {
 		return
 	}
-	p.shots--
+	p.Shots--
 }
 
 // AddSweep increases the sweep count, gives three kills and a shot.
 func (p *Player) AddSweep() {
-	p.sweeps++
+	p.Sweeps++
 	p.AddShot()
 	p.AddKill()
 	p.AddKill()
@@ -92,10 +87,10 @@ func (p *Player) AddSweep() {
 // RemoveSweep decreases the sweep count, three kills and a shot
 // Fails silently if sweeps are zero.
 func (p *Player) RemoveSweep() {
-	if p.sweeps == 0 {
+	if p.Sweeps == 0 {
 		return
 	}
-	p.sweeps--
+	p.Sweeps--
 	p.RemoveShot()
 	p.RemoveKill()
 	p.RemoveKill()
@@ -108,24 +103,24 @@ func (p *Player) AddKill(kills ...int) {
 	// Adding an optional argument with the amount of kills lets us just use
 	// one call to AddKill() rather than 10.
 	if len(kills) > 0 {
-		p.kills += kills[0]
+		p.Kills += kills[0]
 	} else {
-		p.kills++
+		p.Kills++
 	}
 }
 
 // RemoveKill decreases the kill count
 // Fails silently if kills are zero.
 func (p *Player) RemoveKill() {
-	if p.kills == 0 {
+	if p.Kills == 0 {
 		return
 	}
-	p.kills--
+	p.Kills--
 }
 
 // AddSelf increases the self count, decreases the kill, and gives a shot
 func (p *Player) AddSelf() {
-	p.self++
+	p.Self++
 	p.RemoveKill()
 	p.AddShot()
 }
@@ -133,28 +128,28 @@ func (p *Player) AddSelf() {
 // RemoveSelf decreases the self count and a shot
 // Fails silently if selfs are zero.
 func (p *Player) RemoveSelf() {
-	if p.self == 0 {
+	if p.Self == 0 {
 		return
 	}
-	p.self--
+	p.Self--
 	p.AddKill()
 	p.RemoveShot()
 }
 
 // AddExplosion increases the explosion count, the kill count and gives a shot
 func (p *Player) AddExplosion() {
-	p.explosions++
+	p.Explosions++
 	p.AddShot()
 	p.AddKill()
 }
 
 // RemoveExplosion decreases the explosion count, a shot and a kill
-// Fails silently if explosions are zero.
+// Fails silently if Explosions are zero.
 func (p *Player) RemoveExplosion() {
-	if p.explosions == 0 {
+	if p.Explosions == 0 {
 		return
 	}
-	p.explosions--
+	p.Explosions--
 	p.RemoveShot()
 	p.RemoveKill()
 }
@@ -163,27 +158,27 @@ func (p *Player) RemoveExplosion() {
 //
 // It is to be run in Match.Start()
 func (p *Player) Reset() {
-	p.shots = 0
-	p.sweeps = 0
-	p.kills = 0
-	p.self = 0
-	p.explosions = 0
-	p.matches = 0
+	p.Shots = 0
+	p.Sweeps = 0
+	p.Kills = 0
+	p.Self = 0
+	p.Explosions = 0
+	p.Matches = 0
 }
 
 // Update updates a player with the scores of another
 //
 // This is primarily used by the tournament score calculator
 func (p *Player) Update(other *Player) error {
-	p.shots += other.shots
-	p.sweeps += other.sweeps
-	p.kills += other.kills
-	p.self += other.self
-	p.explosions += other.explosions
+	p.Shots += other.Shots
+	p.Sweeps += other.Sweeps
+	p.Kills += other.Kills
+	p.Self += other.Self
+	p.Explosions += other.Explosions
 
 	// Every call to this method is per match. Count every call
 	// as if a match.
-	p.matches++
+	p.Matches++
 
 	return nil
 }
@@ -223,7 +218,7 @@ func (s ByKills) Swap(i, j int) {
 }
 func (s ByKills) Less(i, j int) bool {
 	// Technically not Less, but we want biggest first...
-	return s[i].kills > s[j].kills
+	return s[i].Kills > s[j].Kills
 }
 
 // SortByKills returns a list in order of the kills the players have
@@ -248,12 +243,12 @@ func (s ByRunnerup) Swap(i, j int) {
 
 }
 func (s ByRunnerup) Less(i, j int) bool {
-	if s[i].matches == s[j].matches {
+	if s[i].Matches == s[j].Matches {
 		// Same as by kills
-		return s[i].kills > s[j].kills
+		return s[i].Kills > s[j].Kills
 	}
 	// Lower is better - the ones that have not played should be at the top
-	return s[i].matches < s[j].matches
+	return s[i].Matches < s[j].Matches
 }
 
 // SortByRunnerup returns a list in order of the kills the players have
