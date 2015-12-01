@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -15,7 +16,9 @@ import (
 // If authenticated and a tournament is running, show that tournament.
 // If authenticated and no tournament is running, show a list of tournaments.
 func StartHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Let the mayhem begin.\n")
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	f, _ := ioutil.ReadFile("html/index.html")
+	fmt.Fprint(w, string(f))
 }
 
 // TournamentHandler shows the tournament view and handles tournaments
@@ -33,7 +36,8 @@ func ActionHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Arrows were fired, archers were killed, and shots were had.\n")
 }
 
-func main() {
+// BuildRouter sets up the routes
+func BuildRouter() http.Handler {
 	r := mux.NewRouter()
 
 	r.HandleFunc("/", StartHandler)
@@ -41,6 +45,11 @@ func main() {
 	r.HandleFunc("/{id}/{kind:(tryout|runnerup|semi|final)}/{index:[0-9]+}/", MatchHandler)
 	r.HandleFunc("/{id}/{kind:(tryout|runnerup|semi|final)}/{index:[0-9]+}/{player:[0-3]}", ActionHandler)
 
+	return r
+}
+
+func main() {
+	r := BuildRouter()
 	http.Handle("/", r)
 
 	log.Print("Listening on :3420")
