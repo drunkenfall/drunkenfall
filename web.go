@@ -17,7 +17,7 @@ import (
 // If authenticated and no tournament is running, show a list of tournaments.
 func StartHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	f, _ := ioutil.ReadFile("html/index.html")
+	f, _ := ioutil.ReadFile("static/index.html")
 	fmt.Fprint(w, string(f))
 }
 
@@ -40,6 +40,7 @@ func ActionHandler(w http.ResponseWriter, r *http.Request) {
 func BuildRouter() http.Handler {
 	r := mux.NewRouter()
 
+	r.PathPrefix("/static/").Handler(http.FileServer(http.Dir("/static")))
 	r.HandleFunc("/", StartHandler)
 	r.HandleFunc("/{id}/", TournamentHandler)
 	r.HandleFunc("/{id}/{kind:(tryout|runnerup|semi|final)}/{index:[0-9]+}/", MatchHandler)
