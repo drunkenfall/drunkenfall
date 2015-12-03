@@ -10,6 +10,8 @@ import (
 
 // Tournament is the main container of data for this app.
 type Tournament struct {
+	Name        string    `json:"name"`
+	ID          string    `json:"id"`
 	Players     []Player  `json:"players"`
 	Winners     []Player  `json:"winners"` // TODO: Refactor to pointer
 	Runnerups   []*Player `json:"runnerups"`
@@ -26,8 +28,10 @@ type Tournament struct {
 }
 
 // NewTournament returns a completely new Tournament
-func NewTournament() (*Tournament, error) {
+func NewTournament(name, id string) (*Tournament, error) {
 	t := Tournament{
+		Name:   name,
+		ID:     id,
 		Opened: time.Now(),
 	}
 	t.playerRef = make(map[string]*Player)
