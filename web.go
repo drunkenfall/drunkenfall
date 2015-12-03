@@ -40,7 +40,6 @@ func ActionHandler(w http.ResponseWriter, r *http.Request) {
 func BuildRouter() http.Handler {
 	r := mux.NewRouter()
 
-	r.PathPrefix("/static/").Handler(http.FileServer(http.Dir("/static")))
 	r.HandleFunc("/", StartHandler)
 	r.HandleFunc("/{id}/", TournamentHandler)
 	r.HandleFunc("/{id}/{kind:(tryout|runnerup|semi|final)}/{index:[0-9]+}/", MatchHandler)
