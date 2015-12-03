@@ -23,19 +23,42 @@ type Tournament struct {
 	Started     time.Time `json:"started"`
 	Ended       time.Time `json:"ended"`
 	playerRef   map[string]*Player
+	db          *Database
 	length      int
 	finalLength int
 }
 
 // NewTournament returns a completely new Tournament
-func NewTournament(name, id string) (*Tournament, error) {
+func NewTournament(name, id string, db *Database) (*Tournament, error) {
 	t := Tournament{
 		Name:   name,
 		ID:     id,
 		Opened: time.Now(),
+		db:     db,
 	}
 	t.playerRef = make(map[string]*Player)
+	t.Persist()
 	return &t, nil
+}
+
+// LoadTournament loads a tournament from persisted JSON data
+func LoadTournament(data []byte) (t *Tournament, e error) {
+	err := json.Unmarshal(data, t)
+	if err != nil {
+		return t, err
+	}
+
+	t.playerRef = make(map[string]*Player)
+	return
+}
+
+// Persist tells the database to save this tournament to disk
+func (t *Tournament) Persist() error {
+	if t.db == nil {
+		// This might happen in tests.
+		return errors.New("no database instantiated")
+	}
+	return t.db.Persist(t)
 }
 
 // JSON returns a JSON representation of the Tournament

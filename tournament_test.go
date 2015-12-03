@@ -10,7 +10,8 @@ import (
 // testTournament makes a test tournament with `count` players.
 func testTournament(count int) (t *Tournament) {
 	s := strconv.Itoa(count)
-	t, err := NewTournament("Tournament "+s, s)
+	db := MockDatabase()
+	t, err := NewTournament("Tournament "+s, s, db)
 	if err != nil {
 		log.Fatal("tournament creation failed")
 	}
@@ -208,7 +209,7 @@ func TestNextMatchEverythingDone(t *testing.T) {
 
 func TestUpdatePlayer(t *testing.T) {
 	assert := assert.New(t)
-	tm, _ := NewTournament("player test", "test")
+	tm, _ := NewTournament("player test", "test", nil)
 	tm.AddPlayer("winner")
 	tm.AddPlayer("loser1")
 	tm.AddPlayer("loser2")

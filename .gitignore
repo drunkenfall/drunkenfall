@@ -2,3 +2,5 @@
 /match
 /*.test
 /*.out
+/test/*
+*.db
