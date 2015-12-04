@@ -1,4 +1,61 @@
 body, html {
-    background-color: #222229;
+    background-color: #333340;
     color: #dbdbdb;
+    font-family: 'Yanone Kaffeesatz', sans-serif;
+    /* font-family: 'Droid Sans', sans-serif; */
+}
+.clear {
+    clear: both;
+}
+
+h1 {
+    text-align: center;
+}
+
+.tournament {
+    position: relative;
+}
+
+.tryouts, .semis, .final {
+    width: 30%;
+    float: left;
+    margin-left: 3%;
+    position: relative;
+}
+
+.category h3 {
+    text-align: center;
+    font-size: 200%;
+    margin: 4%;
+}
+
+/* .semis .matches { */
+/*     top: 50%; */
+/*     transform: translateY(50%); */
+/* } */
+
+/* .final .matches { */
+/*     top: 150%; */
+/*     transform: translateY(150%); */
+/* } */
+
+.match {
+    height: 4em;
+    width: 100%;
+    font-size: 150%;
+}
+.match .player {
+    float: left;
+    width: 50%;
+    height: 40%;
+    line-height: 120%;
+    text-align: center;
+}
+.match .player:nth-child(1) {background-color: #445566;}
+.match .player:nth-child(2) {background-color: #665544;}
+.match .player:nth-child(3) {background-color: #446655;}
+.match .player:nth-child(4) {background-color: #774455;}
+.match .player p.name {
+    font-weight: bold;
+    margin: 2px 5px;
 }
