@@ -26,7 +26,30 @@ func NewDatabase(fn string) (*Database, error) {
 
 	db := &Database{DB: bolt}
 
+	err = db.LoadTournaments()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	return db, nil
+}
+
+// LoadTournaments loads the tournaments from the database and into memory
+func (d *Database) LoadTournaments() error {
+	err := d.DB.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket(TournamentKey)
+		err := b.ForEach(func(k []byte, v []byte) error {
+			t, err := LoadTournament(v)
+			if err != nil {
+				return err
+			}
+			d.Tournaments = append(d.Tournaments, t)
+			return nil
+		})
+		return err
+	})
+
+	return err
 }
 
 // Persist stores the current state of the tournaments into the db
