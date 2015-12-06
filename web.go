@@ -34,19 +34,14 @@ func NewServer(db *Database) *Server {
 // If authenticated and a tournament is running, show that tournament.
 // If authenticated and no tournament is running, show a list of tournaments.
 func (s *Server) StartHandler(w http.ResponseWriter, r *http.Request) {
-	t, err := template.ParseFiles("static/tournaments.html", "static/index.html")
-	if err != nil {
-		log.Fatal(err)
-	}
-
+	t := getTemplates("static/tournaments.html")
 	data := struct {
 		Tournaments []*Tournament
 	}{
 		s.DB.Tournaments,
 	}
 
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	t.ExecuteTemplate(w, "base", data)
+	render(t, w, r, data)
 }
 
 // NewHandler shows the page to create a new tournament
@@ -62,13 +57,8 @@ func (s *Server) NewHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Elsewise, show the GUI
-	t, err := template.ParseFiles("static/new.html", "static/index.html")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	t.ExecuteTemplate(w, "base", nil)
+	t := getTemplates("static/new.html")
+	render(t, w, r, struct{}{})
 }
 
 // TournamentHandler shows the tournament view and handles tournaments
@@ -103,6 +93,24 @@ func (s *Server) BuildRouter() http.Handler {
 func (s *Server) Serve() error {
 	log.Print("Listening on :3420")
 	return http.ListenAndServe(":3420", s.logger)
+}
+
+// getTemplates gets a template with the context set to `extra`, with index.html backing it.
+func getTemplates(extra string) *template.Template {
+	t, err := template.ParseFiles(extra, "static/index.html")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return t
+}
+
+func render(t *template.Template, w http.ResponseWriter, r *http.Request, data interface{}) {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	err := t.ExecuteTemplate(w, "base", data)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func main() {
