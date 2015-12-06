@@ -34,6 +34,21 @@ func NewServer(db *Database) *Server {
 // If authenticated and a tournament is running, show that tournament.
 // If authenticated and no tournament is running, show a list of tournaments.
 func (s *Server) StartHandler(w http.ResponseWriter, r *http.Request) {
+	t, err := template.ParseFiles("static/tournaments.html", "static/index.html")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	data := struct {
+		Tournaments []*Tournament
+	}{
+		s.DB.Tournaments,
+	}
+
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	t.ExecuteTemplate(w, "base", data)
+}
+
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	f, _ := ioutil.ReadFile("static/index.html")
 	fmt.Fprint(w, string(f))

@@ -10,7 +10,8 @@ import (
 )
 
 func testServer() *httptest.Server {
-	s := NewServer(nil)
+	db := MockDatabase()
+	s := NewServer(db)
 	r := s.BuildRouter()
 	return httptest.NewServer(r)
 }
