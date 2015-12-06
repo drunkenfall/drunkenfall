@@ -183,6 +183,11 @@ func (p *Player) Update(other *Player) error {
 	return nil
 }
 
+// HTML renders the HTML of a player
+func (p *Player) HTML() (out string) {
+	return
+}
+
 // ByScore is a sort.Interface that sorts players by their score
 type ByScore []Player
 
