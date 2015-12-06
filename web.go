@@ -104,8 +104,9 @@ func (s *Server) Serve() error {
 }
 
 // getTemplates gets a template with the context set to `extra`, with index.html backing it.
-func getTemplates(extra string) *template.Template {
-	t, err := template.ParseFiles(extra, "static/index.html")
+func getTemplates(items ...string) *template.Template {
+	items = append(items, "static/index.html")
+	t, err := template.ParseFiles(items...)
 	if err != nil {
 		log.Fatal(err)
 	}
