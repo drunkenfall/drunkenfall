@@ -63,7 +63,15 @@ func (s *Server) NewHandler(w http.ResponseWriter, r *http.Request) {
 
 // TournamentHandler shows the tournament view and handles tournaments
 func (s *Server) TournamentHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Tournaments were had.\n")
+	t := getTemplates("static/tournament.html", "static/match.html")
+	vars := mux.Vars(r)
+	data := struct {
+		Tournament *Tournament
+	}{
+		s.DB.tournamentRef[vars["id"]],
+	}
+
+	render(t, w, r, data)
 }
 
 // MatchHandler shows the Match view and handles Matches
