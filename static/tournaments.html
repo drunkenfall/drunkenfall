@@ -1,0 +1,12 @@
+{{define "main"}}
+
+<img id="banner" alt="Drunken Towerfall" src="/static/dtf.jpg"/>
+{{range .Tournaments}}
+<div class="tournaments">
+  <a href="/{{.ID}}/">
+    {{.Name}}
+  </a>
+</div>
+{{end}}
+
+{{end}}
