@@ -25,6 +25,7 @@ func NewDatabase(fn string) (*Database, error) {
 	}
 
 	db := &Database{DB: bolt}
+	db.tournamentRef = make(map[string]*Tournament)
 
 	err = db.LoadTournaments()
 	if err != nil {
@@ -38,12 +39,21 @@ func NewDatabase(fn string) (*Database, error) {
 func (d *Database) LoadTournaments() error {
 	err := d.DB.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket(TournamentKey)
+		if b == nil {
+			// If there is no bucket, bail silently.
+			// This only really happens in tests.
+			// TODO: Fix pls
+			return nil
+		}
+
 		err := b.ForEach(func(k []byte, v []byte) error {
 			t, err := LoadTournament(v)
 			if err != nil {
 				return err
 			}
+
 			d.Tournaments = append(d.Tournaments, t)
+			d.tournamentRef[t.ID] = t
 			return nil
 		})
 		return err
