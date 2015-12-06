@@ -43,6 +43,7 @@ func NewTournament(name, id string, db *Database) (*Tournament, error) {
 
 // LoadTournament loads a tournament from persisted JSON data
 func LoadTournament(data []byte) (t *Tournament, e error) {
+	t = &Tournament{}
 	err := json.Unmarshal(data, t)
 	if err != nil {
 		return t, err
