@@ -25,5 +25,5 @@ func TestServeIndexHtml(t *testing.T) {
 	html, err := ioutil.ReadAll(res.Body)
 	res.Body.Close()
 	assert.Nil(err)
-	assert.True(strings.HasPrefix(string(html), "<!doctype html>"))
+	assert.True(strings.Contains(string(html), "<!doctype html>"))
 }
