@@ -13,18 +13,23 @@ var tm *Tournament
 func TestAddPlayer(t *testing.T) {
 	assert := assert.New(t)
 	m := NewMatch(tm, 1, "test")
-	p := Player{}
+
+	assert.Equal(4, len(m.Players))
+	assert.Equal(0, m.ActualPlayers())
+
+	p := Player{Name: "I exist"}
 
 	err := m.AddPlayer(p)
 	assert.Nil(err)
 
-	assert.Equal(1, len(m.Players))
+	assert.Equal(1, m.ActualPlayers())
 }
 
 func TestAddFifthPlayer(t *testing.T) {
 	assert := assert.New(t)
 	m := NewMatch(tm, 1, "test")
-	m.Players = []Player{Player{}, Player{}, Player{}, Player{}}
+
+	m.Players = []Player{Player{Name: "a"}, Player{Name: "b"}, Player{Name: "c"}, Player{Name: "d"}}
 	p := Player{}
 
 	err := m.AddPlayer(p)
