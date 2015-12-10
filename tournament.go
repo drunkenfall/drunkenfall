@@ -36,6 +36,19 @@ func NewTournament(name, id string, db *Database) (*Tournament, error) {
 		Opened: time.Now(),
 		db:     db,
 	}
+
+	// No matches yet - add four
+	for i := 0; i < 4; i++ {
+		match := NewMatch(&t, i, "tryout")
+		t.Tryouts = append(t.Tryouts, match)
+	}
+
+	t.Semis = []*Match{NewMatch(&t, 0, "semi"), NewMatch(&t, 1, "semi")}
+	t.Semis[0].Prefill()
+	t.Semis[1].Prefill()
+	t.Final = NewMatch(&t, 0, "final")
+	t.Final.Prefill()
+
 	t.playerRef = make(map[string]*Player)
 	t.Persist()
 	return &t, nil
@@ -85,13 +98,7 @@ func (t *Tournament) AddPlayer(name string) error {
 
 	ts := len(t.Tryouts)
 	ps := len(t.Players)
-	if ts == 0 {
-		// No matches yet - add four
-		for i := 0; i < 4; i++ {
-			match := NewMatch(t, i, "tryout")
-			t.Tryouts = append(t.Tryouts, match)
-		}
-	} else if ts == 4 && ps == 17 {
+	if ts == 4 && ps == 17 {
 		// More than 16 players - add four more matches
 		for i := 0; i < 4; i++ {
 			match := NewMatch(t, i+4, "tryout")
@@ -99,16 +106,6 @@ func (t *Tournament) AddPlayer(name string) error {
 		}
 	}
 
-	// Right now there are only cases where we have two matches in the semis.
-	if len(t.Semis) == 0 {
-		t.Semis = []*Match{NewMatch(t, 0, "semi"), NewMatch(t, 1, "semi")}
-		t.Semis[0].Prefill()
-		t.Semis[1].Prefill()
-	}
-	if t.Final == nil {
-		t.Final = NewMatch(t, 0, "final")
-		t.Final.Prefill()
-	}
 	t.ShufflePlayers()
 	t.Persist() // TODO: Error handling
 
