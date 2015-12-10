@@ -76,6 +76,10 @@ h1 {
     height: 4em;
     width: 100%;
     font-size: 150%;
+    display: block;
+}
+a:visited {
+    color: inherit;
 }
 .match .player {
     float: left;
