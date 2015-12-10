@@ -1,11 +1,7 @@
 {{define "match"}}
-<div id="match-{{.Kind}}-{{.Index}}" class="match {{.Kind}}">
+<div id="{{.Kind}}-{{.Index}}" class="match {{.Kind}}">
   {{range .Players}}
-    <div class="player">
-      <p class="name">
-        {{.Name}}
-      </p>
-    </div>
+    {{ template "player" .}}
   {{end}}
 </div>
 {{end}}

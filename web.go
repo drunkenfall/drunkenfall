@@ -88,7 +88,7 @@ func (s *Server) TournamentHandler(w http.ResponseWriter, r *http.Request) {
 		canJoin,
 	}
 
-	t := getTemplates("static/tournament.html", "static/match.html")
+	t := getTemplates("static/tournament.html", "static/player.html", "static/match.html")
 	render(t, w, r, data)
 }
 
