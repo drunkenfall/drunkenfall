@@ -32,7 +32,7 @@ h1 {
     margin: 10px auto;
 }
 
-#join-link {
+#join-link, a.button {
     background-color: #405060;
     color: #dbdbdb;
     display: block;
@@ -78,15 +78,18 @@ h1 {
     font-size: 150%;
     display: block;
 }
-a:visited {
+a, a:visited {
     color: inherit;
+    text-decoration: none;
 }
 .match .player {
     float: left;
     width: 50%;
-    height: 40%;
     line-height: 120%;
     text-align: center;
+}
+.matches .match .player {
+    height: 40%;
 }
 .match .player:nth-child(1) {background-color: #445566;}
 .match .player:nth-child(2) {background-color: #665544;}
@@ -110,4 +113,43 @@ a:visited {
 
 .matches .control {
     display: none;
+}
+
+#control .player .name {
+    margin-top: 0.3em;
+    font-size: 1.5em;
+}
+#control .player .control-group {
+    margin: 3% auto;
+    height: 16%;
+    width: 80%;
+    position: relative;
+}
+#control .player .control {
+    height: 16%;
+    display: block;
+    position: relative;
+    line-height: 1.7em;
+}
+#control .player .control div, #control .player .control a {
+    float: left;
+    display: block;
+    margin: 1% 0;
+    height: 100%;
+}
+#control .player .control .count {
+    width: 70%;
+    background-color: #404040;
+}
+.shots .count, .self .count {
+    background-color: #484848 !important;
+}
+#control .player .control .sign {
+    background-color: #353535;
+    width: 15%;
+    cursor: pointer;
+    display: block;
+}
+.shots .sign, .self .sign {
+    background-color: #404040 !important;
 }
