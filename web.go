@@ -167,12 +167,14 @@ func (s *Server) ActionHandler(w http.ResponseWriter, r *http.Request) {
 func (s *Server) BuildRouter() http.Handler {
 	r := mux.NewRouter()
 
+	m := "/{id}/{kind:(tryout|runnerup|semi|final)}/{index:[0-9]+}"
 	r.HandleFunc("/", s.StartHandler)
 	r.HandleFunc("/new", s.NewHandler)
 	r.HandleFunc("/{id}/", s.TournamentHandler)
 	r.HandleFunc("/{id}/join", s.JoinHandler)
-	r.HandleFunc("/{id}/{kind:(tryout|runnerup|semi|final)}/{index:[0-9]+}/", s.MatchHandler)
-	r.HandleFunc("/{id}/{kind:(tryout|runnerup|semi|final)}/{index:[0-9]+}/{player:[0-3]}", s.ActionHandler)
+	r.HandleFunc(m, s.MatchHandler)
+	r.HandleFunc(m+"/toggle", s.MatchToggleHandler)
+	r.HandleFunc(m+"{player:[0-3]}", s.ActionHandler)
 
 	return r
 }
