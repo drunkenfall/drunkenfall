@@ -27,7 +27,7 @@ type Player struct {
 	Self           int    `json:"self"`
 	Explosions     int    `json:"explosions"`
 	Matches        int    `json:"matches"`
-	Match          *Match
+	Match          *Match `json:"-"`
 }
 
 // NewPlayer returns a new instance of a player
