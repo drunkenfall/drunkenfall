@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
@@ -159,7 +158,12 @@ func (s *Server) MatchToggleHandler(w http.ResponseWriter, r *http.Request) {
 
 // ActionHandler handles judge requests for player action
 func (s *Server) ActionHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Arrows were fired, archers were killed, and shots were had.\n")
+	m := s.getMatch(r)
+	vars := mux.Vars(r)
+	index, _ := strconv.Atoi(vars["player"])
+	m.Players[index].Action(vars["action"], vars["dir"])
+
+	http.Redirect(w, r, m.URL(), 302)
 }
 
 // BuildRouter sets up the routes
@@ -173,7 +177,7 @@ func (s *Server) BuildRouter() http.Handler {
 	r.HandleFunc("/{id}/join", s.JoinHandler)
 	r.HandleFunc(m, s.MatchHandler)
 	r.HandleFunc(m+"/toggle", s.MatchToggleHandler)
-	r.HandleFunc(m+"{player:[0-3]}", s.ActionHandler)
+	r.HandleFunc(m+"/{player:[0-3]}/{action}/{dir:(up|down)}", s.ActionHandler)
 
 	return r
 }
