@@ -76,6 +76,10 @@ func (t *Tournament) JSON() (out []byte, err error) {
 //   Shuffling players into positions
 func (t *Tournament) AddPlayer(name string) error {
 	p := Player{Name: name}
+	if !t.CanJoin(name) {
+		return errors.New("player already in match")
+	}
+
 	t.Players = append(t.Players, p)
 	t.playerRef[name] = &p
 
@@ -324,4 +328,14 @@ func (t *Tournament) AwardMedals(m *Match) error {
 // IsOpen returns boolean true if the tournament is open for registration
 func (t *Tournament) IsOpen() bool {
 	return t.Started.IsZero()
+}
+
+// CanJoin checks if a player is allowed to join or is already in the tournament
+func (t *Tournament) CanJoin(name string) bool {
+	for _, p := range t.Players {
+		if p.Name == name {
+			return false
+		}
+	}
+	return true
 }
