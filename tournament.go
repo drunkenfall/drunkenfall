@@ -64,6 +64,8 @@ func LoadTournament(data []byte, db *Database) (t *Tournament, e error) {
 
 	t.db = db
 	t.playerRef = make(map[string]*Player)
+
+	t.SetMatchPointers()
 	return
 }
 
@@ -346,4 +348,20 @@ func (t *Tournament) CanJoin(name string) bool {
 		}
 	}
 	return true
+}
+
+// SetMatchPointers loops over all matches in the tournament and sets the tournament reference
+//
+// When loading tournaments from the database, these references will not be set
+func (t *Tournament) SetMatchPointers() error {
+	for i := range t.Tryouts {
+		m := t.Tryouts[i]
+		m.tournament = t
+	}
+	for i := range t.Semis {
+		m := t.Semis[i]
+		m.tournament = t
+	}
+	t.Final.tournament = t
+	return nil
 }
