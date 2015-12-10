@@ -47,7 +47,7 @@ func (d *Database) LoadTournaments() error {
 		}
 
 		err := b.ForEach(func(k []byte, v []byte) error {
-			t, err := LoadTournament(v)
+			t, err := LoadTournament(v, d)
 			if err != nil {
 				return err
 			}

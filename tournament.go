@@ -42,13 +42,14 @@ func NewTournament(name, id string, db *Database) (*Tournament, error) {
 }
 
 // LoadTournament loads a tournament from persisted JSON data
-func LoadTournament(data []byte) (t *Tournament, e error) {
+func LoadTournament(data []byte, db *Database) (t *Tournament, e error) {
 	t = &Tournament{}
 	err := json.Unmarshal(data, t)
 	if err != nil {
 		return t, err
 	}
 
+	t.db = db
 	t.playerRef = make(map[string]*Player)
 	return
 }
@@ -102,6 +103,7 @@ func (t *Tournament) AddPlayer(name string) error {
 		t.Final = NewMatch(t, 0, "final")
 	}
 	t.ShufflePlayers()
+	t.Persist() // TODO: Error handling
 
 	return nil
 }
