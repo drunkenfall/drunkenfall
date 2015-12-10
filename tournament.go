@@ -102,9 +102,12 @@ func (t *Tournament) AddPlayer(name string) error {
 	// Right now there are only cases where we have two matches in the semis.
 	if len(t.Semis) == 0 {
 		t.Semis = []*Match{NewMatch(t, 0, "semi"), NewMatch(t, 1, "semi")}
+		t.Semis[0].Prefill()
+		t.Semis[1].Prefill()
 	}
 	if t.Final == nil {
 		t.Final = NewMatch(t, 0, "final")
+		t.Final.Prefill()
 	}
 	t.ShufflePlayers()
 	t.Persist() // TODO: Error handling
@@ -130,6 +133,10 @@ func (t *Tournament) ShufflePlayers() {
 	for i, p := range slice {
 		m := t.Tryouts[i/4]
 		m.AddPlayer(p)
+	}
+
+	for _, m := range t.Tryouts {
+		m.Prefill()
 	}
 }
 

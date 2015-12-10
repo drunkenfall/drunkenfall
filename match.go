@@ -68,6 +68,14 @@ func (m *Match) AddPlayer(p Player) error {
 	return nil
 }
 
+// Prefill fills remaining player slots with nil players
+func (m *Match) Prefill() error {
+	for i := len(m.Players); i < 4; i++ {
+		m.AddPlayer(Player{})
+	}
+	return nil
+}
+
 // Start starts the match
 func (m *Match) Start() error {
 	if !m.Started.IsZero() {

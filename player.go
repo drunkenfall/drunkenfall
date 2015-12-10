@@ -58,7 +58,15 @@ func (p *Player) Score() (out int) {
 
 // Color returns the color that the player prefers.
 func (p *Player) Color() string {
+	if p.IsPrefill() {
+		return "prefill"
+	}
 	return p.PreferredColor
+}
+
+// IsPrefill returns whether the player is a prefill placeholder or not
+func (p *Player) IsPrefill() bool {
+	return p.Name == ""
 }
 
 // AddShot increases the shot count
