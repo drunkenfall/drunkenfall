@@ -1,35 +1,32 @@
+{{define "control"}}
+  <div class="control {{.Key}}">
+    <a href="{{.Player.URL}}/{{.Key}}/down" class="sign">-</a>
+
+    <div class="count">{{.Value}} {{.Key}}</div>
+
+    <a href="{{.Player.URL}}/{{.Key}}/up" class="sign">+</a>
+    <div class="clear"></div>
+  </div>
+  <div class="clear"></div>
+{{end}}
+
 {{define "player"}}
 <div id="player-{{.Index}}" class="player {{.Color}}">
   {{if .IsPrefill}}
-  <p class="name">?</p>
+    <p class="name">?</p>
   {{else}}
-  <p class="name">{{.Name}}</p>
+    <p class="name">{{.Name}}</p>
 
-  <div class="control kills">
-    <div class="decrease">-</div>
-    <div class="count">{{.Kills}} kills</div>
-    <div class="increase">+</div>
-  </div>
-  <div class="control shots">
-    <div class="decrease">-</div>
-    <div class="count">{{.Shots}} shots</div>
-    <div class="increase">+</div>
-  </div>
-  <div class="control sweeps">
-    <div class="decrease">-</div>
-    <div class="count">{{.Sweeps}} sweeps</div>
-    <div class="increase">+</div>
-  </div>
-  <div class="control self">
-    <div class="decrease">-</div>
-    <div class="count">{{.Self}} self</div>
-    <div class="increase">+</div>
-  </div>
-  <div class="control explosions">
-    <div class="decrease">-</div>
-    <div class="count">{{.Explosions}} explosions</div>
-    <div class="increase">+</div>
-  </div>
+    {{if .Matchm}}
+      {{if .Match.IsOpen}}
+      <div class="control-group">
+        {{range .ScoreData}}
+          {{template "control" .}}
+        {{end}}
+        <div class="clear"></div>
+      </div>
+      {{end}}
+    {{end}}
   {{end}}
 </div>
 {{end}}
