@@ -20,7 +20,7 @@ type Player struct {
 	Self           int    `json:"self"`
 	Explosions     int    `json:"explosions"`
 	Matches        int    `json:"matches"`
-	match          *Match
+	Match          *Match
 }
 
 // NewPlayer returns a new instance of a player
@@ -67,8 +67,8 @@ func (p *Player) Color() string {
 
 // Index returns the index in the current match
 func (p *Player) Index() int {
-	if p.match != nil {
-		for i, o := range p.match.Players {
+	if p.Match != nil {
+		for i, o := range p.Match.Players {
 			if p.Name == o.Name {
 				return i
 			}

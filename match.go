@@ -10,13 +10,13 @@ import (
 
 // Match represents a game being played
 type Match struct {
-	Players    []Player  `json:"players"`
-	Judges     []Judge   `json:"judges"`
-	Kind       string    `json:"kind"`
-	Index      int       `json:"index"`
-	Started    time.Time `json:"started"`
-	Ended      time.Time `json:"ended"`
-	tournament *Tournament
+	Players    []Player    `json:"players"`
+	Judges     []Judge     `json:"judges"`
+	Kind       string      `json:"kind"`
+	Index      int         `json:"index"`
+	Started    time.Time   `json:"started"`
+	Ended      time.Time   `json:"ended"`
+	Tournament *Tournament `json:"-"`
 }
 
 // NewMatch creates a new Match for usage!
@@ -24,7 +24,7 @@ func NewMatch(t *Tournament, index int, kind string) *Match {
 	m := Match{
 		Index:      index,
 		Kind:       kind,
-		tournament: t,
+		Tournament: t,
 	}
 	m.Prefill()
 	return &m
@@ -65,7 +65,7 @@ func (m *Match) String() string {
 func (m *Match) URL() string {
 	out := fmt.Sprintf(
 		"/%s/%s/%d/",
-		m.tournament.ID,
+		m.Tournament.ID,
 		m.Kind,
 		m.Index,
 	)
@@ -91,6 +91,9 @@ func (m *Match) AddPlayer(p Player) error {
 	} else {
 		m.Players = append(m.Players, p)
 	}
+
+	p.Match = m
+
 	return nil
 }
 
@@ -127,12 +130,12 @@ func (m *Match) Start() error {
 	// If there are not four players in the match, we need to populate
 	// the match with runnerups from the tournament
 	if m.ActualPlayers() != 4 {
-		m.tournament.PopulateRunnerups(m)
+		m.Tournament.PopulateRunnerups(m)
 	}
 
 	for i := range m.Players {
 		m.Players[i].Reset()
-		m.Players[i].match = m
+		m.Players[i].Match = m
 	}
 
 	m.Started = time.Now()
@@ -149,9 +152,9 @@ func (m *Match) End() error {
 	}
 
 	if m.Kind == "final" {
-		m.tournament.AwardMedals(m)
+		m.Tournament.AwardMedals(m)
 	} else {
-		m.tournament.MovePlayers(m)
+		m.Tournament.MovePlayers(m)
 	}
 	m.Ended = time.Now()
 	return nil
