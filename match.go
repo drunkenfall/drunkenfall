@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"log"
 	"strings"
 	"time"
 )
@@ -62,20 +63,47 @@ func (m *Match) String() string {
 
 // AddPlayer adds a player to the match
 func (m *Match) AddPlayer(p Player) error {
-	if len(m.Players) == 4 {
+	if m.ActualPlayers() == 4 {
 		return errors.New("cannot add fifth player")
 	}
 
-	m.Players = append(m.Players, p)
+	if len(m.Players) == 4 {
+		// Loop through the players and replace the first prefill player that can be found with
+		// the actual player.
+		for i, o := range m.Players {
+			if o.IsPrefill() {
+				m.Players[i] = p
+				break
+			}
+		}
+	} else {
+		m.Players = append(m.Players, p)
+	}
 	return nil
 }
 
 // Prefill fills remaining player slots with nil players
 func (m *Match) Prefill() error {
 	for i := len(m.Players); i < 4; i++ {
-		m.AddPlayer(Player{})
+		err := m.AddPlayer(Player{})
+		if err != nil {
+			log.Fatal(err)
+		}
+
 	}
 	return nil
+}
+
+// ActualPlayers returns the number of actual players set in the match
+func (m *Match) ActualPlayers() int {
+	ret := 0
+	for _, p := range m.Players {
+		if !p.IsPrefill() {
+			ret++
+		}
+	}
+
+	return ret
 }
 
 // Start starts the match
@@ -86,7 +114,7 @@ func (m *Match) Start() error {
 
 	// If there are not four players in the match, we need to populate
 	// the match with runnerups from the tournament
-	if len(m.Players) != 4 {
+	if m.ActualPlayers() != 4 {
 		m.tournament.PopulateRunnerups(m)
 	}
 

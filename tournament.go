@@ -162,7 +162,7 @@ func (t *Tournament) StartTournament() error {
 
 // PopulateRunnerups fills a match with the runnerups with best scores
 func (t *Tournament) PopulateRunnerups(m *Match) error {
-	c := 4 - len(m.Players)
+	c := 4 - m.ActualPlayers()
 	r, err := t.GetRunnerups(c)
 	if err != nil {
 		return err
@@ -172,7 +172,7 @@ func (t *Tournament) PopulateRunnerups(m *Match) error {
 		m.AddPlayer(p)
 	}
 
-	if len(m.Players) != 4 {
+	if m.ActualPlayers() != 4 {
 		return errors.New("not enough runnerups to populate match")
 	}
 
