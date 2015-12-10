@@ -69,11 +69,62 @@ func (t *Tournament) JSON() (out []byte, err error) {
 }
 
 // AddPlayer adds a player into the tournament
+//
+// When adding new players, this means:
+//   Generating tryouts
+//   Shuffling players into positions
 func (t *Tournament) AddPlayer(name string) error {
 	p := Player{Name: name}
 	t.Players = append(t.Players, p)
 	t.playerRef[name] = &p
+
+	ts := len(t.Tryouts)
+	ps := len(t.Players)
+	if ts == 0 {
+		// No matches yet - add four
+		for i := 0; i < 4; i++ {
+			match := NewMatch(t, i, "tryout")
+			t.Tryouts = append(t.Tryouts, match)
+		}
+	} else if ts == 4 && ps == 17 {
+		// More than 16 players - add four more matches
+		for i := 0; i < 4; i++ {
+			match := NewMatch(t, i+4, "tryout")
+			t.Tryouts = append(t.Tryouts, match)
+		}
+	}
+
+	// Right now there are only cases where we have two matches in the semis.
+	if len(t.Semis) == 0 {
+		t.Semis = []*Match{NewMatch(t, 0, "semi"), NewMatch(t, 1, "semi")}
+	}
+	if t.Final == nil {
+		t.Final = NewMatch(t, 0, "final")
+	}
+	t.ShufflePlayers()
+
 	return nil
+}
+
+// ShufflePlayers will reposition players into matches
+func (t *Tournament) ShufflePlayers() {
+	// Reset the set matches
+	for _, t := range t.Tryouts {
+		t.Players = []Player{}
+	}
+
+	// Shuffle all the players
+	slice := t.Players
+	for i := range slice {
+		j := rand.Intn(i + 1)
+		slice[i], slice[j] = slice[j], slice[i]
+	}
+
+	// Loop the players and set them into the matches
+	for i, p := range slice {
+		m := t.Tryouts[i/4]
+		m.AddPlayer(p)
+	}
 }
 
 // StartTournament will generate the tournament.
@@ -92,90 +143,7 @@ func (t *Tournament) StartTournament() error {
 		return fmt.Errorf("Tournament can only host 24 players, got %d", ps)
 	}
 
-	// Generate tryouts and semis
-	err := t.GenerateMatches()
-	if err != nil {
-		return err
-	}
-
-	// Populate the matches with players
-	perr := t.PopulateMatches()
-	if perr != nil {
-		return perr
-	}
-
 	t.Started = time.Now()
-	return nil
-}
-
-// GenerateMatches will generate all the matches for the semis
-//
-// The tournament model as it stands right now can handle matches sets of
-// 2, 4 and 7 matches. If the amount of players do not match, add sets of
-// two matches with runnerups.
-func (t *Tournament) GenerateMatches() error {
-	var tryouts int
-	var kind string
-
-	ps := len(t.Players)
-
-	switch ps {
-	case 8:
-		tryouts = 0
-	case 9, 10, 11, 12, 13, 14, 15, 16:
-		tryouts = 4
-	default:
-		tryouts = 8
-	}
-
-	for i := 0; i < tryouts; i++ {
-		// Matches that contain only new players are tryouts
-		// Any match that contains replayers are runnerups
-		if (i+1)*4 <= ps {
-			kind = "tryout"
-		} else {
-			kind = "runnerup"
-		}
-
-		m := NewMatch(t, i, kind)
-		t.Tryouts = append(t.Tryouts, m)
-	}
-
-	// Right now there are only cases where we have two matches in the semis.
-	t.Semis = []Match{NewMatch(t, 0, "semi"), NewMatch(t, 1, "semi")}
-	t.Final = NewMatch(t, 0, "final")
-
-	return nil
-}
-
-// PopulateMatches shuffles players into the matches
-func (t *Tournament) PopulateMatches() error {
-	// Make a copy of the players map...
-	slice := make([]Player, 0, len(t.Players))
-	for _, p := range t.Players {
-		slice = append(slice, p)
-	}
-
-	// ...and shuffle it!
-	for i := range slice {
-		j := rand.Intn(i + 1)
-		slice[i], slice[j] = slice[j], slice[i]
-	}
-
-	// The case of eight players is different since they are to go directly
-	// to the finals.
-	if len(slice) == 8 {
-		for x, p := range slice {
-			t.Semis[x/4].AddPlayer(p)
-		}
-		return nil
-	}
-
-	// Fill the tryouts as much as possible!
-	for x, p := range slice {
-		t.Tryouts[x/4].AddPlayer(p)
-	}
-
 	return nil
 }
 
@@ -260,8 +228,10 @@ func (t *Tournament) UpdatePlayers() error {
 // MovePlayers moves the winner(s) of a Match into the next bracket of matches
 // or into the Runnerup bracket.
 func (t *Tournament) MovePlayers(m *Match) error {
-	if m.Kind == "tryout" || m.Kind == "runnerup" {
-		for i, p := range SortByKills(m.Players) {
+	if m.Kind == "tryout" {
+		ps := SortByKills(m.Players)
+		for i := 0; i < len(ps); i++ {
+			p := ps[i]
 			// If we are in a four-match tryout, both the winner and the second-place
 			// are to be sent to the semis
 			if len(t.Tryouts) == 4 && i < 2 || i == 0 {
@@ -271,7 +241,7 @@ func (t *Tournament) MovePlayers(m *Match) error {
 				t.Semis[index].AddPlayer(p)
 
 				// If the player is also inside of the runnerups, move them from the
-				//runnerup roster since they now have advanced to the finals. This
+				// runnerup roster since they now have advanced to the finals. This
 				// only happens for players that win the runnerup rounds.
 				for j := 0; j < len(t.Runnerups); j++ {
 					r := t.Runnerups[j]
@@ -281,10 +251,20 @@ func (t *Tournament) MovePlayers(m *Match) error {
 					}
 				}
 
-			} else if m.Kind == "tryout" {
-				// If we are not already inside a runnerup match, put the non-winners
-				// in the runnerup bracket.
-				t.Runnerups = append(t.Runnerups, &p)
+			} else {
+				// For everyone else, add them into the Runnerup bracket unless they are
+				// already in there.
+				found := false
+				for j := 0; j < len(t.Runnerups); j++ {
+					r := t.Runnerups[j]
+					if r.Name == p.Name {
+						found = true
+						break
+					}
+				}
+				if !found {
+					t.Runnerups = append(t.Runnerups, &p)
+				}
 			}
 		}
 	}
