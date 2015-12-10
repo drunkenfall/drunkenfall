@@ -10,6 +10,13 @@ type Participant interface {
 	ID() string
 }
 
+// ScoreData is a structured Key/Value pair list for scores
+type ScoreData struct {
+	Key    string
+	Value  int
+	Player *Player
+}
+
 // Player is a Participant that is actively participating in battles.
 type Player struct {
 	Name           string `json:"name"`
@@ -55,6 +62,18 @@ func (p *Player) Score() (out int) {
 	out += p.Explosions
 
 	return
+}
+
+// ScoreData returns this players set of ScoreData
+func (p *Player) ScoreData() []ScoreData {
+	sd := []ScoreData{
+		ScoreData{Key: "kills", Value: p.Kills, Player: p},
+		ScoreData{Key: "shots", Value: p.Shots, Player: p},
+		ScoreData{Key: "sweeps", Value: p.Sweeps, Player: p},
+		ScoreData{Key: "self", Value: p.Self, Player: p},
+		ScoreData{Key: "explosions", Value: p.Explosions, Player: p},
+	}
+	return sd
 }
 
 // URL returns the URL to this player
