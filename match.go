@@ -90,6 +90,7 @@ func (m *Match) Start() error {
 
 	for i := range m.Players {
 		m.Players[i].Reset()
+		m.Players[i].match = m
 	}
 
 	m.Started = time.Now()

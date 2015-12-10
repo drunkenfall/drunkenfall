@@ -20,6 +20,7 @@ type Player struct {
 	Self           int    `json:"self"`
 	Explosions     int    `json:"explosions"`
 	Matches        int    `json:"matches"`
+	match          *Match
 }
 
 // NewPlayer returns a new instance of a player
@@ -62,6 +63,18 @@ func (p *Player) Color() string {
 		return "prefill"
 	}
 	return p.PreferredColor
+}
+
+// Index returns the index in the current match
+func (p *Player) Index() int {
+	if p.match != nil {
+		for i, o := range p.match.Players {
+			if p.Name == o.Name {
+				return i
+			}
+		}
+	}
+	return -1
 }
 
 // IsPrefill returns whether the player is a prefill placeholder or not
