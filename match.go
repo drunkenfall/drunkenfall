@@ -20,11 +20,13 @@ type Match struct {
 
 // NewMatch creates a new Match for usage!
 func NewMatch(t *Tournament, index int, kind string) *Match {
-	return &Match{
+	m := Match{
 		Index:      index,
 		Kind:       kind,
 		tournament: t,
 	}
+	m.Prefill()
+	return &m
 }
 
 func (m *Match) String() string {
