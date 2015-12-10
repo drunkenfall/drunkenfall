@@ -1,7 +1,5 @@
 {{define "match"}}
-<div id="{{.Kind}}-{{.Index}}" class="match {{.Kind}}">
   {{range .Players}}
     {{ template "player" .}}
   {{end}}
-</div>
 {{end}}

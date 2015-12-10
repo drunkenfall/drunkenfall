@@ -10,7 +10,9 @@
     <h3>Tryouts</h3>
     <div class="matches">
       {{range .Tournament.Tryouts}}
-        {{template "match" .}}
+        <a id="{{.Kind}}-{{.Index}}" class="match {{.Kind}}" href="{{.URL}}">
+          {{template "match" .}}
+        </a>
       {{end}}
     </div>
     <div class="clear"></div>
@@ -19,14 +21,20 @@
     <h3>Semi-finals</h3>
     <div class="matches">
       {{range .Tournament.Semis}}
-        {{template "match" .}}
+        <a id="{{.Kind}}-{{.Index}}" class="match {{.Kind}}" href="{{.URL}}">
+          {{template "match" .}}
+        </a>
       {{end}}
     </div>
   </div>
   <div class="category final">
     <h3>Final</h3>
     <div class="matches">
-      {{template "match" .Tournament.Final}}
+      {{with .Tournament.Final}}
+        <a id="{{.Kind}}-{{.Index}}" class="match {{.Kind}}" href="{{.URL}}">
+          {{template "match" .}}
+        </a>
+      {{end}}
     </div>
   </div>
 </div>
