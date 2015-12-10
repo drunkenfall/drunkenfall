@@ -209,6 +209,7 @@ func (t *Tournament) GetRunnerups(amount int) (ps []Player, err error) {
 // all the matches they have participated in.
 func (t *Tournament) UpdatePlayers() error {
 	var tp *Player
+	var ok bool
 
 	// Make sure all players have their score reset to nothing
 	for _, p := range t.Players {
@@ -218,21 +219,24 @@ func (t *Tournament) UpdatePlayers() error {
 
 	for _, m := range t.Tryouts {
 		for _, p := range m.Players {
-			tp = t.playerRef[p.Name]
-			tp.Update(&p)
+			if tp, ok = t.playerRef[p.Name]; ok {
+				tp.Update(&p)
+			}
 		}
 	}
 
 	for _, m := range t.Semis {
 		for _, p := range m.Players {
-			tp = t.playerRef[p.Name]
-			tp.Update(&p)
+			if tp, ok = t.playerRef[p.Name]; ok {
+				tp.Update(&p)
+			}
 		}
 	}
 
 	for _, p := range t.Final.Players {
-		tp = t.playerRef[p.Name]
-		tp.Update(&p)
+		if tp, ok = t.playerRef[p.Name]; ok {
+			tp.Update(&p)
+		}
 	}
 
 	return nil
