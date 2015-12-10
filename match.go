@@ -61,6 +61,18 @@ func (m *Match) String() string {
 	)
 }
 
+// URL builds the URL to the match
+func (m *Match) URL() string {
+	out := fmt.Sprintf(
+		"/%s/%s/%d/",
+		m.tournament.ID,
+		m.Kind,
+		m.Index,
+	)
+	return out
+
+}
+
 // AddPlayer adds a player to the match
 func (m *Match) AddPlayer(p Player) error {
 	if m.ActualPlayers() == 4 {
