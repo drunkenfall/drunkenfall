@@ -215,7 +215,7 @@ func TestUpdatePlayer(t *testing.T) {
 	tm.AddPlayer("loser2")
 	tm.AddPlayer("loser3")
 
-	tm.Tryouts = []Match{
+	tm.Tryouts = []*Match{
 		{
 			Kind: "tryout",
 			Players: []Player{

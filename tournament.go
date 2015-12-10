@@ -16,9 +16,9 @@ type Tournament struct {
 	Winners     []Player  `json:"winners"` // TODO: Refactor to pointer
 	Runnerups   []*Player `json:"runnerups"`
 	Judges      []Judge   `json:"judges"`
-	Tryouts     []Match   `json:"tryouts"`
-	Semis       []Match   `json:"semis"`
-	Final       Match     `json:"final"`
+	Tryouts     []*Match  `json:"tryouts"`
+	Semis       []*Match  `json:"semis"`
+	Final       *Match    `json:"final"`
 	Opened      time.Time `json:"opened"`
 	Started     time.Time `json:"started"`
 	Ended       time.Time `json:"ended"`
@@ -305,7 +305,7 @@ func (t *Tournament) MovePlayers(m *Match) error {
 func (t *Tournament) NextMatch() (m *Match, err error) {
 	// Firstly, check the tryouts
 	for x := range t.Tryouts {
-		m = &t.Tryouts[x]
+		m = t.Tryouts[x]
 		if !m.IsEnded() {
 			return
 		}
@@ -314,14 +314,14 @@ func (t *Tournament) NextMatch() (m *Match, err error) {
 	// If we don't have any tryouts, or there are no tryouts left,
 	// check the semis
 	for x := range t.Semis {
-		m = &t.Semis[x]
+		m = t.Semis[x]
 		if !m.IsEnded() {
 			return
 		}
 	}
 
 	if !t.Final.IsEnded() {
-		return &t.Final, nil
+		return t.Final, nil
 	}
 
 	return m, errors.New("all matches have been played")

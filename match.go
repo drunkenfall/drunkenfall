@@ -19,8 +19,8 @@ type Match struct {
 }
 
 // NewMatch creates a new Match for usage!
-func NewMatch(t *Tournament, index int, kind string) Match {
-	return Match{
+func NewMatch(t *Tournament, index int, kind string) *Match {
+	return &Match{
 		Index:      index,
 		Kind:       kind,
 		tournament: t,
