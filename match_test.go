@@ -84,7 +84,7 @@ func TestString(t *testing.T) {
 	m.AddPlayer(Player{Name: "4"})
 	ret := m.String()
 
-	assert.Equal("Test 1: 1 / 2 / 3 / 4 - not started", ret)
+	assert.Equal("<Test 1: 1 / 2 / 3 / 4 - not started>", ret)
 
 	m2 := NewMatch(tm, 0, "final")
 	m2.AddPlayer(Player{Name: "a"})
@@ -94,5 +94,5 @@ func TestString(t *testing.T) {
 	m2.Start()
 	ret2 := m2.String()
 
-	assert.Equal("Final: a / b / c / d - playing", ret2)
+	assert.Equal("<Final: a / b / c / d - playing>", ret2)
 }

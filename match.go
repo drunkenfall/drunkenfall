@@ -51,7 +51,7 @@ func (m *Match) String() string {
 	}
 
 	return fmt.Sprintf(
-		"%s: %s - %s",
+		"<%s: %s - %s>",
 		name,
 		strings.Join(names, " / "),
 		tempo,
