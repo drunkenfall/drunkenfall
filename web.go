@@ -4,10 +4,16 @@ import (
 	"fmt"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"github.com/gorilla/sessions"
 	"html/template"
 	"log"
 	"net/http"
 	"os"
+)
+
+var (
+	storeKey = []byte("dtf")
+	store    = sessions.NewFilesystemStore("cookies.jar", storeKey)
 )
 
 // Server is an abstraction that runs via a web interface
@@ -63,14 +69,26 @@ func (s *Server) NewHandler(w http.ResponseWriter, r *http.Request) {
 
 // TournamentHandler shows the tournament view and handles tournaments
 func (s *Server) TournamentHandler(w http.ResponseWriter, r *http.Request) {
-	t := getTemplates("static/tournament.html", "static/match.html")
+	canJoin := false
 	vars := mux.Vars(r)
-	data := struct {
-		Tournament *Tournament
-	}{
-		s.DB.tournamentRef[vars["id"]],
+
+	tm := s.DB.tournamentRef[vars["id"]]
+	session, _ := store.Get(r, tm.Name)
+	if name, ok := session.Values["player"]; ok {
+		canJoin = tm.CanJoin(name.(string))
+	} else {
+		canJoin = true
 	}
 
+	data := struct {
+		Tournament *Tournament
+		CanJoin    bool
+	}{
+		tm,
+		canJoin,
+	}
+
+	t := getTemplates("static/tournament.html", "static/match.html")
 	render(t, w, r, data)
 }
 
@@ -90,10 +108,21 @@ func (s *Server) JoinHandler(w http.ResponseWriter, r *http.Request) {
 		err := tm.AddPlayer(name)
 		if err != nil {
 			// TODO: Flash error message
+			http.Error(w, err.Error(), 500)
 			return
 		}
 
 		log.Printf("%s has joined %s!", name, tm.Name)
+		session, err := store.Get(r, tm.Name)
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
+
+		// TODO: Does not work. :/
+		session.Values["player"] = name
+		session.Save(r, w)
+
 		http.Redirect(w, r, "/"+vars["id"]+"/", 302)
 		return
 	}
