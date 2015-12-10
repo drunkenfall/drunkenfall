@@ -86,7 +86,7 @@ func (p *Player) ScoreData() []ScoreData {
 // Used for action URLs
 func (p *Player) URL() string {
 	out := fmt.Sprintf(
-		"%s/%d/",
+		"%s/%d",
 		p.Match.URL(),
 		p.Index(),
 	)
