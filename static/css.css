@@ -103,3 +103,7 @@ h1 {
     font-weight: bold;
     margin: 2px 5px;
 }
+
+.matches .control {
+    display: none;
+}
