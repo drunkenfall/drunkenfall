@@ -61,6 +61,24 @@ func (m *Match) String() string {
 	)
 }
 
+// Title returns a title string
+func (m *Match) Title() string {
+	l := 2
+	if m.Kind == "final" {
+		return "Final"
+	} else if m.Kind == "tryout" {
+		l = len(m.Tournament.Tryouts)
+	}
+
+	out := fmt.Sprintf(
+		"%s %d/%d",
+		strings.Title(m.Kind),
+		m.Index+1,
+		l,
+	)
+	return out
+}
+
 // URL builds the URL to the match
 func (m *Match) URL() string {
 	out := fmt.Sprintf(
