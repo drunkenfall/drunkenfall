@@ -169,3 +169,8 @@ func (m *Match) IsStarted() bool {
 func (m *Match) IsEnded() bool {
 	return !m.Ended.IsZero()
 }
+
+// IsOpen returns boolean the match can be controlled or not
+func (m *Match) IsOpen() bool {
+	return !m.IsEnded()
+}
