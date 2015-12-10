@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"math/rand"
 	"time"
 )
@@ -352,16 +353,31 @@ func (t *Tournament) CanJoin(name string) bool {
 
 // SetMatchPointers loops over all matches in the tournament and sets the tournament reference
 //
-// When loading tournaments from the database, these references will not be set
+// When loading tournaments from the database, these references will not be set.
+// This also sets *Match pointers for Player objects.
 func (t *Tournament) SetMatchPointers() error {
+	log.Print("Setting match pointers...")
 	for i := range t.Tryouts {
 		m := t.Tryouts[i]
-		m.tournament = t
+		m.Tournament = t
+		for _, p := range m.Players {
+			p.Match = m
+		}
 	}
 	for i := range t.Semis {
 		m := t.Semis[i]
-		m.tournament = t
+		m.Tournament = t
+		for _, p := range m.Players {
+			p.Match = m
+		}
 	}
-	t.Final.tournament = t
+	t.Final.Tournament = t
+	for _, p := range t.Final.Players {
+		p.Match = t.Final
+	}
+	for _, p := range t.Players {
+		log.Print(p.String())
+	}
+	log.Print("Pointers loaded.")
 	return nil
 }
