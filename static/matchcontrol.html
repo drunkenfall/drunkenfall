@@ -1,6 +1,4 @@
 {{define "main"}}
-<h1>Battle! Fire!!</h1>
-
 <div class="control">
   {{ with .Match}}
   <div id="control" class="match {{.Kind}}">
@@ -9,4 +7,15 @@
   {{end}}
 </div>
 <div class="clear"></div>
+
+{{if .Match.IsOpen}}
+<a class="button" href="{{.Match.URL}}/toggle">
+  {{if .Match.IsStarted}}End{{else}}Start{{end}} match
+</a>
+{{else}}
+<a class="button" href="{{.Match.Tournament.URL}}">
+  Back to tournament
+</a>
+{{end}}
+
 {{end}}
