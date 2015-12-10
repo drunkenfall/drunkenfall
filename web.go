@@ -133,29 +133,28 @@ func (s *Server) JoinHandler(w http.ResponseWriter, r *http.Request) {
 
 // MatchHandler shows the Match view and handles Matches
 func (s *Server) MatchHandler(w http.ResponseWriter, r *http.Request) {
-	var m *Match
-	vars := mux.Vars(r)
-
-	tm := s.DB.tournamentRef[vars["id"]]
-	kind := vars["kind"]
-	index, _ := strconv.Atoi(vars["index"])
-
-	if kind == "tryout" {
-		m = tm.Tryouts[index]
-	} else if kind == "semi" {
-		m = tm.Semis[index]
-	} else if kind == "final" {
-		m = tm.Final
-	}
-
 	data := struct {
 		Match *Match
 	}{
-		m,
+		s.getMatch(r),
 	}
 
 	t := getTemplates("static/matchcontrol.html", "static/player.html", "static/match.html")
 	render(t, w, r, data)
+}
+
+// MatchToggleHandler starts and stops matches
+func (s *Server) MatchToggleHandler(w http.ResponseWriter, r *http.Request) {
+	m := s.getMatch(r)
+	if !m.IsStarted() {
+		log.Printf("%s started", m.String())
+		m.Start()
+	} else {
+		log.Printf("%s ended", m.String())
+		m.End()
+	}
+
+	http.Redirect(w, r, m.URL(), 302)
 }
 
 // ActionHandler handles judge requests for player action
@@ -214,4 +213,24 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+// getMatch ...
+func (s *Server) getMatch(r *http.Request) *Match {
+	var m *Match
+	vars := mux.Vars(r)
+
+	tm := s.DB.tournamentRef[vars["id"]]
+	kind := vars["kind"]
+	index, _ := strconv.Atoi(vars["index"])
+
+	if kind == "tryout" {
+		m = tm.Tryouts[index]
+	} else if kind == "semi" {
+		m = tm.Semis[index]
+	} else if kind == "final" {
+		m = tm.Final
+	}
+
+	return m
 }
