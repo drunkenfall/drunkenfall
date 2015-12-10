@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 )
 
 var (
@@ -132,7 +133,29 @@ func (s *Server) JoinHandler(w http.ResponseWriter, r *http.Request) {
 
 // MatchHandler shows the Match view and handles Matches
 func (s *Server) MatchHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "The battle raged ever on.\n")
+	var m *Match
+	vars := mux.Vars(r)
+
+	tm := s.DB.tournamentRef[vars["id"]]
+	kind := vars["kind"]
+	index, _ := strconv.Atoi(vars["index"])
+
+	if kind == "tryout" {
+		m = tm.Tryouts[index]
+	} else if kind == "semi" {
+		m = tm.Semis[index]
+	} else if kind == "final" {
+		m = tm.Final
+	}
+
+	data := struct {
+		Match *Match
+	}{
+		m,
+	}
+
+	t := getTemplates("static/matchcontrol.html", "static/player.html", "static/match.html")
+	render(t, w, r, data)
 }
 
 // ActionHandler handles judge requests for player action
