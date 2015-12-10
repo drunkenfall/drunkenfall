@@ -114,7 +114,9 @@ a, a:visited {
 .matches .control {
     display: none;
 }
-
+#control .player {
+    min-height: 2.2em;
+}
 #control .player .name {
     margin-top: 0.3em;
     font-size: 1.5em;
