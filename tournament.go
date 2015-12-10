@@ -318,3 +318,8 @@ func (t *Tournament) AwardMedals(m *Match) error {
 
 	return nil
 }
+
+// IsOpen returns boolean true if the tournament is open for registration
+func (t *Tournament) IsOpen() bool {
+	return t.Started.IsZero()
+}
