@@ -1,0 +1,9 @@
+{{define "main"}}
+<h1>Join {{ .Tournament.Name }}</h1>
+<form action="/{{.Tournament.ID}}/join" method="post">
+  <label for="name">Name</label>
+  <input name="name" type="text" value=""/>
+
+  <input type="submit"/>
+</form>
+{{end}}

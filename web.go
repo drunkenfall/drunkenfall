@@ -74,6 +74,33 @@ func (s *Server) TournamentHandler(w http.ResponseWriter, r *http.Request) {
 	render(t, w, r, data)
 }
 
+// JoinHandler shows the tournament view and handles tournaments
+func (s *Server) JoinHandler(w http.ResponseWriter, r *http.Request) {
+	t := getTemplates("static/join.html")
+	vars := mux.Vars(r)
+	tm := s.DB.tournamentRef[vars["id"]]
+	data := struct {
+		Tournament *Tournament
+	}{
+		tm,
+	}
+
+	if r.Method == "POST" {
+		name := r.PostFormValue("name")
+		err := tm.AddPlayer(name)
+		if err != nil {
+			// TODO: Flash error message
+			return
+		}
+
+		log.Printf("%s has joined %s!", name, tm.Name)
+		http.Redirect(w, r, "/"+vars["id"]+"/", 302)
+		return
+	}
+
+	render(t, w, r, data)
+}
+
 // MatchHandler shows the Match view and handles Matches
 func (s *Server) MatchHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "The battle raged ever on.\n")
@@ -91,6 +118,7 @@ func (s *Server) BuildRouter() http.Handler {
 	r.HandleFunc("/", s.StartHandler)
 	r.HandleFunc("/new", s.NewHandler)
 	r.HandleFunc("/{id}/", s.TournamentHandler)
+	r.HandleFunc("/{id}/join", s.JoinHandler)
 	r.HandleFunc("/{id}/{kind:(tryout|runnerup|semi|final)}/{index:[0-9]+}/", s.MatchHandler)
 	r.HandleFunc("/{id}/{kind:(tryout|runnerup|semi|final)}/{index:[0-9]+}/{player:[0-3]}", s.ActionHandler)
 

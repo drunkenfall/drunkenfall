@@ -1,5 +1,10 @@
 {{define "main"}}
 <h1>{{.Tournament.Name}}</h1>
+
+{{ if .Tournament.IsOpen}}
+<a id="join-link" href="/{{.Tournament.ID}}/join">Join</a>
+{{ end }}
+
 <div class="tournament">
   <div class="category tryouts">
     <h3>Tryouts</h3>
