@@ -85,6 +85,12 @@ func (t *Tournament) JSON() (out []byte, err error) {
 	return
 }
 
+// URL returns the URL for the tournament
+func (t *Tournament) URL() string {
+	out := fmt.Sprintf("/%s/", t.ID)
+	return out
+}
+
 // AddPlayer adds a player into the tournament
 //
 // When adding new players, this means:

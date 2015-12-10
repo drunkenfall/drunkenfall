@@ -57,6 +57,18 @@ func (p *Player) Score() (out int) {
 	return
 }
 
+// URL returns the URL to this player
+//
+// Used for action URLs
+func (p *Player) URL() string {
+	out := fmt.Sprintf(
+		"%s/%d/",
+		p.Match.URL(),
+		p.Index(),
+	)
+	return out
+}
+
 // Color returns the color that the player prefers.
 func (p *Player) Color() string {
 	if p.IsPrefill() {
