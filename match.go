@@ -207,8 +207,16 @@ func (m *Match) IsEnded() bool {
 	return !m.Ended.IsZero()
 }
 
+// CanStart returns boolean the match can be controlled or not
+func (m *Match) CanStart() bool {
+	return !m.IsStarted() && !m.IsEnded()
+}
+
 // CanEnd returns boolean whether the match can be ended or not
 func (m *Match) CanEnd() bool {
+	if !m.IsOpen() {
+		return false
+	}
 	for _, p := range m.Players {
 		if p.Kills >= m.Length() {
 			return true
@@ -219,7 +227,7 @@ func (m *Match) CanEnd() bool {
 
 // IsOpen returns boolean the match can be controlled or not
 func (m *Match) IsOpen() bool {
-	return !m.IsEnded()
+	return m.IsStarted() && !m.IsEnded()
 }
 
 // Length returns the length of the match
