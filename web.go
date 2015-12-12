@@ -129,6 +129,30 @@ func (s *Server) JoinHandler(w http.ResponseWriter, r *http.Request) {
 	render(t, w, r, data)
 }
 
+// StartTournamentHandler starts tournaments
+func (s *Server) StartTournamentHandler(w http.ResponseWriter, r *http.Request) {
+	tm := s.getTournament(r)
+	err := tm.StartTournament()
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+
+	http.Redirect(w, r, tm.URL(), 302)
+}
+
+// NextHandler starts tournaments
+func (s *Server) NextHandler(w http.ResponseWriter, r *http.Request) {
+	tm := s.getTournament(r)
+	m, err := tm.NextMatch()
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+
+	http.Redirect(w, r, m.URL(), 302)
+}
+
 // MatchHandler shows the Match view and handles Matches
 func (s *Server) MatchHandler(w http.ResponseWriter, r *http.Request) {
 	data := struct {
@@ -173,7 +197,9 @@ func (s *Server) BuildRouter() http.Handler {
 	r.HandleFunc("/", s.StartHandler)
 	r.HandleFunc("/new", s.NewHandler)
 	r.HandleFunc("/{id}/", s.TournamentHandler)
+	r.HandleFunc("/{id}/start", s.StartTournamentHandler)
 	r.HandleFunc("/{id}/join", s.JoinHandler)
+	r.HandleFunc("/{id}/next", s.NextHandler)
 	r.HandleFunc(m, s.MatchHandler)
 	r.HandleFunc(m+"/toggle", s.MatchToggleHandler)
 	r.HandleFunc(m+"/{player:[0-3]}/{action}/{dir:(up|down)}", s.ActionHandler)
