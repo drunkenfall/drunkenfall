@@ -320,6 +320,9 @@ func (t *Tournament) AwardMedals(m *Match) error {
 	ps := SortByKills(m.Players)
 	t.Winners = ps[0:3]
 
+	t.Ended = time.Now()
+	t.Persist()
+
 	return nil
 }
 
