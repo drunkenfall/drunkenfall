@@ -87,6 +87,8 @@ a, a:visited {
     width: 50%;
     line-height: 120%;
     text-align: center;
+    overflow: hidden;
+    white-space: nowrap;
 }
 .matches .match .player {
     height: 40%;
