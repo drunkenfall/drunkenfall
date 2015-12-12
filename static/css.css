@@ -124,7 +124,6 @@ a, a:visited {
 .match .player.out {
     color: #777;
     text-shadow: 1px 1px 5px rgba(0,0,0,0.3);
-    text-decoration: line-through;;
 }
 .match .player.out:nth-child(1), .match .player.out:nth-child(4) {
     background-color: #433;
