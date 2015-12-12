@@ -52,12 +52,12 @@ func TestStartingTournamentWith8PlayersWorks(t *testing.T) {
 	assert.Nil(err)
 }
 
-func TestStartingTournamentWithMoreThan24PlayersFail(t *testing.T) {
-	assert := assert.New(t)
-	tm := testTournament(25)
-	err := tm.StartTournament()
-	assert.NotNil(err)
-}
+// func TestStartingTournamentWithMoreThan32PlayersFail(t *testing.T) {
+// 	assert := assert.New(t)
+// 	tm := testTournament(33)
+// 	err := tm.StartTournament()
+// 	assert.NotNil(err)
+// }
 
 func TestStartingTournamentWith24PlayersWorks(t *testing.T) {
 	assert := assert.New(t)

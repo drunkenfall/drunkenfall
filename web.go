@@ -108,6 +108,10 @@ func (s *Server) JoinHandler(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "POST" {
 		name := r.PostFormValue("name")
+		if !tm.CanJoin(name) {
+			http.Error(w, "too many players", 500)
+			return
+		}
 		err := tm.AddPlayer(name)
 
 		// TODO: This should not be here...

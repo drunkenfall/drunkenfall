@@ -155,8 +155,8 @@ func (t *Tournament) StartTournament() error {
 	if ps < 8 {
 		return fmt.Errorf("Tournament needs at least 8 players, got %d", ps)
 	}
-	if ps > 24 {
-		return fmt.Errorf("Tournament can only host 24 players, got %d", ps)
+	if ps > 32 {
+		return fmt.Errorf("Tournament can only host 32 players, got %d", ps)
 	}
 
 	t.Started = time.Now()
@@ -334,12 +334,16 @@ func (t *Tournament) IsOpen() bool {
 
 // IsJoinable returns boolean true if the tournament is joinable
 func (t *Tournament) IsJoinable() bool {
+	if len(t.Players) >= 32 {
+		return false
+	}
 	return t.IsOpen() && t.Started.IsZero()
 }
 
 // IsStartable returns boolean true if the tournament can be started
 func (t *Tournament) IsStartable() bool {
-	return t.IsJoinable() && len(t.Players) >= 16
+	p := len(t.Players)
+	return t.IsOpen() && t.Started.IsZero() && p >= 16 && p <= 32
 }
 
 // IsRunning returns boolean true if the tournament is running or not
@@ -349,6 +353,9 @@ func (t *Tournament) IsRunning() bool {
 
 // CanJoin checks if a player is allowed to join or is already in the tournament
 func (t *Tournament) CanJoin(name string) bool {
+	if len(t.Players) >= 32 {
+		return false
+	}
 	for _, p := range t.Players {
 		if p.Name == name {
 			return false
