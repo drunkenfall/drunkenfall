@@ -163,6 +163,7 @@ func (t *Tournament) StartTournament() error {
 	}
 
 	t.Started = time.Now()
+	t.Persist()
 	return nil
 }
 
