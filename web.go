@@ -182,6 +182,12 @@ func (s *Server) MatchToggleHandler(w http.ResponseWriter, r *http.Request) {
 // ActionHandler handles judge requests for player action
 func (s *Server) ActionHandler(w http.ResponseWriter, r *http.Request) {
 	m := s.getMatch(r)
+	if !m.IsOpen() {
+		log.Print("Not allowing actions on non-started matches")
+		http.Redirect(w, r, m.URL(), 302)
+		return
+	}
+
 	vars := mux.Vars(r)
 	index, _ := strconv.Atoi(vars["player"])
 	m.Players[index].Action(vars["action"], vars["dir"])
