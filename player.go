@@ -361,7 +361,7 @@ func (s ByRunnerup) Swap(i, j int) {
 func (s ByRunnerup) Less(i, j int) bool {
 	if s[i].Matches == s[j].Matches {
 		// Same as by kills
-		return s[i].Kills > s[j].Kills
+		return s[i].Score() > s[j].Score()
 	}
 	// Lower is better - the ones that have not played should be at the top
 	return s[i].Matches < s[j].Matches
