@@ -344,7 +344,22 @@ func (t *Tournament) AwardMedals(m *Match) error {
 
 // IsOpen returns boolean true if the tournament is open for registration
 func (t *Tournament) IsOpen() bool {
-	return t.Started.IsZero()
+	return !t.Opened.IsZero()
+}
+
+// IsJoinable returns boolean true if the tournament is joinable
+func (t *Tournament) IsJoinable() bool {
+	return t.IsOpen() && t.Started.IsZero()
+}
+
+// IsStartable returns boolean true if the tournament can be started
+func (t *Tournament) IsStartable() bool {
+	return t.IsJoinable() && len(t.Players) >= 16
+}
+
+// IsRunning returns boolean true if the tournament is running or not
+func (t *Tournament) IsRunning() bool {
+	return !t.Started.IsZero() && t.Ended.IsZero()
 }
 
 // CanJoin checks if a player is allowed to join or is already in the tournament
