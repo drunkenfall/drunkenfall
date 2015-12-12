@@ -49,6 +49,7 @@ func NewTournament(name, id string, db *Database) (*Tournament, error) {
 	t.Final = NewMatch(&t, 0, "final")
 	t.Final.Prefill()
 
+	t.SetMatchPointers()
 	t.Persist()
 	return &t, nil
 }

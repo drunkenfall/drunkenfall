@@ -58,7 +58,11 @@ func (s *Server) NewHandler(w http.ResponseWriter, r *http.Request) {
 		id := r.PostFormValue("id")
 		t, _ := NewTournament(name, id, s.DB)
 		log.Printf("Created tournament %s!", t.Name)
-		http.Redirect(w, r, "/", 302)
+
+		s.DB.Tournaments = append(s.DB.Tournaments, t)
+		s.DB.tournamentRef[t.ID] = t
+
+		http.Redirect(w, r, t.URL(), 302)
 		return
 	}
 
