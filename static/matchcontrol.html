@@ -10,19 +10,15 @@
 </div>
 <div class="clear"></div>
 
-{{if .Match.IsOpen}}
-  {{if .Match.IsStarted}}
-     {{if .Match.CanEnd}}
-       <a class="button" href="{{.Match.URL}}/toggle">
-         End match
-       </a>
-    {{end}}
-  {{else}}
-    <a class="button" href="{{.Match.URL}}/toggle">
-      Start match
-    </a>
-  {{end}}
-{{else}}
+{{if .Match.CanStart}}
+<a class="button" href="{{.Match.URL}}/toggle">
+  Start match
+</a>
+{{else if .Match.CanEnd}}
+<a class="button" href="{{.Match.URL}}/toggle">
+  End match
+</a>
+{{else if .Match.IsEnded}}
 <a class="button" href="{{.Match.Tournament.URL}}">
   Back to tournament
 </a>
