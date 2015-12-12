@@ -97,6 +97,9 @@ func (m *Match) AddPlayer(p Player) error {
 		return errors.New("cannot add fifth player")
 	}
 
+	p.Reset()
+	p.Match = m
+
 	if len(m.Players) == 4 {
 		// Loop through the players and replace the first prefill player that can be found with
 		// the actual player.
@@ -109,8 +112,6 @@ func (m *Match) AddPlayer(p Player) error {
 	} else {
 		m.Players = append(m.Players, p)
 	}
-
-	p.Match = m
 
 	return nil
 }
