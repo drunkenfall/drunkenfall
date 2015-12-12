@@ -11,9 +11,17 @@
 <div class="clear"></div>
 
 {{if .Match.IsOpen}}
-<a class="button" href="{{.Match.URL}}/toggle">
-  {{if .Match.IsStarted}}End{{else}}Start{{end}} match
-</a>
+  {{if .Match.IsStarted}}
+     {{if .Match.CanEnd}}
+       <a class="button" href="{{.Match.URL}}/toggle">
+         End match
+       </a>
+    {{end}}
+  {{else}}
+    <a class="button" href="{{.Match.URL}}/toggle">
+      Start match
+    </a>
+  {{end}}
 {{else}}
 <a class="button" href="{{.Match.Tournament.URL}}">
   Back to tournament
