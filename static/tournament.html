@@ -1,11 +1,4 @@
 {{define "main"}}
-<h1>{{.Tournament.Name}}</h1>
-
-{{ if .Tournament.IsJoinable}}
-  <a id="join-link" href="/{{.Tournament.ID}}/join">
-    Join
-  </a>
-{{ end }}
 
 <div class="tournament">
   <div class="category tryouts">
@@ -56,6 +49,20 @@
 </div>
 <div class="clear"></div>
 
+
+{{end}}
+
+{{define "header"}}
+<a href="{{.Tournament.URL}}" class="title">
+  {{.Tournament.Name}}
+</a>
+
+<div class="links">
+{{ if .Tournament.IsJoinable}}
+  <a href="/{{.Tournament.ID}}/join">
+    Join
+  </a>
+{{ end }}
 {{ if .Tournament.IsStartable }}
   <a id="start-link" class="button" href="/{{.Tournament.ID}}/start">
     Start
@@ -65,5 +72,8 @@
     Next match
   </a>
 {{ end }}
+
+</div>
+
 
 {{end}}

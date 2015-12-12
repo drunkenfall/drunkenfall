@@ -2,6 +2,7 @@ body, html {
     background-color: #22222a;
     color: #dbdbdb;
     font-family: 'Yanone Kaffeesatz', sans-serif;
+    margin: 0;
     /* font-family: 'Droid Sans', sans-serif; */
 }
 .clear {
@@ -32,7 +33,7 @@ h1 {
     margin: 10px auto;
 }
 
-#join-link, a.button {
+#join-link, a.button, form input.submit {
     background-color: #405060;
     color: #dbdbdb;
     display: block;
@@ -50,7 +51,7 @@ h1 {
 }
 
 .tryouts, .semis, .final {
-    width: 30%;
+    width: 29%;
     float: left;
     margin-left: 3%;
     position: relative;
@@ -203,4 +204,54 @@ a, a:visited {
 }
 .runnerups .runnerup:nth-child(even) {
     background-color: #272727;
+}
+
+#header {
+    background-color: #333339;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+}
+#header .content {
+    margin: 0 20px;
+}
+#header .title {
+    float: left;
+    height: 2em;
+    font-size: 2em;
+    line-height: 2em;
+    font-weight: bold;
+}
+#header .links {
+    float: right;
+}
+#header .links a {
+    margin: 10px;
+    font-size: 24px;
+
+    background-color: #405060;
+    color: #dbdbdb;
+    display: block;
+    font-weight: bold;
+    padding: 7px 30px;
+    text-align: center;
+    text-decoration: none;
+    margin: 10px auto;
+    min-width: 100px;
+}
+
+form {
+    width: 300px;
+    margin: 30px auto;
+}
+form input.text {
+    font-size: 2em;
+    /* border-radius: 10px; */
+    border: none;
+    padding: 10px 30px;
+    width: 100%;
+}
+form input.submit {
+    width: 100px;
+    border: none;
 }

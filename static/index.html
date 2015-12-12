@@ -11,6 +11,13 @@
     <link rel="stylesheet" href="/static/css.css">
   </head>
   <body>
+    <div id="header">
+      <div class="content">
+        {{template "header" .}}
+      </div>
+      <div class="clear"></div>
+    </div>
+
     <div id="main">
       {{template "main" .}}
     </div>

@@ -1,6 +1,6 @@
 {{define "main"}}
 
-<img id="banner" alt="Drunken Towerfall" src="/static/dtf.jpg"/>
+<!-- <img id="banner" alt="Drunken Towerfall" src="/static/dtf.jpg"/> -->
 {{range .Tournaments}}
 <div class="tournaments">
   <a href="/{{.ID}}/">
@@ -9,4 +9,15 @@
 </div>
 {{end}}
 
+{{end}}
+
+{{define "header"}}
+<div class="title">
+  Drunken TowerFall
+</div>
+<div class="links">
+  <a href="/new">
+    New tournament
+  </a>
+</div>
 {{end}}

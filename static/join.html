@@ -1,9 +1,14 @@
 {{define "main"}}
-<h1>Join {{ .Tournament.Name }}</h1>
 <form action="/{{.Tournament.ID}}/join" method="post">
-  <label for="name">Name</label>
-  <input name="name" type="text" value=""/>
+  <input class="text" name="name" type="text" value="" placeholder="Player name"/>
 
-  <input type="submit"/>
+  <input type="submit" class="submit" value="Go go go!"/>
 </form>
+{{end}}
+
+
+{{define "header"}}
+<a href="{{.Tournament.URL}}" class="title">
+  Joining {{.Tournament.Name}}
+</a>
 {{end}}
