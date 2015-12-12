@@ -177,7 +177,6 @@ func (m *Match) End() error {
 	winner := ps[0].Name
 	for i, p := range m.Players {
 		if p.Name == winner {
-			log.Printf("Gave %s a shot", winner)
 			m.Players[i].AddShot()
 			break
 		}
