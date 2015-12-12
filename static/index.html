@@ -9,6 +9,17 @@
 
     <link href='https://fonts.googleapis.com/css?family=Yanone+Kaffeesatz:400,700' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" href="/static/css.css">
+    <script>
+      var url = window.location.href;
+      if(url.indexOf('?') != -1) {
+        console.log("will reload");
+        setTimeout(function(){
+          window.location.reload(1);
+        }, 30 * 1000);
+      } else {
+        console.log("no reload");
+      }
+    </script>
   </head>
   <body>
     <div id="header">
