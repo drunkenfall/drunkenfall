@@ -105,6 +105,10 @@ func (s *Server) JoinHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 		name := r.PostFormValue("name")
 		err := tm.AddPlayer(name)
+
+		// TODO: This should not be here...
+		tm.SetMatchPointers()
+
 		if err != nil {
 			// TODO: Flash error message
 			http.Error(w, err.Error(), 500)
