@@ -23,7 +23,13 @@
 
 {{define "player-full"}}
 <div id="player-{{.Index}}" class="player {{.Classes}}">
-  <p class="name">{{.Name}}</p>
+  <p class="name">
+    {{if .Name}}
+    {{.Name}}
+    {{else}}
+    &nbsp
+    {{end}}
+  </p>
 
   <div class="control-group">
     {{range .ScoreData}}
