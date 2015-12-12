@@ -188,6 +188,16 @@ func (m *Match) IsEnded() bool {
 	return !m.Ended.IsZero()
 }
 
+// CanEnd returns boolean whether the match can be ended or not
+func (m *Match) CanEnd() bool {
+	for _, p := range m.Players {
+		if p.Kills >= m.Length() {
+			return true
+		}
+	}
+	return false
+}
+
 // IsOpen returns boolean the match can be controlled or not
 func (m *Match) IsOpen() bool {
 	return !m.IsEnded()
