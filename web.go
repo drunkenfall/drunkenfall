@@ -95,8 +95,7 @@ func (s *Server) TournamentHandler(w http.ResponseWriter, r *http.Request) {
 // JoinHandler shows the tournament view and handles tournaments
 func (s *Server) JoinHandler(w http.ResponseWriter, r *http.Request) {
 	t := getTemplates("static/join.html")
-	vars := mux.Vars(r)
-	tm := s.DB.tournamentRef[vars["id"]]
+	tm := s.getTournament(r)
 	data := struct {
 		Tournament *Tournament
 	}{
@@ -219,7 +218,6 @@ func main() {
 	}
 }
 
-// getMatch ...
 func (s *Server) getMatch(r *http.Request) *Match {
 	var m *Match
 	vars := mux.Vars(r)
@@ -237,4 +235,10 @@ func (s *Server) getMatch(r *http.Request) *Match {
 	}
 
 	return m
+}
+
+func (s *Server) getTournament(r *http.Request) *Tournament {
+	vars := mux.Vars(r)
+	tm := s.DB.tournamentRef[vars["id"]]
+	return tm
 }
