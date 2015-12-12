@@ -99,7 +99,7 @@ func (p *Player) Classes() string {
 		return "prefill"
 	}
 
-	if p.Match.IsEnded() {
+	if p.Match != nil && p.Match.IsEnded() {
 		ps := ByScore(p.Match.Players)
 		if ps[0].Name == p.Name {
 			// Always gold for the winner
