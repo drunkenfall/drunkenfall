@@ -16,17 +16,20 @@
     <p class="name">?</p>
   {{else}}
     <p class="name">{{.Name}}</p>
-
-    {{if .Match}}
-      {{if .Match.IsOpen}}
-      <div class="control-group">
-        {{range .ScoreData}}
-          {{template "control" .}}
-        {{end}}
-        <div class="clear"></div>
-      </div>
-      {{end}}
-    {{end}}
   {{end}}
+</div>
+{{end}}
+
+
+{{define "player-full"}}
+<div id="player-{{.Index}}" class="player {{.Classes}}">
+  <p class="name">{{.Name}}</p>
+
+  <div class="control-group">
+    {{range .ScoreData}}
+      {{template "control" .}}
+    {{end}}
+    <div class="clear"></div>
+  </div>
 </div>
 {{end}}

@@ -3,3 +3,9 @@
     {{ template "player" .}}
   {{end}}
 {{end}}
+
+{{define "match-full"}}
+  {{range .Players}}
+    {{ template "player-full" .}}
+  {{end}}
+{{end}}
