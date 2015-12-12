@@ -61,6 +61,25 @@ func TestStart(t *testing.T) {
 	assert.Equal(false, m.Started.IsZero())
 }
 
+func TestEndGivesShotToWinner(t *testing.T) {
+	assert := assert.New(t)
+	m := NewMatch(tm, 1, "tryout")
+	m.Players = []Player{
+		Player{Name: "1"},
+		Player{Name: "2"},
+		Player{Name: "3"},
+		Player{Name: "4"},
+	}
+
+	err := m.Start()
+	assert.Nil(err)
+	m.Players[2].AddKill(10)
+
+	err = m.End()
+	assert.Nil(err)
+	assert.Equal(1, m.Players[0].Shots)
+}
+
 func TestEndAlreadyEndedMatch(t *testing.T) {
 	assert := assert.New(t)
 	m := NewMatch(tm, 1, "test")

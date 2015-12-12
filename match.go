@@ -157,6 +157,9 @@ func (m *Match) Start() error {
 	}
 
 	m.Started = time.Now()
+	if m.Tournament != nil {
+		m.Tournament.Persist()
+	}
 	return nil
 }
 
@@ -169,12 +172,28 @@ func (m *Match) End() error {
 		return errors.New("match already ended")
 	}
 
-	if m.Kind == "final" {
-		m.Tournament.AwardMedals(m)
-	} else {
-		m.Tournament.MovePlayers(m)
+	// Give the winner one last shot
+	ps := ByScore(m.Players)
+	winner := ps[0].Name
+	for i, p := range m.Players {
+		if p.Name == winner {
+			log.Printf("Gave %s a shot", winner)
+			m.Players[i].AddShot()
+			break
+		}
 	}
+
 	m.Ended = time.Now()
+	// TODO: This is for the tests not to break. Fix by setting up better tests.
+	if m.Tournament != nil {
+		if m.Kind == "final" {
+			m.Tournament.AwardMedals(m)
+		} else {
+			m.Tournament.MovePlayers(m)
+		}
+
+		m.Tournament.Persist()
+	}
 	return nil
 }
 
@@ -201,4 +220,12 @@ func (m *Match) CanEnd() bool {
 // IsOpen returns boolean the match can be controlled or not
 func (m *Match) IsOpen() bool {
 	return !m.IsEnded()
+}
+
+// Length returns the length of the match
+func (m *Match) Length() int {
+	if m.Kind == "final" {
+		return 20
+	}
+	return 10
 }
