@@ -378,28 +378,29 @@ func (t *Tournament) CanJoin(name string) bool {
 // When loading tournaments from the database, these references will not be set.
 // This also sets *Match pointers for Player objects.
 func (t *Tournament) SetMatchPointers() error {
-	log.Print("Setting match pointers...")
+	var m *Match
+	log.Printf("%s: Setting match pointers...", t.ID)
+
 	for i := range t.Tryouts {
-		m := t.Tryouts[i]
+		m = t.Tryouts[i]
 		m.Tournament = t
-		for _, p := range m.Players {
-			p.Match = m
+		for j := range m.Players {
+			m.Players[j].Match = m
 		}
 	}
+
 	for i := range t.Semis {
-		m := t.Semis[i]
+		m = t.Semis[i]
 		m.Tournament = t
-		for _, p := range m.Players {
-			p.Match = m
+		for j := range m.Players {
+			m.Players[j].Match = m
 		}
 	}
 	t.Final.Tournament = t
-	for _, p := range t.Final.Players {
-		p.Match = t.Final
+	for i := range t.Final.Players {
+		t.Final.Players[i].Match = t.Final
 	}
-	for _, p := range t.Players {
-		log.Print(p.String())
-	}
-	log.Print("Pointers loaded.")
+
+	log.Printf("%s: Pointers loaded.", t.ID)
 	return nil
 }
