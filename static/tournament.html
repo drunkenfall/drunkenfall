@@ -28,6 +28,20 @@
         </a>
       {{end}}
     </div>
+
+    {{if .Tournament.GetRunnerups}}
+    <h3>Runnerups</h3>
+    <div class="runnerups">
+      {{range .Tournament.GetRunnerups}}
+        <div class="runnerup">
+          <p class="name">{{.Name}}</p>
+          <p class="score">{{.Score}}p / {{.Matches}}m</p>
+          <div class="clear"></div>
+        </div>
+      {{end}}
+    </div>
+    {{end}}
+
   </div>
   <div class="category final">
     <h3>Final</h3>

@@ -181,3 +181,25 @@ a, a:visited {
 .shots .sign, .self .sign {
     background-color: #404040 !important;
 }
+
+.runnerups .runnerup {
+    padding: 0.1em 0.3em;
+    font-size: 24px;
+    color: #aaa;
+}
+.runnerups .runnerup p {
+    margin: 1px;
+}
+.runnerups .runnerup p.name {
+    float: left;
+    font-weight: bold;
+}
+.runnerups .runnerup p.score {
+    float: right;
+}
+.runnerups .runnerup:nth-child(odd) {
+    background-color: #333;
+}
+.runnerups .runnerup:nth-child(even) {
+    background-color: #272727;
+}
