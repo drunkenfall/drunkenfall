@@ -122,7 +122,7 @@ func (s *Server) JoinHandler(w http.ResponseWriter, r *http.Request) {
 		session.Values["player"] = name
 		session.Save(r, w)
 
-		http.Redirect(w, r, "/"+vars["id"]+"/", 302)
+		http.Redirect(w, r, tm.URL(), 302)
 		return
 	}
 
