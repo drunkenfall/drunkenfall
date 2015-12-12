@@ -15,7 +15,7 @@ type Tournament struct {
 	ID          string    `json:"id"`
 	Players     []Player  `json:"players"`
 	Winners     []Player  `json:"winners"` // TODO: Refactor to pointer
-	Runnerups   []*Player `json:"runnerups"`
+	Runnerups   []string  `json:"runnerups"`
 	Judges      []Judge   `json:"judges"`
 	Tryouts     []*Match  `json:"tryouts"`
 	Semis       []*Match  `json:"semis"`
@@ -23,7 +23,6 @@ type Tournament struct {
 	Opened      time.Time `json:"opened"`
 	Started     time.Time `json:"started"`
 	Ended       time.Time `json:"ended"`
-	playerRef   map[string]*Player
 	db          *Database
 	length      int
 	finalLength int
@@ -50,7 +49,6 @@ func NewTournament(name, id string, db *Database) (*Tournament, error) {
 	t.Final = NewMatch(&t, 0, "final")
 	t.Final.Prefill()
 
-	t.playerRef = make(map[string]*Player)
 	t.Persist()
 	return &t, nil
 }
@@ -64,7 +62,6 @@ func LoadTournament(data []byte, db *Database) (t *Tournament, e error) {
 	}
 
 	t.db = db
-	t.playerRef = make(map[string]*Player)
 
 	t.SetMatchPointers()
 	return
@@ -103,7 +100,6 @@ func (t *Tournament) AddPlayer(name string) error {
 	}
 
 	t.Players = append(t.Players, p)
-	t.playerRef[name] = &p
 
 	ts := len(t.Tryouts)
 	ps := len(t.Players)
@@ -169,80 +165,64 @@ func (t *Tournament) StartTournament() error {
 
 // PopulateRunnerups fills a match with the runnerups with best scores
 func (t *Tournament) PopulateRunnerups(m *Match) error {
-	c := 4 - m.ActualPlayers()
-	r, err := t.GetRunnerups(c)
+	r, err := t.GetRunnerups()
 	if err != nil {
 		return err
 	}
 
-	for _, p := range r {
+	for i := 0; m.ActualPlayers() < 4; i++ {
+		p := r[i]
 		m.AddPlayer(p)
 	}
-
-	if m.ActualPlayers() != 4 {
-		return errors.New("not enough runnerups to populate match")
-	}
-
 	return nil
 }
 
 // GetRunnerups gets the runnerups for this tournament
 //
 // The returned list is sorted descending by score.
-func (t *Tournament) GetRunnerups(amount int) (ps []Player, err error) {
+func (t *Tournament) GetRunnerups() (ps []Player, err error) {
 	err = t.UpdatePlayers()
 	if err != nil {
 		return
 	}
 
-	p := make([]Player, 0, len(t.Runnerups))
+	rs := len(t.Runnerups)
+	p := make([]Player, 0, rs)
 	for _, r := range t.Runnerups {
-		p = append(p, *r)
+		l := t.getPlayer(r)
+		p = append(p, *l)
 	}
-	bs := ByRunnerup(p)
-	for i := 0; i < amount; i++ {
-		// Add the runnerup to the return list
-		runnerup := bs[i]
-		ps = append(ps, runnerup)
-	}
-
-	if len(ps) != amount {
-		return ps, errors.New("not enough players added")
-	}
-	return
+	bs := SortByRunnerup(p)
+	return bs, nil
 }
 
 // UpdatePlayers updates all the player objects with their scores from
 // all the matches they have participated in.
 func (t *Tournament) UpdatePlayers() error {
-	var tp *Player
-	var ok bool
-
 	// Make sure all players have their score reset to nothing
-	for _, p := range t.Players {
-		tp = t.playerRef[p.Name]
-		tp.Reset()
+	for i := range t.Players {
+		t.Players[i].Reset()
 	}
 
 	for _, m := range t.Tryouts {
 		for _, p := range m.Players {
-			if tp, ok = t.playerRef[p.Name]; ok {
-				tp.Update(&p)
+			if !p.IsPrefill() {
+				t.getPlayer(p.Name).Update(p)
 			}
 		}
 	}
 
 	for _, m := range t.Semis {
 		for _, p := range m.Players {
-			if tp, ok = t.playerRef[p.Name]; ok {
-				tp.Update(&p)
+			if !p.IsPrefill() {
+				t.getPlayer(p.Name).Update(p)
 			}
 		}
 	}
 
 	for _, p := range t.Final.Players {
-		if tp, ok = t.playerRef[p.Name]; ok {
-			tp.Update(&p)
+		if !p.IsPrefill() {
+			t.getPlayer(p.Name).Update(p)
 		}
 	}
 
@@ -269,7 +249,7 @@ func (t *Tournament) MovePlayers(m *Match) error {
 				// only happens for players that win the runnerup rounds.
 				for j := 0; j < len(t.Runnerups); j++ {
 					r := t.Runnerups[j]
-					if r.Name == p.Name {
+					if r == p.Name {
 						t.Runnerups = append(t.Runnerups[:j], t.Runnerups[j+1:]...)
 						break
 					}
@@ -281,13 +261,13 @@ func (t *Tournament) MovePlayers(m *Match) error {
 				found := false
 				for j := 0; j < len(t.Runnerups); j++ {
 					r := t.Runnerups[j]
-					if r.Name == p.Name {
+					if r == p.Name {
 						found = true
 						break
 					}
 				}
 				if !found {
-					t.Runnerups = append(t.Runnerups, &p)
+					t.Runnerups = append(t.Runnerups, p.Name)
 				}
 			}
 		}
@@ -403,4 +383,16 @@ func (t *Tournament) SetMatchPointers() error {
 
 	log.Printf("%s: Pointers loaded.", t.ID)
 	return nil
+}
+
+func (t *Tournament) getPlayer(name string) (p *Player) {
+	for i := range t.Players {
+		p := &t.Players[i]
+		if p.Name == name {
+			return p
+		}
+	}
+
+	log.Print(fmt.Sprintf("no player named %s found", name))
+	return
 }

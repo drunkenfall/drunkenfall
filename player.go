@@ -280,7 +280,7 @@ func (p *Player) Reset() {
 // Update updates a player with the scores of another
 //
 // This is primarily used by the tournament score calculator
-func (p *Player) Update(other *Player) error {
+func (p *Player) Update(other Player) error {
 	p.Shots += other.Shots
 	p.Sweeps += other.Sweeps
 	p.Kills += other.Kills

@@ -219,8 +219,8 @@ func TestUpdatePlayer(t *testing.T) {
 	tm.Final = &Match{}
 
 	tm.UpdatePlayers()
-	assert.Equal(20, tm.playerRef["winner"].Kills)
-	assert.Equal(1, tm.playerRef["loser1"].Shots)
+	assert.Equal(20, tm.getPlayer("winner").Kills)
+	assert.Equal(1, tm.getPlayer("loser1").Shots)
 }
 
 func TestEnd4MatchTryoutsPlacesWinnerAndSecondIntoSemisAndRestIntoRunnerups(t *testing.T) {
