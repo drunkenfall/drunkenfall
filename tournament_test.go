@@ -199,19 +199,19 @@ func TestUpdatePlayer(t *testing.T) {
 		{
 			Kind: "tryout",
 			Players: []Player{
-				Player{Name: "winner", Kills: 10},
-				Player{Name: "loser1", Kills: 0, Shots: 1},
-				Player{Name: "loser2", Kills: 0},
-				Player{Name: "loser3", Kills: 0},
+				{Name: "winner", Kills: 10},
+				{Name: "loser1", Kills: 0, Shots: 1},
+				{Name: "loser2", Kills: 0},
+				{Name: "loser3", Kills: 0},
 			},
 		},
 		{
 			Kind: "tryout",
 			Players: []Player{
-				Player{Name: "winner", Kills: 10},
-				Player{Name: "loser1", Kills: 0},
-				Player{Name: "loser2", Kills: 0},
-				Player{Name: "loser3", Kills: 0},
+				{Name: "winner", Kills: 10},
+				{Name: "loser1", Kills: 0},
+				{Name: "loser2", Kills: 0},
+				{Name: "loser3", Kills: 0},
 			},
 		},
 	}

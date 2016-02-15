@@ -72,11 +72,11 @@ func (p *Player) Score() (out int) {
 // ScoreData returns this players set of ScoreData
 func (p *Player) ScoreData() []ScoreData {
 	sd := []ScoreData{
-		ScoreData{Key: "kills", Value: p.Kills, Player: p},
-		ScoreData{Key: "shots", Value: p.Shots, Player: p},
-		ScoreData{Key: "sweeps", Value: p.Sweeps, Player: p},
-		ScoreData{Key: "self", Value: p.Self, Player: p},
-		ScoreData{Key: "explosions", Value: p.Explosions, Player: p},
+		{Key: "kills", Value: p.Kills, Player: p},
+		{Key: "shots", Value: p.Shots, Player: p},
+		{Key: "sweeps", Value: p.Sweeps, Player: p},
+		{Key: "self", Value: p.Self, Player: p},
+		{Key: "explosions", Value: p.Explosions, Player: p},
 	}
 	return sd
 }

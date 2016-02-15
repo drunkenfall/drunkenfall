@@ -29,7 +29,12 @@ func TestAddFifthPlayer(t *testing.T) {
 	assert := assert.New(t)
 	m := NewMatch(tm, 1, "test")
 
-	m.Players = []Player{Player{Name: "a"}, Player{Name: "b"}, Player{Name: "c"}, Player{Name: "d"}}
+	m.Players = []Player{
+		{Name: "a"},
+		{Name: "b"},
+		{Name: "c"},
+		{Name: "d"},
+	}
 	p := Player{}
 
 	err := m.AddPlayer(p)
@@ -50,10 +55,10 @@ func TestStart(t *testing.T) {
 	assert := assert.New(t)
 	m := NewMatch(tm, 1, "test")
 	m.Players = []Player{
-		Player{Name: "1"},
-		Player{Name: "2"},
-		Player{Name: "3"},
-		Player{Name: "4"},
+		{Name: "1"},
+		{Name: "2"},
+		{Name: "3"},
+		{Name: "4"},
 	}
 
 	err := m.Start()
@@ -65,10 +70,10 @@ func TestEndGivesShotToWinner(t *testing.T) {
 	assert := assert.New(t)
 	m := NewMatch(tm, 1, "tryout")
 	m.Players = []Player{
-		Player{Name: "1"},
-		Player{Name: "2"},
-		Player{Name: "3"},
-		Player{Name: "4"},
+		{Name: "1"},
+		{Name: "2"},
+		{Name: "3"},
+		{Name: "4"},
 	}
 
 	err := m.Start()
