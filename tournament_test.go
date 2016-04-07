@@ -23,7 +23,7 @@ func testTournament(count int) (t *Tournament) {
 		"orange",
 		"white",
 		"yellow",
-		"teal",
+		"cyan",
 		"purple",
 	}
 
@@ -204,7 +204,7 @@ func TestUpdatePlayer(t *testing.T) {
 	tm.AddPlayer("winner", "yellow")
 	tm.AddPlayer("loser1", "green")
 	tm.AddPlayer("loser2", "blue")
-	tm.AddPlayer("loser3", "teal")
+	tm.AddPlayer("loser3", "cyan")
 
 	tm.Tryouts = []*Match{
 		{

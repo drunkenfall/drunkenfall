@@ -102,7 +102,7 @@ a, a:visited {
 .match .player.orange {background-color: #CF9648;}
 .match .player.white {background-color: #dbdbdb;}
 .match .player.yellow {background-color: #D1BD66;}
-.match .player.teal {background-color: #59C2C1;}
+.match .player.cyan {background-color: #59C2C1;}
 .match .player.purple {background-color: #762c7a;}
 
 .match .player.prefill:nth-child(1), .match .player.prefill:nth-child(4) {
