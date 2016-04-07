@@ -283,3 +283,6 @@ form input.submit {
     opacity: 0;
     transition: 1.0s;
 }
+form h2 {
+    text-align: center;
+}

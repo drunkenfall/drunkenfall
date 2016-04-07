@@ -1,7 +1,9 @@
 {{define "main"}}
 <form id="join" action="/{{.Tournament.ID}}/join" method="post">
-  <input class="text" name="name" type="text" value="" placeholder="Player name"/>
+  <input id="name" class="text" name="name" type="text" value="" placeholder="Player name"/>
   <input id="color-select" name="color" type="hidden" value=""/>
+
+  <h2>Select your preferred archer</h2>
 
   <div>
     <img id="green" src="/static/img/green-unselected.png">
@@ -17,32 +19,7 @@
   <input id="join-submit" type="submit" class="submit" value="Go go go!"/>
 </form>
 
-<script>
-  var form = document.getElementById('join');
-var submit = document.getElementById('join-submit');
-var color = document.getElementById('color-select');
-var elem = form.getElementsByTagName('img');
-
-function clear() {
-    for(var i = 0; i < elem.length; i++) {
-        var item = elem[i];
-        item.src = "/static/img/" + item.id + "-unselected.png";
-        item.style = "";
-    }
-}
-
-for(var i = 0; i < elem.length; i++) {
-    var item = elem[i];
-    item.onclick = function(e) {
-        clear();
-        this.src = "/static/img/" + this.id + "-selected.png";
-        this.style = "opacity: 1;";
-        submit.style = "opacity: 1;";
-
-        color.value = this.id;
-    };
-}
-</script>
+<script src="/static/selector.js"></script>
 {{end}}
 
 
