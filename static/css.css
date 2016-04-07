@@ -90,14 +90,20 @@ a, a:visited {
     text-align: center;
     overflow: hidden;
     white-space: nowrap;
+    text-shadow: 1px 1px 1px rgba(0,0,0,0.7);
 }
 .matches .match .player {
     height: 40%;
 }
-.match .player:nth-child(1) {background-color: #445566;}
-.match .player:nth-child(2) {background-color: #665544;}
-.match .player:nth-child(3) {background-color: #446655;}
-.match .player:nth-child(4) {background-color: #774455;}
+
+.match .player.green {background-color: #4E9110;}
+.match .player.blue {background-color: #4C7CBA;}
+.match .player.pink {background-color: #E39BB5;}
+.match .player.orange {background-color: #CF9648;}
+.match .player.white {background-color: #dbdbdb;}
+.match .player.yellow {background-color: #D1BD66;}
+.match .player.teal {background-color: #59C2C1;}
+.match .player.purple {background-color: #762c7a;}
 
 .match .player.prefill:nth-child(1), .match .player.prefill:nth-child(4) {
     background-color: #333;

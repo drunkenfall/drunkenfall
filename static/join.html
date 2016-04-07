@@ -2,6 +2,17 @@
 <form action="/{{.Tournament.ID}}/join" method="post">
   <input class="text" name="name" type="text" value="" placeholder="Player name"/>
 
+  <select id="colors" name="color">
+    <option value="green">Vigilante Thief</option>
+    <option value="blue">Last of the Order</option>
+    <option value="pink">Assassin Prince</option>
+    <option value="orange">Turncloak Soldier</option>
+    <option value="white">Ancient Exile</option>
+    <option value="yellow">Forgotten Master</option>
+    <option value="teal">Prancing Puppet</option>
+    <option value="purple">Viscious Vessel</option>
+  </select>
+
   <input type="submit" class="submit" value="Go go go!"/>
 </form>
 {{end}}

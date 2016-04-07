@@ -112,7 +112,12 @@ func (s *Server) JoinHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "too many players", 500)
 			return
 		}
-		err := tm.AddPlayer(name)
+		color := r.PostFormValue("color")
+		if color == "" {
+			http.Error(w, "need a color", 500)
+			return
+		}
+		err := tm.AddPlayer(name, color)
 
 		// TODO: This should not be here...
 		tm.SetMatchPointers()

@@ -94,8 +94,8 @@ func (t *Tournament) URL() string {
 // When adding new players, this means:
 //   Generating tryouts
 //   Shuffling players into positions
-func (t *Tournament) AddPlayer(name string) error {
-	p := Player{Name: name}
+func (t *Tournament) AddPlayer(name, color string) error {
+	p := Player{Name: name, PreferredColor: color}
 	if !t.CanJoin(name) {
 		return errors.New("player already in match")
 	}

@@ -16,9 +16,20 @@ func testTournament(count int) (t *Tournament) {
 		log.Fatal("tournament creation failed")
 	}
 
+	colors := []string{
+		"green",
+		"blue",
+		"pink",
+		"orange",
+		"white",
+		"yellow",
+		"teal",
+		"purple",
+	}
+
 	for i := 1; i <= count; i++ {
 		name := strconv.Itoa(i)
-		t.AddPlayer(name)
+		t.AddPlayer(name, colors[i%len(colors)])
 	}
 
 	return
@@ -190,10 +201,10 @@ func TestNextMatchEverythingDone(t *testing.T) {
 func TestUpdatePlayer(t *testing.T) {
 	assert := assert.New(t)
 	tm, _ := NewTournament("player test", "test", nil)
-	tm.AddPlayer("winner")
-	tm.AddPlayer("loser1")
-	tm.AddPlayer("loser2")
-	tm.AddPlayer("loser3")
+	tm.AddPlayer("winner", "yellow")
+	tm.AddPlayer("loser1", "green")
+	tm.AddPlayer("loser2", "blue")
+	tm.AddPlayer("loser3", "teal")
 
 	tm.Tryouts = []*Match{
 		{
@@ -665,4 +676,15 @@ func TestEndComplete19PlayerTournamentKillsOnly(t *testing.T) {
 	assert.Equal(gold, tm.Winners[0].Name)
 	assert.Equal(lowe, tm.Winners[1].Name)
 	assert.Equal(bronze, tm.Winners[2].Name)
+}
+
+func TestAddPlayerColorIsSet(t *testing.T) {
+	assert := assert.New(t)
+	tm, _ := NewTournament("Hehe", "hehe", MockDatabase())
+
+	err := tm.AddPlayer("DinMamma", "mother")
+	assert.Nil(err)
+
+	assert.Equal(1, len(tm.Players))
+	assert.Equal("mother", tm.Players[0].PreferredColor)
 }
