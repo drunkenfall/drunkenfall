@@ -1,20 +1,48 @@
 {{define "main"}}
-<form action="/{{.Tournament.ID}}/join" method="post">
+<form id="join" action="/{{.Tournament.ID}}/join" method="post">
   <input class="text" name="name" type="text" value="" placeholder="Player name"/>
+  <input id="color-select" name="color" type="hidden" value=""/>
 
-  <select id="colors" name="color">
-    <option value="green">Vigilante Thief</option>
-    <option value="blue">Last of the Order</option>
-    <option value="pink">Assassin Prince</option>
-    <option value="orange">Turncloak Soldier</option>
-    <option value="white">Ancient Exile</option>
-    <option value="yellow">Forgotten Master</option>
-    <option value="cyan">Prancing Puppet</option>
-    <option value="purple">Viscious Vessel</option>
-  </select>
+  <div>
+    <img id="green" src="/static/img/green-unselected.png">
+    <img id="blue" src="/static/img/blue-unselected.png">
+    <img id="pink" src="/static/img/pink-unselected.png">
+    <img id="orange" src="/static/img/orange-unselected.png">
+    <img id="white" src="/static/img/white-unselected.png">
+    <img id="yellow" src="/static/img/yellow-unselected.png">
+    <img id="cyan" src="/static/img/cyan-unselected.png">
+    <img id="purple" src="/static/img/purple-unselected.png">
+  </div>
 
-  <input type="submit" class="submit" value="Go go go!"/>
+  <input id="join-submit" type="submit" class="submit" value="Go go go!"/>
 </form>
+
+<script>
+  var form = document.getElementById('join');
+var submit = document.getElementById('join-submit');
+var color = document.getElementById('color-select');
+var elem = form.getElementsByTagName('img');
+
+function clear() {
+    for(var i = 0; i < elem.length; i++) {
+        var item = elem[i];
+        item.src = "/static/img/" + item.id + "-unselected.png";
+        item.style = "";
+    }
+}
+
+for(var i = 0; i < elem.length; i++) {
+    var item = elem[i];
+    item.onclick = function(e) {
+        clear();
+        this.src = "/static/img/" + this.id + "-selected.png";
+        this.style = "opacity: 1;";
+        submit.style = "opacity: 1;";
+
+        color.value = this.id;
+    };
+}
+</script>
 {{end}}
 
 

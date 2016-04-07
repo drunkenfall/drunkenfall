@@ -105,6 +105,20 @@ a, a:visited {
 .match .player.cyan {background-color: #59C2C1;}
 .match .player.purple {background-color: #762c7a;}
 
+#join div {
+    width: 580px;
+    margin: 10px auto;
+}
+
+#join img {
+    image-rendering: pixelated;
+    width: 120px;
+    margin: 10px;
+    opacity: 0.3;
+    transition: 1.2s;
+}
+
+
 .match .player.prefill:nth-child(1), .match .player.prefill:nth-child(4) {
     background-color: #333;
 }
@@ -248,7 +262,7 @@ a, a:visited {
 }
 
 form {
-    width: 300px;
+    width: 600px;
     margin: 30px auto;
 }
 form input.text {
@@ -259,10 +273,13 @@ form input.text {
     width: 100%;
     background-color: #333339;
     color: white;
+    box-sizing: border-box;
 }
 form input.submit {
-    margin-top: 100px;
+    margin-top: 20px;
     width: 250px;
     border: none;
     font-size: 2em;
+    opacity: 0;
+    transition: 1.0s;
 }
