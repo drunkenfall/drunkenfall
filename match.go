@@ -116,6 +116,16 @@ func (m *Match) AddPlayer(p Player) error {
 	return nil
 }
 
+// UpdatePlayer updates a player for the given match
+func (m *Match) UpdatePlayer(p Player) error {
+	for i, o := range m.Players {
+		if o.Name == p.Name {
+			m.Players[i] = p
+		}
+	}
+	return nil
+}
+
 // Prefill fills remaining player slots with nil players
 func (m *Match) Prefill() error {
 	for i := len(m.Players); i < 4; i++ {
@@ -140,6 +150,33 @@ func (m *Match) ActualPlayers() int {
 	return ret
 }
 
+// CorrectColorConflicts sets colors for players who have chosen the same
+// archer.
+func (m *Match) CorrectColorConflicts() error {
+	// Get any conflicting sets
+	for i, p := range m.Players {
+		for j, p2 := range m.Players {
+			// Same player. Skip.
+			if i == j {
+				continue
+			}
+
+			if p.PreferredColor == p2.PreferredColor {
+				// If the score is the same, prefer player one.
+				if p.Score() >= p2.Score() {
+					p2.RandomizeColor(m)
+					m.UpdatePlayer(p2)
+				} else {
+					p.RandomizeColor(m)
+					m.UpdatePlayer(p)
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
 // Start starts the match
 func (m *Match) Start() error {
 	if !m.Started.IsZero() {
@@ -150,6 +187,11 @@ func (m *Match) Start() error {
 	// the match with runnerups from the tournament
 	if m.ActualPlayers() != 4 {
 		m.Tournament.PopulateRunnerups(m)
+	}
+
+	err := m.CorrectColorConflicts()
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	for i := range m.Players {

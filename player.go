@@ -2,8 +2,22 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 	"sort"
+	"time"
 )
+
+// Colors is a list of the available player colors
+var Colors = []string{
+	"green",
+	"blue",
+	"pink",
+	"orange",
+	"white",
+	"yellow",
+	"cyan",
+	"purple",
+}
 
 // Participant someone having a role in the tournament
 type Participant interface {
@@ -116,6 +130,42 @@ func (p *Player) Classes() string {
 		return "out"
 	}
 	return p.PreferredColor
+}
+
+// RandomizeColor sets the color of this player to an unused one
+func (p *Player) RandomizeColor(m *Match) {
+	// Grab all the colors so we have a reference of what we cannot use
+	colors := make([]string, 4)
+	for _, p := range m.Players {
+		colors = append(colors, p.PreferredColor)
+	}
+
+	// Loop and try to find a new random color that is not already taken
+	// by another player in the match.
+	var color string
+	found := false
+	for {
+		color = getRandomPlayerColor()
+		found = false
+		for _, c := range colors {
+			if c == color {
+				found = true
+				break
+			}
+		}
+
+		if found == false {
+			p.PreferredColor = color
+			return
+		}
+	}
+}
+
+func getRandomPlayerColor() string {
+	rand.Seed(time.Now().UTC().UnixNano())
+	offset := rand.Int() % len(Colors)
+	color := Colors[offset]
+	return color
 }
 
 // Index returns the index in the current match
