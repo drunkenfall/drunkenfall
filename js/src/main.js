@@ -4,6 +4,7 @@ import Resource from 'vue-resource'
 import App from './App'
 
 import TournamentList from './components/TournamentList.vue'
+import Tournament from './components/Tournament.vue'
 
 // install router
 Vue.use(Router)
@@ -18,6 +19,9 @@ var router = new Router({
 router.map({
   '/towerfall/': {
     component: TournamentList
+  },
+  '/towerfall/:tournament/': {
+    component: Tournament
   }
 })
 

@@ -18,61 +18,6 @@
   margin: 10px auto;
 }
 
-.tournament {
-  position: relative;
-}
-
-.tryouts, .semis, .final {
-  width: 29%;
-  float: left;
-  margin-left: 3%;
-  position: relative;
-}
-
-.category h3 {
-  text-align: center;
-  font-size: 200%;
-  margin: 4%;
-}
-
-/* .semis .matches { */
-/*   top: 50%; */
-/*   transform: translateY(50%); */
-/* } */
-
-/* .final .matches { */
-/*   top: 150%; */
-/*   transform: translateY(150%); */
-/* } */
-
-.match {
-  height: 4em;
-  width: 100%;
-  font-size: 150%;
-  display: block;
-}
-.match .player {
-  float: left;
-  width: 50%;
-  line-height: 120%;
-  text-align: center;
-  overflow: hidden;
-  white-space: nowrap;
-  text-shadow: 1px 1px 1px rgba(0,0,0,0.7);
-}
-.matches .match .player {
-  height: 40%;
-}
-
-.match .player.green {background-color: #4E9110;}
-.match .player.blue {background-color: #4C7CBA;}
-.match .player.pink {background-color: #E39BB5;}
-.match .player.orange {background-color: #CF9648;}
-.match .player.white {background-color: #dbdbdb;}
-.match .player.yellow {background-color: #D1BD66;}
-.match .player.cyan {background-color: #59C2C1;}
-.match .player.purple {background-color: #762c7a;}
-
 #join div {
   width: 80%;
   margin: 10px auto;
@@ -87,15 +32,6 @@
 }
 
 
-.match .player.prefill:nth-child(1), .match .player.prefill:nth-child(4) {
-  background-color: #333;
-}
-.match .player.prefill:nth-child(2), .match .player.prefill:nth-child(3) {
-  background-color: #383838;
-}
-.match .player.prefill {
-  color: #555;
-}
 .match .player.gold, .match .player.silver, .match .player.bronze {
   color: #fff;
   text-shadow: 1px 1px 5px rgba(0,0,0,0.3);
@@ -170,26 +106,4 @@
 }
 .shots .sign, .self .sign {
   background-color: #404040 !important;
-}
-
-.runnerups .runnerup {
-  padding: 0.1em 0.3em;
-  font-size: 24px;
-  color: #aaa;
-}
-.runnerups .runnerup p {
-  margin: 1px;
-}
-.runnerups .runnerup p.name {
-  float: left;
-  font-weight: bold;
-}
-.runnerups .runnerup p.score {
-  float: right;
-}
-.runnerups .runnerup:nth-child(odd) {
-  background-color: #333;
-}
-.runnerups .runnerup:nth-child(even) {
-  background-color: #272727;
 }

@@ -72,7 +72,7 @@ func (s *Server) NewHandler(w http.ResponseWriter, r *http.Request) {
 	render(t, w, r, struct{}{})
 }
 
-// TournamentHandler shows the tournament view and handles tournaments
+// TournamentHandler returns the current state of the tournament
 func (s *Server) TournamentHandler(w http.ResponseWriter, r *http.Request) {
 	canJoin := false
 	vars := mux.Vars(r)
@@ -85,7 +85,7 @@ func (s *Server) TournamentHandler(w http.ResponseWriter, r *http.Request) {
 		canJoin = true
 	}
 
-	data := struct {
+	out := struct {
 		Tournament *Tournament
 		CanJoin    bool
 	}{
@@ -93,8 +93,12 @@ func (s *Server) TournamentHandler(w http.ResponseWriter, r *http.Request) {
 		canJoin,
 	}
 
-	t := getTemplates("static/tournament.html", "static/player.html", "static/match.html")
-	render(t, w, r, data)
+	data, err := json.Marshal(out)
+	if err != nil {
+		log.Fatal(err)
+	}
+	w.Header().Set("Content-Type", "application/json")
+	_, _ = w.Write(data)
 }
 
 // JoinHandler shows the tournament view and handles tournaments
@@ -231,8 +235,8 @@ func (s *Server) BuildRouter() http.Handler {
 	r := n.PathPrefix("/api/towerfall").Subrouter()
 
 	r.HandleFunc("/tournament/", s.TournamentListHandler)
+	r.HandleFunc("/tournament/{id}/", s.TournamentHandler)
 	r.HandleFunc("/new", s.NewHandler)
-	r.HandleFunc("/{id}/", s.TournamentHandler)
 	r.HandleFunc("/{id}/start", s.StartTournamentHandler)
 	r.HandleFunc("/{id}/join", s.JoinHandler)
 	r.HandleFunc("/{id}/next", s.NextHandler)
