@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
@@ -212,17 +213,29 @@ func (s *Server) ActionHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, m.URL(), 302)
 }
 
+// TournamentListHandler returns a list of all tournaments
+func (s *Server) TournamentListHandler(w http.ResponseWriter, r *http.Request) {
+	tournaments := s.DB.Tournaments
+	// tournaments := sort.Reverse(s.DB.Tournaments)
+	data, err := json.Marshal(tournaments)
+	if err != nil {
+		log.Fatal(err)
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(data)
+}
+
 // BuildRouter sets up the routes
 func (s *Server) BuildRouter() http.Handler {
 	r := mux.NewRouter()
 
-	m := "/{id}/{kind:(tryout|runnerup|semi|final)}/{index:[0-9]+}"
-	r.HandleFunc("/", s.StartHandler)
-	r.HandleFunc("/new", s.NewHandler)
-	r.HandleFunc("/{id}/", s.TournamentHandler)
-	r.HandleFunc("/{id}/start", s.StartTournamentHandler)
-	r.HandleFunc("/{id}/join", s.JoinHandler)
-	r.HandleFunc("/{id}/next", s.NextHandler)
+	m := "/api/towerfall/{id}/{kind:(tryout|runnerup|semi|final)}/{index:[0-9]+}"
+	r.HandleFunc("/api/towerfall/tournament/", s.TournamentListHandler)
+	r.HandleFunc("/api/towerfall/new", s.NewHandler)
+	r.HandleFunc("/api/towerfall/{id}/", s.TournamentHandler)
+	r.HandleFunc("/api/towerfall/{id}/start", s.StartTournamentHandler)
+	r.HandleFunc("/api/towerfall/{id}/join", s.JoinHandler)
+	r.HandleFunc("/api/towerfall/{id}/next", s.NextHandler)
 	r.HandleFunc(m, s.MatchHandler)
 	r.HandleFunc(m+"/toggle", s.MatchToggleHandler)
 	r.HandleFunc(m+"/{player:[0-3]}/{action}/{dir:(up|down)}", s.ActionHandler)
@@ -232,8 +245,8 @@ func (s *Server) BuildRouter() http.Handler {
 
 // Serve serves forever
 func (s *Server) Serve() error {
-	log.Print("Listening on :60123")
-	return http.ListenAndServe(":60123", s.logger)
+	log.Print("Listening on :45000")
+	return http.ListenAndServe(":45000", s.logger)
 }
 
 // getTemplates gets a template with the context set to `extra`, with index.html backing it.

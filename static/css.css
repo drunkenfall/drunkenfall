@@ -5,19 +5,6 @@
   display: block;
 }
 
-.tournaments a {
-  background-color: #405060;
-  color: #dbdbdb;
-  display: block;
-  font-size: 300%;
-  font-weight: bold;
-  padding: 1% 3%;
-  text-align: center;
-  text-decoration: none;
-  width: 600px;
-  margin: 10px auto;
-}
-
 #join-link, a.button, form input.submit {
   background-color: #405060;
   color: #dbdbdb;
@@ -205,39 +192,4 @@
 }
 .runnerups .runnerup:nth-child(even) {
   background-color: #272727;
-}
-
-#header {
-  background-color: #333339;
-  top: 0px;
-  left: 0px;
-  right: 0px;
-}
-#header .content {
-  margin: 0 20px;
-}
-#header .title {
-  float: left;
-  height: 2em;
-  font-size: 2em;
-  line-height: 2em;
-  font-weight: bold;
-}
-#header .links {
-  float: right;
-}
-#header .links a {
-  margin: 10px !important;
-  font-size: 24px;
-  float: right;
-
-  background-color: #405060;
-  color: #dbdbdb;
-  display: block;
-  font-weight: bold;
-  padding: 7px 30px;
-  text-align: center;
-  text-decoration: none;
-  margin: 10px auto;
-  min-width: 100px;
 }
