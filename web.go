@@ -227,20 +227,21 @@ func (s *Server) TournamentListHandler(w http.ResponseWriter, r *http.Request) {
 
 // BuildRouter sets up the routes
 func (s *Server) BuildRouter() http.Handler {
-	r := mux.NewRouter()
+	n := mux.NewRouter()
+	r := n.PathPrefix("/api/towerfall").Subrouter()
 
-	m := "/api/towerfall/{id}/{kind:(tryout|runnerup|semi|final)}/{index:[0-9]+}"
-	r.HandleFunc("/api/towerfall/tournament/", s.TournamentListHandler)
-	r.HandleFunc("/api/towerfall/new", s.NewHandler)
-	r.HandleFunc("/api/towerfall/{id}/", s.TournamentHandler)
-	r.HandleFunc("/api/towerfall/{id}/start", s.StartTournamentHandler)
-	r.HandleFunc("/api/towerfall/{id}/join", s.JoinHandler)
-	r.HandleFunc("/api/towerfall/{id}/next", s.NextHandler)
+	m := "/{id}/{kind:(tryout|runnerup|semi|final)}/{index:[0-9]+}"
+	r.HandleFunc("/tournament/", s.TournamentListHandler)
+	r.HandleFunc("/new", s.NewHandler)
+	r.HandleFunc("/{id}/", s.TournamentHandler)
+	r.HandleFunc("/{id}/start", s.StartTournamentHandler)
+	r.HandleFunc("/{id}/join", s.JoinHandler)
+	r.HandleFunc("/{id}/next", s.NextHandler)
 	r.HandleFunc(m, s.MatchHandler)
 	r.HandleFunc(m+"/toggle", s.MatchToggleHandler)
 	r.HandleFunc(m+"/{player:[0-3]}/{action}/{dir:(up|down)}", s.ActionHandler)
 
-	return r
+	return n
 }
 
 // Serve serves forever
