@@ -230,16 +230,17 @@ func (s *Server) BuildRouter() http.Handler {
 	n := mux.NewRouter()
 	r := n.PathPrefix("/api/towerfall").Subrouter()
 
-	m := "/{id}/{kind:(tryout|runnerup|semi|final)}/{index:[0-9]+}"
 	r.HandleFunc("/tournament/", s.TournamentListHandler)
 	r.HandleFunc("/new", s.NewHandler)
 	r.HandleFunc("/{id}/", s.TournamentHandler)
 	r.HandleFunc("/{id}/start", s.StartTournamentHandler)
 	r.HandleFunc("/{id}/join", s.JoinHandler)
 	r.HandleFunc("/{id}/next", s.NextHandler)
-	r.HandleFunc(m, s.MatchHandler)
-	r.HandleFunc(m+"/toggle", s.MatchToggleHandler)
-	r.HandleFunc(m+"/{player:[0-3]}/{action}/{dir:(up|down)}", s.ActionHandler)
+
+	m := r.PathPrefix("/{id}/{kind:(tryout|runnerup|semi|final)}/{index:[0-9]+}").Subrouter()
+	m.HandleFunc("/", s.MatchHandler)
+	m.HandleFunc("/toggle", s.MatchToggleHandler)
+	m.HandleFunc("/{player:[0-3]}/{action}/{dir:(up|down)}", s.ActionHandler)
 
 	return n
 }
