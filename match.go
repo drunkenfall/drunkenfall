@@ -98,6 +98,8 @@ func (m *Match) AddPlayer(p Player) error {
 	}
 
 	p.Reset()
+	// TODO: Does not do anything right now...
+	m.CorrectColorConflicts()
 	p.Match = m
 
 	if len(m.Players) == 4 {
@@ -165,10 +167,10 @@ func (m *Match) CorrectColorConflicts() error {
 				// If the score is the same, prefer player one.
 				if p.Score() >= p2.Score() {
 					p2.RandomizeColor(m)
-					m.UpdatePlayer(p2)
+					_ = m.UpdatePlayer(p2)
 				} else {
 					p.RandomizeColor(m)
-					m.UpdatePlayer(p)
+					_ = m.UpdatePlayer(p)
 				}
 			}
 		}
