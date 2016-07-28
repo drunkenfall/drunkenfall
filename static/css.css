@@ -1,99 +1,80 @@
-body, html {
-    background-color: #22222a;
-    color: #dbdbdb;
-    font-family: 'Yanone Kaffeesatz', sans-serif;
-    margin: 0;
-    /* font-family: 'Droid Sans', sans-serif; */
-}
-.clear {
-    clear: both;
-}
-
 #banner {
-    width: 960px;
-    height: 482;
-    margin: 10px auto;
-    display: block;
-}
-
-h1 {
-    text-align: center;
+  width: 960px;
+  height: 482;
+  margin: 10px auto;
+  display: block;
 }
 
 .tournaments a {
-    background-color: #405060;
-    color: #dbdbdb;
-    display: block;
-    font-size: 300%;
-    font-weight: bold;
-    padding: 1% 3%;
-    text-align: center;
-    text-decoration: none;
-    width: 600px;
-    margin: 10px auto;
+  background-color: #405060;
+  color: #dbdbdb;
+  display: block;
+  font-size: 300%;
+  font-weight: bold;
+  padding: 1% 3%;
+  text-align: center;
+  text-decoration: none;
+  width: 600px;
+  margin: 10px auto;
 }
 
 #join-link, a.button, form input.submit {
-    background-color: #405060;
-    color: #dbdbdb;
-    display: block;
-    font-size: 100%;
-    font-weight: bold;
-    padding: 1% 3%;
-    text-align: center;
-    text-decoration: none;
-    width: 100px;
-    margin: 10px auto;
+  background-color: #405060;
+  color: #dbdbdb;
+  display: block;
+  font-size: 100%;
+  font-weight: bold;
+  padding: 1% 3%;
+  text-align: center;
+  text-decoration: none;
+  width: 100px;
+  margin: 10px auto;
 }
 
 .tournament {
-    position: relative;
+  position: relative;
 }
 
 .tryouts, .semis, .final {
-    width: 29%;
-    float: left;
-    margin-left: 3%;
-    position: relative;
+  width: 29%;
+  float: left;
+  margin-left: 3%;
+  position: relative;
 }
 
 .category h3 {
-    text-align: center;
-    font-size: 200%;
-    margin: 4%;
+  text-align: center;
+  font-size: 200%;
+  margin: 4%;
 }
 
 /* .semis .matches { */
-/*     top: 50%; */
-/*     transform: translateY(50%); */
+/*   top: 50%; */
+/*   transform: translateY(50%); */
 /* } */
 
 /* .final .matches { */
-/*     top: 150%; */
-/*     transform: translateY(150%); */
+/*   top: 150%; */
+/*   transform: translateY(150%); */
 /* } */
 
 .match {
-    height: 4em;
-    width: 100%;
-    font-size: 150%;
-    display: block;
-}
-a, a:visited {
-    color: inherit;
-    text-decoration: none;
+  height: 4em;
+  width: 100%;
+  font-size: 150%;
+  display: block;
 }
 .match .player {
-    float: left;
-    width: 50%;
-    line-height: 120%;
-    text-align: center;
-    overflow: hidden;
-    white-space: nowrap;
-    text-shadow: 1px 1px 1px rgba(0,0,0,0.7);
+  float: left;
+  width: 50%;
+  line-height: 120%;
+  text-align: center;
+  overflow: hidden;
+  white-space: nowrap;
+  text-shadow: 1px 1px 1px rgba(0,0,0,0.7);
 }
 .matches .match .player {
-    height: 40%;
+  height: 40%;
 }
 
 .match .player.green {background-color: #4E9110;}
@@ -106,183 +87,157 @@ a, a:visited {
 .match .player.purple {background-color: #762c7a;}
 
 #join div {
-    width: 80%;
-    margin: 10px auto;
+  width: 80%;
+  margin: 10px auto;
 }
 
 #join img {
-    image-rendering: pixelated;
-    width: 22%;
-    margin: 1%;
-    opacity: 0.3;
-    transition: 1.2s;
+  image-rendering: pixelated;
+  width: 22%;
+  margin: 1%;
+  opacity: 0.3;
+  transition: 1.2s;
 }
 
 
 .match .player.prefill:nth-child(1), .match .player.prefill:nth-child(4) {
-    background-color: #333;
+  background-color: #333;
 }
 .match .player.prefill:nth-child(2), .match .player.prefill:nth-child(3) {
-    background-color: #383838;
+  background-color: #383838;
 }
 .match .player.prefill {
-    color: #555;
+  color: #555;
 }
 .match .player.gold, .match .player.silver, .match .player.bronze {
-    color: #fff;
-    text-shadow: 1px 1px 5px rgba(0,0,0,0.3);
+  color: #fff;
+  text-shadow: 1px 1px 5px rgba(0,0,0,0.3);
 }
 .match .player.gold {
-    background-color: #daa520;
+  background-color: #daa520;
 }
 .match .player.silver {
-    background-color: #999;
+  background-color: #999;
 }
 .match .player.bronze {
-    background-color: #8C7853;
+  background-color: #8C7853;
 
 }
 .match .player.out {
-    color: #777;
-    text-shadow: 1px 1px 5px rgba(0,0,0,0.3);
+  color: #777;
+  text-shadow: 1px 1px 5px rgba(0,0,0,0.3);
 }
 .match .player.out:nth-child(1), .match .player.out:nth-child(4) {
-    background-color: #433;
+  background-color: #433;
 }
 .match .player.out:nth-child(2), .match .player.out:nth-child(3) {
-    background-color: #4a3838;
+  background-color: #4a3838;
 }
 
 
 .match .player p.name {
-    font-weight: bold;
-    margin: 2px 5px;
+  font-weight: bold;
+  margin: 2px 5px;
 }
 
 .matches .control {
-    display: none;
+  display: none;
 }
 #control .player {
-    min-height: 2.2em;
+  min-height: 2.2em;
 }
 #control .player .name {
-    margin-top: 0.3em;
-    font-size: 1.5em;
+  margin-top: 0.3em;
+  font-size: 1.5em;
 }
 #control .player .control-group {
-    margin: 3% auto;
-    height: 16%;
-    width: 80%;
-    position: relative;
+  margin: 3% auto;
+  height: 16%;
+  width: 80%;
+  position: relative;
 }
 #control .player .control {
-    height: 16%;
-    display: block;
-    position: relative;
-    line-height: 1.7em;
+  height: 16%;
+  display: block;
+  position: relative;
+  line-height: 1.7em;
 }
 #control .player .control div, #control .player .control a {
-    float: left;
-    display: block;
-    margin: 1% 0;
-    height: 100%;
+  float: left;
+  display: block;
+  margin: 1% 0;
+  height: 100%;
 }
 #control .player .control .count {
-    width: 70%;
-    background-color: #404040;
+  width: 70%;
+  background-color: #404040;
 }
 .shots .count, .self .count {
-    background-color: #484848 !important;
+  background-color: #484848 !important;
 }
 #control .player .control .sign {
-    background-color: #353535;
-    width: 15%;
-    cursor: pointer;
-    display: block;
+  background-color: #353535;
+  width: 15%;
+  cursor: pointer;
+  display: block;
 }
 .shots .sign, .self .sign {
-    background-color: #404040 !important;
+  background-color: #404040 !important;
 }
 
 .runnerups .runnerup {
-    padding: 0.1em 0.3em;
-    font-size: 24px;
-    color: #aaa;
+  padding: 0.1em 0.3em;
+  font-size: 24px;
+  color: #aaa;
 }
 .runnerups .runnerup p {
-    margin: 1px;
+  margin: 1px;
 }
 .runnerups .runnerup p.name {
-    float: left;
-    font-weight: bold;
+  float: left;
+  font-weight: bold;
 }
 .runnerups .runnerup p.score {
-    float: right;
+  float: right;
 }
 .runnerups .runnerup:nth-child(odd) {
-    background-color: #333;
+  background-color: #333;
 }
 .runnerups .runnerup:nth-child(even) {
-    background-color: #272727;
+  background-color: #272727;
 }
 
 #header {
-    background-color: #333339;
-    top: 0px;
-    left: 0px;
-    right: 0px;
+  background-color: #333339;
+  top: 0px;
+  left: 0px;
+  right: 0px;
 }
 #header .content {
-    margin: 0 20px;
+  margin: 0 20px;
 }
 #header .title {
-    float: left;
-    height: 2em;
-    font-size: 2em;
-    line-height: 2em;
-    font-weight: bold;
+  float: left;
+  height: 2em;
+  font-size: 2em;
+  line-height: 2em;
+  font-weight: bold;
 }
 #header .links {
-    float: right;
+  float: right;
 }
 #header .links a {
-    margin: 10px !important;
-    font-size: 24px;
-    float: right;
+  margin: 10px !important;
+  font-size: 24px;
+  float: right;
 
-    background-color: #405060;
-    color: #dbdbdb;
-    display: block;
-    font-weight: bold;
-    padding: 7px 30px;
-    text-align: center;
-    text-decoration: none;
-    margin: 10px auto;
-    min-width: 100px;
-}
-
-form {
-    width: 80%;
-    margin: 30px auto;
-}
-form input.text {
-    font-size: 2em;
-    /* border-radius: 10px; */
-    border: none;
-    padding: 10px 30px;
-    width: 100%;
-    background-color: #333339;
-    color: white;
-    box-sizing: border-box;
-}
-form input.submit {
-    margin-top: 20px;
-    width: 250px;
-    border: none;
-    font-size: 2em;
-    opacity: 0;
-    transition: 1.0s;
-}
-form h2 {
-    text-align: center;
+  background-color: #405060;
+  color: #dbdbdb;
+  display: block;
+  font-weight: bold;
+  padding: 7px 30px;
+  text-align: center;
+  text-decoration: none;
+  margin: 10px auto;
+  min-width: 100px;
 }

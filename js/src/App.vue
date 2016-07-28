@@ -1,25 +1,4 @@
 <template>
-  <div id="app">
-    <img class="logo" src="./assets/logo.png">
-    <hello></hello>
-    <p>
-      Welcome to your Vue.js app!
-    </p>
-    <p>
-      To get a better understanding of how this boilerplate works, check out
-      <a href="http://vuejs-templates.github.io/webpack" target="_blank">its documentation</a>.
-      It is also recommended to go through the docs for
-      <a href="http://webpack.github.io/" target="_blank">Webpack</a> and
-      <a href="http://vuejs.github.io/vue-loader/" target="_blank">vue-loader</a>.
-      If you have any issues with the setup, please file an issue at this boilerplate's
-      <a href="https://github.com/vuejs-templates/webpack" target="_blank">repository</a>.
-    </p>
-    <p>
-      You may also want to checkout
-      <a href="https://github.com/vuejs/vue-router/" target="_blank">vue-router</a> for routing and
-      <a href="https://github.com/vuejs/vuex/" target="_blank">vuex</a> for state management.
-    </p>
-  </div>
 </template>
 
 <script>
@@ -32,33 +11,50 @@ export default {
 }
 </script>
 
-<style>
-html {
-  height: 100%;
+<style lang="scss">
+body, html {
+  background-color: #22222a;
+  color: #dbdbdb;
+  font-family: 'Yanone Kaffeesatz', sans-serif;
+  margin: 0;
+}
+.clear {
+  clear: both;
 }
 
-body {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-}
-
-#app {
-  color: #2c3e50;
-  margin-top: -100px;
-  max-width: 600px;
-  font-family: Source Sans Pro, Helvetica, sans-serif;
+h1 {
   text-align: center;
 }
-
-#app a {
-  color: #42b983;
+a, a:visited {
+  color: inherit;
   text-decoration: none;
 }
 
-.logo {
-  width: 100px;
-  height: 100px
+
+form {
+  width: 80%;
+  margin: 30px auto;
 }
+form input.text {
+  font-size: 2em;
+  /* border-radius: 10px; */
+  border: none;
+  padding: 10px 30px;
+  width: 100%;
+  background-color: #333339;
+  color: white;
+  box-sizing: border-box;
+}
+form input.submit {
+  margin-top: 20px;
+  width: 250px;
+  border: none;
+  font-size: 2em;
+  opacity: 0;
+  transition: 1.0s;
+}
+form h2 {
+  text-align: center;
+}
+
 </style>
