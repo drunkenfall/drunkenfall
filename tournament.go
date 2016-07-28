@@ -370,7 +370,7 @@ func (t *Tournament) CanJoin(name string) bool {
 // This also sets *Match pointers for Player objects.
 func (t *Tournament) SetMatchPointers() error {
 	var m *Match
-	log.Printf("%s: Setting match pointers...", t.ID)
+	// log.Printf("%s: Setting match pointers...", t.ID)
 
 	for i := range t.Tryouts {
 		m = t.Tryouts[i]
@@ -392,7 +392,7 @@ func (t *Tournament) SetMatchPointers() error {
 		t.Final.Players[i].Match = t.Final
 	}
 
-	log.Printf("%s: Pointers loaded.", t.ID)
+	// log.Printf("%s: Pointers loaded.", t.ID)
 	return nil
 }
 
