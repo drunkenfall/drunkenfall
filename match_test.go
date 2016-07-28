@@ -107,20 +107,20 @@ func TestString(t *testing.T) {
 	assert := assert.New(t)
 
 	m := NewMatch(tm, 0, "test")
-	m.AddPlayer(Player{Name: "1"})
-	m.AddPlayer(Player{Name: "2"})
-	m.AddPlayer(Player{Name: "3"})
-	m.AddPlayer(Player{Name: "4"})
+	_ = m.AddPlayer(Player{Name: "1"})
+	_ = m.AddPlayer(Player{Name: "2"})
+	_ = m.AddPlayer(Player{Name: "3"})
+	_ = m.AddPlayer(Player{Name: "4"})
 	ret := m.String()
 
 	assert.Equal("<Test 1: 1 / 2 / 3 / 4 - not started>", ret)
 
 	m2 := NewMatch(tm, 0, "final")
-	m2.AddPlayer(Player{Name: "a"})
-	m2.AddPlayer(Player{Name: "b"})
-	m2.AddPlayer(Player{Name: "c"})
-	m2.AddPlayer(Player{Name: "d"})
-	m2.Start()
+	_ = m2.AddPlayer(Player{Name: "a"})
+	_ = m2.AddPlayer(Player{Name: "b"})
+	_ = m2.AddPlayer(Player{Name: "c"})
+	_ = m2.AddPlayer(Player{Name: "d"})
+	_ = m2.Start()
 	ret2 := m2.String()
 
 	assert.Equal("<Final: a / b / c / d - playing>", ret2)
@@ -130,10 +130,10 @@ func TestCorrectColorConflictsNoScores(t *testing.T) {
 	assert := assert.New(t)
 
 	m := NewMatch(tm, 0, "final")
-	m.AddPlayer(Player{Name: "a", PreferredColor: "green"})
-	m.AddPlayer(Player{Name: "b", PreferredColor: "green"})
-	m.AddPlayer(Player{Name: "c", PreferredColor: "blue"})
-	m.AddPlayer(Player{Name: "d", PreferredColor: "pink"})
+	_ = m.AddPlayer(Player{Name: "a", PreferredColor: "green"})
+	_ = m.AddPlayer(Player{Name: "b", PreferredColor: "green"})
+	_ = m.AddPlayer(Player{Name: "c", PreferredColor: "blue"})
+	_ = m.AddPlayer(Player{Name: "d", PreferredColor: "pink"})
 
 	err := m.CorrectColorConflicts()
 	assert.Nil(err)
@@ -146,10 +146,10 @@ func TestCorrectColorConflictsNoScoresDoubleConflict(t *testing.T) {
 	assert := assert.New(t)
 
 	m := NewMatch(tm, 0, "final")
-	m.AddPlayer(Player{Name: "a", PreferredColor: "green"})
-	m.AddPlayer(Player{Name: "b", PreferredColor: "green"})
-	m.AddPlayer(Player{Name: "c", PreferredColor: "blue"})
-	m.AddPlayer(Player{Name: "d", PreferredColor: "blue"})
+	_ = m.AddPlayer(Player{Name: "a", PreferredColor: "green"})
+	_ = m.AddPlayer(Player{Name: "b", PreferredColor: "green"})
+	_ = m.AddPlayer(Player{Name: "c", PreferredColor: "blue"})
+	_ = m.AddPlayer(Player{Name: "d", PreferredColor: "blue"})
 
 	err := m.CorrectColorConflicts()
 	assert.Nil(err)
@@ -164,10 +164,10 @@ func TestCorrectColorConflictPlayerTwoHasHigherScore(t *testing.T) {
 	assert := assert.New(t)
 
 	m := NewMatch(tm, 0, "final")
-	m.AddPlayer(Player{Name: "a", PreferredColor: "green"})
-	m.AddPlayer(Player{Name: "b", PreferredColor: "green"})
-	m.AddPlayer(Player{Name: "c", PreferredColor: "blue"})
-	m.AddPlayer(Player{Name: "d", PreferredColor: "cyan"})
+	_ = m.AddPlayer(Player{Name: "a", PreferredColor: "green"})
+	_ = m.AddPlayer(Player{Name: "b", PreferredColor: "green"})
+	_ = m.AddPlayer(Player{Name: "c", PreferredColor: "blue"})
+	_ = m.AddPlayer(Player{Name: "d", PreferredColor: "cyan"})
 
 	// Add some score to player 2 so that it has preference over green.
 	m.Players[1].AddKill(3)
