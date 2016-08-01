@@ -4,6 +4,9 @@
       <div class="content">
         <div class="title">Drunken TowerFall</div>
       </div>
+      <div class="links">
+        <a v-link="{path: 'new/'}">New Tournament</a>
+        </div>
       <div class="clear"></div>
     </header>
 

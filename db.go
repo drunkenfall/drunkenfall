@@ -23,6 +23,7 @@ func NewDatabase(fn string) (*Database, error) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	log.Printf("Using %s", fn)
 
 	db := &Database{DB: bolt}
 	db.tournamentRef = make(map[string]*Tournament)

@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	"html/template"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -22,6 +23,18 @@ type Server struct {
 	DB     *Database
 	router http.Handler
 	logger http.Handler
+}
+
+// JSONMessage defines a message to be returned to the frontend
+type JSONMessage struct {
+	Message  string `json:"message"`
+	Redirect string `json:"redirect"`
+}
+
+// NewRequest is the request to make a new tournament
+type NewRequest struct {
+	Name string `json:"name"`
+	ID   string `json:"id"`
 }
 
 // NewServer instantiates a server with an active database
@@ -53,23 +66,35 @@ func (s *Server) StartHandler(w http.ResponseWriter, r *http.Request) {
 
 // NewHandler shows the page to create a new tournament
 func (s *Server) NewHandler(w http.ResponseWriter, r *http.Request) {
-	// If there is a post to this URL, it means we are making a new tournament
-	if r.Method == "POST" {
-		name := r.PostFormValue("name")
-		id := r.PostFormValue("id")
-		t, _ := NewTournament(name, id, s.DB)
-		log.Printf("Created tournament %s!", t.Name)
-
-		s.DB.Tournaments = append(s.DB.Tournaments, t)
-		s.DB.tournamentRef[t.ID] = t
-
-		http.Redirect(w, r, t.URL(), 302)
+	var req NewRequest
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		log.Print(err)
 		return
 	}
 
-	// Elsewise, show the GUI
-	t := getTemplates("static/new.html")
-	render(t, w, r, struct{}{})
+	log.Print(string(body))
+	err = json.Unmarshal(body, &req)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Print(req)
+	t, _ := NewTournament(req.Name, req.ID, s.DB)
+	log.Printf("Created tournament %s!", t.Name)
+
+	s.DB.Tournaments = append(s.DB.Tournaments, t)
+	s.DB.tournamentRef[t.ID] = t
+
+	data, err := json.Marshal(JSONMessage{
+		Redirect: t.URL(),
+	})
+	if err != nil {
+		log.Print(err)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	_, _ = w.Write(data)
 }
 
 // TournamentHandler returns the current state of the tournament
@@ -236,7 +261,7 @@ func (s *Server) BuildRouter() http.Handler {
 
 	r.HandleFunc("/tournament/", s.TournamentListHandler)
 	r.HandleFunc("/tournament/{id}/", s.TournamentHandler)
-	r.HandleFunc("/new", s.NewHandler)
+	r.HandleFunc("/new/", s.NewHandler)
 	r.HandleFunc("/{id}/start", s.StartTournamentHandler)
 	r.HandleFunc("/{id}/join", s.JoinHandler)
 	r.HandleFunc("/{id}/next", s.NextHandler)
