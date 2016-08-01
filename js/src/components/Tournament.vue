@@ -30,7 +30,7 @@
       <!--
       <h3>Runnerups</h3>
       <div class="runnerups">
-        <div v-for="m in tournament.GetRunnerups"
+        <div v-for="m in tournament.GetRunnerups">
           <div class="runnerup">
             <p class="name">{{.Name}}</p>
             <p class="score">{{.Score}}p / {{.Matches}}m</p>
@@ -44,16 +44,13 @@
     <div class="category final">
       <h3>Final</h3>
       <div class="matches">
-        <a id="{{tournament.final.kind}}" class="match {{tournament.final.kind}}" href="{{tournament.final.url}}">
-          <match :match="tournament.final"
-                 id="{{tournament.final.kind}}-{{tournament.final.index}}"
-                 class="match {{tournament.final.kind}}">
-        </a>
+      <!--
+        <match :match="tournament.final"
+               id="{{tournament.final.kind}}-{{tournament.final.index}}"
+               class="match {{tournament.final.kind}}">
+       -->
       </div>
     </div>
-  </div>
-  <div class="clear"></div>
-
   </div>
 </template>
 
