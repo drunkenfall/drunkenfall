@@ -103,7 +103,6 @@ export default {
 }
 
 .match {
-  height: 4em;
   width: 100%;
   font-size: 150%;
   display: block;
@@ -115,6 +114,7 @@ export default {
     text-align: center;
     overflow: hidden;
     white-space: nowrap;
+    padding: 0.2em 0;
     text-shadow: 1px 1px 1px rgba(0,0,0,0.7);
 
     &.prefill:nth-child(1), &.prefill:nth-child(4) {
