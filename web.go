@@ -37,6 +37,12 @@ type NewRequest struct {
 	ID   string `json:"id"`
 }
 
+// JoinRequest is the request to join a tournament
+type JoinRequest struct {
+	Name  string `json:"name"`
+	Color string `json:"color"`
+}
+
 // NewServer instantiates a server with an active database
 func NewServer(db *Database) *Server {
 	s := Server{DB: db}
@@ -73,28 +79,18 @@ func (s *Server) NewHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Print(string(body))
 	err = json.Unmarshal(body, &req)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	log.Print(req)
 	t, _ := NewTournament(req.Name, req.ID, s.DB)
 	log.Printf("Created tournament %s!", t.Name)
 
 	s.DB.Tournaments = append(s.DB.Tournaments, t)
 	s.DB.tournamentRef[t.ID] = t
 
-	data, err := json.Marshal(JSONMessage{
-		Redirect: t.URL(),
-	})
-	if err != nil {
-		log.Print(err)
-		return
-	}
-	w.Header().Set("Content-Type", "application/json")
-	_, _ = w.Write(data)
+	s.redirect(w, t.URL())
 }
 
 // TournamentHandler returns the current state of the tournament
@@ -128,52 +124,55 @@ func (s *Server) TournamentHandler(w http.ResponseWriter, r *http.Request) {
 
 // JoinHandler shows the tournament view and handles tournaments
 func (s *Server) JoinHandler(w http.ResponseWriter, r *http.Request) {
-	t := getTemplates("static/join.html")
+	var req JoinRequest
 	tm := s.getTournament(r)
-	data := struct {
-		Tournament *Tournament
-	}{
-		tm,
-	}
 
-	if r.Method == "POST" {
-		name := r.PostFormValue("name")
-		if !tm.CanJoin(name) {
-			http.Error(w, "too many players", 500)
-			return
-		}
-		color := r.PostFormValue("color")
-		if color == "" {
-			http.Error(w, "need a color", 500)
-			return
-		}
-		err := tm.AddPlayer(name, color)
-
-		// TODO: This should not be here...
-		tm.SetMatchPointers()
-
-		if err != nil {
-			// TODO: Flash error message
-			http.Error(w, err.Error(), 500)
-			return
-		}
-
-		log.Printf("%s has joined %s!", name, tm.Name)
-		session, err := store.Get(r, tm.Name)
-		if err != nil {
-			http.Error(w, err.Error(), 500)
-			return
-		}
-
-		// TODO: Does not work. :/
-		session.Values["player"] = name
-		session.Save(r, w)
-
-		http.Redirect(w, r, tm.URL(), 302)
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		log.Print(err)
 		return
 	}
 
-	render(t, w, r, data)
+	err = json.Unmarshal(body, &req)
+	if err != nil {
+		log.Print(err)
+		return
+	}
+	log.Print(req)
+
+	name := req.Name
+	color := req.Color
+
+	if !tm.CanJoin(name) {
+		http.Error(w, "too many players", 500)
+		return
+	}
+	if color == "" {
+		http.Error(w, "need a color", 500)
+		return
+	}
+
+	err = tm.AddPlayer(name, color)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+
+	// TODO: This should not be here...
+	_ = tm.SetMatchPointers()
+
+	log.Printf("%s has joined %s!", name, tm.Name)
+	session, err := store.Get(r, tm.Name)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+
+	// TODO: Does not work. :/
+	session.Values["player"] = name
+	session.Save(r, w)
+
+	s.redirect(w, tm.URL())
 }
 
 // StartTournamentHandler starts tournaments
@@ -263,7 +262,7 @@ func (s *Server) BuildRouter() http.Handler {
 	r.HandleFunc("/tournament/{id}/", s.TournamentHandler)
 	r.HandleFunc("/new/", s.NewHandler)
 	r.HandleFunc("/{id}/start", s.StartTournamentHandler)
-	r.HandleFunc("/{id}/join", s.JoinHandler)
+	r.HandleFunc("/{id}/join/", s.JoinHandler)
 	r.HandleFunc("/{id}/next", s.NextHandler)
 
 	m := r.PathPrefix("/{id}/{kind:(tryout|runnerup|semi|final)}/{index:[0-9]+}").Subrouter()
@@ -334,4 +333,17 @@ func (s *Server) getTournament(r *http.Request) *Tournament {
 	vars := mux.Vars(r)
 	tm := s.DB.tournamentRef[vars["id"]]
 	return tm
+}
+
+// redirect creates a JSON redirect
+func (s *Server) redirect(w http.ResponseWriter, url string) {
+	data, err := json.Marshal(JSONMessage{
+		Redirect: url,
+	})
+	if err != nil {
+		log.Print(err)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	_, _ = w.Write(data)
 }

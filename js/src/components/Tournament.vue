@@ -4,6 +4,9 @@
       <div class="content">
         <div class="title">{{tournament.name}}</div>
       </div>
+      <div v-if="can_join" class="links">
+        <a v-link="{path: 'join/'}">Join</a>
+      </div>
       <div class="clear"></div>
     </header>
 
@@ -66,7 +69,8 @@ export default {
 
   data () {
     return {
-      tournament: {}
+      tournament: {},
+      can_join: false
     }
   },
 

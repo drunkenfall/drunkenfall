@@ -77,16 +77,17 @@ form input.text {
   color: white;
   box-sizing: border-box;
 }
-form input.submit {
-  margin-top: 20px;
-  width: 250px;
-  border: none;
-  font-size: 2em;
-  opacity: 0;
-  transition: 1.0s;
-}
-form h2 {
-  text-align: center;
-}
 
+#join-link, a.button, form input.submit {
+  background-color: #405060;
+  color: #dbdbdb;
+  display: block;
+  font-size: 100%;
+  font-weight: bold;
+  padding: 1% 3%;
+  text-align: center;
+  text-decoration: none;
+  width: 100px;
+  margin: 10px auto;
+}
 </style>

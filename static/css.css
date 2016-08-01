@@ -5,33 +5,6 @@
   display: block;
 }
 
-#join-link, a.button, form input.submit {
-  background-color: #405060;
-  color: #dbdbdb;
-  display: block;
-  font-size: 100%;
-  font-weight: bold;
-  padding: 1% 3%;
-  text-align: center;
-  text-decoration: none;
-  width: 100px;
-  margin: 10px auto;
-}
-
-#join div {
-  width: 80%;
-  margin: 10px auto;
-}
-
-#join img {
-  image-rendering: pixelated;
-  width: 22%;
-  margin: 1%;
-  opacity: 0.3;
-  transition: 1.2s;
-}
-
-
 .match .player.gold, .match .player.silver, .match .player.bronze {
   color: #fff;
   text-shadow: 1px 1px 5px rgba(0,0,0,0.3);
