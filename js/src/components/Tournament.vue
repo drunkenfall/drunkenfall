@@ -117,10 +117,10 @@ export default {
     white-space: nowrap;
     text-shadow: 1px 1px 1px rgba(0,0,0,0.7);
 
-    &.prefill:nth-child(1), .prefill:nth-child(4) {
+    &.prefill:nth-child(1), &.prefill:nth-child(4) {
       background-color: #333;
     }
-    &.prefill:nth-child(2), .prefill:nth-child(3) {
+    &.prefill:nth-child(2), &.prefill:nth-child(3) {
       background-color: #383838;
     }
     &.prefill {
