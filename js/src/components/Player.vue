@@ -7,22 +7,27 @@
 <script>
 export default {
   name: 'Player',
-  data: () => {
-    return {
-      name: '',
-      index: 0,
-      preferred_color: ''
-    }
+
+  props: {
+    player: Object,
+    index: 0
   },
+
   computed: {
-    display_name: function () {
-      return this.prefill === true ? '???' : this.$data.name
-    },
     prefill: function () {
-      return this.$data.name === ''
+      return this.player === undefined || this.player.name === ''
+    },
+    display_name: function () {
+      if (this.prefill) {
+        return '???'
+      }
+      return this.player.name
     },
     classes: function () {
-      return this.prefill === true ? 'prefill' : this.$data.preferred_color
+      if (this.prefill) {
+        return 'prefill'
+      }
+      return this.player.preferred_color
     }
   }
 }
