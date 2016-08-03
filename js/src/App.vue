@@ -22,9 +22,10 @@ p {
 h1 {
   text-align: center;
 }
-a, a:visited {
+a, a:visited, .action, .action:visited {
   color: inherit;
   text-decoration: none;
+  cursor: pointer;
 }
 
 header {
@@ -45,7 +46,7 @@ header {
   }
   .links {
     float: right;
-    a {
+    a, .action {
       margin: 10px !important;
       font-size: 24px;
       float: right;

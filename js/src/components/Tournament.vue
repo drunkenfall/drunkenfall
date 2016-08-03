@@ -4,8 +4,10 @@
       <div class="content">
         <div class="title">{{tournament.name}}</div>
       </div>
-      <div v-if="can_join" class="links">
-        <a v-link="{path: 'join/'}">Join</a>
+      <div class="links">
+        <a v-if="can_join" v-link="{path: 'join/'}">Join</a>
+        <div class="action" v-if="can_start" @click="start">Start</div>
+        <div class="action" v-if="is_running" @click="next">Next match</div>
       </div>
       <div class="clear"></div>
     </header>
@@ -14,7 +16,7 @@
       <h3>Tryouts</h3>
       <div class="matches">
         <template v-for="m in tournament.tryouts">
-          <match :match="m" id="{{m.kind}}-{{m.index}}" class="match {{m.kind}}">
+          <match :match="m" class="match {{m.kind}}">
         </template>
       </div>
       <div class="clear"></div>
@@ -24,9 +26,10 @@
       <h3>Semi-finals</h3>
       <div class="matches">
         <template v-for="m in tournament.semis">
-          <match :match="m" id="{{m.kind}}-{{m.index}}" class="match {{m.kind}}">
+          <match :match="m" class="match {{m.kind}}">
         </template>
       </div>
+
       <!--
       <h3>Runnerups</h3>
       <div class="runnerups">
@@ -67,7 +70,42 @@ export default {
   data () {
     return {
       tournament: {},
-      can_join: false
+      can_join: false,
+      can_start: true,
+      is_running: false
+    }
+  },
+
+  computed: {
+    can_start: function () {
+      // Such is the default nil format in Go
+      return this.tournament.started === '0001-01-01T00:00:00Z'
+    },
+    is_running: function () {
+      return this.tournament.started !== '0001-01-01T00:00:00Z' && this.tournament.ended === '0001-01-01T00:00:00Z'
+    }
+  },
+
+  methods: {
+    start: function () {
+      this.$http.get('/api/towerfall/' + this.$data.tournament.id + '/start/').then((res) => {
+        console.log(res)
+        var j = res.json()
+        this.$route.router.go('/towerfall' + j.redirect)
+      }, (res) => {
+        console.log('fail')
+        console.log(res)
+      })
+    },
+    next: function () {
+      this.$http.get('/api/towerfall/' + this.$data.tournament.id + '/next/').then((res) => {
+        console.log(res)
+        var j = res.json()
+        this.$route.router.go('/towerfall' + j.redirect)
+      }, (res) => {
+        console.log('fail')
+        console.log(res)
+      })
     }
   },
 
@@ -159,15 +197,14 @@ export default {
         float: right;
       }
     }
-
   }
+
   .runnerup:nth-child(odd) {
     background-color: #333;
   }
   .runnerup:nth-child(even) {
     background-color: #272727;
   }
-
 }
 
 </style>

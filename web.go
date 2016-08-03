@@ -184,7 +184,7 @@ func (s *Server) StartTournamentHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	http.Redirect(w, r, tm.URL(), 302)
+	s.redirect(w, tm.URL())
 }
 
 // NextHandler starts tournaments
@@ -196,7 +196,7 @@ func (s *Server) NextHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, m.URL(), 302)
+	s.redirect(w, m.URL())
 }
 
 // MatchHandler shows the Match view and handles Matches
@@ -261,9 +261,9 @@ func (s *Server) BuildRouter() http.Handler {
 	r.HandleFunc("/tournament/", s.TournamentListHandler)
 	r.HandleFunc("/tournament/{id}/", s.TournamentHandler)
 	r.HandleFunc("/new/", s.NewHandler)
-	r.HandleFunc("/{id}/start", s.StartTournamentHandler)
+	r.HandleFunc("/{id}/start/", s.StartTournamentHandler)
 	r.HandleFunc("/{id}/join/", s.JoinHandler)
-	r.HandleFunc("/{id}/next", s.NextHandler)
+	r.HandleFunc("/{id}/next/", s.NextHandler)
 
 	m := r.PathPrefix("/{id}/{kind:(tryout|runnerup|semi|final)}/{index:[0-9]+}").Subrouter()
 	m.HandleFunc("/", s.MatchHandler)
