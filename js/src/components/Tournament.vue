@@ -16,7 +16,7 @@
       <h3>Tryouts</h3>
       <div class="matches">
         <template v-for="m in tournament.tryouts">
-          <match :match="m" class="match {{m.kind}}">
+          <match-overview :match="m" class="match {{m.kind}}">
         </template>
       </div>
       <div class="clear"></div>
@@ -26,7 +26,7 @@
       <h3>Semi-finals</h3>
       <div class="matches">
         <template v-for="m in tournament.semis">
-          <match :match="m" class="match {{m.kind}}">
+          <match-overview :match="m" class="match {{m.kind}}">
         </template>
       </div>
 
@@ -48,7 +48,7 @@
       <h3>Final</h3>
       <div class="matches">
       <!--
-        <match :match="tournament.final"
+        <match-overview :match="tournament.final"
                id="{{tournament.final.kind}}-{{tournament.final.index}}"
                class="match {{tournament.final.kind}}">
        -->
@@ -58,13 +58,13 @@
 </template>
 
 <script>
-import Match from './Match.vue'
+import MatchOverview from './MatchOverview.vue'
 
 export default {
   name: 'Tournament',
 
   components: {
-    Match
+    MatchOverview
   },
 
   data () {
