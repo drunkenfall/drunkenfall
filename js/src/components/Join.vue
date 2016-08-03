@@ -7,7 +7,7 @@
       <div class="clear"></div>
     </header>
     <form id="join" @submit="submit">
-      <input v-model="name" class="text" type="text" placeholder="Player name"/>
+      <input v-model="name" class="text" type="text" maxlength="20" placeholder="Your player tag"/>
 
       <h2>Select your preferred archer</h2>
 
@@ -113,6 +113,13 @@ export default {
   div {
     width: 80%;
     margin: 10px auto;
+  }
+
+  input.text {
+    width: 11em;
+    margin: 0 auto;
+    display: inherit;
+    text-align: center;
   }
 
   input.submit {
