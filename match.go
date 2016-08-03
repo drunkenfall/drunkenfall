@@ -82,7 +82,7 @@ func (m *Match) Title() string {
 // URL builds the URL to the match
 func (m *Match) URL() string {
 	out := fmt.Sprintf(
-		"/%s/%s/%d",
+		"/%s/%s/%d/",
 		m.Tournament.ID,
 		m.Kind,
 		m.Index,
