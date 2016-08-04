@@ -91,6 +91,10 @@ export default {
       var ret = []
       var t = this.tournament
 
+      if (!t.runnerups) {
+        return ret
+      }
+
       for (var i = 0; i < t.runnerups.length; i++) {
         for (var j = 0; j < t.players.length; j++) {
           var runnerupName = t.runnerups[i]
@@ -112,6 +116,8 @@ export default {
         console.log(res)
         var j = res.json()
         this.$route.router.go('/towerfall' + j.redirect)
+        // XXX: Worst hack of all time
+        this.$data.tournament.started = 'hehe'
       }, (res) => {
         console.log('fail')
         console.log(res)
