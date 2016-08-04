@@ -31,20 +31,21 @@
       </div>
       <div class="clear"></div>
 
-      <h3>Runnerups</h3>
-      <div class="runnerups">
-        <template v-for="player in runnerups">
-          <div class="runnerup">
-            <p class="name">{{player.name}}</p>
-            <p class="score">
-              <b>{{player.score}}</b> points
-              /
-              <b>{{player.matches}}</b> matches
-            </p>
-
-            <div class="clear"></div>
-          </div>
-        </template>
+      <div v-if="runnerups.length > 0">
+        <h3>Runnerups</h3>
+        <div class="runnerups">
+          <template v-for="player in runnerups">
+            <div class="runnerup">
+              <p class="name">{{player.name}}</p>
+              <p class="score">
+                <b>{{player.score}}</b> points
+                /
+                <b>{{player.matches}}</b> matches
+              </p>
+              <div class="clear"></div>
+            </div>
+          </template>
+        </div>
       </div>
 
     </div>
