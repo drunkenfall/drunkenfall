@@ -283,6 +283,15 @@ func (t *Tournament) MovePlayers(m *Match) error {
 		}
 	}
 
+	// Get the runnerups and sort their names into the Runnerup array
+	ps, err := t.GetRunnerups()
+	if err != nil {
+		log.Fatal(err)
+	}
+	t.Runnerups = make([]string, 0)
+	for _, p := range ps {
+		t.Runnerups = append(t.Runnerups, p.Name)
+	}
 	return nil
 }
 

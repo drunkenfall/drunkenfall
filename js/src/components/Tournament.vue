@@ -29,20 +29,23 @@
           <match-overview :match="m" class="match {{m.kind}}">
         </template>
       </div>
+      <div class="clear"></div>
 
-      <!--
       <h3>Runnerups</h3>
       <div class="runnerups">
-        <div v-for="m in tournament.GetRunnerups">
+        <template v-for="player in runnerups">
           <div class="runnerup">
-            <p class="name">{{.Name}}</p>
-            <p class="score">{{.Score}}p / {{.Matches}}m</p>
+            <p class="name">{{player.name}}</p>
+            <p class="score">
+              <b>{{player.score}}</b> points
+              /
+              <b>{{player.matches}}</b> matches
+            </p>
 
             <div class="clear"></div>
           </div>
-        </div>
+        </template>
       </div>
-      -->
 
     </div>
     <div class="category final">
@@ -66,7 +69,10 @@ export default {
 
   data () {
     return {
-      tournament: {},
+      tournament: {
+        players: [],
+        runnerups: []
+      },
       can_join: false,
       can_start: true,
       is_running: false
@@ -80,6 +86,23 @@ export default {
     },
     is_running: function () {
       return this.tournament.started !== '0001-01-01T00:00:00Z' && this.tournament.ended === '0001-01-01T00:00:00Z'
+    },
+    runnerups: function () {
+      var ret = []
+      var t = this.tournament
+
+      for (var i = 0; i < t.runnerups.length; i++) {
+        for (var j = 0; j < t.players.length; j++) {
+          var runnerupName = t.runnerups[i]
+          var player = t.players[j]
+
+          if (runnerupName === player.name) {
+            ret.push(player)
+          }
+        }
+      }
+
+      return ret
     }
   },
 
@@ -203,6 +226,9 @@ export default {
 }
 
 .runnerups {
+  width: 100%;
+  margin: 10px;
+
   .runnerup {
     padding: 0.1em 0.3em;
     font-size: 24px;
@@ -210,12 +236,15 @@ export default {
 
     p {
       margin: 1px;
-      .name {
+      &.name {
         float: left;
-        font-weight: bold;
+        // font-weight: bold;
       }
-      .score {
+      &.score {
         float: right;
+      }
+      b {
+        text-shadow: 1px 1px 1px rgba(0,0,0,0.4);
       }
     }
   }

@@ -41,6 +41,7 @@ type Player struct {
 	Self           int    `json:"self"`
 	Explosions     int    `json:"explosions"`
 	Matches        int    `json:"matches"`
+	TotalScore     int    `json:"score"`
 	Match          *Match `json:"-"`
 }
 
@@ -71,7 +72,7 @@ func (p *Player) String() string {
 func (p *Player) Score() (out int) {
 	// This algorithm is probably flawed, but at least it should be able to
 	// determine who is the most entertaining.
-	// When executed, a sweep is basically 11 points since scoring a sweep
+	// When executed, a sweep is basically 14 points since scoring a sweep
 	// also comes with a shot and three kills.
 
 	out += p.Sweeps * 5
@@ -330,18 +331,18 @@ func (p *Player) Reset() {
 // Update updates a player with the scores of another
 //
 // This is primarily used by the tournament score calculator
-func (p *Player) Update(other Player) error {
+func (p *Player) Update(other Player) {
 	p.Shots += other.Shots
 	p.Sweeps += other.Sweeps
 	p.Kills += other.Kills
 	p.Self += other.Self
 	p.Explosions += other.Explosions
+	p.TotalScore = p.Score()
 
 	// Every call to this method is per match. Count every call
 	// as if a match.
 	p.Matches++
-
-	return nil
+	// log.Printf("Updated player: %d, %d", p.TotalScore, p.Matches)
 }
 
 // HTML renders the HTML of a player
