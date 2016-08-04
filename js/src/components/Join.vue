@@ -11,15 +11,15 @@
 
       <h2>Select your preferred archer</h2>
 
-      <div>
-        <img @click="character" id="green" src="/static/img/green-unselected.png">
-        <img @click="character" id="blue" src="/static/img/blue-unselected.png">
-        <img @click="character" id="pink" src="/static/img/pink-unselected.png">
-        <img @click="character" id="orange" src="/static/img/orange-unselected.png">
-        <img @click="character" id="white" src="/static/img/white-unselected.png">
-        <img @click="character" id="yellow" src="/static/img/yellow-unselected.png">
-        <img @click="character" id="cyan" src="/static/img/cyan-unselected.png">
-        <img @click="character" id="purple" src="/static/img/purple-unselected.png">
+      <div id="join-images" class="images">
+        <input type="image" @click="character" id="green" src="/static/img/green-selected.png">
+        <input type="image" @click="character" id="blue" src="/static/img/blue-selected.png">
+        <input type="image" @click="character" id="pink" src="/static/img/pink-selected.png">
+        <input type="image" @click="character" id="orange" src="/static/img/orange-selected.png">
+        <input type="image" @click="character" id="white" src="/static/img/white-selected.png">
+        <input type="image" @click="character" id="yellow" src="/static/img/yellow-selected.png">
+        <input type="image" @click="character" id="cyan" src="/static/img/cyan-selected.png">
+        <input type="image" @click="character" id="purple" src="/static/img/purple-selected.png">
       </div>
 
       <input type="submit" class="submit" value="Go go go!"
@@ -45,22 +45,20 @@ export default {
     character (event) {
       this.clear()
       var img = event.srcElement
-      img.src = '/static/img/' + img.id + '-selected.png'
-      img.style = 'opacity: 1'
       this.$data.color = img.id
+      img.className = 'selected'
     },
     clear () {
-      var elem = document.getElementById('join').getElementsByTagName('img')
+      var elem = document.getElementById('join-images').getElementsByTagName('input')
       for (var i = 0; i < elem.length; i++) {
         var item = elem[i]
-        item.src = '/static/img/' + item.id + '-unselected.png'
-        item.style = ''
+        item.className = ''
       }
     },
     submit (event) {
       event.preventDefault()
-      if (this.$data.ready === false) {
-        console.log('no')
+      if (this.ready === false) {
+        console.log('Did not fill in all details')
         return
       }
 
@@ -138,12 +136,28 @@ export default {
     text-align: center;
   }
 
-  img {
-    image-rendering: pixelated;
-    width: 22%;
-    margin: 1%;
-    opacity: 0.3;
-    transition: 1.2s;
+  .images {
+    #green {background-image: url(/static/img/green-selected.png);}
+    #blue {background-image: url(/static/img/blue-selected.png);}
+    #pink {background-image: url(/static/img/pink-selected.png);}
+    #orange {background-image: url(/static/img/orange-selected.png);}
+    #white {background-image: url(/static/img/white-selected.png);}
+    #yellow {background-image: url(/static/img/yellow-selected.png);}
+    #cyan {background-image: url(/static/img/cyan-selected.png);}
+    #purple {background-image: url(/static/img/purple-selected.png);}
+
+    .selected {
+      opacity: 1;
+    }
+
+    input {
+      image-rendering: pixelated;
+      width: 22%;
+      margin: 1%;
+      opacity: 0.2;
+      transition: 0.3s;
+      cursor: pointer;
+    }
   }
 }
 </style>
