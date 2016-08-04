@@ -7,6 +7,7 @@ import TournamentList from './components/TournamentList.vue'
 import Tournament from './components/Tournament.vue'
 import New from './components/New.vue'
 import Join from './components/Join.vue'
+import Match from './components/Match.vue'
 
 // install router
 Vue.use(Router)
@@ -30,6 +31,9 @@ router.map({
   },
   '/towerfall/:tournament/join/': {
     component: Join
+  },
+  '/towerfall/:tournament/:kind/:match/': {
+    component: Match
   }
 })
 

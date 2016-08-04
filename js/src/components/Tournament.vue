@@ -47,11 +47,7 @@
     <div class="category final">
       <h3>Final</h3>
       <div class="matches">
-      <!--
-        <match-overview :match="tournament.final"
-               id="{{tournament.final.kind}}-{{tournament.final.index}}"
-               class="match {{tournament.final.kind}}">
-       -->
+        <match-overview :match="tournament.final" class="match final">
       </div>
     </div>
   </div>
@@ -149,6 +145,7 @@ export default {
   .player {
     float: left;
     width: 50%;
+    height: 40%;
     line-height: 120%;
     text-align: center;
     overflow: hidden;
@@ -174,11 +171,34 @@ export default {
     &.yellow { background-color: #D1BD66; }
     &.cyan   { background-color: #59C2C1; }
     &.purple { background-color: #762c7a; }
+
+    &.gold {
+      background-color: #daa520;
+    }
+    &.silver {
+      background-color: #999;
+    }
+    &.bronze {
+      background-color: #8C7853;
+    }
+    &.out {
+      color: #777;
+      text-shadow: 1px 1px 5px rgba(0,0,0,0.3);
+    }
+    &.out:nth-child(1), &.out:nth-child(4) {
+      background-color: #433;
+    }
+    &.out:nth-child(2), &.out:nth-child(3) {
+      background-color: #4a3838;
+    }
+
   }
+
+  .match .player.gold, .match .player.silver, .match .player.bronze {
+  color: #fff;
+  text-shadow: 1px 1px 5px rgba(0,0,0,0.3);
 }
 
-.matches .match .player {
-  height: 40%;
 }
 
 .runnerups {

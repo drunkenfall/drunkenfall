@@ -31,6 +31,11 @@ type JSONMessage struct {
 	Redirect string `json:"redirect"`
 }
 
+// UpdateMessage returns an update to the current tournament
+type UpdateMessage struct {
+	Tournament *Tournament `json:"tournament"`
+}
+
 // NewRequest is the request to make a new tournament
 type NewRequest struct {
 	Name string `json:"name"`
@@ -222,7 +227,15 @@ func (s *Server) MatchToggleHandler(w http.ResponseWriter, r *http.Request) {
 		m.End()
 	}
 
-	http.Redirect(w, r, m.URL(), 302)
+	data, err := json.Marshal(UpdateMessage{
+		Tournament: m.Tournament,
+	})
+	if err != nil {
+		log.Print(err)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	_, _ = w.Write(data)
 }
 
 // ActionHandler handles judge requests for player action
@@ -230,6 +243,7 @@ func (s *Server) ActionHandler(w http.ResponseWriter, r *http.Request) {
 	m := s.getMatch(r)
 	if !m.IsOpen() {
 		log.Print("Not allowing actions on non-started matches")
+		log.Print("Match not started")
 		http.Redirect(w, r, m.URL(), 302)
 		return
 	}
@@ -238,7 +252,15 @@ func (s *Server) ActionHandler(w http.ResponseWriter, r *http.Request) {
 	index, _ := strconv.Atoi(vars["player"])
 	m.Players[index].Action(vars["action"], vars["dir"])
 
-	http.Redirect(w, r, m.URL(), 302)
+	data, err := json.Marshal(UpdateMessage{
+		Tournament: m.Tournament,
+	})
+	if err != nil {
+		log.Print(err)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	_, _ = w.Write(data)
 }
 
 // TournamentListHandler returns a list of all tournaments
@@ -265,9 +287,9 @@ func (s *Server) BuildRouter() http.Handler {
 	r.HandleFunc("/{id}/join/", s.JoinHandler)
 	r.HandleFunc("/{id}/next/", s.NextHandler)
 
-	m := r.PathPrefix("/{id}/{kind:(tryout|runnerup|semi|final)}/{index:[0-9]+}").Subrouter()
+	m := r.PathPrefix("/tournament/{id}/{kind:(tryout|runnerup|semi|final)}/{index:[0-9]+}").Subrouter()
 	m.HandleFunc("/", s.MatchHandler)
-	m.HandleFunc("/toggle", s.MatchToggleHandler)
+	m.HandleFunc("/toggle/", s.MatchToggleHandler)
 	m.HandleFunc("/{player:[0-3]}/{action}/{dir:(up|down)}", s.ActionHandler)
 
 	return n

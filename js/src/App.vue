@@ -59,8 +59,13 @@ header {
       text-decoration: none;
       margin: 10px auto;
       min-width: 100px;
-    }
 
+      &.disabled {
+        background-color: #444444;
+        color: #666;
+        cursor: default;
+      }
+    }
   }
 }
 

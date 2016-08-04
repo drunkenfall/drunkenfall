@@ -5,30 +5,6 @@
   display: block;
 }
 
-.match .player.gold, .match .player.silver, .match .player.bronze {
-  color: #fff;
-  text-shadow: 1px 1px 5px rgba(0,0,0,0.3);
-}
-.match .player.gold {
-  background-color: #daa520;
-}
-.match .player.silver {
-  background-color: #999;
-}
-.match .player.bronze {
-  background-color: #8C7853;
-
-}
-.match .player.out {
-  color: #777;
-  text-shadow: 1px 1px 5px rgba(0,0,0,0.3);
-}
-.match .player.out:nth-child(1), .match .player.out:nth-child(4) {
-  background-color: #433;
-}
-.match .player.out:nth-child(2), .match .player.out:nth-child(3) {
-  background-color: #4a3838;
-}
 
 
 .match .player p.name {
