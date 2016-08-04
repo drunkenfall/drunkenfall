@@ -43,6 +43,7 @@ export default {
 
   methods: {
     character (event) {
+      event.preventDefault()
       this.clear()
       var img = event.srcElement
       this.$data.color = img.id
