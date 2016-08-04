@@ -5,7 +5,7 @@
         <div class="title">{{tournament.name}}</div>
       </div>
       <div class="links">
-        <a v-if="can_join" v-link="{path: 'join/'}">Join</a>
+        <a v-if="can_start" v-link="{path: 'join/'}">Join</a>
         <div class="action" v-if="can_start" @click="start">Start</div>
         <div class="action" v-if="is_running" @click="next">Next match</div>
       </div>
@@ -73,7 +73,6 @@ export default {
         players: [],
         runnerups: []
       },
-      can_join: false,
       can_start: true,
       is_running: false
     }
@@ -139,7 +138,6 @@ export default {
     data ({ to }) {
       this.$http.get('/api/towerfall/tournament/' + to.params.tournament + '/').then(function (res) {
         this.$set('tournament', res.data.Tournament)
-        this.$set('can_join', res.data.CanJoin)
       }, function (res) {
         console.log('error when getting tournament')
         console.log(res)
