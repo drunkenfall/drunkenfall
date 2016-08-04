@@ -238,6 +238,11 @@ func (s *Server) MatchToggleHandler(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write(data)
 }
 
+// MatchCommitHandler commits a single round of a match
+func (s *Server) MatchCommitHandler(w http.ResponseWriter, r *http.Request) {
+	return
+}
+
 // ActionHandler handles judge requests for player action
 func (s *Server) ActionHandler(w http.ResponseWriter, r *http.Request) {
 	m := s.getMatch(r)
@@ -290,6 +295,7 @@ func (s *Server) BuildRouter() http.Handler {
 	m := r.PathPrefix("/tournament/{id}/{kind:(tryout|runnerup|semi|final)}/{index:[0-9]+}").Subrouter()
 	m.HandleFunc("/", s.MatchHandler)
 	m.HandleFunc("/toggle/", s.MatchToggleHandler)
+	m.HandleFunc("/commit/", s.MatchCommitHandler)
 	m.HandleFunc("/{player:[0-3]}/{action}/{dir:(up|down)}", s.ActionHandler)
 
 	return n

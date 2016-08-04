@@ -126,6 +126,140 @@ func TestString(t *testing.T) {
 	assert.Equal("<Final: a / b / c / d - playing>", ret2)
 }
 
+func TestCommitSweepPlayer1(t *testing.T) {
+	assert := assert.New(t)
+
+	m := NewMatch(tm, 0, "test")
+	_ = m.AddPlayer(Player{Name: "1"})
+	_ = m.AddPlayer(Player{Name: "2"})
+	_ = m.AddPlayer(Player{Name: "3"})
+	_ = m.AddPlayer(Player{Name: "4"})
+
+	scores := [][]int{
+		[]int{3, 0},
+		[]int{0, 0},
+		[]int{0, 0},
+		[]int{0, 0},
+	}
+	shots := []bool{
+		false,
+		false,
+		false,
+		false,
+	}
+
+	m.Commit(scores, shots)
+	assert.Equal(1, m.Players[0].Sweeps)
+}
+
+func TestCommitDoubleKillPlayer2(t *testing.T) {
+	assert := assert.New(t)
+
+	m := NewMatch(tm, 0, "test")
+	_ = m.AddPlayer(Player{Name: "1"})
+	_ = m.AddPlayer(Player{Name: "2"})
+	_ = m.AddPlayer(Player{Name: "3"})
+	_ = m.AddPlayer(Player{Name: "4"})
+
+	scores := [][]int{
+		[]int{0, 0},
+		[]int{2, 0},
+		[]int{0, 0},
+		[]int{0, 0},
+	}
+	shots := []bool{
+		false,
+		false,
+		false,
+		false,
+	}
+
+	m.Commit(scores, shots)
+	assert.Equal(2, m.Players[1].Kills)
+}
+
+func TestCommitSweepAndSuicidePlayer3(t *testing.T) {
+	assert := assert.New(t)
+
+	m := NewMatch(tm, 0, "test")
+	_ = m.AddPlayer(Player{Name: "1"})
+	_ = m.AddPlayer(Player{Name: "2"})
+	_ = m.AddPlayer(Player{Name: "3"})
+	_ = m.AddPlayer(Player{Name: "4"})
+
+	scores := [][]int{
+		[]int{0, 0},
+		[]int{0, 0},
+		[]int{3, 1},
+		[]int{0, 0},
+	}
+	shots := []bool{
+		false,
+		false,
+		false,
+		false,
+	}
+
+	m.Commit(scores, shots)
+	assert.Equal(1, m.Players[2].Sweeps)
+	assert.Equal(2, m.Players[2].Kills)
+	assert.Equal(1, m.Players[2].Shots)
+}
+
+func TestCommitSuicidePlayer4(t *testing.T) {
+	assert := assert.New(t)
+
+	m := NewMatch(tm, 0, "test")
+	_ = m.AddPlayer(Player{Name: "1"})
+	_ = m.AddPlayer(Player{Name: "2"})
+	_ = m.AddPlayer(Player{Name: "3"})
+	_ = m.AddPlayer(Player{Name: "4"})
+
+	scores := [][]int{
+		[]int{0, 0},
+		[]int{0, 0},
+		[]int{0, 0},
+		[]int{0, 1},
+	}
+	shots := []bool{
+		false,
+		false,
+		false,
+		false,
+	}
+
+	m.Commit(scores, shots)
+	assert.Equal(1, m.Players[3].Self)
+	assert.Equal(1, m.Players[3].Shots)
+}
+
+func TestCommitShotsForPlayer2and3(t *testing.T) {
+	assert := assert.New(t)
+
+	m := NewMatch(tm, 0, "test")
+	_ = m.AddPlayer(Player{Name: "1"})
+	_ = m.AddPlayer(Player{Name: "2"})
+	_ = m.AddPlayer(Player{Name: "3"})
+	_ = m.AddPlayer(Player{Name: "4"})
+
+	scores := [][]int{
+		[]int{0, 0},
+		[]int{0, 0},
+		[]int{0, 0},
+		[]int{0, 0},
+	}
+	shots := []bool{
+		false,
+		true,
+		true,
+		false,
+	}
+
+	m.Commit(scores, shots)
+	assert.Equal(1, m.Players[1].Shots)
+	assert.Equal(1, m.Players[2].Shots)
+}
+
 func TestCorrectColorConflictsNoScores(t *testing.T) {
 	assert := assert.New(t)
 

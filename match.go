@@ -179,6 +179,41 @@ func (m *Match) CorrectColorConflicts() error {
 	return nil
 }
 
+// Commit adds a state of the players
+func (m *Match) Commit(scores [][]int, shots []bool) {
+	for i, score := range scores {
+		ups := score[0]
+		downs := score[1]
+
+		// If the score is 3, then this player killed everyone else.
+		// Count that as a sweep.
+		if ups == 3 {
+			m.Players[i].AddSweep()
+
+			// If we have a sweep and a down, we need to redact the
+			// extra shot, because no player should get more than
+			// one shot per round. Removing one from here makes
+			// sure that the `downs` calculation below still adds
+			// the one.
+			if downs == 1 {
+				m.Players[i].RemoveShot()
+			}
+		} else if ups > 0 {
+			m.Players[i].AddKill(ups)
+		}
+
+		if downs != 0 {
+			m.Players[i].AddSelf()
+		}
+	}
+
+	for i, shot := range shots {
+		if shot {
+			m.Players[i].AddShot()
+		}
+	}
+}
+
 // Start starts the match
 func (m *Match) Start() error {
 	if !m.Started.IsZero() {
