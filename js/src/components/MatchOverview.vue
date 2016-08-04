@@ -1,7 +1,7 @@
 <template>
   <a v-link="{path: match.kind + '/' + match.index + '/'}">
     <template v-for="player in match.players">
-      <player :player="player" :index="$index">
+      <player :player="player" :match="match" :index="$index">
     </template>
   </a>
 </template>

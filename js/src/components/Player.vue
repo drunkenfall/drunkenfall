@@ -10,6 +10,7 @@ export default {
 
   props: {
     player: Object,
+    match: Object,
     index: 0
   },
 
@@ -27,6 +28,19 @@ export default {
       if (this.prefill) {
         return 'prefill'
       }
+
+      if (this.match.ended !== '0001-01-01T00:00:00Z') {
+        if (this.index === 0) {
+          return 'gold'
+        } else if (this.index === 1) {
+          return 'silver'
+        } else if (this.index === 2 && this.match.kind === 'final') {
+          return 'bronze'
+        }
+
+        return 'out'
+      }
+
       return this.player.preferred_color
     }
   }

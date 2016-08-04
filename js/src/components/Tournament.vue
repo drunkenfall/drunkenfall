@@ -37,6 +37,7 @@
           <div class="runnerup">
             <p class="name">{{.Name}}</p>
             <p class="score">{{.Score}}p / {{.Matches}}m</p>
+
             <div class="clear"></div>
           </div>
         </div>
@@ -194,10 +195,10 @@ export default {
 
   }
 
-  .match .player.gold, .match .player.silver, .match .player.bronze {
-  color: #fff;
-  text-shadow: 1px 1px 5px rgba(0,0,0,0.3);
-}
+  &.gold, &.silver, &.bronze {
+    color: #fff;
+    text-shadow: 1px 1px 5px rgba(0,0,0,0.3);
+  }
 
 }
 
