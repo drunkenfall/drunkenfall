@@ -13,83 +13,36 @@
       <div class="clear"></div>
     </header>
 
-    <div class="control">
-      <div id="control" class="match">
+    <div class="control shot">
+      <template v-for="player in match.players">
+        <div class="player">
+          - {{player.shots}} +
+        </div>
+      </template>
+    </div>
 
-        <template v-for="player in match.players">
-          <div class="player {{player.preferred_color}}">
-            <p class="name">
-              {{player.name}}
-            </p>
-
-            <div class="control-group">
-
-              <div class="control kills">
-                <div @click="score($index, 'kills', 'down')" class="sign">
-                  <p v-show="is_running">-</p>
-                </div >
-                <div class="count">{{player.kills}} kills</div>
-                <div @click="score($index, 'kills', 'up')" class="sign">
-                  <p v-show="is_running">+</p>
-                </div>
-                <div class="clear"></div>
-              </div>
-
-              <div class="control shots">
-                <div @click="score($index, 'shots', 'down')" class="sign">
-                  <p v-show="is_running">-</p>
-                </div>
-                <div class="count">{{player.shots}} shots</div>
-                <div @click="score($index, 'shots', 'up')" class="sign">
-                  <p v-show="is_running">+</p>
-                </div>
-                <div class="clear"></div>
-              </div>
-
-              <div class="control sweeps">
-                <div @click="score($index, 'sweeps', 'down')" class="sign">
-                  <p v-show="is_running">-</p>
-                </div>
-                <div class="count">{{player.sweeps}} sweeps</div>
-                <div @click="score($index, 'sweeps', 'up')" class="sign">
-                  <p v-show="is_running">+</p>
-                </div>
-                <div class="clear"></div>
-              </div>
-
-              <div class="control self">
-                <div @click="score($index, 'self', 'down')" class="sign">
-                  <p v-show="is_running">-</p>
-                </div>
-                <div class="count">{{player.self}} self</div>
-                <div @click="score($index, 'self', 'up')" class="sign">
-                  <p v-show="is_running">+</p>
-                </div>
-                <div class="clear"></div>
-              </div>
-
-              <div class="control explosions">
-                <div @click="score($index, 'explosions', 'down')" class="sign">
-                  <p v-show="is_running">-</p>
-                </div>
-                <div class="count">{{player.explosions}} explosions</div>
-                <div @click="score($index, 'explosions', 'up')" class="sign">
-                  <p v-show="is_running">+</p>
-                </div>
-                <div class="clear"></div>
-              </div>
-
-              <div class="clear"></div>
+    <div class="control main">
+      <template v-for="player in match.players">
+        <div class="player {{player.preferred_color}}">
+          <div class="button">
+            <div><p>-</p></div>
+          </div>
+          <div class="slider {{player.preferred_color}}">
+            <div><p>{{player.name}}</p></div>
+          </div>
+          <div class="scores">
+            <div v-for="n in 10">
+              <p>{{n+1}}</p>
             </div>
           </div>
-        </template>
-
-      </div>
+          <div class="button">
+            <div><p>+</p></div>
+          </div>
+        </div>
+      </template>
     </div>
     <div class="clear"></div>
-
-</div>
-
+  </div>
 </template>
 
 <script>
@@ -254,50 +207,131 @@ export default {
 }
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss" >
+
+@import "../style.scss";
+
+.control {
+  height: 85vh;
+  padding: 0.8%;
+
+  &.shot {
+    float: left;
+    width: 12%;
+  }
+  &.main {
+    float: left;
+    width: 83%;
+
+    .player {
+      position: relative;
+
+      >div {
+        float: left;
+        height: 100%;
+      }
+      .button {
+        width: 10%;
+        position: relative;
+
+        div {
+          width: 80%;
+          height: 50%;
+          font-size: 7em;
+          cursor: pointer;
+          background-color: #333339;
+
+          text-align: center;
+          vertical-align: middle;
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translateX(-50%) translateY(-50%);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+
+          p {
+            margin-top: -20%;
+          }
+        }
+      }
+      .slider {
+        width: 15%;
+        text-shadow: 2px 2px 2px rgba(0,0,0,0.8);
+        font-weight: bold;
+        font-size: 1.6vw;
+
+        &.green  { color: $green ; }
+        &.blue   { color: $blue  ; }
+        &.pink   { color: $pink  ; }
+        &.orange { color: $orange; }
+        &.white  { color: $white ; }
+        &.yellow { color: $yellow; }
+        &.cyan   { color: $cyan  ; }
+        &.purple { color: $purple; }
+
+        div {
+          width: 80%;
+          height: 50%;
+          font-size: 1.6em;
+          cursor: pointer;
+
+          text-align: center;
+          vertical-align: middle;
+          position: relative;
+          top: 50%;
+          left: 50%;
+          transform: translateX(-50%) translateY(-50%);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          overflow: hidden;
+        }
+      }
+      .scores {
+        // http://stackoverflow.com/questions/6865194/fluid-width-with-equally-spaced-divs
+        width: 65%;
+        text-align: justify;
+        text-justify: distribute;
+        // background-color: #333339;
+
+        div {
+          // position: relative;
+          // top: 25%;
+          width: 8%;
+          margin: 0 1%;
+          height: 8vh;
+          vertical-align: top;
+          display: inline-block;
+          *display: inline;
+          zoom: 1;
+
+          background-color: #333339;
+          border-radius: 10000px;
+
+          text-align: center;
+          vertical-align: middle;
+          position: relative;
+          top: 50%;
+          transform: translateX(0) translateY(-50%);
+
+          p {
+            position: relative;
+            top: 50%;
+            transform: translateX(0) translateY(-50%);
+            font-size: 1.5em;
+            color: #666672;
+          }
+        }
+      }
+    }
+  }
+}
+
 .player {
-  min-height: 2.2em;
-
-  .name {
-    margin-top: 0.3em;
-    font-size: 1.5em;
-  }
-  .control-group {
-    margin: 3% auto;
-    height: 16%;
-    width: 80%;
-    position: relative;
-  }
-  .control {
-    height: 16%;
-    display: block;
-    position: relative;
-    line-height: 1.7em;
-
-    div, a {
-      float: left;
-      display: block;
-      margin: 1% 0;
-      height: 100%;
-    }
-    .count {
-      width: 70%;
-      background-color: #404040;
-    }
-    .sign {
-      cursor: pointer;
-      background-color: #353535;
-      width: 15%;
-      cursor: pointer;
-      display: block;
-    }
-  }
-}
-.shots .count, .self .count {
-  background-color: #484848 !important;
-}
-.shots .sign, .self .sign {
-  background-color: #404040 !important;
+  height: 25%;
+  display: block;
 }
 
 </style>
