@@ -149,6 +149,8 @@ export default {
 </script>
 
 <style lang="scss">
+@import "../style.scss";
+
 .tournament {
   position: relative;
 }
@@ -192,14 +194,14 @@ export default {
       color: #555;
     }
 
-    &.green  { background-color: #4E9110; }
-    &.blue   { background-color: #4C7CBA; }
-    &.pink   { background-color: #E39BB5; }
-    &.orange { background-color: #CF9648; }
-    &.white  { background-color: #dbdbdb; }
-    &.yellow { background-color: #D1BD66; }
-    &.cyan   { background-color: #59C2C1; }
-    &.purple { background-color: #762c7a; }
+    &.green  { background-color: $green ; }
+    &.blue   { background-color: $blue  ; }
+    &.pink   { background-color: $pink  ; }
+    &.orange { background-color: $orange; }
+    &.white  { background-color: $white ; }
+    &.yellow { background-color: $yellow; }
+    &.cyan   { background-color: $cyan  ; }
+    &.purple { background-color: $purple; }
 
     &.gold {
       background-color: #daa520;
