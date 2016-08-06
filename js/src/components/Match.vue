@@ -15,33 +15,8 @@
 
     <div class="control">
       <template v-for="player in match.players">
-        <div class="player {{player.preferred_color}}">
-          <div class="button">
-            <div><p>-</p></div>
-          </div>
-
-          <div class="shots">
-            <!--- <div><p>✓ {{player.shots}} ✗</p></div> -->
-            <div>
-              <div class="mark">✗</div>
-              <div class="reason"></div>
-            </div>
-          </div>
-
-          <div class="slider {{player.preferred_color}}">
-            <div><p>{{player.name}}</p></div>
-          </div>
-
-          <div class="scores">
-            <div v-for="n in 10">
-              <p>{{n+1}}</p>
-            </div>
-          </div>
-
-          <div class="button">
-            <div><p>+</p></div>
-          </div>
-        </div>
+        <control-player :index="$index" :player="player" :match="match"
+                        :downs="0" :ups="0">
       </template>
     </div>
     <div class="clear"></div>
@@ -49,11 +24,12 @@
 </template>
 
 <script>
-import Player from './Player.vue'
+import ControlPlayer from './ControlPlayer.vue'
+
 export default {
   name: 'Match',
   components: {
-    Player
+    ControlPlayer
   },
 
   data () {
@@ -104,14 +80,11 @@ export default {
   },
 
   methods: {
-    score: function (player, action, direction) {
+    commit: function () {
       var url = '/api/towerfall/tournament/'
       url += this.$data.tournament.id + '/'
       url += this.$data.match.kind + '/'
-      url += this.$data.match.index + '/'
-      url += player + '/'
-      url += action + '/'
-      url += direction
+      url += this.$data.match.index + '/commit/'
 
       this.$http.get(url).then(function (res) {
         console.log(res)
@@ -135,6 +108,13 @@ export default {
         console.log('error when setting score')
         console.log(res)
       })
+    },
+
+    refresh: function () {
+      // Hax to make vue refresh the entire page.
+      // Since nothing on this page is properly bound to components right now
+      // the updates won't trigger properly.
+      this.$set('updated', Date.now())
     },
     end: function () {
       var url = '/api/towerfall/tournament/'
@@ -217,131 +197,6 @@ export default {
 .control {
   height: 85vh;
   padding: 0.8%;
-
-  .player {
-    width: 100%;
-    position: relative;
-
-    >div {
-      float: left;
-      height: 100%;
-    }
-
-    .button, .shots {
-      width: 10%;
-      position: relative;
-      text-shadow: 2px 2px 2px rgba(0,0,0,0.8);
-
-      >div {
-        width: 80%;
-        height: 50%;
-        background-color: #333339;
-        cursor: pointer;
-        text-align: center;
-        vertical-align: middle;
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translateX(-50%) translateY(-50%);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-    }
-    .button {
-      div {
-        font-size: 7em;
-        p {
-          margin-top: -13%;
-        }
-      }
-    }
-
-    .shots div {
-      width: 80%;
-      display: block;
-      margin: 0 auto 1%;
-
-      &.mark {
-        padding-top: 2%;
-        font-size: 4em;
-      }
-      &.reason {
-        margin-top: -4%;
-        font-size: 1.5em;
-      }
-    }
-
-    .slider {
-      width: 15%;
-      text-shadow: 2px 2px 2px rgba(0,0,0,0.8);
-      font-weight: bold;
-      font-size: 1.6vw;
-
-      &.green  { color: $green ; }
-      &.blue   { color: $blue  ; }
-      &.pink   { color: $pink  ; }
-      &.orange { color: $orange; }
-      &.white  { color: $white ; }
-      &.yellow { color: $yellow; }
-      &.cyan   { color: $cyan  ; }
-      &.purple { color: $purple; }
-
-      div {
-        width: 80%;
-        height: 50%;
-        font-size: 1.6em;
-        cursor: pointer;
-
-        text-align: center;
-        vertical-align: middle;
-        position: relative;
-        top: 50%;
-        left: 50%;
-        transform: translateX(-50%) translateY(-50%);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        overflow: hidden;
-      }
-    }
-    .scores {
-      // http://stackoverflow.com/questions/6865194/fluid-width-with-equally-spaced-divs
-      width: 55%;
-      text-align: justify;
-      text-justify: distribute;
-      // background-color: #333339;
-
-      div {
-        // position: relative;
-        // top: 25%;
-        width: 8%;
-        margin: 0 1%;
-        height: 8vh;
-        vertical-align: top;
-        display: inline-block;
-        *display: inline;
-        zoom: 1;
-
-        background-color: #333339;
-        border-radius: 10000px;
-
-        text-align: center;
-        vertical-align: middle;
-        position: relative;
-        top: 50%;
-        transform: translateX(0) translateY(-50%);
-
-        p {
-          position: relative;
-          top: 50%;
-          transform: translateX(0) translateY(-50%);
-          font-size: 1.5em;
-          color: #666672;
-        }
-      }
-    }
-  }
 }
 
 .player {
