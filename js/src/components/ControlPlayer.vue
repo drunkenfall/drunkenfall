@@ -4,15 +4,15 @@
       <div><p>-</p></div>
     </div>
 
-    <div class="shots">
-       <div>
+    <div class="shots" >
+       <div @click="manual_shot" v-bind:class="{'give': shot}">
          <div v-if="shot" class="mark">✓</div>
          <div v-if="!shot" class="mark">✗</div>
-         <div v-if="reason !== ''" class="reason"></div>
+         <div v-if="reason !== ''" class="reason">{{reason}}</div>
        </div>
      </div>
 
-     <div class="slider {{player.preferred_color}}">
+     <div class="slider {{player.preferred_color}}" @click="reset">
        <div><p>{{player.name}}</p></div>
      </div>
 
@@ -63,26 +63,48 @@ export default {
 
   methods: {
     bullet_class: function (player, playerIndex, n) {
-      if (n <= player.kills) {
-        return 'kill'
-      } else if (n > player.kills && n <= (player.kills + this.ups)) {
+      if (n > player.kills && n <= (player.kills + this.ups)) {
         return 'up'
+      } else if (n === player.kills && this.downs === -1) {
+        return 'down'
+      } else if (n <= player.kills) {
+        return 'kill'
       }
       return ''
     },
+
     score: function (playerIndex, score) {
       console.log('setting score ' + playerIndex + ' - ' + score)
       if (score === 1 && this.ups < 3) {
         // We can only allow up to three kills per round...
         this.ups += 1
+        if (this.ups === 3) {
+          this.shot = true
+          this.reason = 'sweep'
+        }
       } else if (score === -1 && this.downs === 0) {
         // ...and only one suicide.
         this.downs -= 1
+        this.shot = true
+        this.reason = 'suicide'
       }
+    },
 
-      console.log(this)
-      console.log(this.ups)
-      console.log(this.downs)
+    reset: function () {
+      this.ups = 0
+      this.downs = 0
+      this.shot = false
+      this.reason = ''
+    },
+
+    manual_shot: function () {
+      if (!this.shot) {
+        this.shot = true
+        this.reason = 'manual'
+      } else {
+        this.shot = false
+        this.reason = ''
+      }
     }
   }
 }
@@ -128,20 +150,29 @@ export default {
         margin-top: -13%;
       }
     }
-  }
+   }
 
-  .shots div {
-    width: 80%;
-    display: block;
-    margin: 0 auto 1%;
+  .shots {
 
-    &.mark {
-      padding-top: 2%;
-      font-size: 6vh;
-    }
-    &.reason {
-      margin-top: -4%;
-      font-size: 2vh;
+    div {
+
+      width: 80%;
+      display: block;
+      margin: 0 auto 1%;
+
+      &.give {
+        background-color: #508850;
+        p {color: #fff;}
+      }
+
+      &.mark {
+        padding-top: 2%;
+        font-size: 6vh;
+      }
+      &.reason {
+        margin-top: -4%;
+        font-size: 2vh;
+      }
     }
   }
 
@@ -221,6 +252,10 @@ export default {
       }
       &.up {
         background-color: #508850;
+        p {color: #fff;}
+      }
+      &.down {
+        background-color: #885050;
         p {color: #fff;}
       }
     }

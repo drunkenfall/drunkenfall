@@ -36,6 +36,11 @@ type UpdateMessage struct {
 	Tournament *Tournament `json:"tournament"`
 }
 
+// UpdateMatchMessage returns an update to the current match
+type UpdateMatchMessage struct {
+	Match *Match `json:"match"`
+}
+
 // NewRequest is the request to make a new tournament
 type NewRequest struct {
 	Name string `json:"name"`
@@ -46,6 +51,18 @@ type NewRequest struct {
 type JoinRequest struct {
 	Name  string `json:"name"`
 	Color string `json:"color"`
+}
+
+// CommitPlayer is one state for a player in a commit message
+type CommitPlayer struct {
+	Ups    int    `json:"ups"`
+	Downs  int    `json:"downs"`
+	Shot   bool   `json:"shot"`
+	Reason string `json:"reason"`
+}
+
+type CommitRequest struct {
+	State []CommitPlayer `json:"state"`
 }
 
 // NewServer instantiates a server with an active database
@@ -240,6 +257,49 @@ func (s *Server) MatchToggleHandler(w http.ResponseWriter, r *http.Request) {
 
 // MatchCommitHandler commits a single round of a match
 func (s *Server) MatchCommitHandler(w http.ResponseWriter, r *http.Request) {
+	var req CommitRequest
+	// tm := s.getTournament(r)
+
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		log.Print(err)
+		return
+	}
+
+	err = json.Unmarshal(body, &req)
+	if err != nil {
+		log.Print(err)
+		return
+	}
+	log.Print(req)
+
+	m := s.getMatch(r)
+	states := req.State
+	scores := [][]int{
+		[]int{states[0].Ups, states[0].Downs},
+		[]int{states[1].Ups, states[1].Downs},
+		[]int{states[2].Ups, states[2].Downs},
+		[]int{states[3].Ups, states[3].Downs},
+	}
+	shots := []bool{
+		states[0].Shot,
+		states[1].Shot,
+		states[2].Shot,
+		states[3].Shot,
+	}
+
+	m.Commit(scores, shots)
+
+	data, err := json.Marshal(UpdateMatchMessage{
+		Match: m,
+	})
+	if err != nil {
+		log.Print(err)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	_, _ = w.Write(data)
+
 	return
 }
 

@@ -8,7 +8,8 @@
       </div>
       <div class="links">
         <a v-if="can_start" @click="start">Start match</a>
-        <a v-if="!can_start" v-bind:class="{'disabled': !can_end}" @click="end">End match</a>
+        <a v-if="is_running" v-bind:class="{'disabled': !can_commit}" @click="commit">End round</a>
+        <a v-if="can_end"@click="end">End match</a>
       </div>
       <div class="clear"></div>
     </header>
@@ -75,6 +76,9 @@ export default {
         return true
       }
       return false
+    },
+    can_commit: function () {
+      return true
     }
 
   },
@@ -86,24 +90,45 @@ export default {
       url += this.$data.match.kind + '/'
       url += this.$data.match.index + '/commit/'
 
-      this.$http.get(url).then(function (res) {
+      // TODO: pls
+      var payload = {
+        'state': [
+          {
+            'ups': this.$children[0].ups,
+            'downs': this.$children[0].downs,
+            'shot': this.$children[0].shot,
+            'reason': this.$children[0].reason
+          },
+          {
+            'ups': this.$children[1].ups,
+            'downs': this.$children[1].downs,
+            'shot': this.$children[1].shot,
+            'reason': this.$children[1].reason
+          },
+          {
+            'ups': this.$children[2].ups,
+            'downs': this.$children[2].downs,
+            'shot': this.$children[2].shot,
+            'reason': this.$children[2].reason
+          },
+          {
+            'ups': this.$children[3].ups,
+            'downs': this.$children[3].downs,
+            'shot': this.$children[3].shot,
+            'reason': this.$children[3].reason
+          }
+        ]
+      }
+
+      console.log(payload)
+      this.$http.post(url, payload).then(function (res) {
         console.log(res)
-        var target = this.$data.match.kind
-        var match = this.$data.match.index
+        this.$set('match', res.data.match)
 
-        if (target === 'tryout') {
-          target = 'tryouts'
-        } else if (target === 'semi') {
-          target = 'semis'
-        }
-
-        if (target === 'final') {
-          this.$set('match', res.data.tournament[target])
-        } else {
-          this.$set('match', res.data.tournament[target][match])
-        }
-
-        this.$set('tournament', res.data.tournament)
+        this.$children[0].reset()
+        this.$children[1].reset()
+        this.$children[2].reset()
+        this.$children[3].reset()
       }, function (res) {
         console.log('error when setting score')
         console.log(res)
