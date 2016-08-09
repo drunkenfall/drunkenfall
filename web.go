@@ -363,8 +363,8 @@ func (s *Server) BuildRouter() http.Handler {
 
 // Serve serves forever
 func (s *Server) Serve() error {
-	log.Print("Listening on :45000")
-	return http.ListenAndServe(":45000", s.logger)
+	log.Print("Listening on :42001")
+	return http.ListenAndServe(":42001", s.logger)
 }
 
 // getTemplates gets a template with the context set to `extra`, with index.html backing it.
