@@ -5,7 +5,6 @@ import (
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
-	"html/template"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -74,22 +73,6 @@ func NewServer(db *Database) *Server {
 	s.logger = handlers.LoggingHandler(os.Stdout, s.router)
 
 	return &s
-}
-
-// StartHandler is the entry point to the web GUI
-//
-// If not authenticated, it allows for registration.
-// If authenticated and a tournament is running, show that tournament.
-// If authenticated and no tournament is running, show a list of tournaments.
-func (s *Server) StartHandler(w http.ResponseWriter, r *http.Request) {
-	t := getTemplates("static/tournaments.html")
-	data := struct {
-		Tournaments []*Tournament
-	}{
-		s.DB.Tournaments,
-	}
-
-	render(t, w, r, data)
 }
 
 // NewHandler shows the page to create a new tournament
@@ -221,18 +204,6 @@ func (s *Server) NextHandler(w http.ResponseWriter, r *http.Request) {
 	s.redirect(w, m.URL())
 }
 
-// MatchHandler shows the Match view and handles Matches
-func (s *Server) MatchHandler(w http.ResponseWriter, r *http.Request) {
-	data := struct {
-		Match *Match
-	}{
-		s.getMatch(r),
-	}
-
-	t := getTemplates("static/matchcontrol.html", "static/player.html", "static/match.html")
-	render(t, w, r, data)
-}
-
 // MatchToggleHandler starts and stops matches
 func (s *Server) MatchToggleHandler(w http.ResponseWriter, r *http.Request) {
 	m := s.getMatch(r)
@@ -303,31 +274,6 @@ func (s *Server) MatchCommitHandler(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-// ActionHandler handles judge requests for player action
-func (s *Server) ActionHandler(w http.ResponseWriter, r *http.Request) {
-	m := s.getMatch(r)
-	if !m.IsOpen() {
-		log.Print("Not allowing actions on non-started matches")
-		log.Print("Match not started")
-		http.Redirect(w, r, m.URL(), 302)
-		return
-	}
-
-	vars := mux.Vars(r)
-	index, _ := strconv.Atoi(vars["player"])
-	m.Players[index].Action(vars["action"], vars["dir"])
-
-	data, err := json.Marshal(UpdateMessage{
-		Tournament: m.Tournament,
-	})
-	if err != nil {
-		log.Print(err)
-		return
-	}
-	w.Header().Set("Content-Type", "application/json")
-	_, _ = w.Write(data)
-}
-
 // TournamentListHandler returns a list of all tournaments
 func (s *Server) TournamentListHandler(w http.ResponseWriter, r *http.Request) {
 	tournaments := s.DB.Tournaments
@@ -353,10 +299,8 @@ func (s *Server) BuildRouter() http.Handler {
 	r.HandleFunc("/{id}/next/", s.NextHandler)
 
 	m := r.PathPrefix("/tournament/{id}/{kind:(tryout|runnerup|semi|final)}/{index:[0-9]+}").Subrouter()
-	m.HandleFunc("/", s.MatchHandler)
 	m.HandleFunc("/toggle/", s.MatchToggleHandler)
 	m.HandleFunc("/commit/", s.MatchCommitHandler)
-	m.HandleFunc("/{player:[0-3]}/{action}/{dir:(up|down)}", s.ActionHandler)
 
 	return n
 }
@@ -365,37 +309,6 @@ func (s *Server) BuildRouter() http.Handler {
 func (s *Server) Serve() error {
 	log.Print("Listening on :42001")
 	return http.ListenAndServe(":42001", s.logger)
-}
-
-// getTemplates gets a template with the context set to `extra`, with index.html backing it.
-func getTemplates(items ...string) *template.Template {
-	items = append(items, "static/index.html")
-	t, err := template.ParseFiles(items...)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return t
-}
-
-func render(t *template.Template, w http.ResponseWriter, r *http.Request, data interface{}) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	err := t.ExecuteTemplate(w, "base", data)
-	if err != nil {
-		log.Fatal(err)
-	}
-}
-
-func main() {
-	db, err := NewDatabase("production.db")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	err = NewServer(db).Serve()
-	if err != nil {
-		log.Fatal(err)
-	}
 }
 
 func (s *Server) getMatch(r *http.Request) *Match {
@@ -434,4 +347,16 @@ func (s *Server) redirect(w http.ResponseWriter, url string) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	_, _ = w.Write(data)
+}
+
+func main() {
+	db, err := NewDatabase("production.db")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = NewServer(db).Serve()
+	if err != nil {
+		log.Fatal(err)
+	}
 }
