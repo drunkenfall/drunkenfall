@@ -23,7 +23,7 @@ function start_nginx() {
 
 function start_api() {
     go build -v || exit $?
-    ./towerfall
+    ./drunkenfall
 }
 
 function start_npm() {
