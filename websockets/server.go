@@ -7,7 +7,7 @@ import (
 	"golang.org/x/net/websocket"
 )
 
-// Websocket server
+// Server represents Websocket server
 type Server struct {
 	pattern   string
 	messages  []*Message
@@ -19,7 +19,7 @@ type Server struct {
 	errCh     chan error
 }
 
-// Create new chat server.
+// NewServer creates new chat server
 func NewServer(pattern string) *Server {
 	messages := []*Message{}
 	clients := make(map[int]*Client)
@@ -41,22 +41,27 @@ func NewServer(pattern string) *Server {
 	}
 }
 
+// Add adds a new client
 func (s *Server) Add(c *Client) {
 	s.addCh <- c
 }
 
+// Del deletes a client
 func (s *Server) Del(c *Client) {
 	s.delCh <- c
 }
 
+// SendAll sends a broadcast message
 func (s *Server) SendAll(msg *Message) {
 	s.sendAllCh <- msg
 }
 
+// Done closes the server
 func (s *Server) Done() {
 	s.doneCh <- true
 }
 
+// Err sends an error
 func (s *Server) Err(err error) {
 	s.errCh <- err
 }

@@ -10,9 +10,9 @@ import (
 
 const channelBufSize = 100
 
-var maxId int = 0
+var maxID int
 
-// Chat client.
+// Client is the representation of a listener.
 type Client struct {
 	id     int
 	ws     *websocket.Conn
@@ -21,7 +21,7 @@ type Client struct {
 	doneCh chan bool
 }
 
-// Create new chat client.
+// NewClient creates a new chat client.
 func NewClient(ws *websocket.Conn, server *Server) *Client {
 
 	if ws == nil {
@@ -32,38 +32,40 @@ func NewClient(ws *websocket.Conn, server *Server) *Client {
 		panic("server cannot be nil")
 	}
 
-	maxId++
+	maxID++
 	ch := make(chan *Message, channelBufSize)
 	doneCh := make(chan bool)
 
-	return &Client{maxId, ws, server, ch, doneCh}
+	return &Client{maxID, ws, server, ch, doneCh}
 }
 
+// Client returns the websocket connection
 func (c *Client) Conn() *websocket.Conn {
 	return c.ws
 }
 
+// Write sends a message or drops the connection
 func (c *Client) Write(msg *Message) {
 	select {
 	case c.ch <- msg:
 	default:
 		c.server.Del(c)
-		err := fmt.Errorf("client %d is disconnected.", c.id)
+		err := fmt.Errorf("client %d is disconnected", c.id)
 		c.server.Err(err)
 	}
 }
 
+// Done closes the client
 func (c *Client) Done() {
 	c.doneCh <- true
 }
 
-// Listen Write and Read request via chanel
+// Listen writes and reads request via channel
 func (c *Client) Listen() {
 	go c.listenWrite()
 	c.listenRead()
 }
 
-// Listen write request via chanel
 func (c *Client) listenWrite() {
 	log.Println("Listening write to client")
 	for {
@@ -72,7 +74,11 @@ func (c *Client) listenWrite() {
 		// send message to the client
 		case msg := <-c.ch:
 			log.Println("Send:", msg)
-			websocket.JSON.Send(c.ws, msg)
+			if err := websocket.JSON.Send(c.ws, msg); err != nil {
+				log.Print("Error in send. Disconnecting.")
+				c.Done()
+				return
+			}
 
 		// receive done request
 		case <-c.doneCh:
