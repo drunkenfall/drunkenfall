@@ -2,7 +2,6 @@ package websockets
 
 import (
 	"log"
-	"net/http"
 
 	"golang.org/x/net/websocket"
 )
@@ -78,27 +77,26 @@ func (s *Server) sendAll(msg *Message) {
 	}
 }
 
+// OnConnected is the function to be passed to http.Handle(), wrapped in a
+// websocket.Handler().
+func (s *Server) OnConnected(ws *websocket.Conn) {
+	defer func() {
+		log.Print("Deferring")
+		err := ws.Close()
+		if err != nil {
+			s.errCh <- err
+		}
+	}()
+
+	client := NewClient(ws, s)
+	s.Add(client)
+	client.Listen()
+}
+
 // Listen and serve.
 // It serves client connection and broadcast request.
 func (s *Server) Listen() {
-
-	log.Println("Listening server...")
-
-	// websocket handler
-	onConnected := func(ws *websocket.Conn) {
-		defer func() {
-			err := ws.Close()
-			if err != nil {
-				s.errCh <- err
-			}
-		}()
-
-		client := NewClient(ws, s)
-		s.Add(client)
-		client.Listen()
-	}
-	http.Handle(s.pattern, websocket.Handler(onConnected))
-	log.Println("Created handler")
+	log.Println("Websocket handler initialized")
 
 	for {
 		select {

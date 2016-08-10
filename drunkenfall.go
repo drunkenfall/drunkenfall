@@ -10,6 +10,9 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+
+	"github.com/thiderman/drunkenfall/websockets"
+	"golang.org/x/net/websocket"
 )
 
 var (
@@ -60,6 +63,7 @@ type CommitPlayer struct {
 	Reason string `json:"reason"`
 }
 
+// CommitRequest is a request to commit a match state
 type CommitRequest struct {
 	State []CommitPlayer `json:"state"`
 }
@@ -67,10 +71,14 @@ type CommitRequest struct {
 // NewServer instantiates a server with an active database
 func NewServer(db *Database) *Server {
 	s := Server{DB: db}
-	s.router = s.BuildRouter()
+	ws := websockets.NewServer("/api/towerfall/auto-updater")
+	s.router = s.BuildRouter(ws)
 
 	http.Handle("/", s.router)
 	s.logger = handlers.LoggingHandler(os.Stdout, s.router)
+
+	// Also websocket listener
+	go ws.Listen()
 
 	return &s
 }
@@ -287,7 +295,7 @@ func (s *Server) TournamentListHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // BuildRouter sets up the routes
-func (s *Server) BuildRouter() http.Handler {
+func (s *Server) BuildRouter(ws *websockets.Server) http.Handler {
 	n := mux.NewRouter()
 	r := n.PathPrefix("/api/towerfall").Subrouter()
 
@@ -297,6 +305,9 @@ func (s *Server) BuildRouter() http.Handler {
 	r.HandleFunc("/{id}/start/", s.StartTournamentHandler)
 	r.HandleFunc("/{id}/join/", s.JoinHandler)
 	r.HandleFunc("/{id}/next/", s.NextHandler)
+
+	// Install the websockets
+	r.Handle("/auto-updater", websocket.Handler(ws.OnConnected))
 
 	m := r.PathPrefix("/tournament/{id}/{kind:(tryout|runnerup|semi|final)}/{index:[0-9]+}").Subrouter()
 	m.HandleFunc("/toggle/", s.MatchToggleHandler)
