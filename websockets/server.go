@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"golang.org/x/net/websocket"
+	"time"
 )
 
 // Server represents Websocket server
@@ -77,6 +78,16 @@ func (s *Server) sendAll(msg *Message) {
 	}
 }
 
+// Pulse sends a pulse message to keep the connections alive
+func (s *Server) Pulse() {
+	msg := Message{
+		Body:   "Fake Ping",
+		Author: "system",
+	}
+
+	s.sendAll(&msg)
+}
+
 // OnConnected is the function to be passed to http.Handle(), wrapped in a
 // websocket.Handler().
 func (s *Server) OnConnected(ws *websocket.Conn) {
@@ -97,6 +108,14 @@ func (s *Server) OnConnected(ws *websocket.Conn) {
 // It serves client connection and broadcast request.
 func (s *Server) Listen() {
 	log.Println("Websocket handler initialized")
+
+	// Setup the worst Ping implentation of all time
+	go func() {
+		for {
+			s.Pulse()
+			time.Sleep(time.Second * 45)
+		}
+	}()
 
 	for {
 		select {
