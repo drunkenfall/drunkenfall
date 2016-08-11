@@ -44,6 +44,11 @@ type UpdateMatchMessage struct {
 	Match *Match `json:"match"`
 }
 
+// UpdateStateMessage returns an update to the current match
+type UpdateStateMessage struct {
+	Tournaments []*Tournament `json:"tournaments"`
+}
+
 // NewRequest is the request to make a new tournament
 type NewRequest struct {
 	Name string `json:"name"`
@@ -321,6 +326,17 @@ func (s *Server) BuildRouter(ws *websockets.Server) http.Handler {
 func (s *Server) Serve() error {
 	log.Print("Listening on :42001")
 	return http.ListenAndServe(":42001", s.logger)
+}
+
+// SendWebsocketUpdate sends an update to all listening sockets
+func (s *Server) SendWebsocketUpdate() {
+	msg := websockets.Message{
+		Data: UpdateStateMessage{
+			Tournaments: s.DB.Tournaments,
+		},
+	}
+
+	s.ws.SendAll(&msg)
 }
 
 func (s *Server) getMatch(r *http.Request) *Match {

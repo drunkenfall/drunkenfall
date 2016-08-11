@@ -78,6 +78,9 @@ func (t *Tournament) Persist() error {
 		// This might happen in tests.
 		return errors.New("no database instantiated")
 	}
+
+	go t.server.SendWebsocketUpdate()
+
 	return t.db.Persist(t)
 }
 
