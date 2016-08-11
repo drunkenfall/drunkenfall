@@ -25,6 +25,7 @@ type Server struct {
 	DB     *Database
 	router http.Handler
 	logger http.Handler
+	ws     *websockets.Server
 }
 
 // JSONMessage defines a message to be returned to the frontend
@@ -71,14 +72,14 @@ type CommitRequest struct {
 // NewServer instantiates a server with an active database
 func NewServer(db *Database) *Server {
 	s := Server{DB: db}
-	ws := websockets.NewServer()
-	s.router = s.BuildRouter(ws)
+	s.ws = websockets.NewServer()
+	s.router = s.BuildRouter(s.ws)
 
 	http.Handle("/", s.router)
 	s.logger = handlers.LoggingHandler(os.Stdout, s.router)
 
 	// Also websocket listener
-	go ws.Listen()
+	go s.ws.Listen()
 
 	return &s
 }

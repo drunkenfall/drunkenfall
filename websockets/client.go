@@ -19,11 +19,11 @@ type Client struct {
 	server *Server
 	ch     chan *Message
 	doneCh chan bool
+	pingCh chan bool
 }
 
 // NewClient creates a new chat client.
 func NewClient(ws *websocket.Conn, server *Server) *Client {
-
 	if ws == nil {
 		panic("ws cannot be nil")
 	}
@@ -35,11 +35,12 @@ func NewClient(ws *websocket.Conn, server *Server) *Client {
 	maxID++
 	ch := make(chan *Message, channelBufSize)
 	doneCh := make(chan bool)
+	pingCh := make(chan bool)
 
-	return &Client{maxID, ws, server, ch, doneCh}
+	return &Client{maxID, ws, server, ch, doneCh, pingCh}
 }
 
-// Client returns the websocket connection
+// Conn returns the websocket connection
 func (c *Client) Conn() *websocket.Conn {
 	return c.ws
 }
@@ -60,10 +61,21 @@ func (c *Client) Done() {
 	c.doneCh <- true
 }
 
+// Ping sends a ping message to the client
+func (c *Client) Ping() {
+	c.pingCh <- true
+}
+
 // Listen writes and reads request via channel
 func (c *Client) Listen() {
 	go c.listenWrite()
 	c.listenRead()
+}
+
+// messageError handles when a message could not properly be sent.
+func (c *Client) messageError() {
+	log.Print("Error in send. Disconnecting.")
+	c.Done()
 }
 
 func (c *Client) listenWrite() {
@@ -75,8 +87,15 @@ func (c *Client) listenWrite() {
 		case msg := <-c.ch:
 			log.Println("Send:", msg)
 			if err := websocket.JSON.Send(c.ws, msg); err != nil {
-				log.Print("Error in send. Disconnecting.")
-				c.Done()
+				c.messageError()
+				return
+			}
+
+		// send ping to the client
+		case <-c.pingCh:
+			log.Println("client ping")
+			if err := websocket.JSON.Send(c.ws, Ping{P: 1}); err != nil {
+				c.messageError()
 				return
 			}
 

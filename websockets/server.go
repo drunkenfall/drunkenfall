@@ -72,18 +72,15 @@ func (s *Server) sendPastMessages(c *Client) {
 
 func (s *Server) sendAll(msg *Message) {
 	for _, c := range s.clients {
-		c.Write(msg)
+		go c.Write(msg)
 	}
 }
 
 // Pulse sends a pulse message to keep the connections alive
 func (s *Server) Pulse() {
-	msg := Message{
-		Body:   "Fake Ping",
-		Author: "system",
+	for _, c := range s.clients {
+		go c.Ping()
 	}
-
-	s.sendAll(&msg)
 }
 
 // OnConnected is the function to be passed to http.Handle(), wrapped in a
@@ -111,7 +108,7 @@ func (s *Server) Listen() {
 	go func() {
 		for {
 			s.Pulse()
-			time.Sleep(time.Second * 45)
+			time.Sleep(time.Second * 55)
 		}
 	}()
 

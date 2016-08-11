@@ -6,6 +6,11 @@ type Message struct {
 	Body   string `json:"body"`
 }
 
+// Ping is a simple ping message
+type Ping struct {
+	P int `json:"p"`
+}
+
 func (m *Message) String() string {
 	return m.Author + " says " + m.Body
 }
