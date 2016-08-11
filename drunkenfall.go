@@ -71,7 +71,7 @@ type CommitRequest struct {
 // NewServer instantiates a server with an active database
 func NewServer(db *Database) *Server {
 	s := Server{DB: db}
-	ws := websockets.NewServer("/api/towerfall/auto-updater")
+	ws := websockets.NewServer()
 	s.router = s.BuildRouter(ws)
 
 	http.Handle("/", s.router)
