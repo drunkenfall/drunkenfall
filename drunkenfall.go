@@ -98,7 +98,7 @@ func (s *Server) NewHandler(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
-	t, _ := NewTournament(req.Name, req.ID, s.DB)
+	t, _ := NewTournament(req.Name, req.ID, s)
 	log.Printf("Created tournament %s!", t.Name)
 
 	s.DB.Tournaments = append(s.DB.Tournaments, t)
@@ -367,7 +367,16 @@ func main() {
 		log.Fatal(err)
 	}
 
-	err = NewServer(db).Serve()
+	s := NewServer(db)
+	db.Server = s
+
+	err = db.LoadTournaments()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	s.Serve()
+
 	if err != nil {
 		log.Fatal(err)
 	}
