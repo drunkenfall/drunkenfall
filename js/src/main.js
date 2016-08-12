@@ -39,6 +39,8 @@ router.map({
 
 router.beforeEach(function () {
   window.scrollTo(0, 0)
+
+  router.app.connect()
 })
 
 // As long as we only have Drunken TowerFall on drunkenfall.com, we should
