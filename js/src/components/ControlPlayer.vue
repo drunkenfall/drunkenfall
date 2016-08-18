@@ -190,6 +190,7 @@ export default {
     &.yellow { color: $yellow; }
     &.cyan   { color: $cyan  ; }
     &.purple { color: $purple; }
+    &.red    { color: $red; }
 
     div {
       width: 80%;

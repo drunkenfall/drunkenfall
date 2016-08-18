@@ -20,6 +20,7 @@
         <input type="image" @click="character" id="yellow" src="/static/img/yellow-selected.png">
         <input type="image" @click="character" id="cyan" src="/static/img/cyan-selected.png">
         <input type="image" @click="character" id="purple" src="/static/img/purple-selected.png">
+        <input type="image" @click="character" id="red" src="/static/img/red-selected.png">
       </div>
 
       <input type="submit" class="submit" value="Go go go!"
