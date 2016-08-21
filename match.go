@@ -212,6 +212,8 @@ func (m *Match) Commit(scores [][]int, shots []bool) {
 			m.Players[i].AddShot()
 		}
 	}
+
+	_ = m.Tournament.Persist()
 }
 
 // Start starts the match

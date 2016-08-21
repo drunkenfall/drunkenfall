@@ -24,17 +24,19 @@ type Tournament struct {
 	Started     time.Time `json:"started"`
 	Ended       time.Time `json:"ended"`
 	db          *Database
+	server      *Server
 	length      int
 	finalLength int
 }
 
 // NewTournament returns a completely new Tournament
-func NewTournament(name, id string, db *Database) (*Tournament, error) {
+func NewTournament(name, id string, server *Server) (*Tournament, error) {
 	t := Tournament{
 		Name:   name,
 		ID:     id,
 		Opened: time.Now(),
-		db:     db,
+		db:     server.DB,
+		server: server,
 	}
 
 	// No matches yet - add four
@@ -59,10 +61,12 @@ func LoadTournament(data []byte, db *Database) (t *Tournament, e error) {
 	t = &Tournament{}
 	err := json.Unmarshal(data, t)
 	if err != nil {
+		log.Print(err)
 		return t, err
 	}
 
 	t.db = db
+	t.server = db.Server
 
 	t.SetMatchPointers()
 	return
@@ -74,6 +78,9 @@ func (t *Tournament) Persist() error {
 		// This might happen in tests.
 		return errors.New("no database instantiated")
 	}
+
+	go t.server.SendWebsocketUpdate()
+
 	return t.db.Persist(t)
 }
 

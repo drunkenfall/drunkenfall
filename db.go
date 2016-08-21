@@ -8,6 +8,7 @@ import (
 // Database is the persisting class
 type Database struct {
 	DB            *bolt.DB
+	Server        *Server
 	Tournaments   []*Tournament
 	tournamentRef map[string]*Tournament
 }
@@ -27,11 +28,6 @@ func NewDatabase(fn string) (*Database, error) {
 
 	db := &Database{DB: bolt}
 	db.tournamentRef = make(map[string]*Tournament)
-
-	err = db.LoadTournaments()
-	if err != nil {
-		log.Fatal(err)
-	}
 
 	return db, nil
 }
