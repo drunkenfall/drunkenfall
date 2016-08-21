@@ -163,53 +163,76 @@ export default {
 
       this.$http.get(url).then(function (res) {
         console.log(res)
-        var target = this.$data.match.kind
-        var match = this.$data.match.index
-
-        if (target === 'tryout') {
-          target = 'tryouts'
-        } else if (target === 'semi') {
-          target = 'semis'
-        }
-
-        if (target === 'final') {
-          this.$set('match', res.data.tournament[target])
-        } else {
-          this.$set('match', res.data.tournament[target][match])
-        }
-
-        this.$set('tournament', res.data.tournament)
+        this.setData(
+          res.data.tournament,
+          this.$data.match.kind,
+          this.$data.match.index
+        )
       }, function (res) {
         console.log('error when getting tournament')
         console.log(res)
       })
+    },
+    setData: function (tournament, kind, match) {
+      if (kind === 'tryout') {
+        kind = 'tryouts'
+      } else if (kind === 'semi') {
+        kind = 'semis'
+      }
+
+      if (kind === 'final') {
+        this.$set('match', tournament[kind])
+      } else {
+        this.$set('match', tournament[kind][match])
+      }
+
+      this.$set('tournament', tournament)
     }
   },
 
   route: {
     data ({ to }) {
-      this.$http.get('/api/towerfall/tournament/' + to.params.tournament + '/').then(function (res) {
-        console.log(res)
-        var target = to.params.kind
-        var match = parseInt(to.params.match)
+      // We need a reference here because `this` inside the callback will be
+      // the main App and not this one.
+      var $vue = this
 
-        if (target === 'tryout') {
-          target = 'tryouts'
-        } else if (target === 'semi') {
-          target = 'semis'
+      to.router.app.$watch('tournaments', function (newVal, oldVal) {
+        for (var i = 0; i < newVal.length; i++) {
+          if (newVal[i].id === to.params.tournament) {
+            console.log("Match.vue - watch update")
+            console.log(newVal[i])
+            $vue.setData(
+              newVal[i],
+              to.params.kind,
+              parseInt(to.params.match)
+            )
+          }
         }
-
-        if (target === 'final') {
-          this.$set('match', res.data.Tournament[target])
-        } else {
-          this.$set('match', res.data.Tournament[target][match])
-        }
-
-        this.$set('tournament', res.data.Tournament)
-      }, function (res) {
-        console.log('error when getting tournament')
-        console.log(res)
       })
+
+      if (to.router.app.$data.tournaments.length === 0) {
+        // Nothing is set - we're reloading the page and we need to get the
+        // data manually
+        this.$http.get('/api/towerfall/tournament/' + to.params.tournament + '/').then(function (res) {
+          console.log(res)
+          this.setData(
+            res.data.Tournament,
+            to.params.kind,
+            parseInt(to.params.match)
+          )
+        }, function (res) {
+          console.log('error when getting tournament')
+          console.log(res)
+        })
+      } else {
+        // Something is set - we're clicking on a link and can reuse the
+        // already existing data immediately
+        this.setData(
+          to.router.app.get(to.params.tournament),
+          to.params.kind,
+          parseInt(to.params.match)
+        )
+      }
     }
   }
 }
