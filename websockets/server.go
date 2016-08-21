@@ -65,8 +65,10 @@ func (s *Server) Err(err error) {
 }
 
 func (s *Server) sendPastMessages(c *Client) {
-	for _, msg := range s.messages {
-		c.Write(msg)
+	// We only need to send the last message, and only if something actually
+	// exists.
+	if len(s.messages) != 0 {
+		c.Write(s.messages[len(s.messages)-1])
 	}
 }
 
