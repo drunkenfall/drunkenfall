@@ -25,6 +25,7 @@ func testTournament(count int) (t *Tournament) {
 		"yellow",
 		"cyan",
 		"purple",
+		"red",
 	}
 
 	for i := 1; i <= count; i++ {

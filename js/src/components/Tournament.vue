@@ -202,6 +202,7 @@ export default {
     &.yellow { background-color: $yellow; }
     &.cyan   { background-color: $cyan  ; }
     &.purple { background-color: $purple; }
+    &.red    { background-color: $red; }
 
     &.gold {
       background-color: #daa520;

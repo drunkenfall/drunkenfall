@@ -17,6 +17,7 @@ var Colors = []string{
 	"yellow",
 	"cyan",
 	"purple",
+	"red",
 }
 
 // Participant someone having a role in the tournament
