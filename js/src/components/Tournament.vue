@@ -74,8 +74,6 @@ export default {
         players: [],
         runnerups: []
       },
-      can_start: true,
-      is_running: false
     }
   },
 
@@ -137,12 +135,29 @@ export default {
 
   route: {
     data ({ to }) {
-      this.$http.get('/api/towerfall/tournament/' + to.params.tournament + '/').then(function (res) {
-        this.$set('tournament', res.data.Tournament)
-      }, function (res) {
-        console.log('error when getting tournament')
-        console.log(res)
+      // We need a reference here because `this` inside the callback will be
+      // the main App and not this one.
+      var $vue = this
+
+      to.router.app.$watch('tournaments', function (newVal, oldVal) {
+        for (var i = 0; i < newVal.length; i++) {
+          if (newVal[i].id === to.params.tournament) {
+            console.log("watch update")
+            console.log(newVal[i])
+            $vue.$set('tournament', newVal[i])
+          }
+        }
       })
+
+      if (to.router.app.$data.tournaments.length === 0) {
+        // Nothing is set - we're reloading the page and we need to get the
+        // data manually
+        to.router.app.loadInitial(this, to.params.tournament)
+      } else {
+        // Something is set - we're clicking on a link and can reuse the
+        // already existing data immediately
+        this.$set('tournament', to.router.app.get(to.params.tournament))
+      }
     }
   }
 }

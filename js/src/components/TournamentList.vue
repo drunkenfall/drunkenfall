@@ -37,7 +37,7 @@ export default {
       this.$http.get('/api/towerfall/tournament/').then(function (res) {
         this.$set('tournaments', res.data)
       }, function (res) {
-        console.log('error when getting tournament')
+        console.log('error when getting tournaments')
         console.log(res)
       })
     }

@@ -59,6 +59,36 @@ export default {
 
         console.log(this.$data.ws)
       }
+    },
+
+    populate: function () {
+      if (this.$data.tournaments.length === 0) {
+        console.log('Grabbing initial set of tournament data')
+        this.$http.get('/api/towerfall/tournament/').then(function (res) {
+          this.$set('tournaments', res.data)
+        }, function (res) {
+          console.log('error when getting tournaments')
+          console.log(res)
+        })
+      }
+    },
+
+    loadInitial: function ($vue, tid) {
+      this.$http.get('/api/towerfall/tournament/' + tid + '/').then(function (res) {
+        console.log("returned tournament")
+        console.log(res.data.Tournament)
+        $vue.$set('tournament', res.data.Tournament)
+      }, function (res) {
+        console.log('error when getting tournament')
+      })
+    },
+
+    get: function (tid) {
+      for (var i = 0; i < this.$data.tournaments.length; i++) {
+        if (this.$data.tournaments[i].id === tid) {
+          return this.$data.tournaments[i]
+        }
+      }
     }
   }
 }
