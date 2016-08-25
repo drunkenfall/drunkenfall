@@ -29,7 +29,7 @@ export default {
         return 'prefill'
       }
 
-      if (this.match.ended !== '0001-01-01T00:00:00Z') {
+      if (!this.match.isEnded) {
         if (this.index === 0) {
           return 'gold'
         } else if (this.index === 1) {

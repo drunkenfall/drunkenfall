@@ -45,7 +45,7 @@ export default {
 
   computed: {
     classes: function () {
-      if (this.match.ended !== '0001-01-01T00:00:00Z') {
+      if (!this.match.isEnded) {
         if (this.index === 0) {
           return 'gold'
         } else if (this.index === 1) {
@@ -74,6 +74,10 @@ export default {
     },
 
     score: function (playerIndex, score) {
+      if (!this.match.isStarted) {
+        return
+      }
+
       console.log('setting score ' + playerIndex + ' - ' + score)
       if (score === 1 && this.ups < 3) {
         // We can only allow up to three kills per round...

@@ -11,14 +11,16 @@
     "lint": "eslint --ext .js,.vue src test/unit/specs test/e2e/specs"
   },
   "dependencies": {
-    "vue": "^1.0.21",
     "babel-runtime": "^6.0.0",
+    "lodash": "^4.15.0",
+    "moment": "^2.14.1",
     "node-sass": "^3.8.0",
+    "sass": "^0.5.0 ",
     "sass-loader": "^4.0.0",
+    "vue": "^1.0.21",
     "vue-resource": "^0.9.3",
     "vue-router": "^0.7.13",
-    "vue-socket.io": "^1.0.2",
-    "sass": "^0.5.0 "
+    "vue-socket.io": "^1.0.2"
   },
   "devDependencies": {
     "babel-core": "^6.0.0",
