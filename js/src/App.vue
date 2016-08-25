@@ -62,10 +62,13 @@ export default {
     },
 
     populate: function () {
-      if (this.$data.tournaments.length === 0) {
+      // `this` IN JAVASCRIPT IS THE WORST THING EVER
+      $vue = this
+
+      if (this.$data.tournaments === null || this.$data.tournaments.length === 0) {
         console.log('Grabbing initial set of tournament data')
         this.$http.get('/api/towerfall/tournament/').then(function (res) {
-          this.$set('tournaments', res.data)
+          $vue.$set('tournaments', res.data)
         }, function (res) {
           console.log('error when getting tournaments')
           console.log(res)
