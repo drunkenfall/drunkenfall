@@ -63,7 +63,7 @@ export default {
 
     populate: function () {
       // `this` IN JAVASCRIPT IS THE WORST THING EVER
-      $vue = this
+      let $vue = this
 
       if (this.$data.tournaments === null || this.$data.tournaments.length === 0) {
         console.log('Grabbing initial set of tournament data')
