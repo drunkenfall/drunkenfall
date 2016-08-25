@@ -88,7 +88,7 @@ export default {
       console.log(payload)
       this.$http.post(url, payload).then(function (res) {
         console.log(res)
-        this.$set('match', res.data.match)
+        this.$set('match', Match.fromObject(res.data.match))
 
         this.$children[0].reset()
         this.$children[1].reset()
