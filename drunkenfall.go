@@ -318,6 +318,10 @@ func (s *Server) BuildRouter(ws *websockets.Server) http.Handler {
 	// Install the websockets
 	r.Handle("/auto-updater", websocket.Handler(ws.OnConnected))
 
+	// Handle Facebook
+	f := n.PathPrefix("/facebook").Subrouter()
+	FacebookRouter(f)
+
 	m := r.PathPrefix("/tournament/{id}/{kind:(tryout|runnerup|semi|final)}/{index:[0-9]+}").Subrouter()
 	m.HandleFunc("/toggle/", s.MatchToggleHandler)
 	m.HandleFunc("/commit/", s.MatchCommitHandler)
