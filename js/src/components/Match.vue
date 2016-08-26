@@ -7,9 +7,9 @@
         </div>
       </div>
       <div class="links">
-        <a v-if="can_start" @click="start">Start match</a>
-        <a v-if="is_running" v-bind:class="{'disabled': !can_commit}" @click="commit">End round</a>
-        <a v-if="can_end"@click="end">End match</a>
+        <a v-if="match.canStart" @click="start">Start match</a>
+        <a v-if="match.isRunning" v-bind:class="{'disabled': !can_commit}" @click="commit">End round</a>
+        <a v-if="match.canEnd"@click="end">End match</a>
       </div>
       <div class="clear"></div>
     </header>
@@ -26,6 +26,7 @@
 
 <script>
 import ControlPlayer from './ControlPlayer.vue'
+import Match from '../models/Match.js'
 
 export default {
   name: 'Match',
@@ -35,48 +36,12 @@ export default {
 
   data () {
     return {
-      match: {},
+      match: new Match(),
       tournament: {}
     }
   },
 
   computed: {
-    can_end: function () {
-      var m = this.$data.match
-      var end = 10
-
-      if (m.ended !== '0001-01-01T00:00:00Z') {
-        return false
-      }
-
-      if (m.kind === 'final') {
-        end = 20
-      }
-
-      for (var i = 0; i < m.players.length; i++) {
-        var p = m.players[i]
-        if (p.kills >= end) {
-          return true
-        }
-      }
-      return false
-    },
-    can_start: function () {
-      var m = this.$data.match
-
-      if (m.started === '0001-01-01T00:00:00Z') {
-        return true
-      }
-      return false
-    },
-    is_running: function () {
-      var m = this.$data.match
-
-      if (m.started !== '0001-01-01T00:00:00Z' && m.ended === '0001-01-01T00:00:00Z') {
-        return true
-      }
-      return false
-    },
     can_commit: function () {
       return true
     }
@@ -123,7 +88,7 @@ export default {
       console.log(payload)
       this.$http.post(url, payload).then(function (res) {
         console.log(res)
-        this.$set('match', res.data.match)
+        this.$set('match', Match.fromObject(res.data.match))
 
         this.$children[0].reset()
         this.$children[1].reset()
@@ -181,9 +146,9 @@ export default {
       }
 
       if (kind === 'final') {
-        this.$set('match', tournament[kind])
+        this.$set('match', Match.fromObject(tournament[kind]))
       } else {
-        this.$set('match', tournament[kind][match])
+        this.$set('match', Match.fromObject(tournament[kind][match]))
       }
 
       this.$set('tournament', tournament)
