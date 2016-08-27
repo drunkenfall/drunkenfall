@@ -59,8 +59,8 @@ func (d *Database) LoadTournaments() error {
 	return err
 }
 
-// Persist stores the current state of the tournaments into the db
-func (d *Database) Persist(t *Tournament) error {
+// SaveTournament stores the current state of the tournaments into the db
+func (d *Database) SaveTournament(t *Tournament) error {
 	ret := d.DB.Update(func(tx *bolt.Tx) error {
 		b, err := tx.CreateBucketIfNotExists(TournamentKey)
 		if err != nil {

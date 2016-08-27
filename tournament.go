@@ -81,7 +81,7 @@ func (t *Tournament) Persist() error {
 
 	go t.server.SendWebsocketUpdate()
 
-	return t.db.Persist(t)
+	return t.db.SaveTournament(t)
 }
 
 // JSON returns a JSON representation of the Tournament
