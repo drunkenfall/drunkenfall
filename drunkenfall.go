@@ -80,13 +80,16 @@ func NewServer(db *Database) *Server {
 	s.ws = websockets.NewServer()
 	s.router = s.BuildRouter(s.ws)
 
+	return &s
+}
+
+// RegisterHandlersAndListeners registers the routes and the websocket listeners
+func (s *Server) RegisterHandlersAndListeners() {
 	http.Handle("/", s.router)
 	s.logger = handlers.LoggingHandler(os.Stdout, s.router)
 
 	// Also websocket listener
 	go s.ws.Listen()
-
-	return &s
 }
 
 // NewHandler shows the page to create a new tournament
@@ -391,7 +394,9 @@ func main() {
 		log.Fatal(err)
 	}
 
-	s.Serve()
+	// Set up the paths and the websocket listeners
+	s.RegisterHandlersAndListeners()
+	err = s.Serve()
 
 	if err != nil {
 		log.Fatal(err)
