@@ -230,6 +230,7 @@ func TestUpdatePlayer(t *testing.T) {
 	tm.Semis = []*Match{}
 	tm.Final = &Match{}
 
+	tm.SetMatchPointers()
 	tm.UpdatePlayers()
 	assert.Equal(20, tm.getPlayer("winner").Kills)
 	assert.Equal(1, tm.getPlayer("loser1").Shots)
