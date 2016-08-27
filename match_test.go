@@ -6,13 +6,17 @@ import (
 	"time"
 )
 
-// These tests do not care about the tournaments,
-// but the reference is required in NewMatch()
-var tm *Tournament
+// MockMatch makes a mock Match{} with a dummy Tournament{}
+func MockMatch(idx int, cat string) *Match {
+	s := MockServer()
+	tm, _ := NewTournament("test", "t", s)
+	tm.SetMatchPointers()
+	return NewMatch(tm, idx, cat)
+}
 
 func TestAddPlayer(t *testing.T) {
 	assert := assert.New(t)
-	m := NewMatch(tm, 1, "test")
+	m := MockMatch(1, "test")
 
 	assert.Equal(4, len(m.Players))
 	assert.Equal(0, m.ActualPlayers())
@@ -27,7 +31,7 @@ func TestAddPlayer(t *testing.T) {
 
 func TestAddFifthPlayer(t *testing.T) {
 	assert := assert.New(t)
-	m := NewMatch(tm, 1, "test")
+	m := MockMatch(1, "test")
 
 	m.Players = []Player{
 		{Name: "a"},
@@ -44,7 +48,7 @@ func TestAddFifthPlayer(t *testing.T) {
 
 func TestStartAlreadyStartedMatch(t *testing.T) {
 	assert := assert.New(t)
-	m := NewMatch(tm, 1, "test")
+	m := MockMatch(1, "test")
 	m.Started = time.Now()
 
 	err := m.Start()
@@ -53,7 +57,7 @@ func TestStartAlreadyStartedMatch(t *testing.T) {
 
 func TestStart(t *testing.T) {
 	assert := assert.New(t)
-	m := NewMatch(tm, 1, "test")
+	m := MockMatch(1, "test")
 	m.Players = []Player{
 		{Name: "1"},
 		{Name: "2"},
@@ -68,7 +72,9 @@ func TestStart(t *testing.T) {
 
 func TestEndGivesShotToWinner(t *testing.T) {
 	assert := assert.New(t)
-	m := NewMatch(tm, 1, "tryout")
+	m := MockMatch(1, "tryout")
+	// TODO(thiderman): This is terrible, but it works for now :(
+	m.Tournament = nil
 	m.Players = []Player{
 		{Name: "1"},
 		{Name: "2"},
@@ -87,7 +93,7 @@ func TestEndGivesShotToWinner(t *testing.T) {
 
 func TestEndAlreadyEndedMatch(t *testing.T) {
 	assert := assert.New(t)
-	m := NewMatch(tm, 1, "test")
+	m := MockMatch(1, "test")
 	m.Ended = time.Now()
 
 	err := m.End()
@@ -96,7 +102,7 @@ func TestEndAlreadyEndedMatch(t *testing.T) {
 
 func TestEnd(t *testing.T) {
 	assert := assert.New(t)
-	m := NewMatch(tm, 1, "test")
+	m := MockMatch(1, "test")
 
 	err := m.End()
 	assert.Nil(err)
@@ -106,7 +112,7 @@ func TestEnd(t *testing.T) {
 func TestString(t *testing.T) {
 	assert := assert.New(t)
 
-	m := NewMatch(tm, 0, "test")
+	m := MockMatch(0, "test")
 	_ = m.AddPlayer(Player{Name: "1"})
 	_ = m.AddPlayer(Player{Name: "2"})
 	_ = m.AddPlayer(Player{Name: "3"})
@@ -115,7 +121,7 @@ func TestString(t *testing.T) {
 
 	assert.Equal("<Test 1: 1 / 2 / 3 / 4 - not started>", ret)
 
-	m2 := NewMatch(tm, 0, "final")
+	m2 := MockMatch(0, "final")
 	_ = m2.AddPlayer(Player{Name: "a"})
 	_ = m2.AddPlayer(Player{Name: "b"})
 	_ = m2.AddPlayer(Player{Name: "c"})
@@ -129,7 +135,7 @@ func TestString(t *testing.T) {
 func TestCommitSweepPlayer1(t *testing.T) {
 	assert := assert.New(t)
 
-	m := NewMatch(tm, 0, "test")
+	m := MockMatch(0, "test")
 	_ = m.AddPlayer(Player{Name: "1"})
 	_ = m.AddPlayer(Player{Name: "2"})
 	_ = m.AddPlayer(Player{Name: "3"})
@@ -155,7 +161,7 @@ func TestCommitSweepPlayer1(t *testing.T) {
 func TestCommitDoubleKillPlayer2(t *testing.T) {
 	assert := assert.New(t)
 
-	m := NewMatch(tm, 0, "test")
+	m := MockMatch(0, "test")
 	_ = m.AddPlayer(Player{Name: "1"})
 	_ = m.AddPlayer(Player{Name: "2"})
 	_ = m.AddPlayer(Player{Name: "3"})
@@ -181,7 +187,7 @@ func TestCommitDoubleKillPlayer2(t *testing.T) {
 func TestCommitSweepAndSuicidePlayer3(t *testing.T) {
 	assert := assert.New(t)
 
-	m := NewMatch(tm, 0, "test")
+	m := MockMatch(0, "test")
 	_ = m.AddPlayer(Player{Name: "1"})
 	_ = m.AddPlayer(Player{Name: "2"})
 	_ = m.AddPlayer(Player{Name: "3"})
@@ -209,7 +215,7 @@ func TestCommitSweepAndSuicidePlayer3(t *testing.T) {
 func TestCommitSuicidePlayer4(t *testing.T) {
 	assert := assert.New(t)
 
-	m := NewMatch(tm, 0, "test")
+	m := MockMatch(0, "test")
 	_ = m.AddPlayer(Player{Name: "1"})
 	_ = m.AddPlayer(Player{Name: "2"})
 	_ = m.AddPlayer(Player{Name: "3"})
@@ -236,7 +242,7 @@ func TestCommitSuicidePlayer4(t *testing.T) {
 func TestCommitShotsForPlayer2and3(t *testing.T) {
 	assert := assert.New(t)
 
-	m := NewMatch(tm, 0, "test")
+	m := MockMatch(0, "test")
 	_ = m.AddPlayer(Player{Name: "1"})
 	_ = m.AddPlayer(Player{Name: "2"})
 	_ = m.AddPlayer(Player{Name: "3"})
@@ -263,7 +269,7 @@ func TestCommitShotsForPlayer2and3(t *testing.T) {
 func TestCorrectColorConflictsNoScores(t *testing.T) {
 	assert := assert.New(t)
 
-	m := NewMatch(tm, 0, "final")
+	m := MockMatch(0, "final")
 	_ = m.AddPlayer(Player{Name: "a", PreferredColor: "green"})
 	_ = m.AddPlayer(Player{Name: "b", PreferredColor: "green"})
 	_ = m.AddPlayer(Player{Name: "c", PreferredColor: "blue"})
@@ -279,7 +285,7 @@ func TestCorrectColorConflictsNoScores(t *testing.T) {
 func TestCorrectColorConflictsNoScoresDoubleConflict(t *testing.T) {
 	assert := assert.New(t)
 
-	m := NewMatch(tm, 0, "final")
+	m := MockMatch(0, "final")
 	_ = m.AddPlayer(Player{Name: "a", PreferredColor: "green"})
 	_ = m.AddPlayer(Player{Name: "b", PreferredColor: "green"})
 	_ = m.AddPlayer(Player{Name: "c", PreferredColor: "blue"})
@@ -297,7 +303,7 @@ func TestCorrectColorConflictsNoScoresDoubleConflict(t *testing.T) {
 func TestCorrectColorConflictPlayerTwoHasHigherScore(t *testing.T) {
 	assert := assert.New(t)
 
-	m := NewMatch(tm, 0, "final")
+	m := MockMatch(0, "final")
 	_ = m.AddPlayer(Player{Name: "a", PreferredColor: "green"})
 	_ = m.AddPlayer(Player{Name: "b", PreferredColor: "green"})
 	_ = m.AddPlayer(Player{Name: "c", PreferredColor: "blue"})

@@ -9,8 +9,8 @@ import (
 	"testing"
 )
 
-// TestDatabase returns a clean test database
-func MockDatabase(arg ...string) *Database {
+// MockServer returns a Server{} a with clean test Database{}
+func MockServer(arg ...string) *Server {
 	var fn string
 	if len(arg) != 0 {
 		fn = "test/" + arg[0]
@@ -26,18 +26,20 @@ func MockDatabase(arg ...string) *Database {
 		log.Fatal(err)
 	}
 
-	return db
+	s := NewServer(db)
+
+	return s
 }
 
-func TestPersist(t *testing.T) {
+func TestSaveTournament(t *testing.T) {
 	assert := assert.New(t)
 	fn := "persist.db"
-	db := MockDatabase(fn)
+	db := MockServer(fn).DB
 
 	id := "1241234"
 	tm := Tournament{Name: "hehe", ID: id}
 
-	db.Persist(&tm)
+	db.SaveTournament(&tm)
 	db.Close()
 
 	boltd, err := bolt.Open("test/"+fn, 0600, nil)
