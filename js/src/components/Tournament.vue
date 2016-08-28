@@ -5,9 +5,9 @@
         <div class="title">{{tournament.name}}</div>
       </div>
       <div class="links">
-        <a v-if="can_start" v-link="{path: 'join/'}">Join</a>
-        <div class="action" v-if="can_start" @click="start">Start</div>
-        <div class="action" v-if="is_running" @click="next">Next match</div>
+        <a v-if="tournament.canStart" v-link="{path: 'join/'}">Join</a>
+        <div class="action" v-if="tournament.canStart" @click="start">Start</div>
+        <div class="action" v-if="tournament.isRunning" @click="next">Next match</div>
       </div>
       <div class="clear"></div>
     </header>
@@ -60,6 +60,7 @@
 
 <script>
 import MatchOverview from './MatchOverview.vue'
+import Tournament from '../models/Tournament.js'
 import _ from 'lodash'
 
 export default {
@@ -71,21 +72,11 @@ export default {
 
   data () {
     return {
-      tournament: {
-        players: [],
-        runnerups: []
-      },
+      tournament: new Tournament(),
     }
   },
 
   computed: {
-    can_start: function () {
-      // Such is the default nil format in Go
-      return this.tournament.started === '0001-01-01T00:00:00Z'
-    },
-    is_running: function () {
-      return this.tournament.started !== '0001-01-01T00:00:00Z' && this.tournament.ended === '0001-01-01T00:00:00Z'
-    },
     runnerups: function () {
       var ret = []
       var t = this.tournament
@@ -139,7 +130,7 @@ export default {
       to.router.app.$watch('tournaments', (newVal, oldVal) => {
         let thisTournament = _.find(newVal, { id: to.params.tournament })
         console.debug('update tournament with new data', thisTournament)
-        this.$set('tournament', thisTournament)
+        this.$set('tournament', Tournament.fromObject(thisTournament))
       })
 
       if (to.router.app.tournaments.length === 0) {
