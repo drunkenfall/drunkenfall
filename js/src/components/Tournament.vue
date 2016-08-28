@@ -60,6 +60,7 @@
 
 <script>
 import MatchOverview from './MatchOverview.vue'
+import _ from 'lodash'
 
 export default {
   name: 'Tournament',
@@ -135,24 +136,16 @@ export default {
 
   route: {
     data ({ to }) {
-      // We need a reference here because `this` inside the callback will be
-      // the main App and not this one.
-      var $vue = this
-
-      to.router.app.$watch('tournaments', function (newVal, oldVal) {
-        for (var i = 0; i < newVal.length; i++) {
-          if (newVal[i].id === to.params.tournament) {
-            console.log("watch update")
-            console.log(newVal[i])
-            $vue.$set('tournament', newVal[i])
-          }
-        }
+      to.router.app.$watch('tournaments', (newVal, oldVal) => {
+        let thisTournament = _.find(newVal, { id: to.params.tournament })
+        console.debug('update tournament with new data', thisTournament)
+        this.$set('tournament', thisTournament)
       })
 
-      if (to.router.app.$data.tournaments.length === 0) {
+      if (to.router.app.tournaments.length === 0) {
         // Nothing is set - we're reloading the page and we need to get the
         // data manually
-        to.router.app.loadInitial(this, to.params.tournament)
+        to.router.app.loadInitial(to.params.tournament)
       } else {
         // Something is set - we're clicking on a link and can reuse the
         // already existing data immediately
