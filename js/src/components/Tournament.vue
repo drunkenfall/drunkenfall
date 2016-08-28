@@ -78,25 +78,15 @@ export default {
 
   computed: {
     runnerups: function () {
-      var ret = []
-      var t = this.tournament
+      let t = this.tournament
 
       if (!t.runnerups) {
-        return ret
+        return []
       }
 
-      for (var i = 0; i < t.runnerups.length; i++) {
-        for (var j = 0; j < t.players.length; j++) {
-          var runnerupName = t.runnerups[i]
-          var player = t.players[j]
-
-          if (runnerupName === player.name) {
-            ret.push(player)
-          }
-        }
-      }
-
-      return ret
+      return _.map(t.runnerups, (runnerupName) => {
+        return _.find(t.players, { name: runnerupName })
+      })
     }
   },
 
