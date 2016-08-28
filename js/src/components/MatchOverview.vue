@@ -8,13 +8,18 @@
 
 <script>
 import Player from './Player.vue'
+import Match from '../models/Match.js'
+
 export default {
   name: 'MatchOverview',
   components: {
     Player
   },
   props: {
-    match: Object
+    match: {
+      type: Object,
+      default: () => { return new Match() }
+    }
   }
 }
 </script>

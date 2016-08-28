@@ -15,7 +15,7 @@
     </header>
 
     <div class="control">
-      <template v-for="player in match.players">
+      <template v-for="player in match.players" v-ref:players>
         <control-player :index="$index" :player="player" :match="match"
                         :downs="0" :ups="0">
       </template>
@@ -27,6 +27,8 @@
 <script>
 import ControlPlayer from './ControlPlayer.vue'
 import Match from '../models/Match.js'
+import Tournament from '../models/Tournament.js'
+import _ from 'lodash'
 
 export default {
   name: 'Match',
@@ -37,7 +39,7 @@ export default {
   data () {
     return {
       match: new Match(),
-      tournament: {}
+      tournament: new Tournament()
     }
   },
 
@@ -50,39 +52,12 @@ export default {
 
   methods: {
     commit: function () {
-      var url = '/api/towerfall/tournament/'
-      url += this.$data.tournament.id + '/'
-      url += this.$data.match.kind + '/'
-      url += this.$data.match.index + '/commit/'
+      let url = `/api/towerfall/tournament/${this.tournament.id}/${this.match.kind}/${this.match.index}/commit/`
 
-      // TODO: pls
-      var payload = {
-        'state': [
-          {
-            'ups': this.$children[0].ups,
-            'downs': this.$children[0].downs,
-            'shot': this.$children[0].shot,
-            'reason': this.$children[0].reason
-          },
-          {
-            'ups': this.$children[1].ups,
-            'downs': this.$children[1].downs,
-            'shot': this.$children[1].shot,
-            'reason': this.$children[1].reason
-          },
-          {
-            'ups': this.$children[2].ups,
-            'downs': this.$children[2].downs,
-            'shot': this.$children[2].shot,
-            'reason': this.$children[2].reason
-          },
-          {
-            'ups': this.$children[3].ups,
-            'downs': this.$children[3].downs,
-            'shot': this.$children[3].shot,
-            'reason': this.$children[3].reason
-          }
-        ]
+      let payload = {
+        'state': _.map(this.$refs.players, (controlPlayer) => {
+          return _.pick(controlPlayer, ['ups', 'downs', 'shot', 'reason'])
+        })
       }
 
       console.log(payload)
@@ -90,10 +65,7 @@ export default {
         console.log(res)
         this.$set('match', Match.fromObject(res.data.match))
 
-        this.$children[0].reset()
-        this.$children[1].reset()
-        this.$children[2].reset()
-        this.$children[3].reset()
+        _.each(this.$refs.players, (controlPlayer) => { controlPlayer.reset() })
       }, function (res) {
         console.log('error when setting score')
         console.log(res)
@@ -129,7 +101,7 @@ export default {
       this.$http.get(url).then(function (res) {
         console.log(res)
         this.setData(
-          res.data.tournament,
+          Tournament.fromObject(res.data.tournament),
           this.$data.match.kind,
           this.$data.match.index
         )
@@ -151,7 +123,7 @@ export default {
         this.$set('match', Match.fromObject(tournament[kind][match]))
       }
 
-      this.$set('tournament', tournament)
+      this.$set('tournament', Tournament.fromObject(tournament))
     }
   },
 

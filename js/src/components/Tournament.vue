@@ -130,7 +130,7 @@ export default {
       } else {
         // Something is set - we're clicking on a link and can reuse the
         // already existing data immediately
-        this.$set('tournament', to.router.app.get(to.params.tournament))
+        this.$set('tournament', Tournament.fromObject(to.router.app.get(to.params.tournament)))
       }
     }
   }
