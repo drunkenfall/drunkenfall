@@ -54,6 +54,7 @@ export default {
     commit: function () {
       let url = `/api/towerfall/tournament/${this.tournament.id}/${this.match.kind}/${this.match.index}/commit/`
 
+      // TODO this could potentially be a class
       let payload = {
         'state': _.map(this.$refs.players, (controlPlayer) => {
           return _.pick(controlPlayer, ['ups', 'downs', 'shot', 'reason'])
@@ -79,31 +80,24 @@ export default {
       this.$set('updated', Date.now())
     },
     end: function () {
-      var url = '/api/towerfall/tournament/'
-      url += this.$data.tournament.id + '/'
-      url += this.$data.match.kind + '/'
-      url += this.$data.match.index + '/toggle/'
+      let url = `/api/towerfall/tournament/${this.tournament.id}/${this.match.kind}/${this.match.index}/toggle/`
 
       this.$http.get(url).then(function (res) {
         console.log(res)
-        this.$route.router.go('/towerfall/' + this.$data.tournament.id + '/')
+        this.$route.router.go('/towerfall/' + this.tournament.id + '/')
       }, function (res) {
         console.log('error when getting tournament')
         console.log(res)
       })
     },
     start: function () {
-      var url = '/api/towerfall/tournament/'
-      url += this.$data.tournament.id + '/'
-      url += this.$data.match.kind + '/'
-      url += this.$data.match.index + '/toggle/'
-
+      let url = `/api/towerfall/tournament/${this.$data.tournament.id}/${this.$data.match.kind}/${this.$data.match.index}/toggle/`
       this.$http.get(url).then(function (res) {
         console.log(res)
         this.setData(
-          Tournament.fromObject(res.data.tournament),
-          this.$data.match.kind,
-          this.$data.match.index
+          res.data.tournament,
+          this.match.kind,
+          this.match.index
         )
       }, function (res) {
         console.log('error when getting tournament')
@@ -129,22 +123,10 @@ export default {
 
   route: {
     data ({ to }) {
-      // We need a reference here because `this` inside the callback will be
-      // the main App and not this one.
-      var $vue = this
-
-      to.router.app.$watch('tournaments', function (newVal, oldVal) {
-        for (var i = 0; i < newVal.length; i++) {
-          if (newVal[i].id === to.params.tournament) {
-            console.log("Match.vue - watch update")
-            console.log(newVal[i])
-            $vue.setData(
-              newVal[i],
-              to.params.kind,
-              parseInt(to.params.match)
-            )
-          }
-        }
+      to.router.app.$watch('tournaments', (newVal, oldVal) => {
+        let thisTournament = _.find(newVal, { id: to.params.tournament })
+        console.debug('Match.vue - watch update', thisTournament)
+        this.setData(thisTournament, to.params.kind, parseInt(to.params.match))
       })
 
       if (to.router.app.$data.tournaments.length === 0) {
