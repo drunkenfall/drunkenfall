@@ -55,12 +55,6 @@ type NewRequest struct {
 	ID   string `json:"id"`
 }
 
-// JoinRequest is the request to join a tournament
-type JoinRequest struct {
-	Name  string `json:"name"`
-	Color string `json:"color"`
-}
-
 // CommitPlayer is one state for a player in a commit message
 type CommitPlayer struct {
 	Ups    int    `json:"ups"`
@@ -320,7 +314,7 @@ func (s *Server) BuildRouter(ws *websockets.Server) http.Handler {
 	r.Handle("/auto-updater", websocket.Handler(ws.OnConnected))
 
 	// Handle Facebook
-	FacebookRouter(a)
+	s.FacebookRouter(a)
 
 	m := r.PathPrefix("/tournament/{id}/{kind:(tryout|runnerup|semi|final)}/{index:[0-9]+}").Subrouter()
 	m.HandleFunc("/toggle/", s.MatchToggleHandler)
