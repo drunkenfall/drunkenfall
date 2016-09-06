@@ -20,11 +20,6 @@ var Colors = []string{
 	"red",
 }
 
-// Participant someone having a role in the tournament
-type Participant interface {
-	ID() string
-}
-
 // ScoreData is a structured Key/Value pair list for scores
 type ScoreData struct {
 	Key    string
