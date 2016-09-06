@@ -106,7 +106,7 @@ func (s *Server) NewHandler(w http.ResponseWriter, r *http.Request) {
 	s.DB.Tournaments = append(s.DB.Tournaments, t)
 	s.DB.tournamentRef[t.ID] = t
 
-	s.redirect(w, t.URL())
+	s.Redirect(w, t.URL())
 }
 
 // TournamentHandler returns the current state of the tournament
@@ -188,7 +188,7 @@ func (s *Server) JoinHandler(w http.ResponseWriter, r *http.Request) {
 	session.Values["player"] = name
 	session.Save(r, w)
 
-	s.redirect(w, tm.URL())
+	s.Redirect(w, tm.URL())
 }
 
 // StartTournamentHandler starts tournaments
@@ -200,7 +200,7 @@ func (s *Server) StartTournamentHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	s.redirect(w, tm.URL())
+	s.Redirect(w, tm.URL())
 }
 
 // NextHandler starts tournaments
@@ -212,7 +212,7 @@ func (s *Server) NextHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.redirect(w, m.URL())
+	s.Redirect(w, m.URL())
 }
 
 // MatchToggleHandler starts and stops matches
@@ -365,8 +365,8 @@ func (s *Server) getTournament(r *http.Request) *Tournament {
 	return tm
 }
 
-// redirect creates a JSON redirect
-func (s *Server) redirect(w http.ResponseWriter, url string) {
+// Redirect creates a JSON Redirect
+func (s *Server) Redirect(w http.ResponseWriter, url string) {
 	data, err := json.Marshal(JSONMessage{
 		Redirect: url,
 	})
