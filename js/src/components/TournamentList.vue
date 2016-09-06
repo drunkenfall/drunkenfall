@@ -6,6 +6,7 @@
       </div>
       <div class="links">
         <a v-link="{path: 'new/'}">New Tournament</a>
+        <a v-link="{path: '/facebook/'}">Facebook</a>
         </div>
       <div class="clear"></div>
     </header>

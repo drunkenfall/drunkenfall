@@ -306,7 +306,8 @@ func (s *Server) TournamentListHandler(w http.ResponseWriter, r *http.Request) {
 // BuildRouter sets up the routes
 func (s *Server) BuildRouter(ws *websockets.Server) http.Handler {
 	n := mux.NewRouter()
-	r := n.PathPrefix("/api/towerfall").Subrouter()
+	a := n.PathPrefix("/api").Subrouter()
+	r := a.PathPrefix("/towerfall").Subrouter()
 
 	r.HandleFunc("/tournament/", s.TournamentListHandler)
 	r.HandleFunc("/tournament/{id}/", s.TournamentHandler)
@@ -319,8 +320,7 @@ func (s *Server) BuildRouter(ws *websockets.Server) http.Handler {
 	r.Handle("/auto-updater", websocket.Handler(ws.OnConnected))
 
 	// Handle Facebook
-	f := n.PathPrefix("/facebook").Subrouter()
-	FacebookRouter(f)
+	FacebookRouter(a)
 
 	m := r.PathPrefix("/tournament/{id}/{kind:(tryout|runnerup|semi|final)}/{index:[0-9]+}").Subrouter()
 	m.HandleFunc("/toggle/", s.MatchToggleHandler)

@@ -114,7 +114,6 @@ func handleFacebookCallback(w http.ResponseWriter, r *http.Request) {
 
 // FacebookRouter builds the paths for Facebook handling
 func FacebookRouter(r *mux.Router) {
-	r.HandleFunc("/", handleMain)
-	r.HandleFunc("/login", handleFacebookLogin)
-	r.HandleFunc("/oauth2callback", handleFacebookCallback)
+	r.HandleFunc("/facebook/login", handleFacebookLogin)
+	r.HandleFunc("/facebook/oauth2callback", handleFacebookCallback)
 }

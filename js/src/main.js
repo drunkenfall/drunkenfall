@@ -8,6 +8,7 @@ import Tournament from './components/Tournament.vue'
 import New from './components/New.vue'
 import Join from './components/Join.vue'
 import Match from './components/Match.vue'
+import Facebook from './components/Facebook.vue'
 
 // install router
 Vue.use(Router)
@@ -20,6 +21,9 @@ var router = new Router({
 })
 
 router.map({
+  '/facebook/': {
+    component: Facebook
+  },
   '/towerfall/': {
     component: TournamentList
   },
