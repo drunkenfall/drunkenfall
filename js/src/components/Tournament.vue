@@ -5,7 +5,7 @@
         <div class="title">{{tournament.name}}</div>
       </div>
       <div class="links">
-        <a v-if="tournament.canStart" v-link="{path: 'join/'}">Join</a>
+        <a v-if="tournament.canStart" v-link="{ name: 'join', params: { tournament: tournament.id }}">Join</a>
         <div class="action" v-if="tournament.canStart" @click="start">Start</div>
         <div class="action" v-if="tournament.isRunning" @click="next">Next match</div>
       </div>
@@ -117,21 +117,16 @@ export default {
 
   route: {
     data ({ to }) {
-      to.router.app.$watch('tournaments', (newVal, oldVal) => {
-        let thisTournament = _.find(newVal, { id: to.params.tournament })
-        console.debug('update tournament with new data', thisTournament)
-        this.$set('tournament', Tournament.fromObject(thisTournament))
+      return this.$http.get('/api/towerfall/tournament/' + to.params.tournament + '/').then((res) => {
+        console.log("returned tournament")
+        console.log(res.data.Tournament)
+        return {
+          tournament: Tournament.fromObject(res.data.Tournament)
+        }
+      }, (error) => {
+        console.error('error when getting tournament', error)
+        return { tournament: new Tournament() }
       })
-
-      if (to.router.app.tournaments.length === 0) {
-        // Nothing is set - we're reloading the page and we need to get the
-        // data manually
-        to.router.app.loadInitial(to.params.tournament)
-      } else {
-        // Something is set - we're clicking on a link and can reuse the
-        // already existing data immediately
-        this.$set('tournament', Tournament.fromObject(to.router.app.get(to.params.tournament)))
-      }
     }
   }
 }

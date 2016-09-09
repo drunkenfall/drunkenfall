@@ -35,9 +35,11 @@ router.map({
     component: New
   },
   '/towerfall/:tournament/': {
+    name: 'tournament',
     component: Tournament
   },
   '/towerfall/:tournament/join/': {
+    name: 'join',
     component: Join
   },
   '/towerfall/:tournament/:kind/:match/': {
@@ -48,8 +50,8 @@ router.map({
 router.beforeEach(function () {
   window.scrollTo(0, 0)
 
-  router.app.populate()
-  router.app.connect()
+  // TODO re-enable connect later
+  // router.app.connect()
 })
 
 // As long as we only have Drunken TowerFall on drunkenfall.com, we should

@@ -13,7 +13,7 @@
 
     <div class="tournaments" :class="{ loading: !tournament }">
       <div v-for="tournament in tournaments" :tournament="tournament.id" track-by="id">
-        <a v-link="{path: '/towerfall/'+ tournament.id + '/'}">{{tournament.name}}</a>
+        <a v-link="{ name: 'tournament', params: { tournament: tournament.id }}">{{tournament.name}}</a>
       </div>
     </div>
   </div>
@@ -35,11 +35,14 @@ export default {
 
   route: {
     data ({ to }) {
-      this.$http.get('/api/towerfall/tournament/').then(function (res) {
-        this.$set('tournaments', res.data)
+      return this.$http.get('/api/towerfall/tournament/').then(function (res) {
+        return {
+          tournaments: res.data
+        }
       }, function (res) {
-        console.log('error when getting tournaments')
-        console.log(res)
+        console.warn('error when getting tournaments')
+        console.error(res)
+        return { tournaments: [] }
       })
     }
   }

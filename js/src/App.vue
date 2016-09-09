@@ -25,7 +25,7 @@ export default {
     // (Re-)Connect the websocket.
     // Is safe to run when the connection is already up - then it will be a noop.
     connect: function () {
-      if (this.ws) {
+      if (!this.ws) {
         console.log('Setting up new websocket')
         this.$set('ws', new WebSocket('ws://' + window.location.host + '/api/towerfall/auto-updater'))
 
