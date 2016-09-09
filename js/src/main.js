@@ -50,8 +50,7 @@ router.map({
 router.beforeEach(function () {
   window.scrollTo(0, 0)
 
-  // TODO re-enable connect later
-  // router.app.connect()
+  router.app.connect()
 })
 
 // As long as we only have Drunken TowerFall on drunkenfall.com, we should

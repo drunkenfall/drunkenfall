@@ -60,10 +60,9 @@ export default {
           console.log('Unknown websocket update:', res)
         }
 
+        this.ws.onopen = () => { console.debug("websocket connected:", this.ws) }
         this.ws.onerror = (errorEvent) => { console.error("websocket error:", errorEvent) }
         this.ws.onclose = (closeEvent) => { console.warn("websocket closed", closeEvent) }
-
-        console.log("WebSocket:", this.ws)
       }
     },
 
