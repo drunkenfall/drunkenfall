@@ -150,6 +150,10 @@ export default {
   .button {
     div {
       font-size: 10vh;
+      user-select: none;
+      -ms-user-select: none;
+      -moz-user-select: none;
+      -webkit-user-select: none;
       p {
         margin-top: -13%;
       }
@@ -163,6 +167,10 @@ export default {
       width: 80%;
       display: block;
       margin: 0 auto 1%;
+      user-select: none;
+      -ms-user-select: none;
+      -moz-user-select: none;
+      -webkit-user-select: none;
 
       &.give {
         background-color: #508850;
