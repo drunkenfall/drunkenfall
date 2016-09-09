@@ -31,6 +31,7 @@
 
 <script>
 import Tournament from "../models/Tournament.js"
+import _ from "lodash"
 
 export default {
   name: 'Join',
@@ -54,7 +55,7 @@ export default {
     },
     clear () {
       _.each(document.getElementById('join-images').getElementsByTagName('input'), (elem) => {
-        item.className = ''
+        elem.className = ''
       })
     },
     submit (event) {

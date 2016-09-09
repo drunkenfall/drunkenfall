@@ -7,6 +7,7 @@
 
 <script>
 /* eslint-env browser */
+import Tournament from "./models/Tournament.js"
 import _ from 'lodash'
 
 export default {
@@ -49,7 +50,10 @@ export default {
             if (res.data.tournaments) {
             // The main bulk update. This contains the latest state.
               console.log('Updating tournaments')
-              this.$set('tournaments', res.data.tournaments)
+              let tournaments = _.map(res.data.tournaments, Tournament.fromObject)
+              this.$set('tournaments', tournaments)
+
+              _.each(tournaments, (tournament) => { this.$broadcast(`tournament${tournament.id}`, tournament) })
               return
             }
 
@@ -64,28 +68,6 @@ export default {
         this.ws.onerror = (errorEvent) => { console.error("websocket error:", errorEvent) }
         this.ws.onclose = (closeEvent) => { console.warn("websocket closed", closeEvent) }
       }
-    },
-
-    populate: function () {
-      if (!this.tournaments || this.tournaments.length === 0) {
-        console.log('Grabbing initial set of tournament data')
-        this.$http.get('/api/towerfall/tournament/').then((res) => {
-          this.$set('tournaments', res.data)
-        }, (error) => {
-          console.log('error when getting tournaments:', error)
-        })
-      }
-    },
-
-    loadInitial: function (tid) {
-      console.log("tournament", tid)
-      this.$http.get('/api/towerfall/tournament/' + tid + '/').then((res) => {
-        console.log("returned tournament")
-        console.log(res.data.Tournament)
-        this.$set('tournament', res.data.Tournament)
-      }, (error) => {
-        console.log('error when getting tournament', error)
-      })
     },
 
     get: function (tid) {

@@ -97,8 +97,6 @@ export default {
           console.log("start response:", res)
           let j = res.json()
           this.$route.router.go('/towerfall' + j.redirect)
-          // XXX: Worst hack of all time
-          this.$data.tournament.started = 'hehe'
         }, (err) => {
           console.error(`start for ${this.tournament} failed`, err)
         })
@@ -133,6 +131,12 @@ export default {
 
   route: {
     data ({ to }) {
+      // listen for tournaments from App
+      this.$on(`tournament${to.params.tournament}`, (tournament) => {
+        console.debug("New tournament from App:", tournament)
+        this.$set('tournament', tournament)
+      })
+
       // TODO perhaps use $root.tournaments again?
       return this.api.getData({ id: to.params.tournament }).then((res) => {
         let tournament = Tournament.fromObject(res.data.Tournament)

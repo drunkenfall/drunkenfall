@@ -17,8 +17,7 @@ export default {
   },
   props: {
     match: {
-      type: Object,
-      default: () => { return new Match() }
+      coerce: (val) => { return Match.fromObject(val) }
     }
   }
 }
