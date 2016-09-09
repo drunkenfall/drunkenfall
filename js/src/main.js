@@ -45,6 +45,7 @@ router.map({
     component: Join
   },
   '/towerfall/:tournament/:kind/:match/': {
+    name: 'match',
     component: Match
   }
 })
