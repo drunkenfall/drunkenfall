@@ -92,36 +92,53 @@ export default {
 
   methods: {
     start: function () {
-      this.$http.get('/api/towerfall/' + this.$data.tournament.id + '/start/').then((res) => {
-        console.log(res)
-        var j = res.json()
-        this.$route.router.go('/towerfall' + j.redirect)
-        // XXX: Worst hack of all time
-        this.$data.tournament.started = 'hehe'
-      }, (res) => {
-        console.log('fail')
-        console.log(res)
-      })
+      if (this.tournament) {
+        this.api.start({ id: this.tournament.id }).then((res) => {
+          console.log("start response:", res)
+          let j = res.json()
+          this.$route.router.go('/towerfall' + j.redirect)
+          // XXX: Worst hack of all time
+          this.$data.tournament.started = 'hehe'
+        }, (err) => {
+          console.error(`start for ${this.tournament} failed`, err)
+        })
+      } else {
+        console.error("start called with no tournament")
+      }
     },
     next: function () {
-      this.$http.get('/api/towerfall/' + this.$data.tournament.id + '/next/').then((res) => {
-        console.log(res)
-        var j = res.json()
-        this.$route.router.go('/towerfall' + j.redirect)
-      }, (res) => {
-        console.log('fail')
-        console.log(res)
-      })
+      if (this.tournament) {
+        this.api.next({ id: this.tournament.id }).then((res) => {
+          console.debug("next response:", res)
+          let j = res.json()
+          this.$route.router.go('/towerfall' + j.redirect)
+        }, (err) => {
+          console.error(`next for ${this.tournament} failed`, err)
+        })
+      } else {
+        console.error("next called with no tournament")
+      }
     }
+  },
+
+  created: function () {
+    console.debug("Creating API resource")
+    let customActions = {
+      start: { method: "GET", url: "/api/towerfall{/id}/start/" },
+      next: { method: "GET", url: "/api/towerfall{/id}/next/" },
+      getData: { method: "GET", url: "/api/towerfall/tournament{/id}/" }
+    }
+    this.api = this.$resource("/api/towerfall", {}, customActions)
   },
 
   route: {
     data ({ to }) {
-      return this.$http.get('/api/towerfall/tournament/' + to.params.tournament + '/').then((res) => {
-        console.log("returned tournament")
-        console.log(res.data.Tournament)
+      // TODO perhaps use $root.tournaments again?
+      return this.api.getData({ id: to.params.tournament }).then((res) => {
+        let tournament = Tournament.fromObject(res.data.Tournament)
+        console.debug("loaded tournament", tournament)
         return {
-          tournament: Tournament.fromObject(res.data.Tournament)
+          tournament: tournament
         }
       }, (error) => {
         console.error('error when getting tournament', error)

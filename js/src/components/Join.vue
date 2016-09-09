@@ -30,12 +30,14 @@
 </template>
 
 <script>
+import Tournament from "../models/Tournament.js"
+
 export default {
   name: 'Join',
 
   data () {
     return {
-      tournament: {},
+      tournament: new Tournament(),
       can_join: false,
       name: '',
       color: ''
@@ -46,16 +48,14 @@ export default {
     character (event) {
       event.preventDefault()
       this.clear()
-      var img = event.srcElement
+      let img = event.srcElement
       this.$data.color = img.id
       img.className = 'selected'
     },
     clear () {
-      var elem = document.getElementById('join-images').getElementsByTagName('input')
-      for (var i = 0; i < elem.length; i++) {
-        var item = elem[i]
+      _.each(document.getElementById('join-images').getElementsByTagName('input'), (elem) => {
         item.className = ''
-      }
+      })
     },
     submit (event) {
       event.preventDefault()
@@ -64,7 +64,7 @@ export default {
         return
       }
 
-      var payload = {
+      let payload = {
         name: this.name,
         color: this.color
       }
@@ -74,30 +74,37 @@ export default {
       this.name = ''
       this.color = ''
 
-      this.$http.post('/api/towerfall/' + this.$data.tournament.id + '/join/', payload).then((res) => {
+      this.api.join({ id: this.tournament.id }, payload).then((res) => {
         // Success callback
-        console.log(res)
+        console.log("join response:", res)
         var j = res.json()
-        console.log(j)
         this.$route.router.go('/towerfall' + j.redirect)
-      }, (res) => {
-        console.log('fail')
-        console.log(res)
+      }, (err) => {
+        console.error(`joining tournament ${this.tournament} failed`, err)
       })
     }
   },
 
   computed: {
     ready: function () {
-      return this.$data.color !== '' && this.$data.name !== ''
+      return this.color !== '' && this.name !== ''
     }
+  },
+
+  created: function () {
+    console.debug("Creating API resource")
+    let customActions = {
+      join: { method: "POST", url: "/api/towerfall{/id}/join/" },
+      getData: { method: "GET", url: "/api/towerfall/tournament{/id}/" }
+    }
+    this.api = this.$resource("/api/towerfall", {}, customActions)
   },
 
   route: {
     data ({ to }) {
-      this.$http.get('/api/towerfall/tournament/' + to.params.tournament + '/').then(function (res) {
+      this.api.getData({ id: to.params.tournament }).then(function (res) {
         console.log(res.data)
-        this.$set('tournament', res.data.Tournament)
+        this.$set('tournament', Tournament.fromObject(res.data.Tournament))
         this.$set('can_join', res.data.CanJoin)
       }, function (res) {
         console.log('error when getting tournament')
