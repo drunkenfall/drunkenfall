@@ -23,7 +23,8 @@ var router = new Router({
 
 router.map({
   '/facebook/': {
-    component: Facebook
+    component: Facebook,
+    name: 'facebook',
   },
   '/facebook/finalize': {
     component: FacebookFinalize
@@ -32,6 +33,7 @@ router.map({
     component: TournamentList
   },
   '/towerfall/new/': {
+    name: 'new',
     component: New
   },
   '/towerfall/:tournament/': {

@@ -5,9 +5,9 @@
         <div class="title">Drunken TowerFall</div>
       </div>
       <div class="links">
-        <a v-link="{path: 'new/'}">New Tournament</a>
-        <a v-link="{path: '/facebook/'}">Facebook</a>
-        </div>
+        <a v-link="{name: 'new'}">New Tournament</a>
+        <a v-link="{name: 'facebook'}">Facebook</a>
+      </div>
       <div class="clear"></div>
     </header>
 
@@ -20,12 +20,11 @@
 </template>
 
 <script>
+import Tournament from "../models/Tournament.js"
+import _ from "lodash"
+
 export default {
   name: 'TournamentList',
-
-  // components: {
-  //   Series
-  // },
 
   data () {
     return {
@@ -37,11 +36,10 @@ export default {
     data ({ to }) {
       return this.$http.get('/api/towerfall/tournament/').then(function (res) {
         return {
-          tournaments: res.data
+          tournaments: _.map(res.data, Tournament.fromObject)
         }
       }, function (res) {
-        console.warn('error when getting tournaments')
-        console.error(res)
+        console.error('error when getting tournaments', res)
         return { tournaments: [] }
       })
     }
