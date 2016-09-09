@@ -52,8 +52,6 @@ export default {
 
   methods: {
     commit: function () {
-      let url = `/api/towerfall/tournament/${this.tournament.id}/${this.match.kind}/${this.match.index}/commit/`
-
       // TODO this could potentially be a class
       let payload = {
         'state': _.map(this.$refs.players, (controlPlayer) => {
@@ -62,7 +60,7 @@ export default {
       }
 
       console.log(payload)
-      this.$http.post(url, payload).then(function (res) {
+      this.api.commit({ id: this.tournament.id, kind: this.match.kind, index: this.match.index }, payload).then(function (res) {
         console.log(res)
         this.$set('match', Match.fromObject(res.data.match))
 
@@ -80,9 +78,7 @@ export default {
       this.$set('updated', Date.now())
     },
     end: function () {
-      let url = `/api/towerfall/tournament/${this.tournament.id}/${this.match.kind}/${this.match.index}/toggle/`
-
-      this.$http.get(url).then(function (res) {
+      this.api.toggle({ id: this.tournament.id, kind: this.match.kind, index: this.match.index }).then(function (res) {
         console.log(res)
         this.$route.router.go('/towerfall/' + this.tournament.id + '/')
       }, function (res) {
@@ -91,8 +87,7 @@ export default {
       })
     },
     start: function () {
-      let url = `/api/towerfall/tournament/${this.$data.tournament.id}/${this.$data.match.kind}/${this.$data.match.index}/toggle/`
-      this.$http.get(url).then(function (res) {
+      this.api.toggle({ id: this.tournament.id, kind: this.match.kind, index: this.match.index }).then(function (res) {
         console.log(res)
         this.setData(
           res.data.tournament,
@@ -121,18 +116,28 @@ export default {
     }
   },
 
+  created: function () {
+    console.debug("Creating API resource")
+    let customActions = {
+      commit: { method: "POST", url: "/api/towerfall/tournament{/id}{/kind}{/index}/commit/" },
+      toggle: { method: "GET", url: "/api/towerfall/tournament{/id}{/kind}{/index}/toggle/" },
+      getTournamentData: { method: "GET", url: "/api/towerfall/tournament{/id}/" }
+    }
+    this.api = this.$resource("/api/towerfall", {}, customActions)
+  },
+
   route: {
     data ({ to }) {
-      to.router.app.$watch('tournaments', (newVal, oldVal) => {
-        let thisTournament = _.find(newVal, { id: to.params.tournament })
-        console.debug('Match.vue - watch update', thisTournament)
-        this.setData(thisTournament, to.params.kind, parseInt(to.params.match))
+      // listen for tournaments from App
+      this.$on(`tournament${to.params.tournament}`, (tournament) => {
+        console.debug("New tournament from App:", tournament)
+        this.setData(tournament, to.params.kind, parseInt(to.params.match))
       })
 
-      if (to.router.app.$data.tournaments.length === 0) {
+      if (to.router.app.tournaments.length === 0) {
         // Nothing is set - we're reloading the page and we need to get the
         // data manually
-        this.$http.get('/api/towerfall/tournament/' + to.params.tournament + '/').then(function (res) {
+        this.api.getTournamentData({ id: to.params.tournament }).then(function (res) {
           console.log(res)
           this.setData(
             res.data.Tournament,

@@ -30,12 +30,16 @@
 </template>
 
 <script>
+import Match from "../models/Match.js"
+
 export default {
   name: 'ControlPlayer',
 
   props: {
     player: {},
-    match: {},
+    match: {
+      coerce: (val) => { return Match.fromObject(val) }
+    },
     index: 0,
     shot: false,
     ups: 0,
