@@ -1,5 +1,5 @@
 <template>
-  <a v-link="{path: match.kind + '/' + match.index + '/'}">
+  <a v-link="{ name: 'match', params: { kind: match.kind, match: match.index }}">
     <template v-for="player in match.players">
       <player :player="player" :match="match" :index="$index">
     </template>
@@ -8,13 +8,17 @@
 
 <script>
 import Player from './Player.vue'
+import Match from '../models/Match.js'
+
 export default {
   name: 'MatchOverview',
   components: {
     Player
   },
   props: {
-    match: Object
+    match: {
+      coerce: (val) => { return Match.fromObject(val) }
+    }
   }
 }
 </script>

@@ -7,6 +7,8 @@
 
 <script>
 /* eslint-env browser */
+import Tournament from "./models/Tournament.js"
+import _ from 'lodash'
 
 export default {
   data () {
@@ -24,16 +26,18 @@ export default {
     // (Re-)Connect the websocket.
     // Is safe to run when the connection is already up - then it will be a noop.
     connect: function () {
-      if (this.$data.ws === null) {
+      if (!this.ws) {
         console.log('Setting up new websocket')
-        this.$data.ws = new WebSocket('ws://' + window.location.host + '/api/towerfall/auto-updater')
+        this.$set('ws', new WebSocket('ws://' + window.location.host + '/api/towerfall/auto-updater'))
 
-        // We need to be able to reference back to the Vue app instance from
-        // inside of the websocket.
-        this.$data.ws.$vue = this
-
-        this.$data.ws.onmessage = function (e) {
-          var res = JSON.parse(e.data)
+        this.ws.onmessage = (event) => {
+          let res
+          try {
+            res = JSON.parse(event.data)
+          } catch (e) {
+            console.error("Failed to parse message data:", e)
+            return
+          }
 
           // If p is set, this is a ping message that only serves to keep the connection open.
           // Break immediately.
@@ -41,57 +45,33 @@ export default {
             return
           }
 
-          console.log(e)
-          if (res.data !== undefined) {
+          console.log(event)
+          if (res.data) {
+            if (res.data.tournaments) {
             // The main bulk update. This contains the latest state.
-            if (res.data.tournaments !== undefined) {
               console.log('Updating tournaments')
-              this.$vue.$set('tournaments', res.data.tournaments)
+              let tournaments = _.map(res.data.tournaments, Tournament.fromObject)
+              this.$set('tournaments', tournaments)
+
+              _.each(tournaments, (tournament) => { this.$broadcast(`tournament${tournament.id}`, tournament) })
               return
             }
 
-            console.log('Did not set')
+            console.log('no tournaments received, did not update anything')
+            return
           }
 
-          console.log('Unknown websocket update:')
-          console.log(res)
+          console.log('Unknown websocket update:', res)
         }
 
-        console.log(this.$data.ws)
+        this.ws.onopen = () => { console.debug("websocket connected:", this.ws) }
+        this.ws.onerror = (errorEvent) => { console.error("websocket error:", errorEvent) }
+        this.ws.onclose = (closeEvent) => { console.warn("websocket closed", closeEvent) }
       }
-    },
-
-    populate: function () {
-      // `this` IN JAVASCRIPT IS THE WORST THING EVER
-      let $vue = this
-
-      if (this.$data.tournaments === null || this.$data.tournaments.length === 0) {
-        console.log('Grabbing initial set of tournament data')
-        this.$http.get('/api/towerfall/tournament/').then(function (res) {
-          $vue.$set('tournaments', res.data)
-        }, function (res) {
-          console.log('error when getting tournaments')
-          console.log(res)
-        })
-      }
-    },
-
-    loadInitial: function ($vue, tid) {
-      this.$http.get('/api/towerfall/tournament/' + tid + '/').then(function (res) {
-        console.log("returned tournament")
-        console.log(res.data.Tournament)
-        $vue.$set('tournament', res.data.Tournament)
-      }, function (res) {
-        console.log('error when getting tournament')
-      })
     },
 
     get: function (tid) {
-      for (var i = 0; i < this.$data.tournaments.length; i++) {
-        if (this.$data.tournaments[i].id === tid) {
-          return this.$data.tournaments[i]
-        }
-      }
+      return _.find(this.tournaments, { id: tid })
     }
   }
 }

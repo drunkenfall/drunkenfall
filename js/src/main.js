@@ -23,7 +23,8 @@ var router = new Router({
 
 router.map({
   '/facebook/': {
-    component: Facebook
+    component: Facebook,
+    name: 'facebook',
   },
   '/facebook/finalize': {
     component: FacebookFinalize
@@ -32,15 +33,19 @@ router.map({
     component: TournamentList
   },
   '/towerfall/new/': {
+    name: 'new',
     component: New
   },
   '/towerfall/:tournament/': {
+    name: 'tournament',
     component: Tournament
   },
   '/towerfall/:tournament/join/': {
+    name: 'join',
     component: Join
   },
   '/towerfall/:tournament/:kind/:match/': {
+    name: 'match',
     component: Match
   }
 })
@@ -48,7 +53,6 @@ router.map({
 router.beforeEach(function () {
   window.scrollTo(0, 0)
 
-  router.app.populate()
   router.app.connect()
 })
 

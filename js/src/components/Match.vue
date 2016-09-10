@@ -15,7 +15,7 @@
     </header>
 
     <div class="control">
-      <template v-for="player in match.players">
+      <template v-for="player in match.players" v-ref:players>
         <control-player :index="$index" :player="player" :match="match"
                         :downs="0" :ups="0">
       </template>
@@ -27,6 +27,8 @@
 <script>
 import ControlPlayer from './ControlPlayer.vue'
 import Match from '../models/Match.js'
+import Tournament from '../models/Tournament.js'
+import _ from 'lodash'
 
 export default {
   name: 'Match',
@@ -37,7 +39,7 @@ export default {
   data () {
     return {
       match: new Match(),
-      tournament: {}
+      tournament: new Tournament()
     }
   },
 
@@ -50,50 +52,19 @@ export default {
 
   methods: {
     commit: function () {
-      var url = '/api/towerfall/tournament/'
-      url += this.$data.tournament.id + '/'
-      url += this.$data.match.kind + '/'
-      url += this.$data.match.index + '/commit/'
-
-      // TODO: pls
-      var payload = {
-        'state': [
-          {
-            'ups': this.$children[0].ups,
-            'downs': this.$children[0].downs,
-            'shot': this.$children[0].shot,
-            'reason': this.$children[0].reason
-          },
-          {
-            'ups': this.$children[1].ups,
-            'downs': this.$children[1].downs,
-            'shot': this.$children[1].shot,
-            'reason': this.$children[1].reason
-          },
-          {
-            'ups': this.$children[2].ups,
-            'downs': this.$children[2].downs,
-            'shot': this.$children[2].shot,
-            'reason': this.$children[2].reason
-          },
-          {
-            'ups': this.$children[3].ups,
-            'downs': this.$children[3].downs,
-            'shot': this.$children[3].shot,
-            'reason': this.$children[3].reason
-          }
-        ]
+      // TODO this could potentially be a class
+      let payload = {
+        'state': _.map(this.$refs.players, (controlPlayer) => {
+          return _.pick(controlPlayer, ['ups', 'downs', 'shot', 'reason'])
+        })
       }
 
       console.log(payload)
-      this.$http.post(url, payload).then(function (res) {
+      this.api.commit({ id: this.tournament.id, kind: this.match.kind, index: this.match.index }, payload).then(function (res) {
         console.log(res)
         this.$set('match', Match.fromObject(res.data.match))
 
-        this.$children[0].reset()
-        this.$children[1].reset()
-        this.$children[2].reset()
-        this.$children[3].reset()
+        _.each(this.$refs.players, (controlPlayer) => { controlPlayer.reset() })
       }, function (res) {
         console.log('error when setting score')
         console.log(res)
@@ -107,31 +78,21 @@ export default {
       this.$set('updated', Date.now())
     },
     end: function () {
-      var url = '/api/towerfall/tournament/'
-      url += this.$data.tournament.id + '/'
-      url += this.$data.match.kind + '/'
-      url += this.$data.match.index + '/toggle/'
-
-      this.$http.get(url).then(function (res) {
+      this.api.toggle({ id: this.tournament.id, kind: this.match.kind, index: this.match.index }).then(function (res) {
         console.log(res)
-        this.$route.router.go('/towerfall/' + this.$data.tournament.id + '/')
+        this.$route.router.go('/towerfall/' + this.tournament.id + '/')
       }, function (res) {
         console.log('error when getting tournament')
         console.log(res)
       })
     },
     start: function () {
-      var url = '/api/towerfall/tournament/'
-      url += this.$data.tournament.id + '/'
-      url += this.$data.match.kind + '/'
-      url += this.$data.match.index + '/toggle/'
-
-      this.$http.get(url).then(function (res) {
+      this.api.toggle({ id: this.tournament.id, kind: this.match.kind, index: this.match.index }).then(function (res) {
         console.log(res)
         this.setData(
           res.data.tournament,
-          this.$data.match.kind,
-          this.$data.match.index
+          this.match.kind,
+          this.match.index
         )
       }, function (res) {
         console.log('error when getting tournament')
@@ -151,34 +112,32 @@ export default {
         this.$set('match', Match.fromObject(tournament[kind][match]))
       }
 
-      this.$set('tournament', tournament)
+      this.$set('tournament', Tournament.fromObject(tournament))
     }
+  },
+
+  created: function () {
+    console.debug("Creating API resource")
+    let customActions = {
+      commit: { method: "POST", url: "/api/towerfall/tournament{/id}{/kind}{/index}/commit/" },
+      toggle: { method: "GET", url: "/api/towerfall/tournament{/id}{/kind}{/index}/toggle/" },
+      getTournamentData: { method: "GET", url: "/api/towerfall/tournament{/id}/" }
+    }
+    this.api = this.$resource("/api/towerfall", {}, customActions)
   },
 
   route: {
     data ({ to }) {
-      // We need a reference here because `this` inside the callback will be
-      // the main App and not this one.
-      var $vue = this
-
-      to.router.app.$watch('tournaments', function (newVal, oldVal) {
-        for (var i = 0; i < newVal.length; i++) {
-          if (newVal[i].id === to.params.tournament) {
-            console.log("Match.vue - watch update")
-            console.log(newVal[i])
-            $vue.setData(
-              newVal[i],
-              to.params.kind,
-              parseInt(to.params.match)
-            )
-          }
-        }
+      // listen for tournaments from App
+      this.$on(`tournament${to.params.tournament}`, (tournament) => {
+        console.debug("New tournament from App:", tournament)
+        this.setData(tournament, to.params.kind, parseInt(to.params.match))
       })
 
-      if (to.router.app.$data.tournaments.length === 0) {
+      if (to.router.app.tournaments.length === 0) {
         // Nothing is set - we're reloading the page and we need to get the
         // data manually
-        this.$http.get('/api/towerfall/tournament/' + to.params.tournament + '/').then(function (res) {
+        this.api.getTournamentData({ id: to.params.tournament }).then(function (res) {
           console.log(res)
           this.setData(
             res.data.Tournament,

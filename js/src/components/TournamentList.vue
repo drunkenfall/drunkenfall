@@ -5,27 +5,26 @@
         <div class="title">Drunken TowerFall</div>
       </div>
       <div class="links">
-        <a v-link="{path: 'new/'}">New Tournament</a>
-        <a v-link="{path: '/facebook/'}">Facebook</a>
-        </div>
+        <a v-link="{name: 'new'}">New Tournament</a>
+        <a v-link="{name: 'facebook'}">Facebook</a>
+      </div>
       <div class="clear"></div>
     </header>
 
     <div class="tournaments" :class="{ loading: !tournament }">
       <div v-for="tournament in tournaments" :tournament="tournament.id" track-by="id">
-        <a v-link="{path: '/towerfall/'+ tournament.id + '/'}">{{tournament.name}}</a>
+        <a v-link="{ name: 'tournament', params: { tournament: tournament.id }}">{{tournament.name}}</a>
       </div>
     </div>
   </div>
 </template>
 
 <script>
+import Tournament from "../models/Tournament.js"
+import _ from "lodash"
+
 export default {
   name: 'TournamentList',
-
-  // components: {
-  //   Series
-  // },
 
   data () {
     return {
@@ -35,11 +34,13 @@ export default {
 
   route: {
     data ({ to }) {
-      this.$http.get('/api/towerfall/tournament/').then(function (res) {
-        this.$set('tournaments', res.data)
+      return this.$http.get('/api/towerfall/tournament/').then(function (res) {
+        return {
+          tournaments: _.map(res.data, Tournament.fromObject)
+        }
       }, function (res) {
-        console.log('error when getting tournaments')
-        console.log(res)
+        console.error('error when getting tournaments', res)
+        return { tournaments: [] }
       })
     }
   }

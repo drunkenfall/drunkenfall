@@ -5,12 +5,16 @@
 </template>
 
 <script>
+import Match from "../models/Match.js"
+
 export default {
   name: 'Player',
 
   props: {
     player: Object,
-    match: Object,
+    match: {
+      coerce: (val) => { return Match.fromObject(val) }
+    },
     index: 0
   },
 
@@ -29,7 +33,7 @@ export default {
         return 'prefill'
       }
 
-      if (!this.match.isEnded) {
+      if (this.match.isEnded) {
         if (this.index === 0) {
           return 'gold'
         } else if (this.index === 1) {

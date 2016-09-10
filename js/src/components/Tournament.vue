@@ -5,9 +5,9 @@
         <div class="title">{{tournament.name}}</div>
       </div>
       <div class="links">
-        <a v-if="can_start" v-link="{path: 'join/'}">Join</a>
-        <div class="action" v-if="can_start" @click="start">Start</div>
-        <div class="action" v-if="is_running" @click="next">Next match</div>
+        <a v-if="tournament.canStart" v-link="{ name: 'join', params: { tournament: tournament.id }}">Join</a>
+        <div class="action" v-if="tournament.canStart" @click="start">Start</div>
+        <div class="action" v-if="tournament.isRunning" @click="next">Next match</div>
       </div>
       <div class="clear"></div>
     </header>
@@ -60,6 +60,8 @@
 
 <script>
 import MatchOverview from './MatchOverview.vue'
+import Tournament from '../models/Tournament.js'
+import _ from 'lodash'
 
 export default {
   name: 'Tournament',
@@ -70,94 +72,82 @@ export default {
 
   data () {
     return {
-      tournament: {
-        players: [],
-        runnerups: []
-      },
+      tournament: new Tournament(),
     }
   },
 
   computed: {
-    can_start: function () {
-      // Such is the default nil format in Go
-      return this.tournament.started === '0001-01-01T00:00:00Z'
-    },
-    is_running: function () {
-      return this.tournament.started !== '0001-01-01T00:00:00Z' && this.tournament.ended === '0001-01-01T00:00:00Z'
-    },
     runnerups: function () {
-      var ret = []
-      var t = this.tournament
+      let t = this.tournament
 
       if (!t.runnerups) {
-        return ret
+        return []
       }
 
-      for (var i = 0; i < t.runnerups.length; i++) {
-        for (var j = 0; j < t.players.length; j++) {
-          var runnerupName = t.runnerups[i]
-          var player = t.players[j]
-
-          if (runnerupName === player.name) {
-            ret.push(player)
-          }
-        }
-      }
-
-      return ret
+      return _.map(t.runnerups, (runnerupName) => {
+        return _.find(t.players, { name: runnerupName })
+      })
     }
   },
 
   methods: {
     start: function () {
-      this.$http.get('/api/towerfall/' + this.$data.tournament.id + '/start/').then((res) => {
-        console.log(res)
-        var j = res.json()
-        this.$route.router.go('/towerfall' + j.redirect)
-        // XXX: Worst hack of all time
-        this.$data.tournament.started = 'hehe'
-      }, (res) => {
-        console.log('fail')
-        console.log(res)
-      })
+      if (this.tournament) {
+        this.api.start({ id: this.tournament.id }).then((res) => {
+          console.log("start response:", res)
+          let j = res.json()
+          this.$route.router.go('/towerfall' + j.redirect)
+        }, (err) => {
+          console.error(`start for ${this.tournament} failed`, err)
+        })
+      } else {
+        console.error("start called with no tournament")
+      }
     },
     next: function () {
-      this.$http.get('/api/towerfall/' + this.$data.tournament.id + '/next/').then((res) => {
-        console.log(res)
-        var j = res.json()
-        this.$route.router.go('/towerfall' + j.redirect)
-      }, (res) => {
-        console.log('fail')
-        console.log(res)
-      })
+      if (this.tournament) {
+        this.api.next({ id: this.tournament.id }).then((res) => {
+          console.debug("next response:", res)
+          let j = res.json()
+          this.$route.router.go('/towerfall' + j.redirect)
+        }, (err) => {
+          console.error(`next for ${this.tournament} failed`, err)
+        })
+      } else {
+        console.error("next called with no tournament")
+      }
     }
+  },
+
+  created: function () {
+    console.debug("Creating API resource")
+    let customActions = {
+      start: { method: "GET", url: "/api/towerfall{/id}/start/" },
+      next: { method: "GET", url: "/api/towerfall{/id}/next/" },
+      getData: { method: "GET", url: "/api/towerfall/tournament{/id}/" }
+    }
+    this.api = this.$resource("/api/towerfall", {}, customActions)
   },
 
   route: {
     data ({ to }) {
-      // We need a reference here because `this` inside the callback will be
-      // the main App and not this one.
-      var $vue = this
-
-      to.router.app.$watch('tournaments', function (newVal, oldVal) {
-        for (var i = 0; i < newVal.length; i++) {
-          if (newVal[i].id === to.params.tournament) {
-            console.log("watch update")
-            console.log(newVal[i])
-            $vue.$set('tournament', newVal[i])
-          }
-        }
+      // listen for tournaments from App
+      this.$on(`tournament${to.params.tournament}`, (tournament) => {
+        console.debug("New tournament from App:", tournament)
+        this.$set('tournament', tournament)
       })
 
-      if (to.router.app.$data.tournaments.length === 0) {
-        // Nothing is set - we're reloading the page and we need to get the
-        // data manually
-        to.router.app.loadInitial(this, to.params.tournament)
-      } else {
-        // Something is set - we're clicking on a link and can reuse the
-        // already existing data immediately
-        this.$set('tournament', to.router.app.get(to.params.tournament))
-      }
+      // TODO perhaps use $root.tournaments again?
+      return this.api.getData({ id: to.params.tournament }).then((res) => {
+        let tournament = Tournament.fromObject(res.data.Tournament)
+        console.debug("loaded tournament", tournament)
+        return {
+          tournament: tournament
+        }
+      }, (error) => {
+        console.error('error when getting tournament', error)
+        return { tournament: new Tournament() }
+      })
     }
   }
 }

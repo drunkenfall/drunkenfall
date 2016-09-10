@@ -30,12 +30,16 @@
 </template>
 
 <script>
+import Match from "../models/Match.js"
+
 export default {
   name: 'ControlPlayer',
 
   props: {
     player: {},
-    match: {},
+    match: {
+      coerce: (val) => { return Match.fromObject(val) }
+    },
     index: 0,
     shot: false,
     ups: 0,
@@ -150,6 +154,10 @@ export default {
   .button {
     div {
       font-size: 10vh;
+      user-select: none;
+      -ms-user-select: none;
+      -moz-user-select: none;
+      -webkit-user-select: none;
       p {
         margin-top: -13%;
       }
@@ -163,6 +171,10 @@ export default {
       width: 80%;
       display: block;
       margin: 0 auto 1%;
+      user-select: none;
+      -ms-user-select: none;
+      -moz-user-select: none;
+      -webkit-user-select: none;
 
       &.give {
         background-color: #508850;

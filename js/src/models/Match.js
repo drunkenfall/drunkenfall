@@ -1,3 +1,4 @@
+import { isGoZeroDateOrFalsy } from '../util/date.js'
 import moment from 'moment'
 import _ from 'lodash'
 
@@ -53,11 +54,3 @@ export default class Match {
     return this.isStarted && !this.isEnded
   }
 };
-
-function isGoZeroDateOrFalsy (m) {
-  if (m) {
-    return m.isSame("0001-01-01T00:00:00Z")
-  } else {
-    return true
-  }
-}
