@@ -93,7 +93,6 @@ func (c *Client) listenWrite() {
 
 		// send ping to the client
 		case <-c.pingCh:
-			log.Println("client ping")
 			if err := websocket.JSON.Send(c.ws, Ping{P: 1}); err != nil {
 				c.messageError()
 				return

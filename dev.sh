@@ -22,6 +22,15 @@ function start_nginx() {
 }
 
 function start_api() {
+    # This file contains the environment variables that configures the
+    # Facebook application, and since parts of those are secret, they are not
+    # found in this repository.
+
+    f="df_fb.env"
+    if [[ -f $f ]]; then
+        source $f
+    fi
+
     go build -v || exit $?
     ./drunkenfall
 }

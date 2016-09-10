@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"github.com/boltdb/bolt"
 	"log"
 )
@@ -16,6 +17,8 @@ type Database struct {
 var (
 	// TournamentKey is the byte string identifying the tournament buckets
 	TournamentKey = []byte("tournaments")
+	// PeopleKey is the byte string identifying the bucket of people and their data
+	PeopleKey = []byte("people")
 )
 
 // NewDatabase returns a new database object
@@ -76,6 +79,42 @@ func (d *Database) SaveTournament(t *Tournament) error {
 	})
 
 	return ret
+}
+
+// SavePerson stores a person into the DB
+func (d *Database) SavePerson(p *Person) error {
+	ret := d.DB.Update(func(tx *bolt.Tx) error {
+		b, err := tx.CreateBucketIfNotExists(PeopleKey)
+		if err != nil {
+			return err
+		}
+
+		json, _ := p.JSON()
+		err = b.Put([]byte(p.ID), json)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		return nil
+	})
+
+	return ret
+}
+
+// GetPerson gets a Person{} from the DB
+func (d *Database) GetPerson(id string) *Person {
+	tx, err := d.DB.Begin(false)
+	if err != nil {
+		log.Fatal(err)
+		return nil
+	}
+	defer tx.Rollback()
+
+	b := tx.Bucket(PeopleKey)
+	out := b.Get([]byte(id))
+	p := &Person{}
+	_ = json.Unmarshal(out, p)
+	return p
 }
 
 // Close closes the database
