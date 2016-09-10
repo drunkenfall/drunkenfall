@@ -9,6 +9,7 @@
 /* eslint-env browser */
 import Tournament from "./models/Tournament.js"
 import _ from 'lodash'
+import User from './models/User.js'
 
 export default {
   data () {
@@ -20,6 +21,7 @@ export default {
       tournaments: [],
       // The main websocket object
       ws: null,
+      user: new User(),
     }
   },
   methods: {
@@ -48,7 +50,7 @@ export default {
           console.log(event)
           if (res.data) {
             if (res.data.tournaments) {
-            // The main bulk update. This contains the latest state.
+              // The main bulk update. This contains the latest state.
               console.log('Updating tournaments')
               let tournaments = _.map(res.data.tournaments, Tournament.fromObject)
               this.$set('tournaments', tournaments)

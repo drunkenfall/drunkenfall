@@ -5,8 +5,8 @@
         <div class="title">Drunken TowerFall</div>
       </div>
       <div class="links">
-        <a v-link="{name: 'new'}">New Tournament</a>
-        <a v-link="{name: 'facebook'}">Facebook</a>
+        <a v-link="{name: 'new'}" v-if="user.level(levels.producer)">New Tournament</a>
+        <a v-link="{name: 'facebook'}" v-if="!user.authenticated">Facebook</a>
       </div>
       <div class="clear"></div>
     </header>
@@ -20,18 +20,20 @@
 </template>
 
 <script>
-import Tournament from "../models/Tournament.js"
 import _ from "lodash"
+import Tournament from "../models/Tournament.js"
+import * as levels from "../models/Level.js"
 
 export default {
   name: 'TournamentList',
 
   data () {
     return {
-      tournaments: []
+      tournaments: [],
+      user: this.$root.user,
+      levels: levels,
     }
   },
-
   route: {
     data ({ to }) {
       return this.$http.get('/api/towerfall/tournament/').then(function (res) {
