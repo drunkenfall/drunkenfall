@@ -15,7 +15,16 @@ type Person struct {
 	FacebookID      string   `json:"facebook_id"`
 	FacebookToken   string   `json:"facebook_token"`
 	AvatarURL       string   `json:"avatar_url"`
+	Userlevel       int      `json:"userlevel"`
 }
+
+// Userlevels. Designed so that we can insert new ones in between them.
+const (
+	PermissionProducer    = 100
+	PermissionCommentator = 50
+	PermissionJudge       = 30
+	PermissionPlayer      = 10
+)
 
 type score map[int]string
 
@@ -55,6 +64,7 @@ func CreateFromFacebook(s *Server, req *FacebookAuthResponse) *Person {
 		FacebookToken: req.Token,
 		Name:          req.Name,
 		Email:         req.Email,
+		Userlevel:     PermissionPlayer,
 	}
 
 	p.PrefillNickname()
@@ -70,19 +80,40 @@ func (p *Person) PrefillNickname() {
 	switch p.Name {
 	case "Karl Johan Krantz":
 		p.Nick = "Qrl-Astrid"
+		p.Userlevel = PermissionProducer
 	case "Ida Andreasson":
 		p.Nick = "Queen Obscene"
-
+		p.Userlevel = PermissionProducer
 	case "Daniel Dala Tiderman":
+		p.Nick = "Dala"
+		p.Userlevel = PermissionProducer
 	case "Lowe Thiderman":
-		p.Nick = "OP"
-
+		p.Nick = "thiderman"
+		p.Userlevel = PermissionProducer
 	case "Magnus Ulenius":
 		p.Nick = "Goose"
+		p.Userlevel = PermissionProducer
+	case "Jonathan Gustafsson":
+		p.Nick = "hest"
+		p.Userlevel = PermissionProducer
+
+	// Commentators
+	case "Daniel McHugh":
+		p.Nick = "Radcliffe"
+		p.Userlevel = PermissionCommentator
+
+	// Judges
+	case "Daniele Sluijters":
+		p.Nick = "Daenney"
+		p.Userlevel = PermissionJudge
+
+	// Other lovelies
 	case "Agnes Skoog":
 		p.Nick = "#swagnes"
-	case "Jonathan Gustafsson":
-		p.Nick = "hestxk"
+	case "Mattias Aali Ahlström":
+		p.Nick = "Aali"
+	case "Sam Wise Ingberg":
+		p.Nick = "Samselott"
 	}
 }
 

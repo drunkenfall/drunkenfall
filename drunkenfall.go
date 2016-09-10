@@ -11,13 +11,14 @@ import (
 	"os"
 	"strconv"
 
+	"fmt"
 	"github.com/thiderman/drunkenfall/websockets"
 	"golang.org/x/net/websocket"
 )
 
 var (
-	storeKey = []byte("dtf")
-	store    = sessions.NewFilesystemStore("cookies.jar", storeKey)
+	CookieStoreKey = []byte("dtf")
+	CookieStore    = sessions.NewCookieStore(CookieStoreKey)
 )
 
 // Server is an abstraction that runs via a web interface
@@ -33,6 +34,8 @@ type JSONMessage struct {
 	Message  string `json:"message"`
 	Redirect string `json:"redirect"`
 }
+
+type PermissionRedirect JSONMessage
 
 // UpdateMessage returns an update to the current tournament
 type UpdateMessage struct {
@@ -89,6 +92,12 @@ func (s *Server) RegisterHandlersAndListeners() {
 // NewHandler shows the page to create a new tournament
 func (s *Server) NewHandler(w http.ResponseWriter, r *http.Request) {
 	var req NewRequest
+
+	if !HasPermission(r, PermissionProducer) {
+		PermissionFailure(w, r, "Cannot create match unless producer")
+		return
+	}
+
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		log.Print(err)
@@ -115,7 +124,7 @@ func (s *Server) TournamentHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	tm := s.DB.tournamentRef[vars["id"]]
-	session, _ := store.Get(r, tm.Name)
+	session, _ := CookieStore.Get(r, tm.Name)
 	if name, ok := session.Values["player"]; ok {
 		canJoin = tm.CanJoin(name.(string))
 	} else {
@@ -178,7 +187,7 @@ func (s *Server) JoinHandler(w http.ResponseWriter, r *http.Request) {
 	_ = tm.SetMatchPointers()
 
 	log.Printf("%s has joined %s!", name, tm.Name)
-	session, err := store.Get(r, tm.Name)
+	session, err := CookieStore.Get(r, name)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
@@ -375,6 +384,34 @@ func (s *Server) Redirect(w http.ResponseWriter, url string) {
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
+	_, _ = w.Write(data)
+}
+
+// HasPermission checks that the user is allowed to do an action
+func HasPermission(r *http.Request, lvl int) bool {
+	s, _ := CookieStore.Get(r, "session")
+	l, ok := s.Values["userlevel"]
+	if !ok {
+		log.Print("Userlevel missing for auth")
+		return false
+	}
+
+	log.Print(fmt.Sprintf("Auth check: %s: %d", s.Values, lvl))
+	return l.(int) >= lvl
+}
+
+// PermissionFailure returns an error 401
+func PermissionFailure(w http.ResponseWriter, r *http.Request, msg string) {
+	data, err := json.Marshal(PermissionRedirect{
+		Message:  msg,
+		Redirect: "/",
+	})
+	if err != nil {
+		log.Print(err)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusUnauthorized)
 	_, _ = w.Write(data)
 }
 

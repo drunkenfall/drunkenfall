@@ -16,6 +16,8 @@ import (
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/facebook"
 	"os"
+	"strconv"
+	"time"
 )
 
 var (
@@ -170,6 +172,21 @@ func (s *Server) handleFacebookRegister(w http.ResponseWriter, r *http.Request) 
 	p.UpdatePerson(&req)
 	s.DB.SavePerson(p)
 	log.Printf("%s has joined DrunkenFall!", req.Name)
+
+	// Set the cookie of the userlevel for also glory
+	c := &http.Cookie{
+		Name:    "userlevel",
+		Value:   strconv.Itoa(p.Userlevel),
+		Path:    "/",
+		Expires: time.Now().Add(30 * 24 * time.Hour), // Set to the same as CookieStore
+	}
+	http.SetCookie(w, c)
+
+	// Set the session for great glory - only used by the frontend
+	session, _ := CookieStore.Get(r, "session")
+	session.Values["user"] = p.ID
+	session.Values["userlevel"] = p.Userlevel
+	session.Save(r, w)
 
 	s.Redirect(w, "/")
 }
