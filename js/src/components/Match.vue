@@ -6,10 +6,11 @@
           {{tournament.name}} / {{match.kind | capitalize}} {{match.index +1}}
         </div>
       </div>
-      <div class="links">
+      <div class="links" v-if="user.level(levels.judge)">
         <a v-if="match.canStart" @click="start">Start match</a>
-        <a v-if="match.isRunning" v-bind:class="{'disabled': !can_commit}" @click="commit">End round</a>
-        <a v-if="match.canEnd"@click="end">End match</a>
+        <a v-if="match.isRunning" @click="commit"
+          v-bind:class="{'disabled': !can_commit}">End round</a>
+        <a v-if="match.canEnd" @click="end">End match</a>
       </div>
       <div class="clear"></div>
     </header>
@@ -28,6 +29,7 @@
 import ControlPlayer from './ControlPlayer.vue'
 import Match from '../models/Match.js'
 import Tournament from '../models/Tournament.js'
+import * as levels from "../models/Level.js"
 import _ from 'lodash'
 
 export default {
@@ -39,7 +41,9 @@ export default {
   data () {
     return {
       match: new Match(),
-      tournament: new Tournament()
+      tournament: new Tournament(),
+      user: this.$root.user,
+      levels: levels,
     }
   },
 
