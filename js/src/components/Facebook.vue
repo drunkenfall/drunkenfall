@@ -9,7 +9,7 @@
       <div class="clear"></div>
     </header>
 
-    <a href="/api/facebook/login">Touch this Facebook button, gorgeous ;)</a>
+    <a href="/api/facebook/login">Touch this Facebook button, gorgeous &lt;3</a>
   </div>
 </template>
 
@@ -29,7 +29,7 @@ a {
   padding: 1% 3%;
   text-align: center;
   text-decoration: none;
-  width: 600px;
+  width: 50%;
   margin: 10px auto;
 }
 </style>
