@@ -5,9 +5,12 @@
         <div class="title">{{tournament.name}}</div>
       </div>
       <div class="links">
-        <a v-if="tournament.canStart" v-link="{ name: 'join', params: { tournament: tournament.id }}">Join</a>
-        <div class="action" v-if="tournament.canStart" @click="start">Start</div>
-        <div class="action" v-if="tournament.isRunning" @click="next">Next match</div>
+        <a v-if="tournament.canStart"
+          v-link="{ name: 'join', params: { tournament: tournament.id }}">Join</a>
+        <div class="action" @click="start"
+          v-if="user.level(levels.judge) && tournament.canStart">Start</div>
+        <div class="action" @click="next"
+          v-if="user.level(levels.judge) && tournament.isRunning">Next match</div>
       </div>
       <div class="clear"></div>
     </header>
@@ -61,6 +64,7 @@
 <script>
 import MatchOverview from './MatchOverview.vue'
 import Tournament from '../models/Tournament.js'
+import * as levels from "../models/Level.js"
 import _ from 'lodash'
 
 export default {
@@ -73,6 +77,8 @@ export default {
   data () {
     return {
       tournament: new Tournament(),
+      user: this.$root.user,
+      levels: levels,
     }
   },
 
