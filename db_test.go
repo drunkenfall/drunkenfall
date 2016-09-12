@@ -13,20 +13,20 @@ import (
 func MockServer(arg ...string) *Server {
 	var fn string
 	if len(arg) != 0 {
-		fn = "test/" + arg[0]
+		fn = "test/" + arg[0] // Use existing
 	} else {
+		os.Remove(fn) // Clean it out
 		fn = "test/test.db"
 	}
-
-	os.Remove(fn)
-	os.Mkdir("test/", 0700)
 
 	db, err := NewDatabase(fn)
 	if err != nil {
 		log.Fatal(err)
 	}
+	db.LoadTournaments()
 
 	s := NewServer(db)
+	db.Server = s
 
 	return s
 }

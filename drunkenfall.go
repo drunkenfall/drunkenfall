@@ -16,6 +16,7 @@ import (
 	"golang.org/x/net/websocket"
 )
 
+// Setup variables for the cookies. Can be used outside of this file.
 var (
 	CookieStoreKey = []byte("dtf")
 	CookieStore    = sessions.NewCookieStore(CookieStoreKey)
@@ -35,6 +36,7 @@ type JSONMessage struct {
 	Redirect string `json:"redirect"`
 }
 
+// PermissionRedirect is an explicit permission failure
 type PermissionRedirect JSONMessage
 
 // UpdateMessage returns an update to the current tournament
@@ -47,10 +49,13 @@ type UpdateMatchMessage struct {
 	Match *Match `json:"match"`
 }
 
-// UpdateStateMessage returns an update to the current match
-type UpdateStateMessage struct {
+// TournamentList returns a list with tournaments
+type TournamentList struct {
 	Tournaments []*Tournament `json:"tournaments"`
 }
+
+// UpdateStateMessage returns an update to the current match
+type UpdateStateMessage TournamentList
 
 // NewRequest is the request to make a new tournament
 type NewRequest struct {
@@ -212,7 +217,7 @@ func (s *Server) StartTournamentHandler(w http.ResponseWriter, r *http.Request) 
 	s.Redirect(w, tm.URL())
 }
 
-// NextHandler starts tournaments
+// NextHandler sets the tournament up to play the next match
 func (s *Server) NextHandler(w http.ResponseWriter, r *http.Request) {
 	tm := s.getTournament(r)
 	m, err := tm.NextMatch()
@@ -296,9 +301,9 @@ func (s *Server) MatchCommitHandler(w http.ResponseWriter, r *http.Request) {
 
 // TournamentListHandler returns a list of all tournaments
 func (s *Server) TournamentListHandler(w http.ResponseWriter, r *http.Request) {
-	tournaments := s.DB.Tournaments
-	// tournaments := sort.Reverse(s.DB.Tournaments)
-	data, err := json.Marshal(tournaments)
+	data, err := json.Marshal(&TournamentList{
+		Tournaments: s.DB.Tournaments,
+	})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -314,6 +319,7 @@ func (s *Server) BuildRouter(ws *websockets.Server) http.Handler {
 
 	r.HandleFunc("/tournament/", s.TournamentListHandler)
 	r.HandleFunc("/tournament/{id}/", s.TournamentHandler)
+	// TODO: Normalize for all to use /tournament
 	r.HandleFunc("/new/", s.NewHandler)
 	r.HandleFunc("/{id}/start/", s.StartTournamentHandler)
 	r.HandleFunc("/{id}/join/", s.JoinHandler)
