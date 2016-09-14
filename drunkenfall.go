@@ -196,6 +196,11 @@ func (s *Server) JoinHandler(w http.ResponseWriter, r *http.Request) {
 
 // StartTournamentHandler starts tournaments
 func (s *Server) StartTournamentHandler(w http.ResponseWriter, r *http.Request) {
+	if !HasPermission(r, PermissionCommentator) {
+		PermissionFailure(w, r, "Cannot start tournament unless commentator or above")
+		return
+	}
+
 	tm := s.getTournament(r)
 	err := tm.StartTournament()
 	if err != nil {
@@ -208,6 +213,11 @@ func (s *Server) StartTournamentHandler(w http.ResponseWriter, r *http.Request) 
 
 // NextHandler sets the tournament up to play the next match
 func (s *Server) NextHandler(w http.ResponseWriter, r *http.Request) {
+	if !HasPermission(r, PermissionCommentator) {
+		PermissionFailure(w, r, "Cannot goto next match unless commentator or above")
+		return
+	}
+
 	tm := s.getTournament(r)
 	m, err := tm.NextMatch()
 	if err != nil {
@@ -220,6 +230,11 @@ func (s *Server) NextHandler(w http.ResponseWriter, r *http.Request) {
 
 // MatchToggleHandler starts and stops matches
 func (s *Server) MatchToggleHandler(w http.ResponseWriter, r *http.Request) {
+	if !HasPermission(r, PermissionJudge) {
+		PermissionFailure(w, r, "Cannot start match unless judge or above")
+		return
+	}
+
 	m := s.getMatch(r)
 	if !m.IsStarted() {
 		log.Printf("%s started", m.String())
@@ -242,6 +257,11 @@ func (s *Server) MatchToggleHandler(w http.ResponseWriter, r *http.Request) {
 
 // MatchCommitHandler commits a single round of a match
 func (s *Server) MatchCommitHandler(w http.ResponseWriter, r *http.Request) {
+	if !HasPermission(r, PermissionJudge) {
+		PermissionFailure(w, r, "Cannot commit match unless judge or above")
+		return
+	}
+
 	var req CommitRequest
 	// tm := s.getTournament(r)
 
