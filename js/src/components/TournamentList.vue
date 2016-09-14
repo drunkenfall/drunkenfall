@@ -7,6 +7,7 @@
       <div class="links">
         <a v-link="{name: 'new'}" v-if="user.level(levels.producer)">New Tournament</a>
         <a v-link="{name: 'facebook'}" v-if="!user.authenticated">Facebook</a>
+        <a href="/api/facebook/login" v-if="user.level(levels.producer) && user.authenticated">Re-facebook</a>
       </div>
       <div class="clear"></div>
     </header>
