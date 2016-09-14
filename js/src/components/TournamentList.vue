@@ -50,17 +50,17 @@ export default {
 }
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .tournaments a {
   background-color: #405060;
   color: #dbdbdb;
   display: block;
-  font-size: 300%;
+  font-size: 2.5em;
   font-weight: bold;
   padding: 1% 3%;
   text-align: center;
   text-decoration: none;
-  width: 600px;
-  margin: 10px auto;
+  width: 60%;
+  margin: 0.2em auto;
 }
 </style>
