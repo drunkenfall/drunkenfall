@@ -38,7 +38,7 @@ export default {
     data ({ to }) {
       return this.$http.get('/api/towerfall/tournament/').then(function (res) {
         return {
-          tournaments: _.map(res.data, Tournament.fromObject)
+          tournaments: _.map(res.data.tournaments, Tournament.fromObject)
         }
       }, function (res) {
         console.error('error when getting tournaments', res)

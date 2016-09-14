@@ -145,7 +145,7 @@ export default {
 
       // TODO perhaps use $root.tournaments again?
       return this.api.getData({ id: to.params.tournament }).then((res) => {
-        let tournament = Tournament.fromObject(res.data.Tournament)
+        let tournament = Tournament.fromObject(res.data.tournament)
         console.debug("loaded tournament", tournament)
         return {
           tournament: tournament

@@ -39,10 +39,13 @@ type JSONMessage struct {
 // PermissionRedirect is an explicit permission failure
 type PermissionRedirect JSONMessage
 
-// UpdateMessage returns an update to the current tournament
-type UpdateMessage struct {
+// TournamentMessage returns a single tournament
+type TournamentMessage struct {
 	Tournament *Tournament `json:"tournament"`
 }
+
+// UpdateMessage returns an update to the current tournament
+type UpdateMessage TournamentMessage
 
 // UpdateMatchMessage returns an update to the current match
 type UpdateMatchMessage struct {
@@ -125,24 +128,10 @@ func (s *Server) NewHandler(w http.ResponseWriter, r *http.Request) {
 
 // TournamentHandler returns the current state of the tournament
 func (s *Server) TournamentHandler(w http.ResponseWriter, r *http.Request) {
-	canJoin := false
 	vars := mux.Vars(r)
 
 	tm := s.DB.tournamentRef[vars["id"]]
-	session, _ := CookieStore.Get(r, tm.Name)
-	if name, ok := session.Values["player"]; ok {
-		canJoin = tm.CanJoin(name.(string))
-	} else {
-		canJoin = true
-	}
-
-	out := struct {
-		Tournament *Tournament
-		CanJoin    bool
-	}{
-		tm,
-		canJoin,
-	}
+	out := &TournamentMessage{tm}
 
 	data, err := json.Marshal(out)
 	if err != nil {

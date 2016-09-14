@@ -144,7 +144,7 @@ export default {
         this.api.getTournamentData({ id: to.params.tournament }).then(function (res) {
           console.log(res)
           this.setData(
-            res.data.Tournament,
+            res.data.tournament,
             to.params.kind,
             parseInt(to.params.match)
           )
