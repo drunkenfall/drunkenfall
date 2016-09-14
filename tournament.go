@@ -412,6 +412,19 @@ func (t *Tournament) SetMatchPointers() error {
 	return nil
 }
 
+// SetupFakeTournament creates a fake tournament
+func SetupFakeTournament(s *Server) *Tournament {
+	title, id := FakeTournamentTitle()
+	t, _ := NewTournament(title, id, s)
+
+	// Fake between 8 and 32 players
+	for i := 0; i < rand.Intn(24)+8; i++ {
+		t.AddPlayer(FakeNick(), Colors[rand.Intn(len(Colors))])
+	}
+
+	return t
+}
+
 func (t *Tournament) getPlayer(name string) (p *Player) {
 	for i := range t.Players {
 		p := &t.Players[i]

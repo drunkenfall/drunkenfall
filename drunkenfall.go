@@ -64,6 +64,7 @@ type UpdateStateMessage TournamentList
 type NewRequest struct {
 	Name string `json:"name"`
 	ID   string `json:"id"`
+	Fake bool   `json:"fake"`
 }
 
 // CommitPlayer is one state for a player in a commit message
@@ -100,6 +101,7 @@ func (s *Server) RegisterHandlersAndListeners() {
 // NewHandler shows the page to create a new tournament
 func (s *Server) NewHandler(w http.ResponseWriter, r *http.Request) {
 	var req NewRequest
+	var t *Tournament
 
 	if !HasPermission(r, PermissionProducer) {
 		PermissionFailure(w, r, "Cannot create match unless producer")
@@ -117,7 +119,12 @@ func (s *Server) NewHandler(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
-	t, _ := NewTournament(req.Name, req.ID, s)
+	if req.Fake {
+		t = SetupFakeTournament(s)
+	} else {
+		t, _ = NewTournament(req.Name, req.ID, s)
+	}
+
 	log.Printf("Created tournament %s!", t.Name)
 
 	s.DB.Tournaments = append(s.DB.Tournaments, t)

@@ -12,9 +12,14 @@
     <form v-on:submit="create">
       <input v-model="name" name="name" type="text" value="" placeholder="Name"/>
       <input v-model="id" name="id" type="text" value="" placeholder="ID"/>
+      <input type="checkbox" id="checkbox" v-model="fake">
+      <label for="checkbox">Fake</label>
 
       <input type="submit"/>
     </form>
+
+    <div class="button">
+    </div>
   </div>
 </template>
 
@@ -25,7 +30,8 @@ export default {
   data () {
     return {
       name: '',
-      id: ''
+      id: '',
+      fake: false,
     }
   },
 
@@ -35,7 +41,8 @@ export default {
 
       var payload = {
         name: this.name,
-        id: this.id
+        id: this.id,
+        fake: this.fake,
       }
 
       this.$http.post('/api/towerfall/new/', payload).then((res) => {
@@ -49,7 +56,7 @@ export default {
         console.log('fail')
         console.log(res)
       })
-    }
+    },
   }
 }
 </script>
