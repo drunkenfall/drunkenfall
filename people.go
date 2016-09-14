@@ -82,7 +82,7 @@ func (p *Person) PrefillNickname() {
 		p.Nick = "Qrl-Astrid"
 		p.Userlevel = PermissionProducer
 	case "Ida Andreasson":
-		p.Nick = "Queen Obscene"
+		p.Nick = "Blue"
 		p.Userlevel = PermissionProducer
 	case "Daniel Dala Tiderman":
 		p.Nick = "Dala"
