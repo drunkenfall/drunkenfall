@@ -414,7 +414,7 @@ func HasPermission(r *http.Request, lvl int) bool {
 	s, _ := CookieStore.Get(r, "session")
 	l, ok := s.Values["userlevel"]
 	if !ok {
-		log.Print("Userlevel missing for auth")
+		// log.Print("Userlevel missing for auth")
 		return false
 	}
 

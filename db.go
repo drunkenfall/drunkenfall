@@ -60,7 +60,6 @@ func (d *Database) LoadTournaments() error {
 		return err
 	})
 
-	log.Printf("%d tournaments loaded", loaded)
 	return err
 }
 
