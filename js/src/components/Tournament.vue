@@ -195,25 +195,25 @@ export default {
     padding: 0.2em 0;
     text-shadow: 1px 1px 1px rgba(0,0,0,0.7);
 
-    &.prefill:nth-child(1), &.prefill:nth-child(4) {
+    &:nth-child(1), &:nth-child(4) {
       background-color: #333;
     }
-    &.prefill:nth-child(2), &.prefill:nth-child(3) {
+    &:nth-child(2), &:nth-child(3) {
       background-color: #383838;
     }
     &.prefill {
       color: #555;
     }
 
-    &.green  { background-color: $green ; }
-    &.blue   { background-color: $blue  ; }
-    &.pink   { background-color: $pink  ; }
-    &.orange { background-color: $orange; }
-    &.white  { background-color: $white ; }
-    &.yellow { background-color: $yellow; }
-    &.cyan   { background-color: $cyan  ; }
-    &.purple { background-color: $purple; }
-    &.red    { background-color: $red; }
+    &.green  { color: $green ; }
+    &.blue   { color: $blue  ; }
+    &.pink   { color: $pink  ; }
+    &.orange { color: $orange; }
+    &.white  { color: $white ; }
+    &.yellow { color: $yellow; }
+    &.cyan   { color: $cyan  ; }
+    &.purple { color: $purple; }
+    &.red    { color: $red; }
 
     &.gold {
       background-color: #daa520;
