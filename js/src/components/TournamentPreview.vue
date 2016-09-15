@@ -16,9 +16,8 @@
 
       <div class="ribbon">
         <strong class="ribbon-content">
-          00:43:17
+          {{ countdown }}
         </strong>
-
       </div>
     </div>
   </div>
@@ -28,6 +27,8 @@
 import Tournament from '../models/Tournament'
 import User from '../models/User'
 import * as levels from "../models/Level"
+import moment from 'moment'
+import _ from 'lodash'
 
 export default {
   name: 'TournamentPreview',
@@ -36,7 +37,52 @@ export default {
     tournament: new Tournament(),
     user: new User(),
     levels: levels,
+    countdown: "00:00:00",
   },
+
+  created: function () {
+    this.$set('countdown', '00:00:00')
+    this.$watch('tournament', (newVal) => {
+      var eventTime = newVal.scheduled.unix()
+      var currentTime = moment().unix()
+      var diffTime = eventTime - currentTime
+      var d = moment.duration(diffTime, 'seconds') // duration
+      var interval = 1000
+      var intervalId = 0
+
+      function pad (n, width) {
+        n = n + ''
+        return n.length >= width ? n : new Array(width - n.length + 1).join("0") + n
+      }
+
+      intervalId = setInterval(() => {
+        d = moment.duration(d - interval, 'milliseconds')
+
+        // During the last minute, make sure to add the pulse class.
+        // Do so for every second, so that reloads will make sense as well.
+        if (d.hours() === 0 && d.minutes() === 0) {
+          document.getElementsByTagName("body")[0].className = "red-pulse"
+        }
+
+        // If we're ever at a negative interval, stop immediately.
+        // Technically we probably only really need the seconds here, but
+        // if we use all of them any future cases will be fixed immediately.
+        if (_.some([d.hours(), d.minutes(), d.seconds()], (n) => n < 0)) {
+          console.log("Closing interval.")
+          document.getElementsByTagName("body")[0].className = ""
+          clearInterval(intervalId)
+          return
+        }
+
+        this.$set(
+          'countdown',
+          pad(d.hours(), 2) + ":" +
+          pad(d.minutes(), 2) + ":" +
+          pad(d.seconds(), 2)
+        )
+      }, interval)
+    })
+  }
 }
 </script>
 
@@ -46,6 +92,8 @@ export default {
 
 h1 {
   font-size: 8em;
+  margin-top: 0;
+  padding-top: 0.5em;
   text-shadow: 5px 5px 10px rgba(0,0,0,0.7);
 }
 

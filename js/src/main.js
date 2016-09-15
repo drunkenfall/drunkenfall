@@ -57,6 +57,9 @@ router.beforeEach(function () {
   window.scrollTo(0, 0)
   router.app.connect()
 
+  // Reset any pulsating lights
+  document.getElementsByTagName("body")[0].className = ""
+
   // Always set up the user model from cookies
   router.app.$set('user', User.fromCookies(router.app.$cookie))
 })

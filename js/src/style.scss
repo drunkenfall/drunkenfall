@@ -5,6 +5,26 @@ body, html {
   font-family: 'Yanone Kaffeesatz', sans-serif;
   margin: 0;
 }
+
+body.red-pulse {
+  animation: red-pulse 2.5s infinite;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+}
+
+@keyframes red-pulse {
+  0% {
+    background-color: #22222a;
+  }
+  50% {
+    background-color: #9a1111;
+  }
+  100% {
+    background-color: #22222a;
+  }
+}
+
 .clear {
   clear: both;
 }
