@@ -46,10 +46,7 @@ func NewTournament(name, id string, server *Server) (*Tournament, error) {
 	}
 
 	t.Semis = []*Match{NewMatch(&t, 0, "semi"), NewMatch(&t, 1, "semi")}
-	t.Semis[0].Prefill()
-	t.Semis[1].Prefill()
 	t.Final = NewMatch(&t, 0, "final")
-	t.Final.Prefill()
 
 	t.SetMatchPointers()
 	t.Persist()
@@ -144,10 +141,6 @@ func (t *Tournament) ShufflePlayers() {
 		m := t.Tryouts[i/4]
 		m.AddPlayer(p)
 	}
-
-	for _, m := range t.Tryouts {
-		m.Prefill()
-	}
 }
 
 // StartTournament will generate the tournament.
@@ -178,7 +171,7 @@ func (t *Tournament) PopulateRunnerups(m *Match) error {
 		return err
 	}
 
-	for i := 0; m.ActualPlayers() < 4; i++ {
+	for i := 0; len(m.Players) < 4; i++ {
 		p := r[i]
 		m.AddPlayer(p)
 	}
@@ -214,24 +207,18 @@ func (t *Tournament) UpdatePlayers() error {
 
 	for _, m := range t.Tryouts {
 		for _, p := range m.Players {
-			if !p.IsPrefill() {
-				t.getPlayer(p.Name).Update(p)
-			}
+			t.getPlayer(p.Name()).Update(p)
 		}
 	}
 
 	for _, m := range t.Semis {
 		for _, p := range m.Players {
-			if !p.IsPrefill() {
-				t.getPlayer(p.Name).Update(p)
-			}
+			t.getPlayer(p.Name()).Update(p)
 		}
 	}
 
 	for _, p := range t.Final.Players {
-		if !p.IsPrefill() {
-			t.getPlayer(p.Name).Update(p)
-		}
+		t.getPlayer(p.Name()).Update(p)
 	}
 
 	return nil

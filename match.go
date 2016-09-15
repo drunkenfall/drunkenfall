@@ -26,7 +26,6 @@ func NewMatch(t *Tournament, index int, kind string) *Match {
 		Kind:       kind,
 		Tournament: t,
 	}
-	m.Prefill()
 	return &m
 }
 
@@ -88,12 +87,11 @@ func (m *Match) URL() string {
 		m.Index,
 	)
 	return out
-
 }
 
 // AddPlayer adds a player to the match
 func (m *Match) AddPlayer(p Player) error {
-	if m.ActualPlayers() == 4 {
+	if len(m.Players) == 4 {
 		return errors.New("cannot add fifth player")
 	}
 
@@ -101,19 +99,7 @@ func (m *Match) AddPlayer(p Player) error {
 	// TODO: Does not do anything right now...
 	m.CorrectColorConflicts()
 	p.Match = m
-
-	if len(m.Players) == 4 {
-		// Loop through the players and replace the first prefill player that can be found with
-		// the actual player.
-		for i, o := range m.Players {
-			if o.IsPrefill() {
-				m.Players[i] = p
-				break
-			}
-		}
-	} else {
-		m.Players = append(m.Players, p)
-	}
+	m.Players = append(m.Players, p)
 
 	return nil
 }
@@ -126,30 +112,6 @@ func (m *Match) UpdatePlayer(p Player) error {
 		}
 	}
 	return nil
-}
-
-// Prefill fills remaining player slots with nil players
-func (m *Match) Prefill() error {
-	for i := len(m.Players); i < 4; i++ {
-		err := m.AddPlayer(Player{})
-		if err != nil {
-			log.Fatal(err)
-		}
-
-	}
-	return nil
-}
-
-// ActualPlayers returns the number of actual players set in the match
-func (m *Match) ActualPlayers() int {
-	ret := 0
-	for _, p := range m.Players {
-		if !p.IsPrefill() {
-			ret++
-		}
-	}
-
-	return ret
 }
 
 // CorrectColorConflicts sets colors for players who have chosen the same
@@ -224,7 +186,7 @@ func (m *Match) Start() error {
 
 	// If there are not four players in the match, we need to populate
 	// the match with runnerups from the tournament
-	if m.ActualPlayers() != 4 {
+	if len(m.Players) != 4 {
 		m.Tournament.PopulateRunnerups(m)
 	}
 

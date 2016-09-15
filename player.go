@@ -106,10 +106,6 @@ func (p *Player) URL() string {
 
 // Classes returns the CSS color classes for the player
 func (p *Player) Classes() string {
-	if p.IsPrefill() {
-		return "prefill"
-	}
-
 	if p.Match != nil && p.Match.IsEnded() {
 		ps := ByScore(p.Match.Players)
 		if ps[0].Name == p.Name {
@@ -175,11 +171,6 @@ func (p *Player) Index() int {
 		}
 	}
 	return -1
-}
-
-// IsPrefill returns whether the player is a prefill placeholder or not
-func (p *Player) IsPrefill() bool {
-	return p.Name == ""
 }
 
 // Action performs an action for a player
