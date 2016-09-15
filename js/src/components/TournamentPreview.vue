@@ -78,7 +78,8 @@ h2 {
       border-radius: 100%;
       width:  150px;
       height: 150px;
-      box-shadow: 5px 5px 3px rgba(0,0,0,0.3);
+      box-shadow: -1px -1px 6px rgba(0,0,0,0.5);
+      background-color: rgba(10,12,14,0.3);
     }
     .ribbon {
       width: 88%;
