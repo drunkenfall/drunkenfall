@@ -124,3 +124,8 @@ func (p *Person) UpdatePerson(r *JoinRequest) {
 	p.Nick = r.Nick
 	p.ColorPreference = []string{r.Color}
 }
+
+// PreferredColor returns the preferred color
+func (p *Person) PreferredColor() string {
+	return p.ColorPreference[0]
+}

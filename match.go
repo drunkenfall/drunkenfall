@@ -49,7 +49,7 @@ func (m *Match) String() string {
 
 	names := make([]string, 0, len(m.Players))
 	for _, p := range m.Players {
-		names = append(names, p.Name)
+		names = append(names, p.Name())
 	}
 
 	return fmt.Sprintf(
@@ -107,7 +107,7 @@ func (m *Match) AddPlayer(p Player) error {
 // UpdatePlayer updates a player for the given match
 func (m *Match) UpdatePlayer(p Player) error {
 	for i, o := range m.Players {
-		if o.Name == p.Name {
+		if o.Name() == p.Name() {
 			m.Players[i] = p
 		}
 	}
@@ -125,7 +125,7 @@ func (m *Match) CorrectColorConflicts() error {
 				continue
 			}
 
-			if p.PreferredColor == p2.PreferredColor {
+			if p.PreferredColor() == p2.PreferredColor() {
 				// If the score is the same, prefer player one.
 				if p.Score() >= p2.Score() {
 					p2.RandomizeColor(m)
@@ -218,9 +218,9 @@ func (m *Match) End() error {
 
 	// Give the winner one last shot
 	ps := ByScore(m.Players)
-	winner := ps[0].Name
+	winner := ps[0].Name()
 	for i, p := range m.Players {
-		if p.Name == winner {
+		if p.Name() == winner {
 			m.Players[i].AddShot()
 			break
 		}
