@@ -1,12 +1,18 @@
 <template>
   <div>
-    <div v-for="player in tournament.players" class="player {{player.person.color_preference[0]}}">
-      <img alt="{{player.person.nick}}" :src="player.person.avatar_url"/>
-      <div class="ribbon {{player.person.color_preference[0]}}">
-        <strong class="ribbon-content">{{player.person.nick}}</strong>
+    <h1>
+      Starting soon
+    </h1>
+    <div class="players">
+      <div v-for="player in tournament.players" class="player {{player.person.color_preference[0]}}">
+        <img alt="{{player.person.nick}}" :src="player.person.avatar_url"/>
       </div>
-
     </div>
+
+    <h2>
+      Sign up on <strong>drunkenfall.com</strong>
+    </h2>
+
   </div>
 </template>
 
@@ -26,38 +32,44 @@ export default {
 }
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 @import "../style.scss";
 
-.player {
-  position: relative;
-  float: left;
-  width: 150px;
-  margin: 1% 2% 0%;
-  height: 20vh;
-
-  /* background-color: rgba(0,0,0,0.3); */
-
-  img {
-    object-fit: cover;
-    border-radius: 100%;
-    width:  150px;
-    height: 150px;
-  }
-  .ribbon {
-    width: 88%;
-  }
-
-  &.green  img { border: 1px solid $green ; }
-  &.blue   img { border: 1px solid $blue  ; }
-  &.pink   img { border: 1px solid $pink  ; }
-  &.orange img { border: 1px solid $orange; }
-  &.white  img { border: 1px solid $white ; }
-  &.yellow img { border: 1px solid $yellow; }
-  &.cyan   img { border: 1px solid $cyan  ; }
-  &.purple img { border: 1px solid $purple; }
-  &.red    img { border: 1px solid $red; }
-
+h1 {
+  font-size: 8em;
+  text-shadow: 5px 5px 10px rgba(0,0,0,0.7);
 }
 
+h2 {
+  margin: -1.5em 0 1em;
+  font-size: 2.5em;
+  text-align: center;
+  strong {
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+    color: #a090a0;
+  }
+}
+
+.players {
+  text-align: center;
+  width: 80%;
+  margin: 100px auto;
+
+  .player {
+    display: inline-block;
+    width: 130px;
+    margin-top: -30px;
+
+    img {
+      object-fit: cover;
+      border-radius: 100%;
+      width:  150px;
+      height: 150px;
+      box-shadow: 5px 5px 3px rgba(0,0,0,0.3);
+    }
+    .ribbon {
+      width: 88%;
+    }
+  }
+}
 </style>
