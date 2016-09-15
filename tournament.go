@@ -395,6 +395,7 @@ func SetupFakeTournament(s *Server) *Tournament {
 		ps := &Person{
 			Name:            FakeName(),
 			Nick:            FakeNick(),
+			AvatarURL:       FakeAvatar(),
 			ColorPreference: []string{Colors[rand.Intn(len(Colors))]},
 		}
 		t.AddPlayer(ps)
