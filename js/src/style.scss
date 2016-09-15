@@ -99,3 +99,74 @@ form input.text {
   width: 100px;
   margin: 10px auto;
 }
+
+// https://css-tricks.com/snippets/css/ribbon/
+.ribbon {
+  font-size: 20px !important;
+  /* This ribbon is based on a 16px font side and a 24px vertical rhythm. I've
+  used em's to position each element for scalability. If you want to use a
+  different font size you may have to play with the position of the ribbon
+  elements */
+
+  width: 50%;
+
+  position: relative;
+  background: #393939;
+  color: #fff;
+  text-align: center;
+  padding: 0.4em 0.4em; /* Adjust to suit */
+  margin: -1em auto 3em; /* Based on 24px vertical rhythm. 48px bottom margin - normally 24 but the ribbon 'graphics' take up 24px themselves so we double it. */
+
+  text-shadow: 1px 1px 1px rgba(0,0,0,0.7);
+  box-shadow: 2px 2px 3px rgba(0,0,0,0.1);
+
+  &.green  { color: $green ; }
+  &.blue   { color: $blue  ; }
+  &.pink   { color: $pink  ; }
+  &.orange { color: $orange; }
+  &.white  { color: $white ; }
+  &.yellow { color: $yellow; }
+  &.cyan   { color: $cyan  ; }
+  &.purple { color: $purple; }
+  &.red    { color: $red; }
+
+  .ribbon-content {
+    white-space: nowrap;
+    overflow: hidden;
+    display: block;
+  }
+}
+.ribbon:before, .ribbon:after {
+  content: "";
+  position: absolute;
+  display: block;
+  bottom: -1em;
+  border: 1em solid #303030;
+  z-index: -1;
+}
+.ribbon:before {
+  left: -1.4em;
+  border-right-width: 1.4em;
+  border-left-color: transparent;
+}
+.ribbon:after {
+  right: -1.4em;
+  border-left-width: 1.4em;
+  border-right-color: transparent;
+}
+.ribbon .ribbon-content:before, .ribbon .ribbon-content:after {
+  content: "";
+  position: absolute;
+  display: block;
+  border-style: solid;
+  border-color: #444 transparent transparent transparent;
+  bottom: -1em;
+}
+.ribbon .ribbon-content:before {
+  left: 0;
+  border-width: 1em 0 0 1em;
+}
+.ribbon .ribbon-content:after {
+  right: 0;
+  border-width: 1em 1em 0 0;
+}
