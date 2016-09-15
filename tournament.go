@@ -390,8 +390,8 @@ func SetupFakeTournament(s *Server) *Tournament {
 	title, id := FakeTournamentTitle()
 	t, _ := NewTournament(title, id, s)
 
-	// Fake between 8 and 32 players
-	for i := 0; i < rand.Intn(24)+8; i++ {
+	// Fake between 14 and 32 players
+	for i := 0; i < rand.Intn(18)+14; i++ {
 		ps := &Person{
 			Name:            FakeName(),
 			Nick:            FakeNick(),
