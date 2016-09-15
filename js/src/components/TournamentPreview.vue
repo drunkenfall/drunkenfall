@@ -9,10 +9,18 @@
       </div>
     </div>
 
-    <h2>
-      Sign up on <strong>drunkenfall.com</strong>
-    </h2>
+    <div class="protector">
+      <div class="super-ribbon">
+        drunkenfall.com
+      </div>
 
+      <div class="ribbon">
+        <strong class="ribbon-content">
+          00:43:17
+        </strong>
+
+      </div>
+    </div>
   </div>
 </template>
 
@@ -34,6 +42,7 @@ export default {
 
 <style lang="scss" scoped>
 @import "../variables.scss";
+@import "../ribbon.scss";
 
 h1 {
   font-size: 8em;
@@ -48,6 +57,10 @@ h2 {
     text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
     color: #a090a0;
   }
+}
+
+.ribbon {
+  font-size: 40px;
 }
 
 .players {
