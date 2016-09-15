@@ -1,46 +1,69 @@
 <template>
   <div>
-    <header>
-      <div class="content">
-        <div class="title">{{tournament.name}}</div>
-      </div>
-      <div class="links">
-        <a v-if="tournament.canStart"
-          v-link="{ name: 'join', params: { tournament: tournament.id }}">Join</a>
-        <div class="action" @click="start"
-          v-if="user.level(levels.judge) && tournament.canStart">Start</div>
-        <div class="action" @click="next"
-          v-if="user.level(levels.judge) && tournament.isRunning">Next match</div>
+    <div class="category tryouts">
+      <h3>Tryouts</h3>
+      <div class="matches">
+        <template v-for="m in tournament.tryouts">
+          <match-overview :match="m" class="match {{m.kind}}">
+        </template>
       </div>
       <div class="clear"></div>
-    </header>
+    </div>
 
-    <tournament-preview v-if="!tournament.isStarted" :tournament="tournament" :user="user"></tournament-preview>
-    <tournament-overview v-if="tournament.isStarted" :tournament="tournament" :user="user"></tournament-overview>
+    <div class="category semis">
+      <h3>Semi-finals</h3>
+      <div class="matches">
+        <template v-for="m in tournament.semis">
+          <match-overview :match="m" class="match {{m.kind}}">
+        </template>
+      </div>
+      <div class="clear"></div>
+
+      <div v-if="runnerups.length > 0">
+        <h3>Runnerups</h3>
+        <div class="runnerups">
+          <template v-for="player in runnerups">
+            <div class="runnerup">
+              <p class="name">{{player.name}}</p>
+              <p class="score">
+                <b>{{player.score}}</b> points
+                /
+                <b>{{player.matches}}</b> matches
+              </p>
+              <div class="clear"></div>
+            </div>
+          </template>
+        </div>
+      </div>
+
+    </div>
+    <div class="category final">
+      <h3>Final</h3>
+      <div class="matches">
+        <match-overview :match="tournament.final" class="match final">
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
+import MatchOverview from './MatchOverview'
 import Tournament from '../models/Tournament'
-import TournamentOverview from '../components/TournamentOverview'
-import TournamentPreview from '../components/TournamentPreview'
 import * as levels from "../models/Level"
+import User from '../models/User'
 import _ from 'lodash'
 
 export default {
-  name: 'Tournament',
+  name: 'TournamentOverview',
 
   components: {
-    TournamentOverview,
-    TournamentPreview,
+    MatchOverview
   },
 
-  data () {
-    return {
-      tournament: new Tournament(),
-      user: this.$root.user,
-      levels: levels,
-    }
+  props: {
+    tournament: new Tournament(),
+    user: new User(),
+    levels: levels,
   },
 
   computed: {
@@ -95,28 +118,6 @@ export default {
     }
     this.api = this.$resource("/api/towerfall", {}, customActions)
   },
-
-  route: {
-    data ({ to }) {
-      // listen for tournaments from App
-      this.$on(`tournament${to.params.tournament}`, (tournament) => {
-        console.debug("New tournament from App:", tournament)
-        this.$set('tournament', tournament)
-      })
-
-      // TODO perhaps use $root.tournaments again?
-      return this.api.getData({ id: to.params.tournament }).then((res) => {
-        let tournament = Tournament.fromObject(res.data.tournament)
-        console.debug("loaded tournament", tournament)
-        return {
-          tournament: tournament
-        }
-      }, (error) => {
-        console.error('error when getting tournament', error)
-        return { tournament: new Tournament() }
-      })
-    }
-  }
 }
 </script>
 
