@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 )
 
 // Person someone having a role in the tournament
@@ -128,4 +129,13 @@ func (p *Person) UpdatePerson(r *JoinRequest) {
 // PreferredColor returns the preferred color
 func (p *Person) PreferredColor() string {
 	return p.ColorPreference[0]
+}
+
+// PersonFromSession returns the Person{} object attached to the session
+func PersonFromSession(s *Server, r *http.Request) *Person {
+	session, _ := CookieStore.Get(r, "session")
+	id := session.Values["user"].(string)
+
+	p := s.DB.GetPerson(id)
+	return p
 }

@@ -150,54 +150,21 @@ func (s *Server) TournamentHandler(w http.ResponseWriter, r *http.Request) {
 
 // JoinHandler shows the tournament view and handles tournaments
 func (s *Server) JoinHandler(w http.ResponseWriter, r *http.Request) {
-	var req JoinRequest
+	if !HasPermission(r, PermissionPlayer) {
+		PermissionFailure(w, r, "You need to sign in to join a tournament")
+		return
+	}
+
 	tm := s.getTournament(r)
+	p := PersonFromSession(s, r)
 
-	body, err := ioutil.ReadAll(r.Body)
+	err := tm.AddPlayer(p)
 	if err != nil {
-		log.Print(err)
+		PermissionFailure(w, r, err.Error())
 		return
 	}
 
-	err = json.Unmarshal(body, &req)
-	if err != nil {
-		log.Print(err)
-		return
-	}
-	log.Print(req)
-
-	name := req.Name
-	color := req.Color
-
-	if !tm.CanJoin(name) {
-		http.Error(w, "too many players", 500)
-		return
-	}
-	if color == "" {
-		http.Error(w, "need a color", 500)
-		return
-	}
-
-	err = tm.AddPlayer(name, color)
-	if err != nil {
-		http.Error(w, err.Error(), 500)
-		return
-	}
-
-	// TODO: This should not be here...
-	_ = tm.SetMatchPointers()
-
-	log.Printf("%s has joined %s!", name, tm.Name)
-	session, err := CookieStore.Get(r, name)
-	if err != nil {
-		http.Error(w, err.Error(), 500)
-		return
-	}
-
-	// TODO: Does not work. :/
-	session.Values["player"] = name
-	session.Save(r, w)
-
+	log.Printf("%s has joined %s!", p.Name, tm.Name)
 	s.Redirect(w, tm.URL())
 }
 

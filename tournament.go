@@ -39,7 +39,6 @@ func NewTournament(name, id string, server *Server) (*Tournament, error) {
 		server: server,
 	}
 
-	// No matches yet - add four
 	for i := 0; i < 4; i++ {
 		match := NewMatch(&t, i, "tryout")
 		t.Tryouts = append(t.Tryouts, match)
@@ -95,28 +94,14 @@ func (t *Tournament) URL() string {
 
 // AddPlayer adds a player into the tournament
 //
-// When adding new players, this means:
-//   Generating tryouts
-//   Shuffling players into positions
+// If the four default tryout matches are full, four more will be generated.
 func (t *Tournament) AddPlayer(ps *Person) error {
-	if !t.CanJoin(ps) {
-		return errors.New("player already in match")
+	if err := t.CanJoin(ps); err != nil {
+		return err
 	}
 
 	p := Player{Person: ps}
 	t.Players = append(t.Players, p)
-
-	ts := len(t.Tryouts)
-	players := len(t.Players)
-	if ts == 4 && players == 17 {
-		// More than 16 players - add four more matches
-		for i := 0; i < 4; i++ {
-			match := NewMatch(t, i+4, "tryout")
-			t.Tryouts = append(t.Tryouts, match)
-		}
-	}
-
-	t.ShufflePlayers()
 	t.Persist() // TODO: Error handling
 
 	return nil
@@ -124,11 +109,6 @@ func (t *Tournament) AddPlayer(ps *Person) error {
 
 // ShufflePlayers will reposition players into matches
 func (t *Tournament) ShufflePlayers() {
-	// Reset the set matches
-	for _, t := range t.Tryouts {
-		t.Players = []Player{}
-	}
-
 	// Shuffle all the players
 	slice := t.Players
 	for i := range slice {
@@ -152,13 +132,19 @@ func (t *Tournament) ShufflePlayers() {
 // It will fail if there are not between 8 and 24 players.
 func (t *Tournament) StartTournament() error {
 	ps := len(t.Players)
-	if ps < 8 {
-		return fmt.Errorf("Tournament needs at least 8 players, got %d", ps)
-	}
-	if ps > 32 {
-		return fmt.Errorf("Tournament can only host 32 players, got %d", ps)
+	if ps < 8 || ps > 32 {
+		return fmt.Errorf("Tournament needs at 8-32 players, got %d", ps)
 	}
 
+	// More than 16 players - add four more tryouts
+	if ps > 16 {
+		for i := 0; i < 4; i++ {
+			match := NewMatch(t, i+4, "tryout")
+			t.Tryouts = append(t.Tryouts, match)
+		}
+	}
+
+	t.ShufflePlayers()
 	t.Started = time.Now()
 	t.Persist()
 	return nil
@@ -355,16 +341,16 @@ func (t *Tournament) IsRunning() bool {
 }
 
 // CanJoin checks if a player is allowed to join or is already in the tournament
-func (t *Tournament) CanJoin(ps *Person) bool {
+func (t *Tournament) CanJoin(ps *Person) error {
 	if len(t.Players) >= 32 {
-		return false
+		return errors.New("tournament is full")
 	}
 	for _, p := range t.Players {
 		if p.Name() == ps.Name {
-			return false
+			return errors.New("already in tournament")
 		}
 	}
-	return true
+	return nil
 }
 
 // SetMatchPointers loops over all matches in the tournament and sets the tournament reference
