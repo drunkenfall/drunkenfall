@@ -157,7 +157,7 @@ func (p *Player) RandomizeColor(m *Match) {
 		}
 
 		if found == false {
-			p.PreferredColor = color
+			// p.Person.SetColor(color)
 			return
 		}
 	}
