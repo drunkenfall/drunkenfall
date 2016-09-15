@@ -47,8 +47,8 @@ func (c *Cracklib) Upper() string {
 // FakeName returns a fake player name
 func FakeName() string {
 	var prefix string
-	// Add a last name prefix 10% of the time
-	if percentTrue(10) {
+	// Add a last name prefix 80% of the time
+	if percentTrue(80) {
 		p := []string{"von ", "Mc", "of ", "the ", "De"}
 		prefix = p[rand.Intn(len(p))]
 	}
