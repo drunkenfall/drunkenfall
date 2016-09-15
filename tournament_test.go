@@ -16,21 +16,8 @@ func testTournament(count int) (t *Tournament) {
 		log.Fatal("tournament creation failed")
 	}
 
-	colors := []string{
-		"green",
-		"blue",
-		"pink",
-		"orange",
-		"white",
-		"yellow",
-		"cyan",
-		"purple",
-		"red",
-	}
-
 	for i := 1; i <= count; i++ {
-		name := strconv.Itoa(i)
-		t.AddPlayer(name, colors[i%len(colors)])
+		t.AddPlayer(testPerson())
 	}
 
 	return

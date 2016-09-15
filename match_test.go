@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/stretchr/testify/assert"
+	"math/rand"
 	"testing"
 	"time"
 )
@@ -11,22 +12,42 @@ func MockMatch(idx int, cat string) *Match {
 	s := MockServer()
 	tm, _ := NewTournament("test", "t", s)
 	tm.SetMatchPointers()
-	return NewMatch(tm, idx, cat)
+	m := NewMatch(tm, idx, cat)
+	m.Players = []Player{
+		testPlayer(),
+		testPlayer(),
+		testPlayer(),
+		testPlayer(),
+	}
+	return m
+}
+
+func testPlayer() Player {
+	return NewPlayer(testPerson())
+}
+
+func testPerson() *Person {
+	return &Person{
+		ID:   FakeName(),
+		Name: FakeName(),
+		Nick: FakeNick(),
+		ColorPreference: []string{
+			Colors[rand.Intn(len(Colors))],
+			Colors[rand.Intn(len(Colors))],
+		},
+	}
 }
 
 func TestAddPlayer(t *testing.T) {
 	assert := assert.New(t)
 	m := MockMatch(1, "test")
-
-	assert.Equal(4, len(m.Players))
-	assert.Equal(0, m.ActualPlayers())
-
-	p := Player{Name: "I exist"}
+	m.Players = []Player{}
+	p := testPlayer()
 
 	err := m.AddPlayer(p)
 	assert.Nil(err)
 
-	assert.Equal(1, m.ActualPlayers())
+	assert.Equal(1, len(m.Players))
 }
 
 func TestAddFifthPlayer(t *testing.T) {
@@ -34,12 +55,12 @@ func TestAddFifthPlayer(t *testing.T) {
 	m := MockMatch(1, "test")
 
 	m.Players = []Player{
-		{Name: "a"},
-		{Name: "b"},
-		{Name: "c"},
-		{Name: "d"},
+		testPlayer(),
+		testPlayer(),
+		testPlayer(),
+		testPlayer(),
 	}
-	p := Player{}
+	p := testPlayer()
 
 	err := m.AddPlayer(p)
 	assert.NotNil(err)
@@ -59,10 +80,10 @@ func TestStart(t *testing.T) {
 	assert := assert.New(t)
 	m := MockMatch(1, "test")
 	m.Players = []Player{
-		{Name: "1"},
-		{Name: "2"},
-		{Name: "3"},
-		{Name: "4"},
+		testPlayer(),
+		testPlayer(),
+		testPlayer(),
+		testPlayer(),
 	}
 
 	err := m.Start()
@@ -76,10 +97,10 @@ func TestEndGivesShotToWinner(t *testing.T) {
 	// TODO(thiderman): This is terrible, but it works for now :(
 	m.Tournament = nil
 	m.Players = []Player{
-		{Name: "1"},
-		{Name: "2"},
-		{Name: "3"},
-		{Name: "4"},
+		testPlayer(),
+		testPlayer(),
+		testPlayer(),
+		testPlayer(),
 	}
 
 	err := m.Start()
@@ -136,10 +157,10 @@ func TestCommitSweepPlayer1(t *testing.T) {
 	assert := assert.New(t)
 
 	m := MockMatch(0, "test")
-	_ = m.AddPlayer(Player{Name: "1"})
-	_ = m.AddPlayer(Player{Name: "2"})
-	_ = m.AddPlayer(Player{Name: "3"})
-	_ = m.AddPlayer(Player{Name: "4"})
+	_ = m.AddPlayer(testPlayer())
+	_ = m.AddPlayer(testPlayer())
+	_ = m.AddPlayer(testPlayer())
+	_ = m.AddPlayer(testPlayer())
 
 	scores := [][]int{
 		[]int{3, 0},
@@ -162,10 +183,10 @@ func TestCommitDoubleKillPlayer2(t *testing.T) {
 	assert := assert.New(t)
 
 	m := MockMatch(0, "test")
-	_ = m.AddPlayer(Player{Name: "1"})
-	_ = m.AddPlayer(Player{Name: "2"})
-	_ = m.AddPlayer(Player{Name: "3"})
-	_ = m.AddPlayer(Player{Name: "4"})
+	_ = m.AddPlayer(testPlayer())
+	_ = m.AddPlayer(testPlayer())
+	_ = m.AddPlayer(testPlayer())
+	_ = m.AddPlayer(testPlayer())
 
 	scores := [][]int{
 		[]int{0, 0},
@@ -188,10 +209,10 @@ func TestCommitSweepAndSuicidePlayer3(t *testing.T) {
 	assert := assert.New(t)
 
 	m := MockMatch(0, "test")
-	_ = m.AddPlayer(Player{Name: "1"})
-	_ = m.AddPlayer(Player{Name: "2"})
-	_ = m.AddPlayer(Player{Name: "3"})
-	_ = m.AddPlayer(Player{Name: "4"})
+	_ = m.AddPlayer(testPlayer())
+	_ = m.AddPlayer(testPlayer())
+	_ = m.AddPlayer(testPlayer())
+	_ = m.AddPlayer(testPlayer())
 
 	scores := [][]int{
 		[]int{0, 0},
@@ -216,10 +237,10 @@ func TestCommitSuicidePlayer4(t *testing.T) {
 	assert := assert.New(t)
 
 	m := MockMatch(0, "test")
-	_ = m.AddPlayer(Player{Name: "1"})
-	_ = m.AddPlayer(Player{Name: "2"})
-	_ = m.AddPlayer(Player{Name: "3"})
-	_ = m.AddPlayer(Player{Name: "4"})
+	_ = m.AddPlayer(testPlayer())
+	_ = m.AddPlayer(testPlayer())
+	_ = m.AddPlayer(testPlayer())
+	_ = m.AddPlayer(testPlayer())
 
 	scores := [][]int{
 		[]int{0, 0},
@@ -243,10 +264,10 @@ func TestCommitShotsForPlayer2and3(t *testing.T) {
 	assert := assert.New(t)
 
 	m := MockMatch(0, "test")
-	_ = m.AddPlayer(Player{Name: "1"})
-	_ = m.AddPlayer(Player{Name: "2"})
-	_ = m.AddPlayer(Player{Name: "3"})
-	_ = m.AddPlayer(Player{Name: "4"})
+	_ = m.AddPlayer(testPlayer())
+	_ = m.AddPlayer(testPlayer())
+	_ = m.AddPlayer(testPlayer())
+	_ = m.AddPlayer(testPlayer())
 
 	scores := [][]int{
 		[]int{0, 0},
