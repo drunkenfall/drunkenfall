@@ -119,7 +119,7 @@ func (p *Person) PrefillNickname() {
 }
 
 // UpdatePerson updates a person from a JoinRequest
-func (p *Person) UpdatePerson(r *JoinRequest) {
+func (p *Person) UpdatePerson(r *FacebookJoinRequest) {
 	p.ID = r.ID
 	p.Name = r.Name
 	p.Nick = r.Nick
