@@ -106,7 +106,7 @@ export default {
 </script>
 
 <style lang="scss">
-@import "../style.scss";
+@import "../variables.scss";
 
 .tournament {
   position: relative;

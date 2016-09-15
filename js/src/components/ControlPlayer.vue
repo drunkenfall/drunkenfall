@@ -119,7 +119,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "../style.scss";
+@import "../variables.scss";
 
 .player {
   width: 100%;
