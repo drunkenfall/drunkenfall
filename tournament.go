@@ -21,6 +21,7 @@ type Tournament struct {
 	Semis       []*Match  `json:"semis"`
 	Final       *Match    `json:"final"`
 	Opened      time.Time `json:"opened"`
+	Scheduled   time.Time `json:"scheduled"`
 	Started     time.Time `json:"started"`
 	Ended       time.Time `json:"ended"`
 	db          *Database
@@ -389,6 +390,7 @@ func (t *Tournament) SetMatchPointers() error {
 func SetupFakeTournament(s *Server) *Tournament {
 	title, id := FakeTournamentTitle()
 	t, _ := NewTournament(title, id, s)
+	t.Scheduled = time.Now().Add(1 * time.Hour)
 
 	// Fake between 14 and 32 players
 	for i := 0; i < rand.Intn(18)+14; i++ {
