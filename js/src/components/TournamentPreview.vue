@@ -6,6 +6,7 @@
       </div>
       <div class="links">
         <a v-if="tournament.canStart" @click="join">Join</a>
+        <a v-if="tournament.canStart && user.level(30)" @click="start">Start</a>
         <a v-if="tournament.canStart && user.level(100)" @click="usurp">Usurp</a>
       </div>
       <div class="clear"></div>
@@ -14,11 +15,10 @@
     <h1>
       Starting soon
     </h1>
+
     <div class="players">
-      <div v-for="player in tournament.players" class="player {{player.person.color_preference[0]}}">
-        <!-- TODO(thiderman): Should be set per tournament -->
-        <img alt="{{player.person.nick}}"
-             src="https://graph.facebook.com/{{player.person.facebook_id}}/picture?width=9999"/>
+      <div v-for="player in tournament.players" class="player {{player.color}">
+        <img alt="{{player.person.nick}}" :src="player.avatar"/>
       </div>
     </div>
 
@@ -54,6 +54,32 @@ export default {
   },
 
   methods: {
+    start: function () {
+      if (this.tournament) {
+        this.api.start({ id: this.tournament.id }).then((res) => {
+          console.log("start response:", res)
+          let j = res.json()
+          this.$route.router.go('/towerfall' + j.redirect)
+        }, (err) => {
+          console.error(`start for ${this.tournament} failed`, err)
+        })
+      } else {
+        console.error("start called with no tournament")
+      }
+    },
+    usurp: function () {
+      if (this.tournament) {
+        this.api.usurp({ id: this.tournament.id }).then((res) => {
+          console.log("usurp response:", res)
+          let j = res.json()
+          this.$route.router.go('/towerfall' + j.redirect)
+        }, (err) => {
+          console.error(`usurp for ${this.tournament} failed`, err)
+        })
+      } else {
+        console.error("usurp called with no tournament")
+      }
+    },
     join () {
       this.api.join({ id: this.tournament.id }).then((res) => {
         console.log("join response:", res)
@@ -66,9 +92,12 @@ export default {
   },
 
   created: function () {
+    console.log("levels: ", levels)
     // API definitions
     console.debug("Creating API resource")
     let customActions = {
+      start: { method: "GET", url: "/api/towerfall{/id}/start/" },
+      usurp: { method: "GET", url: "/api/towerfall{/id}/usurp/" },
       join: { method: "GET", url: "/api/towerfall/{id}/join/" },
       getData: { method: "GET", url: "/api/towerfall/tournament/{id}/" }
     }
