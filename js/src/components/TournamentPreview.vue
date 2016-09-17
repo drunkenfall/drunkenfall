@@ -6,6 +6,7 @@
       </div>
       <div class="links">
         <a v-if="tournament.canStart" @click="join">Join</a>
+        <a v-if="tournament.canStart && user.level(100)" @click="usurp">Usurp</a>
       </div>
       <div class="clear"></div>
     </header>

@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 )
 
@@ -138,4 +139,17 @@ func PersonFromSession(s *Server, r *http.Request) *Person {
 
 	p := s.DB.GetPerson(id)
 	return p
+}
+
+// LoadPerson loads a person from the database
+func LoadPerson(data []byte) (*Person, error) {
+	p := &Person{}
+	err := json.Unmarshal(data, p)
+
+	if err != nil {
+		log.Print(err)
+		return p, err
+	}
+
+	return p, nil
 }

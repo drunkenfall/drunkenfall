@@ -151,6 +151,15 @@ func (t *Tournament) StartTournament() error {
 	return nil
 }
 
+// UsurpTournament starts a fake tournament with all registered players
+func (t *Tournament) UsurpTournament() error {
+	t.db.LoadPeople()
+	for _, p := range t.db.People {
+		t.AddPlayer(p)
+	}
+	return nil
+}
+
 // PopulateRunnerups fills a match with the runnerups with best scores
 func (t *Tournament) PopulateRunnerups(m *Match) error {
 	r, err := t.GetRunnerups()
