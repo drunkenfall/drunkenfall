@@ -2,12 +2,12 @@ import Vue from 'vue'
 import Router from 'vue-router'
 import Resource from 'vue-resource'
 import Cookie from 'vue-cookie'
+// import DateTimePicker from 'vue-datetime-picker'
 import App from './App'
 
 import TournamentList from './components/TournamentList.vue'
 import Tournament from './components/Tournament.vue'
 import New from './components/New.vue'
-import Join from './components/Join.vue'
 import Match from './components/Match.vue'
 import User from './models/User.js'
 import Facebook from './components/Facebook.vue'
@@ -17,6 +17,7 @@ import FacebookFinalize from './components/FacebookFinalize.vue'
 Vue.use(Router)
 Vue.use(Resource)
 Vue.use(Cookie)
+// Vue.use(DateTimePicker)
 
 // routing
 var router = new Router({
@@ -42,10 +43,6 @@ router.map({
   '/towerfall/:tournament/': {
     name: 'tournament',
     component: Tournament
-  },
-  '/towerfall/:tournament/join/': {
-    name: 'join',
-    component: Join
   },
   '/towerfall/:tournament/:kind/:match/': {
     name: 'match',

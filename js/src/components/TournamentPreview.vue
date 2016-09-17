@@ -1,11 +1,23 @@
 <template>
   <div>
+    <header v-if="user.authenticated">
+      <div class="content">
+        <div class="title">{{tournament.name}}</div>
+      </div>
+      <div class="links">
+        <a v-if="tournament.canStart" @click="join">Join</a>
+      </div>
+      <div class="clear"></div>
+    </header>
+
     <h1>
       Starting soon
     </h1>
     <div class="players">
       <div v-for="player in tournament.players" class="player {{player.person.color_preference[0]}}">
-        <img alt="{{player.person.nick}}" :src="player.person.avatar_url"/>
+        <!-- TODO(thiderman): Should be set per tournament -->
+        <img alt="{{player.person.nick}}"
+             src="https://graph.facebook.com/{{player.person.facebook_id}}/picture?width=9999"/>
       </div>
     </div>
 
@@ -40,7 +52,28 @@ export default {
     countdown: "00:00:00",
   },
 
+  methods: {
+    join () {
+      this.api.join({ id: this.tournament.id }).then((res) => {
+        console.log("join response:", res)
+        var j = res.json()
+        this.$route.router.go('/towerfall' + j.redirect)
+      }, (err) => {
+        console.error(`joining tournament ${this.tournament} failed`, err)
+      })
+    }
+  },
+
   created: function () {
+    // API definitions
+    console.debug("Creating API resource")
+    let customActions = {
+      join: { method: "GET", url: "/api/towerfall/{id}/join/" },
+      getData: { method: "GET", url: "/api/towerfall/tournament/{id}/" }
+    }
+    this.api = this.$resource("/api/towerfall", {}, customActions)
+
+    // Also create the clock countdown
     this.$set('countdown', '00:00:00')
     this.$watch('tournament', (newVal) => {
       var eventTime = newVal.scheduled.unix()
