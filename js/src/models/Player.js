@@ -5,7 +5,7 @@ export default class Player {
     return p
   }
 
-  // Fix so that every avatar is set per tournament
+  // TODO(thiderman): Fix so that every avatar is set per tournament
   get avatar () {
     return "https://graph.facebook.com/" + this.person.facebook_id + "/picture?width=9999"
   }

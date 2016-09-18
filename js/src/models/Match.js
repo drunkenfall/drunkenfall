@@ -1,6 +1,7 @@
 import { isGoZeroDateOrFalsy } from '../util/date.js'
 import moment from 'moment'
 import _ from 'lodash'
+import Player from './Player.js'
 
 export default class Match {
   static fromObject (obj) {
@@ -9,6 +10,7 @@ export default class Match {
 
     m.started = moment(m.started)
     m.ended = moment(m.ended)
+    m.players = _.map(m.players, Player.fromObject)
 
     switch (m.kind) {
       case 'tryout':
