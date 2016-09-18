@@ -97,7 +97,7 @@ func (m *Match) AddPlayer(p Player) error {
 
 	p.Reset()
 	// TODO: Does not do anything right now...
-	m.CorrectColorConflicts()
+	// m.CorrectColorConflicts()
 	p.Match = m
 	m.Players = append(m.Players, p)
 
