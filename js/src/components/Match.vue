@@ -15,10 +15,16 @@
       <div class="clear"></div>
     </header>
 
-    <div class="control">
+    <div class="control" v-if="user.level(levels.judge) && false">
       <template v-for="player in match.players" v-ref:players>
         <control-player :index="$index" :player="player" :match="match"
                         :downs="0" :ups="0">
+      </template>
+    </div>
+
+    <div class="control" v-if="!user.level(levels.judge) || true">
+      <template v-for="player in match.players" v-ref:players>
+        <preview-player :index="$index" :player="player" :match="match">
       </template>
     </div>
     <div class="clear"></div>
@@ -27,6 +33,7 @@
 
 <script>
 import ControlPlayer from './ControlPlayer.vue'
+import PreviewPlayer from './PreviewPlayer.vue'
 import Match from '../models/Match.js'
 import Tournament from '../models/Tournament.js'
 import * as levels from "../models/Level.js"
@@ -35,7 +42,8 @@ import _ from 'lodash'
 export default {
   name: 'Match',
   components: {
-    ControlPlayer
+    ControlPlayer,
+    PreviewPlayer,
   },
 
   data () {
@@ -168,9 +176,7 @@ export default {
 
 <style lang="scss" >
 
-@import "../style.scss";
-
-.control {
+control {
   height: 85vh;
   padding: 0.8%;
 }

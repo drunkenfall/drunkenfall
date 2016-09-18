@@ -11,6 +11,17 @@ export default class Player {
   }
 
   get color () {
-    return this.person.color_preference[0] || ""
+    if (this.person.color_preference) {
+      return this.person.color_preference[0]
+    }
+    return ""
+  }
+
+  get displayName () {
+    return this.person.nick
+  }
+
+  get firstName () {
+    return this.person.name.split(" ")[0]
   }
 }
