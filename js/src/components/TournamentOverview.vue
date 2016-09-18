@@ -160,6 +160,7 @@ export default {
   width: 100%;
   font-size: 150%;
   display: block;
+  position: relative;
 
   .player {
     float: left;
@@ -174,10 +175,28 @@ export default {
 
     &:nth-child(1), &:nth-child(4) {
       background-color: #333;
+      img {
+        left: -20px;
+      }
     }
     &:nth-child(2), &:nth-child(3) {
       background-color: #383838;
+      img {
+        right: -20px;
+      }
     }
+
+    img {
+      object-fit: cover;
+      border-radius: 100%;
+      width:  60px;
+      height: 60px;
+      box-shadow: -1px -1px 6px rgba(0,0,0,0.5);
+      background-color: rgba(10,12,14,0.3);
+      position: absolute;
+      top: 0;
+    }
+
     &.prefill {
       color: #555;
     }

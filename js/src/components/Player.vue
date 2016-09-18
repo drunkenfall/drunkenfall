@@ -1,7 +1,7 @@
 <template>
-  <p class="player {{classes}}">
-    {{display_name}}
-  </p>
+  <div class="player {{classes}}">
+    <p>{{display_name}}</p>
+  </div>
 </template>
 
 <script>
