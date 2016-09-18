@@ -23,15 +23,15 @@
   text-shadow: 1px 1px 1px rgba(0,0,0,0.7);
   box-shadow: 0px -2px 3px rgba(0,0,0,0.3);
 
-  &.green  { color: $green ; }
-  &.blue   { color: $blue  ; }
-  &.pink   { color: $pink  ; }
-  &.orange { color: $orange; }
-  &.white  { color: $white ; }
-  &.yellow { color: $yellow; }
-  &.cyan   { color: $cyan  ; }
-  &.purple { color: $purple; }
-  &.red    { color: $red; }
+  &.green { @include ribbon-colorizer($green-bg, $green-bg-darker, $green-bg-darkest);}
+  &.blue { @include ribbon-colorizer($blue-bg, $blue-bg-darker, $blue-bg-darkest);}
+  &.pink { @include ribbon-colorizer($pink-bg, $pink-bg-darker, $pink-bg-darkest);}
+  &.orange { @include ribbon-colorizer($orange-bg, $orange-bg-darker, $orange-bg-darkest);}
+  &.white { @include ribbon-colorizer($white-bg, $white-bg-darker, $white-bg-darkest);}
+  &.yellow { @include ribbon-colorizer($yellow-bg, $yellow-bg-darker, $yellow-bg-darkest);}
+  &.cyan { @include ribbon-colorizer($cyan-bg, $cyan-bg-darker, $cyan-bg-darkest);}
+  &.purple { @include ribbon-colorizer($purple-bg, $purple-bg-darker, $purple-bg-darkest);}
+  &.red { @include ribbon-colorizer($red-bg, $red-bg-darker, $red-bg-darkest);}
 
   .ribbon-content {
     white-space: nowrap;
@@ -67,12 +67,12 @@
   &:before {
     left: -1.4em;
     border-right-width: 1.4em;
-    border-left-color: transparent;
+    border-left-color: transparent !important;
   }
   &:after {
     right: -1.4em;
     border-left-width: 1.4em;
-    border-right-color: transparent;
+    border-right-color: transparent !important;
   }
 }
 
