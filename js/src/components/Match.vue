@@ -1,6 +1,6 @@
 <template>
   <div>
-    <header>
+    <header v-if="!match.isStarted" >
       <div class="content">
         <div class="title">
           {{tournament.name}} / {{match.kind | capitalize}} {{match.index +1}}
@@ -23,10 +23,17 @@
     </div>
 
     <div class="control" v-if="!user.level(levels.judge) || true">
-      <template v-for="player in match.players" v-ref:players>
+      <template v-if="!match.isStarted" v-for="player in match.players" v-ref:players>
         <preview-player :index="$index" :player="player" :match="match">
       </template>
+
+      <template v-if="match.isStarted" v-for="player in match.players" v-ref:players>
+        <live-player :index="$index + 1" :player="player" :match="match">
+      </template>
     </div>
+
+    </div>
+
     <div class="clear"></div>
   </div>
 </template>
@@ -34,6 +41,7 @@
 <script>
 import ControlPlayer from './ControlPlayer.vue'
 import PreviewPlayer from './PreviewPlayer.vue'
+import LivePlayer from './LivePlayer.vue'
 import Match from '../models/Match.js'
 import Tournament from '../models/Tournament.js'
 import * as levels from "../models/Level.js"
@@ -44,6 +52,7 @@ export default {
   components: {
     ControlPlayer,
     PreviewPlayer,
+    LivePlayer,
   },
 
   data () {
