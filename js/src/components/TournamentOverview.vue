@@ -39,7 +39,7 @@
         <div class="runnerups">
           <template v-for="player in runnerups">
             <div class="runnerup">
-              <p class="name">{{player.name}}</p>
+              <p class="name">{{player.displayName}}</p>
               <p class="score">
                 <b>{{player.score}}</b> points
                 /
@@ -90,7 +90,8 @@ export default {
       }
 
       return _.map(t.runnerups, (runnerupName) => {
-        return _.find(t.players, { name: runnerupName })
+        console.log("runnerup map", runnerupName)
+        return _.find(t.players, { displayName: runnerupName })
       })
     }
   },
