@@ -1,6 +1,6 @@
 <template>
   <div>
-    <header v-if="!match.isStarted" >
+    <header>
       <div class="content">
         <div class="title">
           {{tournament.name}} / {{match.kind | capitalize}} {{match.index +1}}
@@ -15,14 +15,14 @@
       <div class="clear"></div>
     </header>
 
-    <div class="control" v-if="user.level(levels.judge) && false">
+    <div class="control" v-if="user.level(levels.judge)">
       <template v-for="player in match.players" v-ref:players>
         <control-player :index="$index" :player="player" :match="match"
                         :downs="0" :ups="0">
       </template>
     </div>
 
-    <div class="control" v-if="!user.level(levels.judge) || true">
+    <div class="control" v-if="!user.level(levels.judge)">
       <template v-if="!match.isStarted" v-for="player in match.players" v-ref:players>
         <preview-player :index="$index" :player="player" :match="match">
       </template>
@@ -30,8 +30,6 @@
       <template v-if="match.isStarted" v-for="player in match.players" v-ref:players>
         <live-player :index="$index + 1" :player="player" :match="match">
       </template>
-    </div>
-
     </div>
 
     <div class="clear"></div>
@@ -185,7 +183,7 @@ export default {
 
 <style lang="scss" >
 
-control {
+.control {
   height: 85vh;
   padding: 0.8%;
 }
