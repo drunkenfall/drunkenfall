@@ -1,19 +1,19 @@
 <template>
   <div class="player {{player.preferred_color}}">
-    <div class="button" v-if="user.level(levels.producer)" @click="score(index, -1)">
+    <div class="button" @click="score(index, -1)">
       <div><p>-</p></div>
     </div>
 
     <div class="shots">
-       <div @click="manual_shot" v-if="user.level(levels.producer)" v-bind:class="{'give': shot}">
+       <div @click="manual_shot" v-bind:class="{'give': shot}">
          <div v-if="shot" class="mark">✓</div>
          <div v-if="!shot" class="mark">✗</div>
          <div v-if="reason !== ''" class="reason">{{reason}}</div>
        </div>
      </div>
 
-     <div class="slider {{player.preferred_color}}" @click="reset">
-       <div><p>{{player.name}}</p></div>
+     <div class="slider {{player.color}}" @click="reset">
+       <div><p>{{player.displayName}}</p></div>
      </div>
 
      <div class="scores">
@@ -23,7 +23,7 @@
        </div>
      </div>
 
-     <div class="button" v-if="user.level(levels.producer)" @click="score(index, 1)">
+     <div class="button" @click="score(index, 1)">
        <div><p>+</p></div>
      </div>
    </div>
