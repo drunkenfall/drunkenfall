@@ -7,6 +7,9 @@ export default class Player {
 
   // TODO(thiderman): Fix so that every avatar is set per tournament
   get avatar () {
+    if (this.person.avatar_url) {
+      return this.person.avatar_url
+    }
     return "https://graph.facebook.com/" + this.person.facebook_id + "/picture?width=9999"
   }
 
