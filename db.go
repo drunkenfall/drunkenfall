@@ -122,6 +122,7 @@ func (d *Database) GetPerson(id string) *Person {
 
 // LoadPeople loads the people from the database and into memory
 func (d *Database) LoadPeople() error {
+	d.People = make([]*Person, 0)
 	err := d.DB.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket(PeopleKey)
 
