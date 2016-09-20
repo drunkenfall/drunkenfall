@@ -1,7 +1,7 @@
 <template>
   <div>
-    <tournament-preview v-if="!tournament.isStarted" :tournament="tournament" :user="user"></tournament-preview>
-    <tournament-overview v-if="tournament.isStarted" :tournament="tournament" :user="user"></tournament-overview>
+    <tournament-preview v-if="!tournament.isStarted" :tournament="tournament" :user="user" :levels="levels"></tournament-preview>
+    <tournament-overview v-if="tournament.isStarted" :tournament="tournament" :user="user" :levels="levels"></tournament-overview>
   </div>
 </template>
 
@@ -94,7 +94,8 @@ export default {
         let tournament = Tournament.fromObject(res.data.tournament)
         console.debug("loaded tournament", tournament)
         return {
-          tournament: tournament
+          tournament: tournament,
+          user: this.$root.user,
         }
       }, (error) => {
         console.error('error when getting tournament', error)
