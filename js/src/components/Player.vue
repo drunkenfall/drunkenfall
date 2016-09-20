@@ -38,7 +38,7 @@ export default {
         return 'out'
       }
 
-      return this.player.person.color_preference[0]
+      return this.player.person.color
     }
   }
 }
