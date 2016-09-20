@@ -51,6 +51,10 @@ export default {
       return this.player.preferred_color
     }
   },
+
+  created: function () {
+    document.getElementsByTagName("body")[0].className = "scroll-less"
+  }
 }
 </script>
 
