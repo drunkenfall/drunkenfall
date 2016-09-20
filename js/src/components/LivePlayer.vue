@@ -5,7 +5,7 @@
     </div>
 
     <div class="section">
-      <h2>{{player.score}} / 10</h2>
+      <h2>{{player.kills}} / 10</h2>
       <h3>kills</h3>
     </div>
 
