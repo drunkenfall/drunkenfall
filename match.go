@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	"log"
 	"strings"
 	"time"
 )
@@ -190,10 +189,10 @@ func (m *Match) Start() error {
 		m.Tournament.PopulateRunnerups(m)
 	}
 
-	err := m.CorrectColorConflicts()
-	if err != nil {
-		log.Fatal(err)
-	}
+	// err := m.CorrectColorConflicts()
+	// if err != nil {
+	// log.Fatal(err)
+	// }
 
 	for i := range m.Players {
 		m.Players[i].Reset()
