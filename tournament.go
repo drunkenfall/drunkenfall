@@ -11,23 +11,30 @@ import (
 
 // Tournament is the main container of data for this app.
 type Tournament struct {
-	Name        string    `json:"name"`
-	ID          string    `json:"id"`
-	Players     []Player  `json:"players"`
-	Winners     []Player  `json:"winners"` // TODO: Refactor to pointer
-	Runnerups   []string  `json:"runnerups"`
-	Judges      []Judge   `json:"judges"`
-	Tryouts     []*Match  `json:"tryouts"`
-	Semis       []*Match  `json:"semis"`
-	Final       *Match    `json:"final"`
-	Opened      time.Time `json:"opened"`
-	Scheduled   time.Time `json:"scheduled"`
-	Started     time.Time `json:"started"`
-	Ended       time.Time `json:"ended"`
+	Name        string       `json:"name"`
+	ID          string       `json:"id"`
+	Players     []Player     `json:"players"`
+	Winners     []Player     `json:"winners"` // TODO: Refactor to pointer
+	Runnerups   []string     `json:"runnerups"`
+	Judges      []Judge      `json:"judges"`
+	Tryouts     []*Match     `json:"tryouts"`
+	Semis       []*Match     `json:"semis"`
+	Final       *Match       `json:"final"`
+	Current     CurrentMatch `json:"current"`
+	Opened      time.Time    `json:"opened"`
+	Scheduled   time.Time    `json:"scheduled"`
+	Started     time.Time    `json:"started"`
+	Ended       time.Time    `json:"ended"`
 	db          *Database
 	server      *Server
 	length      int
 	finalLength int
+}
+
+// CurrentMatch holds the pointers needed to find the current match
+type CurrentMatch struct {
+	Kind  string `json:"kind"`
+	Index int    `json:"index"`
 }
 
 // NewTournament returns a completely new Tournament
@@ -40,13 +47,18 @@ func NewTournament(name, id string, server *Server) (*Tournament, error) {
 		server: server,
 	}
 
+	// Set tryouts
 	for i := 0; i < 4; i++ {
 		match := NewMatch(&t, i, "tryout")
 		t.Tryouts = append(t.Tryouts, match)
 	}
 
+	// Set the predefined matches
 	t.Semis = []*Match{NewMatch(&t, 0, "semi"), NewMatch(&t, 1, "semi")}
 	t.Final = NewMatch(&t, 0, "final")
+
+	// Mark the current match
+	t.Current = CurrentMatch{"tryouts", 0}
 
 	t.SetMatchPointers()
 	t.Persist()
@@ -285,12 +297,18 @@ func (t *Tournament) MovePlayers(m *Match) error {
 	return nil
 }
 
+// SetCurrent sets the current match of the tournament
+func (t *Tournament) SetCurrent(m *Match) {
+	t.Current = CurrentMatch{m.Kind, m.Index}
+}
+
 // NextMatch returns the next match
 func (t *Tournament) NextMatch() (m *Match, err error) {
 	// Firstly, check the tryouts
 	for x := range t.Tryouts {
 		m = t.Tryouts[x]
 		if !m.IsEnded() {
+			t.SetCurrent(m)
 			return
 		}
 	}
@@ -300,11 +318,13 @@ func (t *Tournament) NextMatch() (m *Match, err error) {
 	for x := range t.Semis {
 		m = t.Semis[x]
 		if !m.IsEnded() {
+			t.SetCurrent(m)
 			return
 		}
 	}
 
 	if !t.Final.IsEnded() {
+		t.SetCurrent(t.Final)
 		return t.Final, nil
 	}
 

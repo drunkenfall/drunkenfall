@@ -112,6 +112,7 @@ func TestNextMatchNoMatchesAreStartedWithTryouts(t *testing.T) {
 	assert.Nil(err)
 	assert.Equal(1, m.Index)
 	assert.Equal("tryout", m.Kind)
+	assert.Equal(CurrentMatch{"tryout", 1}, tm.Current)
 }
 
 func TestNextMatchNoMatchesAreStartedWithTryoutsDone(t *testing.T) {
@@ -124,6 +125,7 @@ func TestNextMatchNoMatchesAreStartedWithTryoutsDone(t *testing.T) {
 	assert.Nil(err)
 	assert.Equal(0, m.Index)
 	assert.Equal("semi", m.Kind)
+	assert.Equal(CurrentMatch{"semi", 0}, tm.Current)
 }
 
 func TestNextMatchNoMatchesAreStartedWithTryoutsAndSemisDone(t *testing.T) {
@@ -137,6 +139,7 @@ func TestNextMatchNoMatchesAreStartedWithTryoutsAndSemisDone(t *testing.T) {
 	assert.Nil(err)
 	assert.Equal(0, m.Index)
 	assert.Equal("final", m.Kind)
+	assert.Equal(CurrentMatch{"final", 0}, tm.Current)
 }
 
 func TestNextMatchEverythingDone(t *testing.T) {
@@ -624,6 +627,7 @@ func TestEndComplete19PlayerTournamentKillsOnly(t *testing.T) {
 	f.Players[1].AddKill(2)
 	f.Players[2].AddKill(9)
 	f.Players[3].AddKill(10)
+
 	gold := f.Players[3].Name()
 	lowe := f.Players[2].Name()
 	bronze := f.Players[0].Name()
