@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"math/rand"
 	"sort"
-	"time"
 )
 
 // ColorList is the representation of colors players can choose from
@@ -32,15 +31,17 @@ type ScoreData struct {
 
 // Player is a Participant that is actively participating in battles.
 type Player struct {
-	Person     *Person `json:"person"`
-	Shots      int     `json:"shots"`
-	Sweeps     int     `json:"sweeps"`
-	Kills      int     `json:"kills"`
-	Self       int     `json:"self"`
-	Explosions int     `json:"explosions"`
-	Matches    int     `json:"matches"`
-	TotalScore int     `json:"score"`
-	Match      *Match  `json:"-"`
+	Person        *Person `json:"person"`
+	Color         string  `json:"color"`
+	OriginalColor string  `json:"original_color"`
+	Shots         int     `json:"shots"`
+	Sweeps        int     `json:"sweeps"`
+	Kills         int     `json:"kills"`
+	Self          int     `json:"self"`
+	Explosions    int     `json:"explosions"`
+	Matches       int     `json:"matches"`
+	TotalScore    int     `json:"score"`
+	Match         *Match  `json:"-"`
 }
 
 // NewPlayer returns a new instance of a player
@@ -139,38 +140,7 @@ func (p *Player) Classes() string {
 
 // RandomizeColor sets the color of this player to an unused one
 func (p *Player) RandomizeColor(m *Match) {
-	// Grab all the colors so we have a reference of what we cannot use
-	colors := make([]string, 4)
-	for _, p := range m.Players {
-		colors = append(colors, p.PreferredColor())
-	}
-
-	// Loop and try to find a new random color that is not already taken
-	// by another player in the match.
-	var color string
-	found := false
-	for {
-		color = getRandomPlayerColor()
-		found = false
-		for _, c := range colors {
-			if c == color {
-				found = true
-				break
-			}
-		}
-
-		if found == false {
-			// p.Person.SetColor(color)
-			return
-		}
-	}
-}
-
-func getRandomPlayerColor() string {
-	rand.Seed(time.Now().UTC().UnixNano())
-	offset := rand.Int() % len(Colors)
-	color := Colors[offset]
-	return color
+	p.Color = Colors.Available(m).Random()
 }
 
 // Index returns the index in the current match
@@ -426,6 +396,28 @@ func SortByRunnerup(ps []Player) []Player {
 // Random returns a random color from the ColorList
 func (c ColorList) Random() string {
 	return c[rand.Intn(len(c))]
+}
+
+// Available returns a ColorList with the colors not used in a match
+func (c ColorList) Available(m *Match) ColorList {
+	ret := make(ColorList, 0)
+	matchcolors := make(ColorList, 0)
+
+	// Make a list with all the colors that are in use
+	for _, p := range m.Players {
+		matchcolors = append(matchcolors, p.PreferredColor())
+	}
+
+	// Fill the return list with the other colors
+	for _, color := range c {
+		for _, mc := range matchcolors {
+			if color != mc {
+				ret = append(ret, color)
+			}
+		}
+	}
+
+	return ret
 }
 
 // Judge is a Participant that has access to the judge functions

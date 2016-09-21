@@ -264,21 +264,31 @@ func TestCommitShotsForPlayer2and3(t *testing.T) {
 	assert.Equal(1, m.Players[2].Shots)
 }
 
-// func TestCorrectColorConflictsNoScores(t *testing.T) {
-// 	assert := assert.New(t)
+func TestCorrectColorConflictsNoScores(t *testing.T) {
+	assert := assert.New(t)
 
-// 	m := MockMatch(0, "final")
-// 	_ = m.AddPlayer(testPlayer())
-// 	_ = m.AddPlayer(testPlayer())
-// 	_ = m.AddPlayer(testPlayer())
-// 	_ = m.AddPlayer(testPlayer())
+	m := MockMatch(0, "final")
+	m.Players = make([]Player, 0)
 
-// 	err := m.CorrectColorConflicts()
-// 	assert.Nil(err)
+	p1 := testPlayer()
+	p1.Person.ColorPreference[0] = "green"
+	p2 := testPlayer()
+	p2.Person.ColorPreference[0] = "green"
+	p3 := testPlayer()
+	p3.Person.ColorPreference[0] = "blue"
+	p4 := testPlayer()
+	p4.Person.ColorPreference[0] = "red"
 
-// 	assert.Equal("green", m.Players[0].PreferredColor())
-// 	assert.NotEqual("green", m.Players[1].PreferredColor())
-// }
+	_ = m.AddPlayer(p1)
+	_ = m.AddPlayer(p2)
+	_ = m.AddPlayer(p3)
+	_ = m.AddPlayer(p4)
+
+	assert.Equal("green", m.Players[0].Color)
+	assert.Equal("green", m.Players[0].OriginalColor)
+	assert.NotEqual("green", m.Players[1].Color)
+	assert.Equal("green", m.Players[1].OriginalColor)
+}
 
 // func TestCorrectColorConflictsNoScoresDoubleConflict(t *testing.T) {
 // 	assert := assert.New(t)

@@ -122,7 +122,7 @@ func (t *Tournament) AddPlayer(ps *Person) error {
 	return nil
 }
 
-// ShufflePlayers will reposition players into matches
+// ShufflePlayers will position players into matches
 func (t *Tournament) ShufflePlayers() {
 	// Shuffle all the players
 	slice := t.Players

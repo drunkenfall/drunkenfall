@@ -9,14 +9,15 @@ import (
 
 // Match represents a game being played
 type Match struct {
-	Players    []Player    `json:"players"`
-	Judges     []Judge     `json:"judges"`
-	Kind       string      `json:"kind"`
-	Index      int         `json:"index"`
-	Length     int         `json:"length"`
-	Started    time.Time   `json:"started"`
-	Ended      time.Time   `json:"ended"`
-	Tournament *Tournament `json:"-"`
+	Players       []Player    `json:"players"`
+	Judges        []Judge     `json:"judges"`
+	Kind          string      `json:"kind"`
+	Index         int         `json:"index"`
+	Length        int         `json:"length"`
+	Started       time.Time   `json:"started"`
+	Ended         time.Time   `json:"ended"`
+	Tournament    *Tournament `json:"-"`
+	presentColors map[string]bool
 }
 
 // NewMatch creates a new Match for usage!
@@ -27,6 +28,7 @@ func NewMatch(t *Tournament, index int, kind string) *Match {
 		Tournament: t,
 		Length:     10,
 	}
+	m.presentColors = make(map[string]bool)
 
 	// Finals are longer <3
 	if kind == "final" {
@@ -102,10 +104,23 @@ func (m *Match) AddPlayer(p Player) error {
 		return errors.New("cannot add fifth player")
 	}
 
+	// Reset all possible scores
 	p.Reset()
-	// TODO: Does not do anything right now...
-	// m.CorrectColorConflicts()
+
+	c := p.Person.ColorPreference[0]
+	p.OriginalColor = c
+	if _, ok := m.presentColors[c]; ok {
+		// Color is already present - give the player a new random one.
+		c = Colors.Available(m).Random()
+	}
+
+	// Set the player color
+	p.Color = c
+	m.presentColors[c] = true
+
+	// Also set the match pointer
 	p.Match = m
+
 	m.Players = append(m.Players, p)
 
 	return nil
@@ -118,33 +133,6 @@ func (m *Match) UpdatePlayer(p Player) error {
 			m.Players[i] = p
 		}
 	}
-	return nil
-}
-
-// CorrectColorConflicts sets colors for players who have chosen the same
-// archer.
-func (m *Match) CorrectColorConflicts() error {
-	// Get any conflicting sets
-	for i, p := range m.Players {
-		for j, p2 := range m.Players {
-			// Same player. Skip.
-			if i == j {
-				continue
-			}
-
-			if p.PreferredColor() == p2.PreferredColor() {
-				// If the score is the same, prefer player one.
-				if p.Score() >= p2.Score() {
-					p2.RandomizeColor(m)
-					_ = m.UpdatePlayer(p2)
-				} else {
-					p.RandomizeColor(m)
-					_ = m.UpdatePlayer(p)
-				}
-			}
-		}
-	}
-
 	return nil
 }
 
@@ -196,11 +184,6 @@ func (m *Match) Start() error {
 	if len(m.Players) != 4 {
 		m.Tournament.PopulateRunnerups(m)
 	}
-
-	// err := m.CorrectColorConflicts()
-	// if err != nil {
-	// log.Fatal(err)
-	// }
 
 	for i := range m.Players {
 		m.Players[i].Reset()
