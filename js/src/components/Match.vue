@@ -15,18 +15,31 @@
       <div class="clear"></div>
     </header>
 
-    <div class="control">
+    <div class="control" v-if="user.level(levels.judge)">
       <template v-for="player in match.players" v-ref:players>
         <control-player :index="$index" :player="player" :match="match"
                         :downs="0" :ups="0">
       </template>
     </div>
+
+    <div class="control" v-if="!user.level(levels.judge)">
+      <template v-if="!match.isStarted" v-for="player in match.players" v-ref:players>
+        <preview-player :index="$index" :player="player" :match="match">
+      </template>
+
+      <template v-if="match.isStarted" v-for="player in match.players" v-ref:players>
+        <live-player :index="$index + 1" :player="player" :match="match">
+      </template>
+    </div>
+
     <div class="clear"></div>
   </div>
 </template>
 
 <script>
 import ControlPlayer from './ControlPlayer.vue'
+import PreviewPlayer from './PreviewPlayer.vue'
+import LivePlayer from './LivePlayer.vue'
 import Match from '../models/Match.js'
 import Tournament from '../models/Tournament.js'
 import * as levels from "../models/Level.js"
@@ -35,7 +48,9 @@ import _ from 'lodash'
 export default {
   name: 'Match',
   components: {
-    ControlPlayer
+    ControlPlayer,
+    PreviewPlayer,
+    LivePlayer,
   },
 
   data () {
@@ -167,8 +182,6 @@ export default {
 </script>
 
 <style lang="scss" >
-
-@import "../style.scss";
 
 .control {
   height: 85vh;

@@ -4,11 +4,13 @@ import (
 	"fmt"
 	"math/rand"
 	"sort"
-	"time"
 )
 
+// ColorList is the representation of colors players can choose from
+type ColorList []string
+
 // Colors is a list of the available player colors
-var Colors = []string{
+var Colors = ColorList{
 	"green",
 	"blue",
 	"pink",
@@ -29,21 +31,22 @@ type ScoreData struct {
 
 // Player is a Participant that is actively participating in battles.
 type Player struct {
-	Name           string `json:"name"`
-	PreferredColor string `json:"preferred_color"`
-	Shots          int    `json:"shots"`
-	Sweeps         int    `json:"sweeps"`
-	Kills          int    `json:"kills"`
-	Self           int    `json:"self"`
-	Explosions     int    `json:"explosions"`
-	Matches        int    `json:"matches"`
-	TotalScore     int    `json:"score"`
-	Match          *Match `json:"-"`
+	Person        *Person `json:"person"`
+	Color         string  `json:"color"`
+	OriginalColor string  `json:"original_color"`
+	Shots         int     `json:"shots"`
+	Sweeps        int     `json:"sweeps"`
+	Kills         int     `json:"kills"`
+	Self          int     `json:"self"`
+	Explosions    int     `json:"explosions"`
+	Matches       int     `json:"matches"`
+	TotalScore    int     `json:"score"`
+	Match         *Match  `json:"-"`
 }
 
 // NewPlayer returns a new instance of a player
-func NewPlayer() Player {
-	p := Player{}
+func NewPlayer(ps *Person) Player {
+	p := Player{Person: ps}
 	return p
 }
 
@@ -54,7 +57,7 @@ func (p *Player) String() string {
 	}
 	return fmt.Sprintf(
 		"<%s: %dsh %dsw %dk %ds %de %s>",
-		p.Name,
+		p.Name(),
 		p.Shots,
 		p.Sweeps,
 		p.Kills,
@@ -62,6 +65,16 @@ func (p *Player) String() string {
 		p.Explosions,
 		IsPointed,
 	)
+}
+
+// Name returns the nickname
+func (p *Player) Name() string {
+	return p.Person.Nick
+}
+
+// PreferredColor returns the color
+func (p *Player) PreferredColor() string {
+	return p.Person.PreferredColor()
 }
 
 // Score calculates the score to determine runnerup positions.
@@ -106,80 +119,40 @@ func (p *Player) URL() string {
 
 // Classes returns the CSS color classes for the player
 func (p *Player) Classes() string {
-	if p.IsPrefill() {
-		return "prefill"
-	}
-
 	if p.Match != nil && p.Match.IsEnded() {
 		ps := ByScore(p.Match.Players)
-		if ps[0].Name == p.Name {
+		if ps[0].Name() == p.Name() {
 			// Always gold for the winner
 			return "gold"
-		} else if ps[1].Name == p.Name {
+		} else if ps[1].Name() == p.Name() {
 			// Silver for the second, unless there is a short amount of tryouts
 			if p.Match.Kind != "tryout" || len(p.Match.Tournament.Tryouts) <= 4 {
 				return "silver"
 			}
-		} else if ps[2].Name == p.Name && p.Match.Kind == "final" {
+		} else if ps[2].Name() == p.Name() && p.Match.Kind == "final" {
 			return "bronze"
 		}
 
 		return "out"
 	}
-	return p.PreferredColor
+	return p.PreferredColor()
 }
 
 // RandomizeColor sets the color of this player to an unused one
 func (p *Player) RandomizeColor(m *Match) {
-	// Grab all the colors so we have a reference of what we cannot use
-	colors := make([]string, 4)
-	for _, p := range m.Players {
-		colors = append(colors, p.PreferredColor)
-	}
-
-	// Loop and try to find a new random color that is not already taken
-	// by another player in the match.
-	var color string
-	found := false
-	for {
-		color = getRandomPlayerColor()
-		found = false
-		for _, c := range colors {
-			if c == color {
-				found = true
-				break
-			}
-		}
-
-		if found == false {
-			p.PreferredColor = color
-			return
-		}
-	}
-}
-
-func getRandomPlayerColor() string {
-	rand.Seed(time.Now().UTC().UnixNano())
-	offset := rand.Int() % len(Colors)
-	color := Colors[offset]
-	return color
+	p.Color = Colors.Available(m).Random()
 }
 
 // Index returns the index in the current match
 func (p *Player) Index() int {
 	if p.Match != nil {
 		for i, o := range p.Match.Players {
-			if p.Name == o.Name {
+			if p.Name() == o.Name() {
 				return i
 			}
 		}
 	}
 	return -1
-}
-
-// IsPrefill returns whether the player is a prefill placeholder or not
-func (p *Player) IsPrefill() bool {
-	return p.Name == ""
 }
 
 // Action performs an action for a player
@@ -418,6 +391,33 @@ func (s ByRunnerup) Less(i, j int) bool {
 func SortByRunnerup(ps []Player) []Player {
 	sort.Sort(ByRunnerup(ps))
 	return ps
+}
+
+// Random returns a random color from the ColorList
+func (c ColorList) Random() string {
+	return c[rand.Intn(len(c))]
+}
+
+// Available returns a ColorList with the colors not used in a match
+func (c ColorList) Available(m *Match) ColorList {
+	ret := make(ColorList, 0)
+	matchcolors := make(ColorList, 0)
+
+	// Make a list with all the colors that are in use
+	for _, p := range m.Players {
+		matchcolors = append(matchcolors, p.PreferredColor())
+	}
+
+	// Fill the return list with the other colors
+	for _, color := range c {
+		for _, mc := range matchcolors {
+			if color != mc {
+				ret = append(ret, color)
+			}
+		}
+	}
+
+	return ret
 }
 
 // Judge is a Participant that has access to the judge functions

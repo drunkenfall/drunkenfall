@@ -16,21 +16,8 @@ func testTournament(count int) (t *Tournament) {
 		log.Fatal("tournament creation failed")
 	}
 
-	colors := []string{
-		"green",
-		"blue",
-		"pink",
-		"orange",
-		"white",
-		"yellow",
-		"cyan",
-		"purple",
-		"red",
-	}
-
 	for i := 1; i <= count; i++ {
-		name := strconv.Itoa(i)
-		t.AddPlayer(name, colors[i%len(colors)])
+		t.AddPlayer(testPerson())
 	}
 
 	return
@@ -108,40 +95,6 @@ func TestPopulateMatchesPopulatesAllMatchesFor24Players(t *testing.T) {
 	assert.Equal(4, len(tm.Tryouts[5].Players))
 }
 
-func TestPopulateMatchesFillsAsMuchAsPossibleFor10Players(t *testing.T) {
-	assert := assert.New(t)
-	tm := testTournament(10)
-	tm.StartTournament()
-
-	assert.Equal(4, len(tm.Tryouts[0].Players))
-	assert.Equal(4, len(tm.Tryouts[1].Players))
-	assert.Equal(4, len(tm.Tryouts[2].Players))
-
-	assert.Equal(4, tm.Tryouts[0].ActualPlayers())
-	assert.Equal(4, tm.Tryouts[1].ActualPlayers())
-	assert.Equal(2, tm.Tryouts[2].ActualPlayers())
-}
-
-func TestPopulateMatchesFillsAsMuchAsPossibleFor18Players(t *testing.T) {
-	assert := assert.New(t)
-	tm := testTournament(18)
-	tm.StartTournament()
-
-	assert.Equal(4, len(tm.Tryouts[0].Players))
-	assert.Equal(4, len(tm.Tryouts[1].Players))
-	assert.Equal(4, len(tm.Tryouts[2].Players))
-	assert.Equal(4, len(tm.Tryouts[3].Players))
-	assert.Equal(4, len(tm.Tryouts[4].Players))
-	assert.Equal(4, len(tm.Tryouts[5].Players))
-
-	assert.Equal(4, tm.Tryouts[0].ActualPlayers())
-	assert.Equal(4, tm.Tryouts[1].ActualPlayers())
-	assert.Equal(4, tm.Tryouts[2].ActualPlayers())
-	assert.Equal(4, tm.Tryouts[3].ActualPlayers())
-	assert.Equal(2, tm.Tryouts[4].ActualPlayers())
-	assert.Equal(0, tm.Tryouts[5].ActualPlayers())
-}
-
 func TestNextMatchNoMatchesAreStartedWithTryouts(t *testing.T) {
 	assert := assert.New(t)
 	tm := testTournament(16)
@@ -159,6 +112,7 @@ func TestNextMatchNoMatchesAreStartedWithTryouts(t *testing.T) {
 	assert.Nil(err)
 	assert.Equal(1, m.Index)
 	assert.Equal("tryout", m.Kind)
+	assert.Equal(CurrentMatch{"tryout", 1}, tm.Current)
 }
 
 func TestNextMatchNoMatchesAreStartedWithTryoutsDone(t *testing.T) {
@@ -171,6 +125,7 @@ func TestNextMatchNoMatchesAreStartedWithTryoutsDone(t *testing.T) {
 	assert.Nil(err)
 	assert.Equal(0, m.Index)
 	assert.Equal("semi", m.Kind)
+	assert.Equal(CurrentMatch{"semi", 0}, tm.Current)
 }
 
 func TestNextMatchNoMatchesAreStartedWithTryoutsAndSemisDone(t *testing.T) {
@@ -184,6 +139,7 @@ func TestNextMatchNoMatchesAreStartedWithTryoutsAndSemisDone(t *testing.T) {
 	assert.Nil(err)
 	assert.Equal(0, m.Index)
 	assert.Equal("final", m.Kind)
+	assert.Equal(CurrentMatch{"final", 0}, tm.Current)
 }
 
 func TestNextMatchEverythingDone(t *testing.T) {
@@ -199,42 +155,44 @@ func TestNextMatchEverythingDone(t *testing.T) {
 	assert.NotNil(err)
 }
 
-func TestUpdatePlayer(t *testing.T) {
-	assert := assert.New(t)
-	tm, _ := NewTournament("player test", "test", MockServer())
-	tm.AddPlayer("winner", "yellow")
-	tm.AddPlayer("loser1", "green")
-	tm.AddPlayer("loser2", "blue")
-	tm.AddPlayer("loser3", "cyan")
+// TODO(thiderman): This needs to be refactored to use the new logic for
+// creating matches.
+// func TestUpdatePlayer(t *testing.T) {
+// 	assert := assert.New(t)
+// 	tm, _ := NewTournament("player test", "test", MockServer())
+// 	tm.AddPlayer(testPerson())
+// 	tm.AddPlayer(testPerson())
+// 	tm.AddPlayer(testPerson())
+// 	tm.AddPlayer(testPerson())
 
-	tm.Tryouts = []*Match{
-		{
-			Kind: "tryout",
-			Players: []Player{
-				{Name: "winner", Kills: 10},
-				{Name: "loser1", Kills: 0, Shots: 1},
-				{Name: "loser2", Kills: 0},
-				{Name: "loser3", Kills: 0},
-			},
-		},
-		{
-			Kind: "tryout",
-			Players: []Player{
-				{Name: "winner", Kills: 10},
-				{Name: "loser1", Kills: 0},
-				{Name: "loser2", Kills: 0},
-				{Name: "loser3", Kills: 0},
-			},
-		},
-	}
-	tm.Semis = []*Match{}
-	tm.Final = &Match{}
+// 	tm.Tryouts = []*Match{
+// 		{
+// 			Kind: "tryout",
+// 			Players: []Player{
+// 				testPlayer(),
+// 				testPlayer(),
+// 				testPlayer(),
+// 				testPlayer(),
+// 			},
+// 		},
+// 		{
+// 			Kind: "tryout",
+// 			Players: []Player{
+// 				testPlayer(),
+// 				testPlayer(),
+// 				testPlayer(),
+// 				testPlayer(),
+// 			},
+// 		},
+// 	}
+// 	tm.Semis = []*Match{}
+// 	tm.Final = &Match{}
 
-	tm.SetMatchPointers()
-	tm.UpdatePlayers()
-	assert.Equal(20, tm.getPlayer("winner").Kills)
-	assert.Equal(1, tm.getPlayer("loser1").Shots)
-}
+// 	tm.SetMatchPointers()
+// 	tm.UpdatePlayers()
+// 	assert.Equal(20, tm.getPlayer("winner").Kills)
+// 	assert.Equal(1, tm.getPlayer("loser1").Shots)
+// }
 
 func TestEnd4MatchTryoutsPlacesWinnerAndSecondIntoSemisAndRestIntoRunnerups(t *testing.T) {
 	assert := assert.New(t)
@@ -249,17 +207,17 @@ func TestEnd4MatchTryoutsPlacesWinnerAndSecondIntoSemisAndRestIntoRunnerups(t *t
 	m.Players[1].AddKill(6)
 	m.Players[2].AddKill(7)
 	m.Players[3].AddKill(10)
-	winner := m.Players[3].Name
-	silver := m.Players[2].Name
+	winner := m.Players[3].Name()
+	silver := m.Players[2].Name()
 
 	m.End()
 
-	assert.Equal(1, tm.Semis[0].ActualPlayers())
-	assert.Equal(1, tm.Semis[1].ActualPlayers())
+	assert.Equal(1, len(tm.Semis[0].Players))
+	assert.Equal(1, len(tm.Semis[1].Players))
 	assert.Equal(2, len(tm.Runnerups))
 
-	assert.Equal(winner, tm.Semis[0].Players[0].Name)
-	assert.Equal(silver, tm.Semis[1].Players[0].Name)
+	assert.Equal(winner, tm.Semis[0].Players[0].Name())
+	assert.Equal(silver, tm.Semis[1].Players[0].Name())
 }
 
 func TestEndComplete16PlayerTournamentKillsOnly(t *testing.T) {
@@ -278,17 +236,17 @@ func TestEndComplete16PlayerTournamentKillsOnly(t *testing.T) {
 	m.Players[1].AddKill(6)
 	m.Players[2].AddKill(7)
 	m.Players[3].AddKill(10)
-	winner := m.Players[3].Name
-	silver := m.Players[2].Name
+	winner := m.Players[3].Name()
+	silver := m.Players[2].Name()
 
 	m.End()
 
-	assert.Equal(1, tm.Semis[0].ActualPlayers())
-	assert.Equal(1, tm.Semis[1].ActualPlayers())
+	assert.Equal(1, len(tm.Semis[0].Players))
+	assert.Equal(1, len(tm.Semis[1].Players))
 	assert.Equal(2, len(tm.Runnerups))
 
-	assert.Equal(winner, tm.Semis[0].Players[0].Name)
-	assert.Equal(silver, tm.Semis[1].Players[0].Name)
+	assert.Equal(winner, tm.Semis[0].Players[0].Name())
+	assert.Equal(silver, tm.Semis[1].Players[0].Name())
 
 	// Tryout 2
 	m2, err2 := tm.NextMatch()
@@ -300,17 +258,17 @@ func TestEndComplete16PlayerTournamentKillsOnly(t *testing.T) {
 	m2.Players[1].AddKill(10)
 	m2.Players[2].AddKill(8)
 	m2.Players[3].AddKill(4)
-	winner2 := m2.Players[1].Name
-	silver2 := m2.Players[2].Name
+	winner2 := m2.Players[1].Name()
+	silver2 := m2.Players[2].Name()
 
 	m2.End()
 
-	assert.Equal(2, tm.Semis[0].ActualPlayers())
-	assert.Equal(2, tm.Semis[1].ActualPlayers())
+	assert.Equal(2, len(tm.Semis[0].Players))
+	assert.Equal(2, len(tm.Semis[1].Players))
 	assert.Equal(4, len(tm.Runnerups))
 
-	assert.Equal(winner2, tm.Semis[1].Players[1].Name)
-	assert.Equal(silver2, tm.Semis[0].Players[1].Name)
+	assert.Equal(winner2, tm.Semis[1].Players[1].Name())
+	assert.Equal(silver2, tm.Semis[0].Players[1].Name())
 
 	// Tryout 3
 	m3, err3 := tm.NextMatch()
@@ -322,17 +280,17 @@ func TestEndComplete16PlayerTournamentKillsOnly(t *testing.T) {
 	m3.Players[1].AddKill(3)
 	m3.Players[2].AddKill(3)
 	m3.Players[3].AddKill(5)
-	winner3 := m3.Players[0].Name
-	silver3 := m3.Players[3].Name
+	winner3 := m3.Players[0].Name()
+	silver3 := m3.Players[3].Name()
 
 	m3.End()
 
-	assert.Equal(3, tm.Semis[0].ActualPlayers())
-	assert.Equal(3, tm.Semis[1].ActualPlayers())
+	assert.Equal(3, len(tm.Semis[0].Players))
+	assert.Equal(3, len(tm.Semis[1].Players))
 	assert.Equal(6, len(tm.Runnerups))
 
-	assert.Equal(winner3, tm.Semis[0].Players[2].Name)
-	assert.Equal(silver3, tm.Semis[1].Players[2].Name)
+	assert.Equal(winner3, tm.Semis[0].Players[2].Name())
+	assert.Equal(silver3, tm.Semis[1].Players[2].Name())
 
 	// Tryout 4
 	m4, err4 := tm.NextMatch()
@@ -344,17 +302,17 @@ func TestEndComplete16PlayerTournamentKillsOnly(t *testing.T) {
 	m4.Players[1].AddKill(10)
 	m4.Players[2].AddKill(5)
 	m4.Players[3].AddKill(5)
-	winner4 := m4.Players[1].Name
-	silver4 := m4.Players[0].Name
+	winner4 := m4.Players[1].Name()
+	silver4 := m4.Players[0].Name()
 
 	m4.End()
 
-	assert.Equal(4, tm.Semis[0].ActualPlayers())
-	assert.Equal(4, tm.Semis[1].ActualPlayers())
+	assert.Equal(4, len(tm.Semis[0].Players))
+	assert.Equal(4, len(tm.Semis[1].Players))
 	assert.Equal(8, len(tm.Runnerups))
 
-	assert.Equal(winner4, tm.Semis[1].Players[3].Name)
-	assert.Equal(silver4, tm.Semis[0].Players[3].Name)
+	assert.Equal(winner4, tm.Semis[1].Players[3].Name())
+	assert.Equal(silver4, tm.Semis[0].Players[3].Name())
 
 	// Semi 1
 	s1, serr1 := tm.NextMatch()
@@ -368,15 +326,15 @@ func TestEndComplete16PlayerTournamentKillsOnly(t *testing.T) {
 	s1.Players[1].AddKill(7)
 	s1.Players[2].AddKill(9)
 	s1.Players[3].AddKill(8)
-	winners1 := s1.Players[0].Name
-	silvers1 := s1.Players[2].Name
+	winners1 := s1.Players[0].Name()
+	silvers1 := s1.Players[2].Name()
 
 	s1.End()
 
-	assert.Equal(2, tm.Final.ActualPlayers())
+	assert.Equal(2, len(tm.Final.Players))
 
-	assert.Equal(winners1, tm.Final.Players[0].Name)
-	assert.Equal(silvers1, tm.Final.Players[1].Name)
+	assert.Equal(winners1, tm.Final.Players[0].Name())
+	assert.Equal(silvers1, tm.Final.Players[1].Name())
 
 	// Semi 2
 	s2, serr2 := tm.NextMatch()
@@ -390,15 +348,15 @@ func TestEndComplete16PlayerTournamentKillsOnly(t *testing.T) {
 	s2.Players[1].AddKill(10)
 	s2.Players[2].AddKill(8)
 	s2.Players[3].AddKill(9)
-	winners2 := s2.Players[1].Name
-	silvers2 := s2.Players[3].Name
+	winners2 := s2.Players[1].Name()
+	silvers2 := s2.Players[3].Name()
 
 	s2.End()
 
-	assert.Equal(4, tm.Final.ActualPlayers())
+	assert.Equal(4, len(tm.Final.Players))
 
-	assert.Equal(winners2, tm.Final.Players[2].Name)
-	assert.Equal(silvers2, tm.Final.Players[3].Name)
+	assert.Equal(winners2, tm.Final.Players[2].Name())
+	assert.Equal(silvers2, tm.Final.Players[3].Name())
 
 	// Final!
 	f, ferr := tm.NextMatch()
@@ -412,15 +370,15 @@ func TestEndComplete16PlayerTournamentKillsOnly(t *testing.T) {
 	f.Players[1].AddKill(2)
 	f.Players[2].AddKill(9)
 	f.Players[3].AddKill(10)
-	gold := f.Players[3].Name
-	lowe := f.Players[2].Name
-	bronze := f.Players[0].Name
+	gold := f.Players[3].Name()
+	lowe := f.Players[2].Name()
+	bronze := f.Players[0].Name()
 
 	f.End()
 
-	assert.Equal(gold, tm.Winners[0].Name)
-	assert.Equal(lowe, tm.Winners[1].Name)
-	assert.Equal(bronze, tm.Winners[2].Name)
+	assert.Equal(gold, tm.Winners[0].Name())
+	assert.Equal(lowe, tm.Winners[1].Name())
+	assert.Equal(bronze, tm.Winners[2].Name())
 }
 
 func TestEndComplete19PlayerTournamentKillsOnly(t *testing.T) {
@@ -444,15 +402,15 @@ func TestEndComplete19PlayerTournamentKillsOnly(t *testing.T) {
 	m.Players[1].AddKill(6)
 	m.Players[2].AddKill(7)
 	m.Players[3].AddKill(10)
-	winner := m.Players[3].Name
+	winner := m.Players[3].Name()
 
 	m.End()
 
-	assert.Equal(1, tm.Semis[0].ActualPlayers())
-	assert.Equal(0, tm.Semis[1].ActualPlayers())
+	assert.Equal(1, len(tm.Semis[0].Players))
+	assert.Equal(0, len(tm.Semis[1].Players))
 	assert.Equal(3, len(tm.Runnerups))
 
-	assert.Equal(winner, tm.Semis[0].Players[0].Name)
+	assert.Equal(winner, tm.Semis[0].Players[0].Name())
 
 	// Tryout 2
 	m2, err2 := tm.NextMatch()
@@ -464,15 +422,15 @@ func TestEndComplete19PlayerTournamentKillsOnly(t *testing.T) {
 	m2.Players[1].AddKill(10)
 	m2.Players[2].AddKill(8)
 	m2.Players[3].AddKill(4)
-	winner2 := m2.Players[1].Name
+	winner2 := m2.Players[1].Name()
 
 	m2.End()
 
-	assert.Equal(1, tm.Semis[0].ActualPlayers())
-	assert.Equal(1, tm.Semis[1].ActualPlayers())
+	assert.Equal(1, len(tm.Semis[0].Players))
+	assert.Equal(1, len(tm.Semis[1].Players))
 	assert.Equal(6, len(tm.Runnerups))
 
-	assert.Equal(winner2, tm.Semis[1].Players[0].Name)
+	assert.Equal(winner2, tm.Semis[1].Players[0].Name())
 
 	// Tryout 3
 	m3, err3 := tm.NextMatch()
@@ -484,15 +442,15 @@ func TestEndComplete19PlayerTournamentKillsOnly(t *testing.T) {
 	m3.Players[1].AddKill(3)
 	m3.Players[2].AddKill(3)
 	m3.Players[3].AddKill(5)
-	winner3 := m3.Players[0].Name
+	winner3 := m3.Players[0].Name()
 
 	m3.End()
 
-	assert.Equal(2, tm.Semis[0].ActualPlayers())
-	assert.Equal(1, tm.Semis[1].ActualPlayers())
+	assert.Equal(2, len(tm.Semis[0].Players))
+	assert.Equal(1, len(tm.Semis[1].Players))
 	assert.Equal(9, len(tm.Runnerups))
 
-	assert.Equal(winner3, tm.Semis[0].Players[1].Name)
+	assert.Equal(winner3, tm.Semis[0].Players[1].Name())
 
 	// Tryout 4
 	m4, err4 := tm.NextMatch()
@@ -504,15 +462,15 @@ func TestEndComplete19PlayerTournamentKillsOnly(t *testing.T) {
 	m4.Players[1].AddKill(10)
 	m4.Players[2].AddKill(5)
 	m4.Players[3].AddKill(5)
-	winner4 := m4.Players[1].Name
+	winner4 := m4.Players[1].Name()
 
 	m4.End()
 
-	assert.Equal(2, tm.Semis[0].ActualPlayers())
-	assert.Equal(2, tm.Semis[1].ActualPlayers())
+	assert.Equal(2, len(tm.Semis[0].Players))
+	assert.Equal(2, len(tm.Semis[1].Players))
 	assert.Equal(12, len(tm.Runnerups))
 
-	assert.Equal(winner4, tm.Semis[1].Players[1].Name)
+	assert.Equal(winner4, tm.Semis[1].Players[1].Name())
 
 	// Tryout 5 / Runnerup 1
 	m5, err5 := tm.NextMatch()
@@ -522,22 +480,22 @@ func TestEndComplete19PlayerTournamentKillsOnly(t *testing.T) {
 	m5.Start()
 	// Given the 19 player match, there are 3 players that have yet to contend
 	// and therefore we need to pick one of the runnerups.
-	assert.Equal(4, m5.ActualPlayers())
+	assert.Equal(4, len(m5.Players))
 	assert.Equal(12, len(tm.Runnerups))
 
 	m5.Players[0].AddKill(8)
 	m5.Players[1].AddKill(7)
 	m5.Players[2].AddKill(2)
 	m5.Players[3].AddKill(10)
-	winner5 := m5.Players[3].Name
+	winner5 := m5.Players[3].Name()
 
 	m5.End()
 
-	assert.Equal(3, tm.Semis[0].ActualPlayers())
-	assert.Equal(2, tm.Semis[1].ActualPlayers())
+	assert.Equal(3, len(tm.Semis[0].Players))
+	assert.Equal(2, len(tm.Semis[1].Players))
 	assert.Equal(14, len(tm.Runnerups))
 
-	assert.Equal(winner5, tm.Semis[0].Players[2].Name)
+	assert.Equal(winner5, tm.Semis[0].Players[2].Name())
 
 	// Tryout 6 / Runnerup 2
 	m6, err6 := tm.NextMatch()
@@ -548,22 +506,22 @@ func TestEndComplete19PlayerTournamentKillsOnly(t *testing.T) {
 	m6.Start()
 	// Given the 19 player match, there are no new players.
 	// As such, the backfill is completely from the runnerups.
-	assert.Equal(4, m6.ActualPlayers())
+	assert.Equal(4, len(m6.Players))
 	assert.Equal(14, len(tm.Runnerups))
 
 	m6.Players[0].AddKill(10)
 	m6.Players[1].AddKill(3)
 	m6.Players[2].AddKill(1)
 	m6.Players[3].AddKill(8)
-	winner6 := m6.Players[0].Name
+	winner6 := m6.Players[0].Name()
 
 	m6.End()
 
-	assert.Equal(3, tm.Semis[0].ActualPlayers())
-	assert.Equal(3, tm.Semis[1].ActualPlayers())
+	assert.Equal(3, len(tm.Semis[0].Players))
+	assert.Equal(3, len(tm.Semis[1].Players))
 	assert.Equal(13, len(tm.Runnerups))
 
-	assert.Equal(winner6, tm.Semis[1].Players[2].Name)
+	assert.Equal(winner6, tm.Semis[1].Players[2].Name())
 
 	// Tryout 7 / Runnerup 3
 	m7, err7 := tm.NextMatch()
@@ -572,22 +530,22 @@ func TestEndComplete19PlayerTournamentKillsOnly(t *testing.T) {
 
 	m7.Start()
 
-	assert.Equal(4, m7.ActualPlayers())
+	assert.Equal(4, len(m7.Players))
 	assert.Equal(13, len(tm.Runnerups))
 
 	m7.Players[0].AddKill(7)
 	m7.Players[1].AddKill(9)
 	m7.Players[2].AddKill(10)
 	m7.Players[3].AddKill(8)
-	winner7 := m7.Players[2].Name
+	winner7 := m7.Players[2].Name()
 
 	m7.End()
 
-	assert.Equal(4, tm.Semis[0].ActualPlayers())
-	assert.Equal(3, tm.Semis[1].ActualPlayers())
+	assert.Equal(4, len(tm.Semis[0].Players))
+	assert.Equal(3, len(tm.Semis[1].Players))
 	assert.Equal(12, len(tm.Runnerups))
 
-	assert.Equal(winner7, tm.Semis[0].Players[3].Name)
+	assert.Equal(winner7, tm.Semis[0].Players[3].Name())
 
 	// Tryout 8 / Runnerup 4
 	m8, err8 := tm.NextMatch()
@@ -596,22 +554,22 @@ func TestEndComplete19PlayerTournamentKillsOnly(t *testing.T) {
 
 	m8.Start()
 
-	assert.Equal(4, m8.ActualPlayers())
+	assert.Equal(4, len(m8.Players))
 	assert.Equal(12, len(tm.Runnerups))
 
 	m8.Players[0].AddKill(10)
 	m8.Players[1].AddKill(5)
 	m8.Players[2].AddKill(6)
 	m8.Players[3].AddKill(9)
-	winner8 := m8.Players[0].Name
+	winner8 := m8.Players[0].Name()
 
 	m8.End()
 
-	assert.Equal(4, tm.Semis[0].ActualPlayers())
-	assert.Equal(4, tm.Semis[1].ActualPlayers())
+	assert.Equal(4, len(tm.Semis[0].Players))
+	assert.Equal(4, len(tm.Semis[1].Players))
 	assert.Equal(11, len(tm.Runnerups))
 
-	assert.Equal(winner8, tm.Semis[1].Players[3].Name)
+	assert.Equal(winner8, tm.Semis[1].Players[3].Name())
 
 	// Semi 1
 	s1, serr1 := tm.NextMatch()
@@ -625,15 +583,15 @@ func TestEndComplete19PlayerTournamentKillsOnly(t *testing.T) {
 	s1.Players[1].AddKill(7)
 	s1.Players[2].AddKill(9)
 	s1.Players[3].AddKill(8)
-	winners1 := s1.Players[0].Name
-	silvers1 := s1.Players[2].Name
+	winners1 := s1.Players[0].Name()
+	silvers1 := s1.Players[2].Name()
 
 	s1.End()
 
-	assert.Equal(2, tm.Final.ActualPlayers())
+	assert.Equal(2, len(tm.Final.Players))
 
-	assert.Equal(winners1, tm.Final.Players[0].Name)
-	assert.Equal(silvers1, tm.Final.Players[1].Name)
+	assert.Equal(winners1, tm.Final.Players[0].Name())
+	assert.Equal(silvers1, tm.Final.Players[1].Name())
 
 	// Semi 2
 	s2, serr2 := tm.NextMatch()
@@ -647,15 +605,15 @@ func TestEndComplete19PlayerTournamentKillsOnly(t *testing.T) {
 	s2.Players[1].AddKill(10)
 	s2.Players[2].AddKill(8)
 	s2.Players[3].AddKill(9)
-	winners2 := s2.Players[1].Name
-	silvers2 := s2.Players[3].Name
+	winners2 := s2.Players[1].Name()
+	silvers2 := s2.Players[3].Name()
 
 	s2.End()
 
-	assert.Equal(4, tm.Final.ActualPlayers())
+	assert.Equal(4, len(tm.Final.Players))
 
-	assert.Equal(winners2, tm.Final.Players[2].Name)
-	assert.Equal(silvers2, tm.Final.Players[3].Name)
+	assert.Equal(winners2, tm.Final.Players[2].Name())
+	assert.Equal(silvers2, tm.Final.Players[3].Name())
 
 	// Final!
 	f, ferr := tm.NextMatch()
@@ -669,24 +627,14 @@ func TestEndComplete19PlayerTournamentKillsOnly(t *testing.T) {
 	f.Players[1].AddKill(2)
 	f.Players[2].AddKill(9)
 	f.Players[3].AddKill(10)
-	gold := f.Players[3].Name
-	lowe := f.Players[2].Name
-	bronze := f.Players[0].Name
+
+	gold := f.Players[3].Name()
+	lowe := f.Players[2].Name()
+	bronze := f.Players[0].Name()
 
 	f.End()
 
-	assert.Equal(gold, tm.Winners[0].Name)
-	assert.Equal(lowe, tm.Winners[1].Name)
-	assert.Equal(bronze, tm.Winners[2].Name)
-}
-
-func TestAddPlayerColorIsSet(t *testing.T) {
-	assert := assert.New(t)
-	tm, _ := NewTournament("Hehe", "hehe", MockServer())
-
-	err := tm.AddPlayer("DinMamma", "mother")
-	assert.Nil(err)
-
-	assert.Equal(1, len(tm.Players))
-	assert.Equal("mother", tm.Players[0].PreferredColor)
+	assert.Equal(gold, tm.Winners[0].Name())
+	assert.Equal(lowe, tm.Winners[1].Name())
+	assert.Equal(bronze, tm.Winners[2].Name())
 }

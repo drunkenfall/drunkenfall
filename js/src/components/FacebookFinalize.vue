@@ -12,13 +12,15 @@
     <form @submit="submit">
       <input name="id" v-model="id" type="hidden" value=""/>
 
-      <label for="nick">Nickname</label>
+      <label for="nick">Display name</label>
       <input class="text" name="nick" v-model="nick" type="text" value=""/>
 
-      <label for="name">Name</label>
+      <label for="name">Full name</label>
       <input class="text smaller" name="name" v-model="name" type="text" value=""/>
 
       <div id="join-images" class="images">
+        <label for="images">Preferred archer</label>
+
         <input type="image" @click="character" id="green" src="/static/img/green-selected.png">
         <input type="image" @click="character" id="blue" src="/static/img/blue-selected.png">
         <input type="image" @click="character" id="pink" src="/static/img/pink-selected.png">
@@ -162,7 +164,7 @@ form {
   }
 
   .images {
-    margin-top: 5em;
+    margin-top: 3em;
 
     #green {background-image: url(/static/img/green-selected.png);}
     #blue {background-image: url(/static/img/blue-selected.png);}
@@ -179,9 +181,9 @@ form {
 
     input {
       image-rendering: pixelated;
-      width: 32%;
+      width: 9.5%;
       margin: 0.3%;
-      opacity: 0.2;
+      opacity: 0.3;
       transition: 0.3s;
       cursor: pointer;
     }

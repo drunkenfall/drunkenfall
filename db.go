@@ -11,6 +11,7 @@ type Database struct {
 	DB            *bolt.DB
 	Server        *Server
 	Tournaments   []*Tournament
+	People        []*Person
 	tournamentRef map[string]*Tournament
 }
 
@@ -60,7 +61,6 @@ func (d *Database) LoadTournaments() error {
 		return err
 	})
 
-	log.Printf("%d tournaments loaded", loaded)
 	return err
 }
 
@@ -118,6 +118,27 @@ func (d *Database) GetPerson(id string) *Person {
 	p := &Person{}
 	_ = json.Unmarshal(out, p)
 	return p
+}
+
+// LoadPeople loads the people from the database and into memory
+func (d *Database) LoadPeople() error {
+	d.People = make([]*Person, 0)
+	err := d.DB.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket(PeopleKey)
+
+		err := b.ForEach(func(k []byte, v []byte) error {
+			p, err := LoadPerson(v)
+			if err != nil {
+				return err
+			}
+
+			d.People = append(d.People, p)
+			return nil
+		})
+		return err
+	})
+
+	return err
 }
 
 // Close closes the database

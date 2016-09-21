@@ -33,8 +33,8 @@ type FacebookAuthResponse struct {
 	Token string `json:"access_token"`
 }
 
-// JoinRequest is the request to join a tournament
-type JoinRequest struct {
+// FacebookJoinRequest is the request to join the showdown <3
+type FacebookJoinRequest struct {
 	ID    string `json:"id"`
 	Name  string `json:"name"`
 	Nick  string `json:"nick"`
@@ -153,7 +153,7 @@ func (s *Server) handleFacebookCallback(w http.ResponseWriter, r *http.Request) 
 // handleFacebookRegister gets the POST from the user that saves the final
 // state of Facebook registration
 func (s *Server) handleFacebookRegister(w http.ResponseWriter, r *http.Request) {
-	var req JoinRequest
+	var req FacebookJoinRequest
 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {

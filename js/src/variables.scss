@@ -1,0 +1,56 @@
+$green: #4e9110;
+$green-bg: #4c7723;
+$green-bg-darker: #395d18;
+$green-bg-darkest: #234008;
+
+$blue: #4c7cba;
+$blue-bg: #2b5d9e;
+$blue-bg-darker: #325a8e;
+$blue-bg-darkest: #1e385a;
+
+$pink: #e39bb5;
+$pink-bg: #bf6e8b;
+$pink-bg-darker: #9c5d74;
+$pink-bg-darkest: #4a2a36;
+
+$orange: #c75800;
+$orange-bg: #8c4813;
+$orange-bg-darker: #6f380c;
+$orange-bg-darkest: #482102;
+
+$white: #dbdbdb;
+$white-bg: #ababab;
+$white-bg-darker: #8c8c8c;
+$white-bg-darkest: #4a4a4a;
+
+$yellow: #efc822;
+$yellow-bg: #af9837;
+$yellow-bg-darker: #6d5c15;
+$yellow-bg-darkest: #3a310e;
+
+$cyan: #59c2c1;
+$cyan-bg: #33807f;
+$cyan-bg-darker: #255858;
+$cyan-bg-darkest: #133131;
+
+$purple: #762c7a;
+$purple-bg: #5b1a5f;
+$purple-bg-darker: #49104c;
+$purple-bg-darkest: #310b33;
+
+$red: #DB0F00;
+$red-bg: #6d1e17;
+$red-bg-darker: hsla(5,65%,19%,1);
+$red-bg-darkest: #380d09;
+
+@mixin ribbon-colorizer($bg, $darker, $darkest) {
+  background-color: $bg;
+  &:before, &:after {
+    border-color: $darker;
+  }
+  .ribbon-content {
+    &:before, &:after {
+      border-color: $darkest transparent transparent transparent;
+    }
+  }
+}

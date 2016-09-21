@@ -1,20 +1,44 @@
-$green: #4e9110;
-$blue: #4c7cba;
-$pink: #e39bb5;
-$orange: #c75800;
-$white: #dbdbdb;
-$yellow: #efc822;
-$cyan: #59c2c1;
-$purple: #762c7a;
-$red: #DB0F00;
-
 body, html {
   background-color: #22222a;
   color: #dbdbdb;
   // font-family: 'Archer', sans-serif;
   font-family: 'Yanone Kaffeesatz', sans-serif;
   margin: 0;
+
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  min-height: 100%;
+
+  // For single-view pages like the ScoreScreen - hide overflow so that no
+  // scrollbars can appear
+  &.scroll-less {
+    height: 100%;
+    overflow-y: hidden;
+  }
 }
+
+body.red-pulse {
+  animation: red-pulse 2.5s infinite;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+}
+
+@keyframes red-pulse {
+  0% {
+    background-color: #22222a;
+  }
+  50% {
+    background-color: #9a1111;
+  }
+  100% {
+    background-color: #22222a;
+  }
+}
+
 .clear {
   clear: both;
 }

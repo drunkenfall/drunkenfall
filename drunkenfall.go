@@ -150,54 +150,21 @@ func (s *Server) TournamentHandler(w http.ResponseWriter, r *http.Request) {
 
 // JoinHandler shows the tournament view and handles tournaments
 func (s *Server) JoinHandler(w http.ResponseWriter, r *http.Request) {
-	var req JoinRequest
+	if !HasPermission(r, PermissionPlayer) {
+		PermissionFailure(w, r, "You need to sign in to join a tournament")
+		return
+	}
+
 	tm := s.getTournament(r)
+	p := PersonFromSession(s, r)
 
-	body, err := ioutil.ReadAll(r.Body)
+	err := tm.AddPlayer(p)
 	if err != nil {
-		log.Print(err)
+		PermissionFailure(w, r, err.Error())
 		return
 	}
 
-	err = json.Unmarshal(body, &req)
-	if err != nil {
-		log.Print(err)
-		return
-	}
-	log.Print(req)
-
-	name := req.Name
-	color := req.Color
-
-	if !tm.CanJoin(name) {
-		http.Error(w, "too many players", 500)
-		return
-	}
-	if color == "" {
-		http.Error(w, "need a color", 500)
-		return
-	}
-
-	err = tm.AddPlayer(name, color)
-	if err != nil {
-		http.Error(w, err.Error(), 500)
-		return
-	}
-
-	// TODO: This should not be here...
-	_ = tm.SetMatchPointers()
-
-	log.Printf("%s has joined %s!", name, tm.Name)
-	session, err := CookieStore.Get(r, name)
-	if err != nil {
-		http.Error(w, err.Error(), 500)
-		return
-	}
-
-	// TODO: Does not work. :/
-	session.Values["player"] = name
-	session.Save(r, w)
-
+	log.Printf("%s has joined %s!", p.Name, tm.Name)
 	s.Redirect(w, tm.URL())
 }
 
@@ -218,6 +185,23 @@ func (s *Server) StartTournamentHandler(w http.ResponseWriter, r *http.Request) 
 	s.Redirect(w, tm.URL())
 }
 
+// UsurpTournamentHandler usurps tournaments
+func (s *Server) UsurpTournamentHandler(w http.ResponseWriter, r *http.Request) {
+	if !HasPermission(r, PermissionCommentator) {
+		PermissionFailure(w, r, "Cannot usurp tournament unless commentator or above")
+		return
+	}
+
+	tm := s.getTournament(r)
+	err := tm.UsurpTournament()
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+
+	s.Redirect(w, tm.URL())
+}
+
 // NextHandler sets the tournament up to play the next match
 func (s *Server) NextHandler(w http.ResponseWriter, r *http.Request) {
 	if !HasPermission(r, PermissionCommentator) {
@@ -227,6 +211,7 @@ func (s *Server) NextHandler(w http.ResponseWriter, r *http.Request) {
 
 	tm := s.getTournament(r)
 	m, err := tm.NextMatch()
+	tm.Persist() // TODO(thiderman): Move into NextMatch, probably. Should not be here.
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
@@ -338,6 +323,7 @@ func (s *Server) BuildRouter(ws *websockets.Server) http.Handler {
 	// TODO: Normalize for all to use /tournament
 	r.HandleFunc("/new/", s.NewHandler)
 	r.HandleFunc("/{id}/start/", s.StartTournamentHandler)
+	r.HandleFunc("/{id}/usurp/", s.UsurpTournamentHandler)
 	r.HandleFunc("/{id}/join/", s.JoinHandler)
 	r.HandleFunc("/{id}/next/", s.NextHandler)
 
@@ -414,7 +400,7 @@ func HasPermission(r *http.Request, lvl int) bool {
 	s, _ := CookieStore.Get(r, "session")
 	l, ok := s.Values["userlevel"]
 	if !ok {
-		log.Print("Userlevel missing for auth")
+		// log.Print("Userlevel missing for auth")
 		return false
 	}
 

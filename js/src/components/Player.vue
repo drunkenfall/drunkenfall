@@ -1,7 +1,7 @@
 <template>
-  <p class="player {{classes}}">
-    {{display_name}}
-  </p>
+  <div class="player {{classes}}">
+    <p>{{display_name}}</p>
+  </div>
 </template>
 
 <script>
@@ -19,20 +19,13 @@ export default {
   },
 
   computed: {
-    prefill: function () {
-      return this.player === undefined || this.player.name === ''
+    avatar: function () {
+      return this.player.avatar
     },
     display_name: function () {
-      if (this.prefill) {
-        return '???'
-      }
-      return this.player.name
+      return this.player.person.nick
     },
     classes: function () {
-      if (this.prefill) {
-        return 'prefill'
-      }
-
       if (this.match.isEnded) {
         if (this.index === 0) {
           return 'gold'
@@ -45,7 +38,7 @@ export default {
         return 'out'
       }
 
-      return this.player.preferred_color
+      return this.player.color
     }
   }
 }

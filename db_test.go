@@ -15,10 +15,10 @@ func MockServer(arg ...string) *Server {
 	if len(arg) != 0 {
 		fn = "test/" + arg[0] // Use existing
 	} else {
-		os.Remove(fn) // Clean it out
 		fn = "test/test.db"
 	}
 
+	os.Remove(fn) // Clean it out
 	db, err := NewDatabase(fn)
 	if err != nil {
 		log.Fatal(err)
@@ -34,12 +34,14 @@ func MockServer(arg ...string) *Server {
 func TestSaveTournament(t *testing.T) {
 	assert := assert.New(t)
 	fn := "persist.db"
-	db := MockServer(fn).DB
+	s := MockServer(fn)
+	db := s.DB
 
 	id := "1241234"
-	tm := Tournament{Name: "hehe", ID: id}
+	tm, err := NewTournament("hehe", id, s)
+	assert.Nil(err)
 
-	db.SaveTournament(&tm)
+	db.SaveTournament(tm)
 	db.Close()
 
 	boltd, err := bolt.Open("test/"+fn, 0600, nil)

@@ -17,6 +17,10 @@
         <a v-link="{ name: 'tournament', params: { tournament: tournament.id }}">{{tournament.name}}</a>
       </div>
     </div>
+
+    <h1 v-if="tournaments.length === 0">
+      Tournaments will appear here soon! &lt;3
+    </h1>
   </div>
 </template>
 
@@ -51,6 +55,14 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+
+h1 {
+  text-align: center;
+  text-shadow: 3px 3px 3px rgba(0,0,0,0.7);
+  margin: 2em;
+  font-size: 3em;
+}
+
 .tournaments a {
   background-color: #405060;
   color: #dbdbdb;

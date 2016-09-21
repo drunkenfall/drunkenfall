@@ -15,6 +15,11 @@ import (
 func testServer() *httptest.Server {
 	// Server tests use the fake production data.
 	s := MockServer("production_data.db")
+
+	SetupFakeTournament(s)
+	SetupFakeTournament(s)
+	s.DB.LoadTournaments()
+
 	ws := websockets.NewServer()
 	r := s.BuildRouter(ws)
 	return httptest.NewServer(r)
@@ -50,6 +55,7 @@ func TestPermissionsDenied(t *testing.T) {
 		"/new/",
 		"/%s/start/",
 		"/%s/next/",
+		"/%s/join/",
 		"/tournament/%s/tryout/0/toggle/",
 		"/tournament/%s/tryout/0/commit/",
 	}

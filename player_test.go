@@ -7,7 +7,7 @@ import (
 
 func TestScoreWithShots(t *testing.T) {
 	assert := assert.New(t)
-	p := NewPlayer()
+	p := testPlayer()
 	p.AddShot()
 
 	assert.Equal(3, p.Score())
@@ -17,7 +17,7 @@ func TestScoreWithShots(t *testing.T) {
 
 func TestScoreWithSweeps(t *testing.T) {
 	assert := assert.New(t)
-	p := NewPlayer()
+	p := testPlayer()
 	p.AddSweep()
 
 	assert.Equal(14, p.Score())
@@ -27,7 +27,7 @@ func TestScoreWithSweeps(t *testing.T) {
 
 func TestScoreWithKills(t *testing.T) {
 	assert := assert.New(t)
-	p := NewPlayer()
+	p := testPlayer()
 	p.AddKill()
 
 	assert.Equal(2, p.Score())
@@ -37,7 +37,7 @@ func TestScoreWithKills(t *testing.T) {
 
 func TestScoreWithSelfs(t *testing.T) {
 	assert := assert.New(t)
-	p := NewPlayer()
+	p := testPlayer()
 	p.AddSelf()
 
 	assert.Equal(4, p.Score())
@@ -47,7 +47,7 @@ func TestScoreWithSelfs(t *testing.T) {
 
 func TestScoreWithExplosions(t *testing.T) {
 	assert := assert.New(t)
-	p := NewPlayer()
+	p := testPlayer()
 	p.AddExplosion()
 
 	assert.Equal(6, p.Score())
@@ -57,7 +57,7 @@ func TestScoreWithExplosions(t *testing.T) {
 
 func TestScoreWithAll(t *testing.T) {
 	assert := assert.New(t)
-	p := NewPlayer()
+	p := testPlayer()
 	p.AddShot()
 	p.AddSweep()
 	p.AddKill()
@@ -68,7 +68,7 @@ func TestScoreWithAll(t *testing.T) {
 
 func TestAddShot(t *testing.T) {
 	assert := assert.New(t)
-	p := NewPlayer()
+	p := testPlayer()
 
 	p.AddShot()
 	assert.Equal(1, p.Shots)
@@ -78,7 +78,7 @@ func TestAddShot(t *testing.T) {
 
 func TestRemoveShot(t *testing.T) {
 	assert := assert.New(t)
-	p := NewPlayer()
+	p := testPlayer()
 	p.Shots = 1
 
 	p.RemoveShot()
@@ -89,7 +89,7 @@ func TestRemoveShot(t *testing.T) {
 
 func TestAddSweep(t *testing.T) {
 	assert := assert.New(t)
-	p := NewPlayer()
+	p := testPlayer()
 
 	p.AddSweep()
 	assert.Equal(1, p.Sweeps)
@@ -104,7 +104,7 @@ func TestAddSweep(t *testing.T) {
 
 func TestRemoveSweep(t *testing.T) {
 	assert := assert.New(t)
-	p := NewPlayer()
+	p := testPlayer()
 	p.Sweeps = 1
 	p.Shots = 1
 	p.Kills = 3
@@ -121,7 +121,7 @@ func TestRemoveSweep(t *testing.T) {
 
 func TestAddKill(t *testing.T) {
 	assert := assert.New(t)
-	p := NewPlayer()
+	p := testPlayer()
 
 	p.AddKill()
 	assert.Equal(1, p.Kills)
@@ -131,7 +131,7 @@ func TestAddKill(t *testing.T) {
 
 func TestRemoveKill(t *testing.T) {
 	assert := assert.New(t)
-	p := NewPlayer()
+	p := testPlayer()
 	p.Kills = 1
 
 	p.RemoveKill()
@@ -142,7 +142,7 @@ func TestRemoveKill(t *testing.T) {
 
 func TestAddSelf(t *testing.T) {
 	assert := assert.New(t)
-	p := NewPlayer()
+	p := testPlayer()
 
 	p.AddSelf()
 	assert.Equal(1, p.Self)
@@ -154,7 +154,7 @@ func TestAddSelf(t *testing.T) {
 
 func TestRemoveSelf(t *testing.T) {
 	assert := assert.New(t)
-	p := NewPlayer()
+	p := testPlayer()
 	p.Self = 1
 	p.Shots = 1
 
@@ -168,7 +168,7 @@ func TestRemoveSelf(t *testing.T) {
 
 func TestAddExplosion(t *testing.T) {
 	assert := assert.New(t)
-	p := NewPlayer()
+	p := testPlayer()
 
 	p.AddExplosion()
 	assert.Equal(1, p.Explosions)
@@ -182,7 +182,7 @@ func TestAddExplosion(t *testing.T) {
 
 func TestRemoveExplosion(t *testing.T) {
 	assert := assert.New(t)
-	p := NewPlayer()
+	p := testPlayer()
 	p.Explosions = 1
 
 	p.RemoveExplosion()
@@ -193,9 +193,9 @@ func TestRemoveExplosion(t *testing.T) {
 
 func TestSortPlayers(t *testing.T) {
 	assert := assert.New(t)
-	p1 := NewPlayer() // 2 points
-	p2 := NewPlayer() // 14 points
-	p3 := NewPlayer() // 7 points
+	p1 := testPlayer() // 2 points
+	p2 := testPlayer() // 14 points
+	p3 := testPlayer() // 7 points
 
 	p1.AddKill()
 	p2.AddSweep()
@@ -212,24 +212,24 @@ func TestSortPlayers(t *testing.T) {
 
 func TestSortRunnerups(t *testing.T) {
 	assert := assert.New(t)
-	p1 := NewPlayer() // 10 points, 1 match
-	p2 := NewPlayer() // 20 points, 2 Matches
-	p3 := NewPlayer() // 16 points, 1 match
+	p1 := testPlayer() // 10 points, 1 match
+	p2 := testPlayer() // 20 points, 2 Matches
+	p3 := testPlayer() // 16 points, 1 match
 
 	p1.Kills = 5
 	p1.Matches = 1
-	p1.Name = "second"
+	p1.Person.Nick = "second"
 	p2.Kills = 10
 	p2.Matches = 2
-	p2.Name = "last"
+	p2.Person.Nick = "last"
 	p3.Kills = 8
 	p3.Matches = 1
-	p3.Name = "first"
+	p3.Person.Nick = "first"
 
 	ps := []Player{p1, p2, p3}
 	ret := SortByRunnerup(ps)
 
-	assert.Equal("first", ret[0].Name)
-	assert.Equal("second", ret[1].Name)
-	assert.Equal("last", ret[2].Name)
+	assert.Equal("first", ret[0].Name())
+	assert.Equal("second", ret[1].Name())
+	assert.Equal("last", ret[2].Name())
 }

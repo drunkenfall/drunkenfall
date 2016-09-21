@@ -1,5 +1,7 @@
 import { isGoZeroDateOrFalsy } from '../util/date.js'
 import moment from 'moment'
+import Player from './Player.js'
+import _ from 'lodash'
 
 export default class Tournament {
   static fromObject (obj) {
@@ -7,8 +9,11 @@ export default class Tournament {
     Object.assign(t, obj)
 
     t.opened = moment(t.opened)
+    t.scheduled = moment(t.scheduled)
     t.started = moment(t.started)
     t.ended = moment(t.ended)
+
+    t.players = _.map(t.players, Player.fromObject)
 
     return t
   }

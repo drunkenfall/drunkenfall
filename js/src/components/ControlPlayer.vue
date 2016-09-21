@@ -1,29 +1,36 @@
 <template>
   <div class="player {{player.preferred_color}}">
-    <div class="button" v-if="user.level(levels.producer)" @click="score(index, -1)">
+    <div class="button" @click="score(index, -1)">
       <div><p>-</p></div>
     </div>
 
     <div class="shots">
-       <div @click="manual_shot" v-if="user.level(levels.producer)" v-bind:class="{'give': shot}">
+       <div @click="manual_shot" v-bind:class="{'give': shot}">
          <div v-if="shot" class="mark">✓</div>
          <div v-if="!shot" class="mark">✗</div>
          <div v-if="reason !== ''" class="reason">{{reason}}</div>
        </div>
      </div>
 
-     <div class="slider {{player.preferred_color}}" @click="reset">
-       <div><p>{{player.name}}</p></div>
+     <div class="slider {{player.color}}" @click="reset">
+       <div><p>{{player.displayName}}</p></div>
      </div>
 
-     <div class="scores">
+     <div v-if="match.length == 10" class="scores">
        <div v-for="n in 10"
          class="{{bullet_class(player, index, n+1)}}">
          <p>{{n+1}}</p>
        </div>
      </div>
 
-     <div class="button" v-if="user.level(levels.producer)" @click="score(index, 1)">
+     <div v-if="match.length == 20" class="scores final">
+       <div v-for="n in 20"
+         class="{{bullet_class(player, index, n+1)}}">
+         <p>{{n+1}}</p>
+       </div>
+     </div>
+
+     <div class="button" @click="score(index, 1)">
        <div><p>+</p></div>
      </div>
    </div>
@@ -119,7 +126,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "../style.scss";
+@import "../variables.scss";
 
 .player {
   width: 100%;
@@ -232,6 +239,13 @@ export default {
     text-align: justify;
     text-justify: distribute;
     // background-color: #333339;
+
+    &.final {
+      div {
+        width: 4%;
+        margin: 0 0.5%;
+      }
+    }
 
     div {
       // position: relative;

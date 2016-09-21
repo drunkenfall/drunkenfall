@@ -11,22 +11,30 @@ import (
 
 // Tournament is the main container of data for this app.
 type Tournament struct {
-	Name        string    `json:"name"`
-	ID          string    `json:"id"`
-	Players     []Player  `json:"players"`
-	Winners     []Player  `json:"winners"` // TODO: Refactor to pointer
-	Runnerups   []string  `json:"runnerups"`
-	Judges      []Judge   `json:"judges"`
-	Tryouts     []*Match  `json:"tryouts"`
-	Semis       []*Match  `json:"semis"`
-	Final       *Match    `json:"final"`
-	Opened      time.Time `json:"opened"`
-	Started     time.Time `json:"started"`
-	Ended       time.Time `json:"ended"`
+	Name        string       `json:"name"`
+	ID          string       `json:"id"`
+	Players     []Player     `json:"players"`
+	Winners     []Player     `json:"winners"` // TODO: Refactor to pointer
+	Runnerups   []string     `json:"runnerups"`
+	Judges      []Judge      `json:"judges"`
+	Tryouts     []*Match     `json:"tryouts"`
+	Semis       []*Match     `json:"semis"`
+	Final       *Match       `json:"final"`
+	Current     CurrentMatch `json:"current"`
+	Opened      time.Time    `json:"opened"`
+	Scheduled   time.Time    `json:"scheduled"`
+	Started     time.Time    `json:"started"`
+	Ended       time.Time    `json:"ended"`
 	db          *Database
 	server      *Server
 	length      int
 	finalLength int
+}
+
+// CurrentMatch holds the pointers needed to find the current match
+type CurrentMatch struct {
+	Kind  string `json:"kind"`
+	Index int    `json:"index"`
 }
 
 // NewTournament returns a completely new Tournament
@@ -39,17 +47,18 @@ func NewTournament(name, id string, server *Server) (*Tournament, error) {
 		server: server,
 	}
 
-	// No matches yet - add four
+	// Set tryouts
 	for i := 0; i < 4; i++ {
 		match := NewMatch(&t, i, "tryout")
 		t.Tryouts = append(t.Tryouts, match)
 	}
 
+	// Set the predefined matches
 	t.Semis = []*Match{NewMatch(&t, 0, "semi"), NewMatch(&t, 1, "semi")}
-	t.Semis[0].Prefill()
-	t.Semis[1].Prefill()
 	t.Final = NewMatch(&t, 0, "final")
-	t.Final.Prefill()
+
+	// Mark the current match
+	t.Current = CurrentMatch{"tryouts", 0}
 
 	t.SetMatchPointers()
 	t.Persist()
@@ -98,40 +107,23 @@ func (t *Tournament) URL() string {
 
 // AddPlayer adds a player into the tournament
 //
-// When adding new players, this means:
-//   Generating tryouts
-//   Shuffling players into positions
-func (t *Tournament) AddPlayer(name, color string) error {
-	p := Player{Name: name, PreferredColor: color}
-	if !t.CanJoin(name) {
-		return errors.New("player already in match")
+// If the four default tryout matches are full, four more will be generated.
+func (t *Tournament) AddPlayer(ps *Person) error {
+	ps.Correct()
+
+	if err := t.CanJoin(ps); err != nil {
+		return err
 	}
 
+	p := Player{Person: ps}
 	t.Players = append(t.Players, p)
-
-	ts := len(t.Tryouts)
-	ps := len(t.Players)
-	if ts == 4 && ps == 17 {
-		// More than 16 players - add four more matches
-		for i := 0; i < 4; i++ {
-			match := NewMatch(t, i+4, "tryout")
-			t.Tryouts = append(t.Tryouts, match)
-		}
-	}
-
-	t.ShufflePlayers()
 	t.Persist() // TODO: Error handling
 
 	return nil
 }
 
-// ShufflePlayers will reposition players into matches
+// ShufflePlayers will position players into matches
 func (t *Tournament) ShufflePlayers() {
-	// Reset the set matches
-	for _, t := range t.Tryouts {
-		t.Players = []Player{}
-	}
-
 	// Shuffle all the players
 	slice := t.Players
 	for i := range slice {
@@ -144,10 +136,6 @@ func (t *Tournament) ShufflePlayers() {
 		m := t.Tryouts[i/4]
 		m.AddPlayer(p)
 	}
-
-	for _, m := range t.Tryouts {
-		m.Prefill()
-	}
 }
 
 // StartTournament will generate the tournament.
@@ -159,15 +147,30 @@ func (t *Tournament) ShufflePlayers() {
 // It will fail if there are not between 8 and 24 players.
 func (t *Tournament) StartTournament() error {
 	ps := len(t.Players)
-	if ps < 8 {
-		return fmt.Errorf("Tournament needs at least 8 players, got %d", ps)
-	}
-	if ps > 32 {
-		return fmt.Errorf("Tournament can only host 32 players, got %d", ps)
+	if ps < 8 || ps > 32 {
+		return fmt.Errorf("Tournament needs at 8-32 players, got %d", ps)
 	}
 
+	// More than 16 players - add four more tryouts
+	if ps > 16 {
+		for i := 0; i < 4; i++ {
+			match := NewMatch(t, i+4, "tryout")
+			t.Tryouts = append(t.Tryouts, match)
+		}
+	}
+
+	t.ShufflePlayers()
 	t.Started = time.Now()
 	t.Persist()
+	return nil
+}
+
+// UsurpTournament starts a fake tournament with all registered players
+func (t *Tournament) UsurpTournament() error {
+	t.db.LoadPeople()
+	for _, p := range t.db.People {
+		t.AddPlayer(p)
+	}
 	return nil
 }
 
@@ -178,7 +181,7 @@ func (t *Tournament) PopulateRunnerups(m *Match) error {
 		return err
 	}
 
-	for i := 0; m.ActualPlayers() < 4; i++ {
+	for i := 0; len(m.Players) < 4; i++ {
 		p := r[i]
 		m.AddPlayer(p)
 	}
@@ -214,24 +217,18 @@ func (t *Tournament) UpdatePlayers() error {
 
 	for _, m := range t.Tryouts {
 		for _, p := range m.Players {
-			if !p.IsPrefill() {
-				t.getPlayer(p.Name).Update(p)
-			}
+			t.getPlayer(p.Name()).Update(p)
 		}
 	}
 
 	for _, m := range t.Semis {
 		for _, p := range m.Players {
-			if !p.IsPrefill() {
-				t.getPlayer(p.Name).Update(p)
-			}
+			t.getPlayer(p.Name()).Update(p)
 		}
 	}
 
 	for _, p := range t.Final.Players {
-		if !p.IsPrefill() {
-			t.getPlayer(p.Name).Update(p)
-		}
+		t.getPlayer(p.Name()).Update(p)
 	}
 
 	return nil
@@ -257,7 +254,7 @@ func (t *Tournament) MovePlayers(m *Match) error {
 				// only happens for players that win the runnerup rounds.
 				for j := 0; j < len(t.Runnerups); j++ {
 					r := t.Runnerups[j]
-					if r == p.Name {
+					if r == p.Name() {
 						t.Runnerups = append(t.Runnerups[:j], t.Runnerups[j+1:]...)
 						break
 					}
@@ -269,13 +266,13 @@ func (t *Tournament) MovePlayers(m *Match) error {
 				found := false
 				for j := 0; j < len(t.Runnerups); j++ {
 					r := t.Runnerups[j]
-					if r == p.Name {
+					if r == p.Name() {
 						found = true
 						break
 					}
 				}
 				if !found {
-					t.Runnerups = append(t.Runnerups, p.Name)
+					t.Runnerups = append(t.Runnerups, p.Name())
 				}
 			}
 		}
@@ -297,9 +294,14 @@ func (t *Tournament) MovePlayers(m *Match) error {
 	}
 	t.Runnerups = make([]string, 0)
 	for _, p := range ps {
-		t.Runnerups = append(t.Runnerups, p.Name)
+		t.Runnerups = append(t.Runnerups, p.Name())
 	}
 	return nil
+}
+
+// SetCurrent sets the current match of the tournament
+func (t *Tournament) SetCurrent(m *Match) {
+	t.Current = CurrentMatch{m.Kind, m.Index}
 }
 
 // NextMatch returns the next match
@@ -308,6 +310,7 @@ func (t *Tournament) NextMatch() (m *Match, err error) {
 	for x := range t.Tryouts {
 		m = t.Tryouts[x]
 		if !m.IsEnded() {
+			t.SetCurrent(m)
 			return
 		}
 	}
@@ -317,11 +320,13 @@ func (t *Tournament) NextMatch() (m *Match, err error) {
 	for x := range t.Semis {
 		m = t.Semis[x]
 		if !m.IsEnded() {
+			t.SetCurrent(m)
 			return
 		}
 	}
 
 	if !t.Final.IsEnded() {
+		t.SetCurrent(t.Final)
 		return t.Final, nil
 	}
 
@@ -368,16 +373,16 @@ func (t *Tournament) IsRunning() bool {
 }
 
 // CanJoin checks if a player is allowed to join or is already in the tournament
-func (t *Tournament) CanJoin(name string) bool {
+func (t *Tournament) CanJoin(ps *Person) error {
 	if len(t.Players) >= 32 {
-		return false
+		return errors.New("tournament is full")
 	}
 	for _, p := range t.Players {
-		if p.Name == name {
-			return false
+		if p.Name() == ps.Name {
+			return errors.New("already in tournament")
 		}
 	}
-	return true
+	return nil
 }
 
 // SetMatchPointers loops over all matches in the tournament and sets the tournament reference
@@ -416,10 +421,17 @@ func (t *Tournament) SetMatchPointers() error {
 func SetupFakeTournament(s *Server) *Tournament {
 	title, id := FakeTournamentTitle()
 	t, _ := NewTournament(title, id, s)
+	t.Scheduled = time.Now().Add(1 * time.Hour)
 
-	// Fake between 8 and 32 players
-	for i := 0; i < rand.Intn(24)+8; i++ {
-		t.AddPlayer(FakeNick(), Colors[rand.Intn(len(Colors))])
+	// Fake between 14 and 32 players
+	for i := 0; i < rand.Intn(18)+14; i++ {
+		ps := &Person{
+			Name:            FakeName(),
+			Nick:            FakeNick(),
+			AvatarURL:       FakeAvatar(),
+			ColorPreference: []string{Colors.Random()},
+		}
+		t.AddPlayer(ps)
 	}
 
 	return t
@@ -428,7 +440,7 @@ func SetupFakeTournament(s *Server) *Tournament {
 func (t *Tournament) getPlayer(name string) (p *Player) {
 	for i := range t.Players {
 		p := &t.Players[i]
-		if p.Name == name {
+		if p.Name() == name {
 			return p
 		}
 	}
