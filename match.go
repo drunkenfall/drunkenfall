@@ -13,6 +13,7 @@ type Match struct {
 	Judges     []Judge     `json:"judges"`
 	Kind       string      `json:"kind"`
 	Index      int         `json:"index"`
+	Length     int         `json:"length"`
 	Started    time.Time   `json:"started"`
 	Ended      time.Time   `json:"ended"`
 	Tournament *Tournament `json:"-"`
@@ -24,7 +25,14 @@ func NewMatch(t *Tournament, index int, kind string) *Match {
 		Index:      index,
 		Kind:       kind,
 		Tournament: t,
+		Length:     10,
 	}
+
+	// Finals are longer <3
+	if kind == "final" {
+		m.Length = 20
+	}
+
 	return &m
 }
 
@@ -260,7 +268,7 @@ func (m *Match) CanEnd() bool {
 		return false
 	}
 	for _, p := range m.Players {
-		if p.Kills >= m.Length() {
+		if p.Kills >= m.Length {
 			return true
 		}
 	}
@@ -270,12 +278,4 @@ func (m *Match) CanEnd() bool {
 // IsOpen returns boolean the match can be controlled or not
 func (m *Match) IsOpen() bool {
 	return m.IsStarted() && !m.IsEnded()
-}
-
-// Length returns the length of the match
-func (m *Match) Length() int {
-	if m.Kind == "final" {
-		return 20
-	}
-	return 10
 }

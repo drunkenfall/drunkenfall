@@ -16,8 +16,15 @@
        <div><p>{{player.displayName}}</p></div>
      </div>
 
-     <div class="scores">
+     <div v-if="match.length == 10" class="scores">
        <div v-for="n in 10"
+         class="{{bullet_class(player, index, n+1)}}">
+         <p>{{n+1}}</p>
+       </div>
+     </div>
+
+     <div v-if="match.length == 20" class="scores final">
+       <div v-for="n in 20"
          class="{{bullet_class(player, index, n+1)}}">
          <p>{{n+1}}</p>
        </div>
@@ -232,6 +239,13 @@ export default {
     text-align: justify;
     text-justify: distribute;
     // background-color: #333339;
+
+    &.final {
+      div {
+        width: 4%;
+        margin: 0 0.5%;
+      }
+    }
 
     div {
       // position: relative;
