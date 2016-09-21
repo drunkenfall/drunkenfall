@@ -7,8 +7,11 @@ import (
 	"time"
 )
 
+// ColorList is the representation of colors players can choose from
+type ColorList []string
+
 // Colors is a list of the available player colors
-var Colors = []string{
+var Colors = ColorList{
 	"green",
 	"blue",
 	"pink",
@@ -418,6 +421,11 @@ func (s ByRunnerup) Less(i, j int) bool {
 func SortByRunnerup(ps []Player) []Player {
 	sort.Sort(ByRunnerup(ps))
 	return ps
+}
+
+// Random returns a random color from the ColorList
+func (c ColorList) Random() string {
+	return c[rand.Intn(len(c))]
 }
 
 // Judge is a Participant that has access to the judge functions
