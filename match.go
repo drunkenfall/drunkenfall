@@ -139,6 +139,7 @@ func (m *Match) UpdatePlayer(p Player) error {
 // Commit adds a state of the players
 func (m *Match) Commit(scores [][]int, shots []bool) {
 	for i, score := range scores {
+		shotGiven := false
 		ups := score[0]
 		downs := score[1]
 
@@ -146,6 +147,8 @@ func (m *Match) Commit(scores [][]int, shots []bool) {
 		// Count that as a sweep.
 		if ups == 3 {
 			m.Players[i].AddSweep()
+			// Since AddSweep gives a shot, we shouldn't give another further down.
+			shotGiven = true
 
 			// If we have a sweep and a down, we need to redact the
 			// extra shot, because no player should get more than
@@ -162,10 +165,8 @@ func (m *Match) Commit(scores [][]int, shots []bool) {
 		if downs != 0 {
 			m.Players[i].AddSelf()
 		}
-	}
 
-	for i, shot := range shots {
-		if shot {
+		if shots[i] && !shotGiven {
 			m.Players[i].AddShot()
 		}
 	}

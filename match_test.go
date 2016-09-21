@@ -264,6 +264,35 @@ func TestCommitShotsForPlayer2and3(t *testing.T) {
 	assert.Equal(1, m.Players[2].Shots)
 }
 
+func TestCommitSweepForPlayer1(t *testing.T) {
+	assert := assert.New(t)
+
+	m := MockMatch(0, "test")
+	_ = m.AddPlayer(testPlayer())
+	_ = m.AddPlayer(testPlayer())
+	_ = m.AddPlayer(testPlayer())
+	_ = m.AddPlayer(testPlayer())
+
+	scores := [][]int{
+		[]int{3, 0},
+		[]int{0, 0},
+		[]int{0, 0},
+		[]int{0, 0},
+	}
+	// For the frontend it makes sense that a sweep marks a shot, therefore we
+	// need to make sure that we don't add another shot.
+	shots := []bool{
+		true,
+		false,
+		false,
+		false,
+	}
+
+	m.Commit(scores, shots)
+	assert.Equal(3, m.Players[0].Kills)
+	assert.Equal(1, m.Players[0].Shots)
+}
+
 func TestCorrectColorConflictsNoScores(t *testing.T) {
 	assert := assert.New(t)
 
