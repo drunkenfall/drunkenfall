@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 )
 
 // Person someone having a role in the tournament
@@ -130,6 +131,25 @@ func (p *Person) UpdatePerson(r *FacebookJoinRequest) {
 // PreferredColor returns the preferred color
 func (p *Person) PreferredColor() string {
 	return p.ColorPreference[0]
+}
+
+// Correct sets a name and a color if they are missing
+//
+// This happens if someone did not complete the registration, and we need to
+// have something on their Person{} objects so that the app isn't overly
+// confused.
+func (p *Person) Correct() {
+	if p.Nick == "" {
+		// Pick the first name, just to have something
+		p.Nick = strings.Split(p.Name, " ")[0]
+		log.Printf("Corrected nick for %s", p)
+	}
+
+	if len(p.ColorPreference) == 0 {
+		// Grab a random color and insert it into the preference.
+		p.ColorPreference = append(p.ColorPreference, Colors.Random())
+		log.Printf("Corrected color for %s", p)
+	}
 }
 
 // PersonFromSession returns the Person{} object attached to the session

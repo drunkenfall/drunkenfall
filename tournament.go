@@ -109,6 +109,8 @@ func (t *Tournament) URL() string {
 //
 // If the four default tryout matches are full, four more will be generated.
 func (t *Tournament) AddPlayer(ps *Person) error {
+	ps.Correct()
+
 	if err := t.CanJoin(ps); err != nil {
 		return err
 	}
