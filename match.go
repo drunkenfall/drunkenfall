@@ -9,15 +9,23 @@ import (
 
 // Match represents a game being played
 type Match struct {
-	Players       []Player    `json:"players"`
-	Judges        []Judge     `json:"judges"`
-	Kind          string      `json:"kind"`
-	Index         int         `json:"index"`
-	Length        int         `json:"length"`
-	Started       time.Time   `json:"started"`
-	Ended         time.Time   `json:"ended"`
-	Tournament    *Tournament `json:"-"`
+	Players       []Player      `json:"players"`
+	Judges        []Judge       `json:"judges"`
+	Kind          string        `json:"kind"`
+	Index         int           `json:"index"`
+	Length        int           `json:"length"`
+	Started       time.Time     `json:"started"`
+	Ended         time.Time     `json:"ended"`
+	Tournament    *Tournament   `json:"-"`
+	Commits       []MatchCommit `json:"commits"`
 	presentColors map[string]bool
+}
+
+// MatchCommit is a state commit for a round of a match
+type MatchCommit struct {
+	Kills     [][]int `json:"kills"`
+	Shots     []bool  `json:"shots"`
+	Committed string  `json:"comitted"` // ISO-8601
 }
 
 // NewMatch creates a new Match for usage!
@@ -137,8 +145,8 @@ func (m *Match) UpdatePlayer(p Player) error {
 }
 
 // Commit adds a state of the players
-func (m *Match) Commit(scores [][]int, shots []bool) {
-	for i, score := range scores {
+func (m *Match) Commit(c MatchCommit) {
+	for i, score := range c.Kills {
 		shotGiven := false
 		ups := score[0]
 		downs := score[1]
@@ -164,13 +172,15 @@ func (m *Match) Commit(scores [][]int, shots []bool) {
 
 		if downs != 0 {
 			m.Players[i].AddSelf()
+			shotGiven = true
 		}
 
-		if shots[i] && !shotGiven {
+		if c.Shots[i] && !shotGiven {
 			m.Players[i].AddShot()
 		}
 	}
 
+	m.Commits = append(m.Commits, c)
 	_ = m.Tournament.Persist()
 }
 
@@ -262,4 +272,27 @@ func (m *Match) CanEnd() bool {
 // IsOpen returns boolean the match can be controlled or not
 func (m *Match) IsOpen() bool {
 	return m.IsStarted() && !m.IsEnded()
+}
+
+// NewMatchCommit makes a new MatchCommit object from a CommitRequest
+func NewMatchCommit(c CommitRequest) MatchCommit {
+	states := c.State
+	m := MatchCommit{
+		[][]int{
+			[]int{states[0].Ups, states[0].Downs},
+			[]int{states[1].Ups, states[1].Downs},
+			[]int{states[2].Ups, states[2].Downs},
+			[]int{states[3].Ups, states[3].Downs},
+		},
+		[]bool{
+			states[0].Shot,
+			states[1].Shot,
+			states[2].Shot,
+			states[3].Shot,
+		},
+		// ISO-8601 timestamp
+		time.Now().UTC().Format(time.RFC3339),
+	}
+
+	return m
 }

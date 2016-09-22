@@ -139,20 +139,22 @@ func TestCommitSweepPlayer1(t *testing.T) {
 	_ = m.AddPlayer(testPlayer())
 	_ = m.AddPlayer(testPlayer())
 
-	scores := [][]int{
-		[]int{3, 0},
-		[]int{0, 0},
-		[]int{0, 0},
-		[]int{0, 0},
-	}
-	shots := []bool{
-		false,
-		false,
-		false,
-		false,
+	c := MatchCommit{
+		Kills: [][]int{
+			[]int{3, 0},
+			[]int{0, 0},
+			[]int{0, 0},
+			[]int{0, 0},
+		},
+		Shots: []bool{
+			false,
+			false,
+			false,
+			false,
+		},
 	}
 
-	m.Commit(scores, shots)
+	m.Commit(c)
 	assert.Equal(1, m.Players[0].Sweeps)
 }
 
@@ -165,20 +167,22 @@ func TestCommitDoubleKillPlayer2(t *testing.T) {
 	_ = m.AddPlayer(testPlayer())
 	_ = m.AddPlayer(testPlayer())
 
-	scores := [][]int{
-		[]int{0, 0},
-		[]int{2, 0},
-		[]int{0, 0},
-		[]int{0, 0},
-	}
-	shots := []bool{
-		false,
-		false,
-		false,
-		false,
+	c := MatchCommit{
+		Kills: [][]int{
+			[]int{0, 0},
+			[]int{2, 0},
+			[]int{0, 0},
+			[]int{0, 0},
+		},
+		Shots: []bool{
+			false,
+			false,
+			false,
+			false,
+		},
 	}
 
-	m.Commit(scores, shots)
+	m.Commit(c)
 	assert.Equal(2, m.Players[1].Kills)
 }
 
@@ -191,20 +195,22 @@ func TestCommitSweepAndSuicidePlayer3(t *testing.T) {
 	_ = m.AddPlayer(testPlayer())
 	_ = m.AddPlayer(testPlayer())
 
-	scores := [][]int{
-		[]int{0, 0},
-		[]int{0, 0},
-		[]int{3, 1},
-		[]int{0, 0},
-	}
-	shots := []bool{
-		false,
-		false,
-		false,
-		false,
+	c := MatchCommit{
+		Kills: [][]int{
+			[]int{0, 0},
+			[]int{0, 0},
+			[]int{3, 1},
+			[]int{0, 0},
+		},
+		Shots: []bool{
+			false,
+			false,
+			true,
+			false,
+		},
 	}
 
-	m.Commit(scores, shots)
+	m.Commit(c)
 	assert.Equal(1, m.Players[2].Sweeps)
 	assert.Equal(2, m.Players[2].Kills)
 	assert.Equal(1, m.Players[2].Shots)
@@ -219,20 +225,22 @@ func TestCommitSuicidePlayer4(t *testing.T) {
 	_ = m.AddPlayer(testPlayer())
 	_ = m.AddPlayer(testPlayer())
 
-	scores := [][]int{
-		[]int{0, 0},
-		[]int{0, 0},
-		[]int{0, 0},
-		[]int{0, 1},
-	}
-	shots := []bool{
-		false,
-		false,
-		false,
-		false,
+	c := MatchCommit{
+		Kills: [][]int{
+			[]int{0, 0},
+			[]int{0, 0},
+			[]int{0, 0},
+			[]int{0, 1},
+		},
+		Shots: []bool{
+			false,
+			false,
+			false,
+			false,
+		},
 	}
 
-	m.Commit(scores, shots)
+	m.Commit(c)
 	assert.Equal(1, m.Players[3].Self)
 	assert.Equal(1, m.Players[3].Shots)
 }
@@ -246,20 +254,22 @@ func TestCommitShotsForPlayer2and3(t *testing.T) {
 	_ = m.AddPlayer(testPlayer())
 	_ = m.AddPlayer(testPlayer())
 
-	scores := [][]int{
-		[]int{0, 0},
-		[]int{0, 0},
-		[]int{0, 0},
-		[]int{0, 0},
-	}
-	shots := []bool{
-		false,
-		true,
-		true,
-		false,
+	c := MatchCommit{
+		Kills: [][]int{
+			[]int{0, 0},
+			[]int{0, 0},
+			[]int{0, 0},
+			[]int{0, 0},
+		},
+		Shots: []bool{
+			false,
+			true,
+			true,
+			false,
+		},
 	}
 
-	m.Commit(scores, shots)
+	m.Commit(c)
 	assert.Equal(1, m.Players[1].Shots)
 	assert.Equal(1, m.Players[2].Shots)
 }
@@ -273,24 +283,61 @@ func TestCommitSweepForPlayer1(t *testing.T) {
 	_ = m.AddPlayer(testPlayer())
 	_ = m.AddPlayer(testPlayer())
 
-	scores := [][]int{
-		[]int{3, 0},
-		[]int{0, 0},
-		[]int{0, 0},
-		[]int{0, 0},
-	}
-	// For the frontend it makes sense that a sweep marks a shot, therefore we
-	// need to make sure that we don't add another shot.
-	shots := []bool{
-		true,
-		false,
-		false,
-		false,
+	c := MatchCommit{
+		Kills: [][]int{
+			[]int{3, 0},
+			[]int{0, 0},
+			[]int{0, 0},
+			[]int{0, 0},
+		},
+		// For the frontend it makes sense that a sweep marks a shot, therefore we
+		// need to make sure that we don't add another shot.
+		Shots: []bool{
+			true,
+			false,
+			false,
+			false,
+		},
 	}
 
-	m.Commit(scores, shots)
+	m.Commit(c)
 	assert.Equal(3, m.Players[0].Kills)
 	assert.Equal(1, m.Players[0].Shots)
+}
+
+func TestCommitStoredOnMatch(t *testing.T) {
+	assert := assert.New(t)
+
+	m := MockMatch(0, "test")
+	_ = m.AddPlayer(testPlayer())
+	_ = m.AddPlayer(testPlayer())
+	_ = m.AddPlayer(testPlayer())
+	_ = m.AddPlayer(testPlayer())
+
+	c := MatchCommit{
+		Kills: [][]int{
+			[]int{0, 0},
+			[]int{1, 0},
+			[]int{1, 0},
+			[]int{1, 0},
+		},
+		// For the frontend it makes sense that a sweep marks a shot, therefore we
+		// need to make sure that we don't add another shot.
+		Shots: []bool{
+			true,
+			false,
+			false,
+			false,
+		},
+	}
+
+	assert.Equal(0, len(m.Commits))
+	m.Commit(c)
+	assert.Equal(1, len(m.Commits))
+	assert.Equal(1, m.Commits[0].Kills[1][0])
+	assert.Equal(1, m.Commits[0].Kills[2][0])
+	assert.Equal(1, m.Commits[0].Kills[3][0])
+	assert.Equal(true, m.Commits[0].Shots[0])
 }
 
 func TestCorrectColorConflictsNoScores(t *testing.T) {
