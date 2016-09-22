@@ -10,15 +10,22 @@ import (
 
 // Match represents a game being played
 type Match struct {
-	Players       []Player      `json:"players"`
-	Judges        []Judge       `json:"judges"`
-	Kind          string        `json:"kind"`
-	Index         int           `json:"index"`
-	Length        int           `json:"length"`
-	Started       time.Time     `json:"started"`
-	Ended         time.Time     `json:"ended"`
-	Tournament    *Tournament   `json:"-"`
-	Commits       []MatchCommit `json:"commits"`
+	Players    []Player    `json:"players"`
+	Judges     []Judge     `json:"judges"`
+	Kind       string      `json:"kind"`
+	Index      int         `json:"index"`
+	Length     int         `json:"length"`
+	Started    time.Time   `json:"started"`
+	Ended      time.Time   `json:"ended"`
+	Tournament *Tournament `json:"-"`
+
+	// Stores the index to the player in the relative position.  E.g. if player
+	// 3 is in the lead, ScoreOrder[0] will be 2 (the index of player 3).
+	ScoreOrder []int `json:"score_order"`
+
+	// One commit per round - the changeset of what happened in it.
+	Commits []MatchCommit `json:"commits"`
+
 	presentColors map[string]bool
 }
 
@@ -182,6 +189,7 @@ func (m *Match) Commit(c MatchCommit) {
 		}
 	}
 
+	m.ScoreOrder = m.MakeScoreOrder()
 	m.Commits = append(m.Commits, c)
 	_ = m.Tournament.Persist()
 }
@@ -213,15 +221,15 @@ func (m *Match) End() error {
 		return errors.New("match already ended")
 	}
 
+	// XXX(thiderman): In certain test cases a Commit() might not have been run
+	// and therefore this might not have been set. Since the calculation is
+	// quick and has no side effects, it's easier to just add it here now. In
+	// the future, make the tests better.
+	m.ScoreOrder = m.MakeScoreOrder()
+
 	// Give the winner one last shot
-	ps := ByScore(m.Players)
-	winner := ps[0].Name()
-	for i, p := range m.Players {
-		if p.Name() == winner {
-			m.Players[i].AddShot()
-			break
-		}
-	}
+	winner := m.ScoreOrder[0]
+	m.Players[winner].AddShot()
 
 	m.Ended = time.Now()
 	// TODO: This is for the tests not to break. Fix by setting up better tests.
@@ -268,6 +276,21 @@ func (m *Match) CanEnd() bool {
 // IsOpen returns boolean the match can be controlled or not
 func (m *Match) IsOpen() bool {
 	return m.IsStarted() && !m.IsEnded()
+}
+
+// MakeScoreOrder returns the score order of the current state of the match
+func (m *Match) MakeScoreOrder() (ret []int) {
+	ps := SortByScore(m.Players)
+	for _, p := range ps {
+		for i, o := range m.Players {
+			if p.Name() == o.Name() {
+				ret = append(ret, i)
+				break
+			}
+		}
+	}
+
+	return
 }
 
 // NewMatchCommit makes a new MatchCommit object from a CommitRequest
