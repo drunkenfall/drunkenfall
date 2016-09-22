@@ -366,6 +366,56 @@ func TestCorrectColorConflictsNoScores(t *testing.T) {
 	assert.Equal("green", m.Players[1].OriginalColor)
 }
 
+// This test was needed since somehow getting the color reset
+func TestCorrectColorConflictsResetsToOriginalColor(t *testing.T) {
+	assert := assert.New(t)
+
+	m := MockMatch(0, "semi")
+	m2 := MockMatch(0, "final")
+	m.Players = make([]Player, 0)
+	m2.Players = make([]Player, 0)
+
+	p1 := testPlayer()
+	p1.Person.ColorPreference[0] = "green"
+	p2 := testPlayer()
+	p2.Person.ColorPreference[0] = "green"
+	p3 := testPlayer()
+	p3.Person.ColorPreference[0] = "green"
+	p4 := testPlayer()
+	p4.Person.ColorPreference[0] = "green"
+	p5 := testPlayer()
+	p5.Person.ColorPreference[0] = "green"
+
+	_ = m.AddPlayer(p1)
+	_ = m.AddPlayer(p2)
+	_ = m.AddPlayer(p3)
+	_ = m.AddPlayer(p4)
+
+	assert.Equal("green", m.Players[0].Color)
+	assert.Equal("green", m.Players[0].OriginalColor)
+	assert.NotEqual("green", m.Players[1].Color)
+	assert.Equal("green", m.Players[1].OriginalColor)
+	assert.NotEqual("green", m.Players[2].Color)
+	assert.Equal("green", m.Players[2].OriginalColor)
+	assert.NotEqual("green", m.Players[3].Color)
+	assert.Equal("green", m.Players[3].OriginalColor)
+
+	_ = m2.AddPlayer(p5)
+	_ = m2.AddPlayer(p2)
+	_ = m2.AddPlayer(p3)
+	_ = m2.AddPlayer(p4)
+
+	assert.Equal("green", m2.Players[0].Color)
+	assert.Equal("green", m2.Players[0].OriginalColor)
+	assert.NotEqual("green", m2.Players[1].Color)
+	assert.Equal("green", m2.Players[1].OriginalColor)
+	assert.NotEqual("green", m2.Players[2].Color)
+	assert.Equal("green", m2.Players[2].OriginalColor)
+	assert.NotEqual("green", m2.Players[3].Color)
+	assert.Equal("green", m2.Players[3].OriginalColor)
+
+}
+
 // func TestCorrectColorConflictsNoScoresDoubleConflict(t *testing.T) {
 // 	assert := assert.New(t)
 

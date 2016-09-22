@@ -297,6 +297,21 @@ func (t *Tournament) MovePlayers(m *Match) error {
 	for _, p := range ps {
 		t.Runnerups = append(t.Runnerups, p.Name())
 	}
+
+	// Finally, if the next match is a tryout and does not have enough players,
+	// fill it up with runnerups.
+	nm, err := t.NextMatch()
+	if err != nil {
+		return err
+	}
+	if nm.Kind == "tryout" && len(nm.Players) < 4 {
+		log.Printf("Setting runnerups for %s", nm)
+		err := t.PopulateRunnerups(nm)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 

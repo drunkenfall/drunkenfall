@@ -116,7 +116,7 @@ func (m *Match) AddPlayer(p Player) error {
 	// Reset all possible scores
 	p.Reset()
 
-	c := p.Person.ColorPreference[0]
+	c := p.PreferredColor()
 	p.OriginalColor = c
 	if _, ok := m.presentColors[c]; ok {
 		// Color is already present - give the player a new random one.
