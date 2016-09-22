@@ -1,7 +1,11 @@
 <template>
   <a v-link="{ name: 'match', params: { kind: match.kind, match: match.index }}">
-    <template v-for="player in match.players">
-      <player :player="player" :match="match" :index="$index">
+    <template v-for="x in 4">
+      <player v-if="match.players.length > x" :player="match.players[x]" :match="match" :index="x"></player>
+
+      <div v-if="match.players.length <= x" class="player prefill">
+        <p>???</p>
+      </div>
     </template>
   </a>
 </template>
