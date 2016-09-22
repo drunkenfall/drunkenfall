@@ -146,6 +146,7 @@ func (t *Tournament) ShufflePlayers() {
 //
 // It will fail if there are not between 8 and 24 players.
 func (t *Tournament) StartTournament() error {
+	log.Printf("Starting %s...", t.Name)
 	ps := len(t.Players)
 	if ps < 8 || ps > 32 {
 		return fmt.Errorf("Tournament needs at 8-32 players, got %d", ps)

@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"log"
 	"strings"
 	"time"
 )
@@ -120,6 +121,7 @@ func (m *Match) AddPlayer(p Player) error {
 	if _, ok := m.presentColors[c]; ok {
 		// Color is already present - give the player a new random one.
 		c = Colors.Available(m).Random()
+		log.Printf("Corrected color of %s from %s to %s", p.Person.Nick, p.OriginalColor, c)
 	}
 
 	// Set the player color
