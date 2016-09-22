@@ -6,8 +6,8 @@
 
     <div class="shots">
        <div @click="manual_shot" v-bind:class="{'give': shot}">
-         <div v-if="shot" class="mark">✓</div>
-         <div v-if="!shot" class="mark">✗</div>
+         <div v-if="shot" class="mark">{{player.shots + 1}}</div>
+         <div v-if="!shot" class="mark">{{player.shots}}</div>
          <div v-if="reason !== ''" class="reason">{{reason}}</div>
        </div>
      </div>
