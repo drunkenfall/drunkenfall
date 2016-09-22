@@ -57,8 +57,8 @@ export default {
     display: block;
     object-fit: cover;
     border-radius: 100%;
-    width:  350px;
-    height: 350px;
+    width:  300px;
+    height: 300px;
     margin: 0px auto;
     box-shadow: -1px -1px 6px rgba(0,0,0,0.5);
     background-color: rgba(10,12,14,0.3);
@@ -66,10 +66,11 @@ export default {
 
   .super-ribbon {
     margin: -3.5em auto 2.2em;
+    width: 20%;
   }
   .ribbon {
     font-size: 2em;
-    width: 45%;
+    width: 60%;
   }
 }
 

@@ -6,12 +6,24 @@
           {{tournament.name}} / {{match.kind | capitalize}} {{match.index +1}}
         </div>
       </div>
+      <div class="links">
+        <p class="time">
+          Local time: 00:03 CET
+        </p>
+      </div>
       <div class="clear"></div>
     </header>
 
-    <template v-for="player in match.players" v-ref:players>
-      <preview-player :index="$index + 1" :player="player" :match="match">
-    </template>
+    <h1>Starting in</h1>
+    <div class="timer">
+      {{timer}}
+    </div>
+
+    <div class="players">
+      <template v-for="player in match.players" v-ref:players>
+        <preview-player :index="$index + 1" :player="player" :match="match">
+      </template>
+    </div>
   </div>
 </template>
 
@@ -30,6 +42,7 @@ export default {
     return {
       match: new Match(),
       tournament: new Tournament(),
+      timer: "04:36",
     }
   },
 
@@ -93,10 +106,37 @@ export default {
 </script>
 
 <style lang="scss" >
+@import "../variables.scss";
+@import "../ribbon.scss";
 
-.player {
-  height: 25%;
-  display: block;
+.players {
+  width: 100%;
+
+  .player {
+    width: 25%;
+    display: block;
+    float: left;
+  }
+}
+
+h1 {
+  margin-top: 100px;
+  margin-bottom: -1em;
+}
+
+.timer {
+  margin: 0 auto 0.25em;
+  width: 3em;
+  font-size: 12em;
+  text-align: center;
+  padding: 0.08em 0.4em;
+
+  text-shadow: 3px 3px 3px rgba(0,0,0,0.7);
+}
+
+.time {
+  font-size: 1.5em;
+  padding: 16px 40px;
 }
 
 </style>
