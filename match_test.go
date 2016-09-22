@@ -365,6 +365,10 @@ func TestCorrectColorConflictsNoScores(t *testing.T) {
 	assert.Equal("green", m.Players[0].OriginalColor)
 	assert.NotEqual("green", m.Players[1].Color)
 	assert.Equal("green", m.Players[1].OriginalColor)
+	assert.Equal("blue", m.Players[2].Color)
+	assert.Equal("blue", m.Players[2].OriginalColor)
+	assert.Equal("red", m.Players[3].Color)
+	assert.Equal("red", m.Players[3].OriginalColor)
 }
 
 // This test was needed since somehow getting the color reset
