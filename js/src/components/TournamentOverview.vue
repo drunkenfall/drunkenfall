@@ -175,6 +175,7 @@ export default {
 .runnerups {
   width: 100%;
   margin: 10px;
+  box-shadow: 2px 2px 3px rgba(0,0,0,0.3);
 
   .runnerup {
     padding: 0.1em 0.3em;

@@ -143,6 +143,7 @@ export default {
     text-shadow: 2px 2px 2px rgba(0,0,0,0.8);
 
     >div {
+      box-shadow: 2px 2px 3px rgba(0,0,0,0.3);
       width: 80%;
       height: 50%;
       background-color: #333339;
@@ -255,11 +256,11 @@ export default {
       height: 8vh;
       vertical-align: top;
       display: inline-block;
-      *display: inline;
       zoom: 1;
 
       background-color: #333339;
       border-radius: 10000px;
+      box-shadow: 2px 2px 3px rgba(0,0,0,0.3);
 
       text-align: center;
       vertical-align: middle;

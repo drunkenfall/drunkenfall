@@ -35,6 +35,7 @@ export default {
   margin: 10px;
   cursor: pointer;
   text-align: center;
+  box-shadow: 2px 2px 3px rgba(0,0,0,0.3);
 
   .player {
     float: left;
