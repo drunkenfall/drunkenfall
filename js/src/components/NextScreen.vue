@@ -8,7 +8,7 @@
       </div>
       <div class="links">
         <p class="time">
-          Local time: 00:03 CET
+          Local time: {{clock}}
         </p>
       </div>
       <div class="clear"></div>
@@ -31,6 +31,7 @@
 import PreviewPlayer from './PreviewPlayer.vue'
 import Match from '../models/Match.js'
 import Tournament from '../models/Tournament.js'
+import moment from 'moment'
 
 export default {
   name: 'NextScreen',
@@ -42,7 +43,8 @@ export default {
     return {
       match: new Match(),
       tournament: new Tournament(),
-      timer: "04:36",
+      timer: "00:00",
+      clock: "00:00 (+02:00)",
     }
   },
 
@@ -72,6 +74,11 @@ export default {
       getTournamentData: { method: "GET", url: "/api/towerfall/tournament{/id}/" }
     }
     this.api = this.$resource("/api/towerfall", {}, customActions)
+
+    // Update the clock
+    setInterval(() => {
+      this.$set("clock", moment().format("HH:mm (Z)"))
+    }, 1000)
   },
 
   route: {
