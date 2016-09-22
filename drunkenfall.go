@@ -211,6 +211,8 @@ func (s *Server) NextHandler(w http.ResponseWriter, r *http.Request) {
 
 	tm := s.getTournament(r)
 	m, err := tm.NextMatch()
+	tm.SetCurrent(m)
+
 	tm.Persist() // TODO(thiderman): Move into NextMatch, probably. Should not be here.
 	if err != nil {
 		http.Error(w, err.Error(), 500)
@@ -222,6 +224,7 @@ func (s *Server) NextHandler(w http.ResponseWriter, r *http.Request) {
 
 // MatchToggleHandler starts and stops matches
 func (s *Server) MatchToggleHandler(w http.ResponseWriter, r *http.Request) {
+	// TODO(thiderman): This should really be two different methods.
 	if !HasPermission(r, PermissionJudge) {
 		PermissionFailure(w, r, "Cannot start match unless judge or above")
 		return
