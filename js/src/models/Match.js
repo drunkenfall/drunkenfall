@@ -10,6 +10,7 @@ export default class Match {
 
     m.started = moment(m.started)
     m.ended = moment(m.ended)
+    m.scheduled = moment(m.scheduled)
     m.players = _.map(m.players, Player.fromObject)
 
     switch (m.kind) {

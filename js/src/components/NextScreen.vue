@@ -46,6 +46,7 @@ export default {
       tournament: new Tournament(),
       timer: "00:00",
       clock: "00:00 (+02:00)",
+      intervalID: 0,
     }
   },
 
@@ -82,20 +83,24 @@ export default {
     }, 1000)
 
     // XXX(thiderman): Super duplicated from TournamentPreview.vue
-    this.$watch('tournament', (newVal) => {
-      var eventTime = newVal.scheduled.unix()
+    this.$watch('tournament', (t) => {
+      // If there is already a clock ticking, kill it.
+      if (this.intervalID !== 0) {
+        clearInterval(this.intervalID)
+      }
+
+      var eventTime = this.match.scheduled.unix()
       var currentTime = moment().unix()
       var diffTime = eventTime - currentTime
       var d = moment.duration(diffTime, 'seconds') // duration
       var interval = 1000
-      var intervalId = 0
 
       function pad (n, width) {
         n = n + ''
         return n.length >= width ? n : new Array(width - n.length + 1).join("0") + n
       }
 
-      intervalId = setInterval(() => {
+      this.intervalID = setInterval(() => {
         d = moment.duration(d - interval, 'milliseconds')
 
         // During the last minute, make sure to add the pulse class.
@@ -110,13 +115,12 @@ export default {
         if (_.some([d.hours(), d.minutes(), d.seconds()], (n) => n < 0)) {
           console.log("Closing interval.")
           document.getElementsByTagName("body")[0].className = ""
-          clearInterval(intervalId)
+          clearInterval(this.intervalID)
           return
         }
 
         this.$set(
           'timer',
-          pad(d.hours(), 2) + ":" +
           pad(d.minutes(), 2) + ":" +
           pad(d.seconds(), 2)
         )
