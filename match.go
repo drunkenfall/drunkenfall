@@ -10,14 +10,16 @@ import (
 
 // Match represents a game being played
 type Match struct {
-	Players    []Player    `json:"players"`
-	Judges     []Judge     `json:"judges"`
-	Kind       string      `json:"kind"`
-	Index      int         `json:"index"`
-	Length     int         `json:"length"`
-	Started    time.Time   `json:"started"`
-	Ended      time.Time   `json:"ended"`
-	Tournament *Tournament `json:"-"`
+	Players    []Player      `json:"players"`
+	Judges     []Judge       `json:"judges"`
+	Kind       string        `json:"kind"`
+	Index      int           `json:"index"`
+	Length     int           `json:"length"`
+	Pause      time.Duration `json:"pause"`
+	Scheduled  time.Time     `json:"scheduled"`
+	Started    time.Time     `json:"started"`
+	Ended      time.Time     `json:"ended"`
+	Tournament *Tournament   `json:"-"`
 
 	// Stores the index to the player in the relative position.  E.g. if player
 	// 3 is in the lead, ScoreOrder[0] will be 2 (the index of player 3).
@@ -43,12 +45,19 @@ func NewMatch(t *Tournament, index int, kind string) *Match {
 		Kind:       kind,
 		Tournament: t,
 		Length:     10,
+		Pause:      time.Minute * 5,
 	}
 	m.presentColors = make(map[string]bool)
+
+	// The pause between tryout/semi brackets should be longer
+	if kind == "semi" && index == 0 {
+		m.Pause = time.Minute * 10
+	}
 
 	// Finals are longer <3
 	if kind == "final" {
 		m.Length = 20
+		m.Pause = time.Minute * 10
 	}
 
 	return &m
@@ -243,6 +252,11 @@ func (m *Match) End() error {
 		m.Tournament.Persist()
 	}
 	return nil
+}
+
+// SetTime sets the scheduled time based on the Pause attribute
+func (m *Match) SetTime() {
+	m.Scheduled = time.Now().Add(m.Pause)
 }
 
 // IsStarted returns boolean whether the match has started or not

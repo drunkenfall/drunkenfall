@@ -212,6 +212,7 @@ func (s *Server) NextHandler(w http.ResponseWriter, r *http.Request) {
 	tm := s.getTournament(r)
 	m, err := tm.NextMatch()
 	tm.SetCurrent(m)
+	m.SetTime()
 
 	tm.Persist() // TODO(thiderman): Move into NextMatch, probably. Should not be here.
 	if err != nil {
