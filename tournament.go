@@ -408,6 +408,7 @@ func (t *Tournament) SetMatchPointers() error {
 
 	for i := range t.Tryouts {
 		m = t.Tryouts[i]
+		m.presentColors = make(map[string]bool)
 		m.Tournament = t
 		for j := range m.Players {
 			m.Players[j].Match = m
@@ -416,12 +417,14 @@ func (t *Tournament) SetMatchPointers() error {
 
 	for i := range t.Semis {
 		m = t.Semis[i]
+		m.presentColors = make(map[string]bool)
 		m.Tournament = t
 		for j := range m.Players {
 			m.Players[j].Match = m
 		}
 	}
 	t.Final.Tournament = t
+	t.Final.presentColors = make(map[string]bool)
 	for i := range t.Final.Players {
 		t.Final.Players[i].Match = t.Final
 	}
