@@ -17,9 +17,10 @@
     </h1>
 
     <div class="players">
-      <div v-for="player in tournament.players" class="player {{player.color}">
+      <div v-for="player in tournament.players" class="player">
         <img alt="{{player.person.nick}}" :src="player.avatar"/>
       </div>
+      <div class="clear"></div>
     </div>
 
     <div class="protector">
@@ -154,9 +155,10 @@ export default {
 @import "../ribbon.scss";
 
 h1 {
-  font-size: 8em;
+  font-size: 6em;
   margin-top: 0;
-  padding-top: 0.5em;
+  margin-bottom: 0.4em;
+  padding-top: 0.2em;
   text-shadow: 5px 5px 10px rgba(0,0,0,0.7);
 }
 
@@ -172,6 +174,9 @@ h2 {
 
 .ribbon {
   font-size: 40px;
+}
+.super-ribbon {
+  margin: -3em auto 2.5em;
 }
 
 .players {
