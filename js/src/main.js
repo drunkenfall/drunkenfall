@@ -8,6 +8,7 @@ import App from './App'
 import TournamentList from './components/TournamentList.vue'
 import Tournament from './components/Tournament.vue'
 import New from './components/New.vue'
+import Join from './components/Join.vue'
 import Match from './components/Match.vue'
 import ScoreScreen from './components/ScoreScreen.vue'
 import NextScreen from './components/NextScreen.vue'
@@ -45,6 +46,10 @@ router.map({
   '/towerfall/:tournament/': {
     name: 'tournament',
     component: Tournament
+  },
+  '/towerfall/:tournament/join/': {
+    name: 'join',
+    component: Join
   },
   '/towerfall/:tournament/scores/': {
     name: 'scores',

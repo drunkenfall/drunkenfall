@@ -5,8 +5,8 @@
         <div class="title">{{tournament.name}}</div>
       </div>
       <div class="links">
-        <a v-if="tournament.canStart"
-          v-link="{ name: 'join', params: { tournament: tournament.id }}">Join</a>
+        <a v-link="{ name: 'join', params: { tournament: tournament.id }}">Join</a>
+
         <div class="action" @click="start"
           v-if="user.level(levels.judge) && tournament.canStart">Start</div>
         <div class="action" @click="next"

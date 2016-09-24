@@ -5,7 +5,7 @@
         <div class="title">{{tournament.name}}</div>
       </div>
       <div class="links">
-        <a v-if="tournament.canStart" @click="join">Join</a>
+        <a v-if="user.level(10)" v-link="{ name: 'join', params: { tournament: tournament.id }}">Join</a>
         <a v-if="tournament.canStart && user.level(30)" @click="start">Start</a>
         <a v-if="tournament.canStart && user.level(100)" @click="usurp">Usurp</a>
       </div>
@@ -99,7 +99,6 @@ export default {
     let customActions = {
       start: { method: "GET", url: "/api/towerfall{/id}/start/" },
       usurp: { method: "GET", url: "/api/towerfall{/id}/usurp/" },
-      join: { method: "GET", url: "/api/towerfall/{id}/join/" },
       getData: { method: "GET", url: "/api/towerfall/tournament/{id}/" }
     }
     this.api = this.$resource("/api/towerfall", {}, customActions)
