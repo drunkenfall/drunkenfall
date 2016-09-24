@@ -35,6 +35,15 @@ function start_api() {
     ./drunkenfall
 }
 
+function start_boltweb() {
+    echo "OBS! Please stop ./dev.sh api, to unlock the boltdb."
+    GOPATH=`pwd`/boltdbweb
+    go get github.com/evnix/boltdbweb
+    cd $GOPATH/src/github.com/evnix/boltdbweb/
+    go build boltdbweb.go
+    ./boltdbweb $GOPATH/../production.db
+}
+
 function start_npm() {
     cd js/
     if [[ ! -d "node_modules" ]]; then
@@ -55,7 +64,10 @@ case "$1" in
     npm)
         start_npm
         ;;
+    boltweb)
+        start_boltweb
+        ;;
     *)
-        echo "usage: dev.sh [towerfall|nginx|npm]"
+        echo "usage: dev.sh [api|nginx|npm|boltweb]"
         exit 1
 esac
