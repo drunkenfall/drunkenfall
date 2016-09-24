@@ -39,12 +39,16 @@ type CurrentMatch struct {
 
 // NewTournament returns a completely new Tournament
 func NewTournament(name, id string, server *Server) (*Tournament, error) {
+	longForm := "Jan 2, 2006 at 3:04pm (MST)"
+	sch, _ := time.Parse(longForm, "Sep 24, 2016 at 6:00pm (UTC)")
+
 	t := Tournament{
-		Name:   name,
-		ID:     id,
-		Opened: time.Now(),
-		db:     server.DB,
-		server: server,
+		Name:      name,
+		ID:        id,
+		Opened:    time.Now(),
+		Scheduled: sch,
+		db:        server.DB,
+		server:    server,
 	}
 
 	// Set tryouts
