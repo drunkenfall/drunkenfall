@@ -78,8 +78,9 @@ router.beforeEach(function () {
 
 // As long as we only have Drunken TowerFall on drunkenfall.com, we should
 // always redirect to the towerfall app right away.
+// TODO(thiderman): Currently going to the set tournament
 router.redirect({
-  '/': '/towerfall/'
+  '/': '/towerfall/moon/'
 })
 
 router.start(App, 'app')
