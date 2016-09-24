@@ -116,7 +116,15 @@ func (t *Tournament) AddPlayer(ps *Person) error {
 	}
 
 	p := Player{Person: ps}
+
 	t.Players = append(t.Players, p)
+
+	// If the tournament is already started, just add the player into the
+	// runnerups so that they will be placed at the end immediately.
+	if !t.Started.IsZero() {
+		t.Runnerups = append(t.Runnerups, p.Name())
+	}
+
 	t.Persist() // TODO: Error handling
 
 	return nil
