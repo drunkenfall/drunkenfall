@@ -391,7 +391,7 @@ func (t *Tournament) CanJoin(ps *Person) error {
 		return errors.New("tournament is full")
 	}
 	for _, p := range t.Players {
-		if p.Name() == ps.Name {
+		if p.Person.Nick == ps.Nick {
 			return errors.New("already in tournament")
 		}
 	}
