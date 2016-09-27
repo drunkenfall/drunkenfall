@@ -224,6 +224,7 @@ func (t *Tournament) GetRunnerups() (ps []Player, err error) {
 // all the matches they have participated in.
 func (t *Tournament) UpdatePlayers() error {
 	// Make sure all players have their score reset to nothing
+
 	for i := range t.Players {
 		t.Players[i].Reset()
 	}
@@ -338,6 +339,7 @@ func (t *Tournament) NextMatch() (m *Match, err error) {
 	for x := range t.Tryouts {
 		m = t.Tryouts[x]
 		if !m.IsEnded() {
+			t.SetCurrent(m)
 			return
 		}
 	}
@@ -347,11 +349,13 @@ func (t *Tournament) NextMatch() (m *Match, err error) {
 	for x := range t.Semis {
 		m = t.Semis[x]
 		if !m.IsEnded() {
+			t.SetCurrent(m)
 			return
 		}
 	}
 
 	if !t.Final.IsEnded() {
+		t.SetCurrent(t.Final)
 		return t.Final, nil
 	}
 

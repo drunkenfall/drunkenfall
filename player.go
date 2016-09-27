@@ -2,15 +2,16 @@ package main
 
 import (
 	"fmt"
+	"github.com/deckarep/golang-set"
 	"math/rand"
 	"sort"
 )
 
 // ColorList is the representation of colors players can choose from
-type ColorList []string
+type ColorSet mapset.Set
 
 // Colors is a list of the available player colors
-var Colors = ColorList{
+var Colors = []string{
 	"green",
 	"blue",
 	"pink",
@@ -398,14 +399,16 @@ func SortByRunnerup(ps []Player) []Player {
 }
 
 // Random returns a random color from the ColorList
-func (c ColorList) Random() string {
-	return c[rand.Intn(len(c))]
+func (c ColorSet) Random() string {
+	x := len(c)
+	fmt.Println(c)
+	return c[rand.Intn(x)]
 }
 
 // Available returns a ColorList with the colors not used in a match
-func (c ColorList) Available(m *Match) ColorList {
-	ret := make(ColorList, 0)
-	matchcolors := make(ColorList, 0)
+func (c ColorSet) Available(m *Match) ColorSet {
+	ret := make(ColorSet, 0)
+	matchcolors := make(ColorSet, 0)
 
 	// Make a list with all the colors that are in use
 	for _, p := range m.Players {

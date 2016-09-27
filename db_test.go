@@ -12,6 +12,8 @@ import (
 // MockServer returns a Server{} a with clean test Database{}
 func MockServer(arg ...string) *Server {
 	var fn string
+
+	os.Mkdir("test/", 0755)
 	if len(arg) != 0 {
 		fn = "test/" + arg[0] // Use existing
 	} else {

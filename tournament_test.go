@@ -23,18 +23,28 @@ func testTournament(count int) (t *Tournament) {
 	return
 }
 
-func endTryouts(t *Tournament) {
+func endTryouts(t *Tournament) error {
 	for x := range t.Tryouts {
-		t.Tryouts[x].Start()
-		t.Tryouts[x].End()
+		if err := t.Tryouts[x].Start(); err != nil {
+			return err
+		}
+		if err := t.Tryouts[x].End(); err != nil {
+			return err
+		}
 	}
+	return nil
 }
 
-func endSemis(t *Tournament) {
+func endSemis(t *Tournament) error {
 	for x := range t.Semis {
-		t.Semis[x].Start()
-		t.Semis[x].End()
+		if err := t.Semis[x].Start(); err != nil {
+			return err
+		}
+		if err := t.Semis[x].End(); err != nil {
+			return err
+		}
 	}
+	return nil
 }
 
 func TestStartingTournamentWithFewerThan8PlayersFail(t *testing.T) {
@@ -112,14 +122,16 @@ func TestNextMatchNoMatchesAreStartedWithTryouts(t *testing.T) {
 	assert.Nil(err)
 	assert.Equal(1, m.Index)
 	assert.Equal("tryout", m.Kind)
-	assert.Equal(CurrentMatch{"tryout", 1}, tm.Current)
+	assert.Equal(CurrentMatch{"tryouts", 1}, tm.Current)
 }
 
 func TestNextMatchNoMatchesAreStartedWithTryoutsDone(t *testing.T) {
 	assert := assert.New(t)
 	tm := testTournament(16)
 	tm.StartTournament()
-	endTryouts(tm)
+	err := endTryouts(tm)
+	assert.Nil(err)
+	_ = "breakpoint"
 
 	m, err := tm.NextMatch()
 	assert.Nil(err)
