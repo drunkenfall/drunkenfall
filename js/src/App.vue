@@ -21,6 +21,7 @@ export default {
       tournaments: [],
       // The main websocket object
       ws: null,
+      reconnections: 0,
       user: new User(),
     }
   },
@@ -66,9 +67,27 @@ export default {
           console.log('Unknown websocket update:', res)
         }
 
-        this.ws.onopen = () => { console.debug("websocket connected:", this.ws) }
+        this.ws.onopen = () => {
+          this.reconnections = 0
+          console.debug("websocket connected:", this.ws)
+        }
         this.ws.onerror = (errorEvent) => { console.error("websocket error:", errorEvent) }
-        this.ws.onclose = (closeEvent) => { console.warn("websocket closed", closeEvent) }
+        this.ws.onclose = (closeEvent) => {
+          console.debug("websocket closed", closeEvent)
+          if (!closeEvent.wasClean) {
+            this.$delete("ws")
+
+            if (this.reconnections < 10) {
+              this.reconnections = this.reconnections + 1
+              console.warn(`closed uncleanly, reconnecting (try number ${this.reconnections})`)
+              setTimeout(() => {
+                this.connect()
+              }, 500)
+            } else {
+              console.warn("Tried too many times, stopping.")
+            }
+          }
+        }
       }
     },
 
