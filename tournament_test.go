@@ -122,7 +122,7 @@ func TestNextMatchNoMatchesAreStartedWithTryouts(t *testing.T) {
 	assert.Nil(err)
 	assert.Equal(1, m.Index)
 	assert.Equal("tryout", m.Kind)
-	assert.Equal(CurrentMatch{"tryouts", 1}, tm.Current)
+	assert.Equal(CurrentMatch{"tryout", 1}, tm.Current)
 }
 
 func TestNextMatchNoMatchesAreStartedWithTryoutsDone(t *testing.T) {
