@@ -150,7 +150,7 @@ func (p *Person) Correct() {
 
 	if len(p.ColorPreference) == 0 {
 		// Grab a random color and insert it into the preference.
-		p.ColorPreference = append(p.ColorPreference, Colors.Random())
+		p.ColorPreference = append(p.ColorPreference, RandomColor(Colors))
 		log.Printf("Corrected color for %s", p)
 	}
 }

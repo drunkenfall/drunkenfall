@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/deckarep/golang-set"
 	"log"
 	"math/rand"
 	"time"
@@ -424,7 +425,7 @@ func (t *Tournament) SetMatchPointers() error {
 
 	for i := range t.Tryouts {
 		m = t.Tryouts[i]
-		m.presentColors = make(map[string]bool)
+		m.presentColors = mapset.NewSet()
 		m.Tournament = t
 		for j := range m.Players {
 			m.Players[j].Match = m
@@ -433,14 +434,14 @@ func (t *Tournament) SetMatchPointers() error {
 
 	for i := range t.Semis {
 		m = t.Semis[i]
-		m.presentColors = make(map[string]bool)
+		m.presentColors = mapset.NewSet()
 		m.Tournament = t
 		for j := range m.Players {
 			m.Players[j].Match = m
 		}
 	}
 	t.Final.Tournament = t
-	t.Final.presentColors = make(map[string]bool)
+	t.Final.presentColors = mapset.NewSet()
 	for i := range t.Final.Players {
 		t.Final.Players[i].Match = t.Final
 	}
@@ -461,7 +462,7 @@ func SetupFakeTournament(s *Server) *Tournament {
 			Name:            FakeName(),
 			Nick:            FakeNick(),
 			AvatarURL:       FakeAvatar(),
-			ColorPreference: []string{Colors.Random()},
+			ColorPreference: []string{RandomColor(Colors)},
 		}
 		t.AddPlayer(ps)
 	}

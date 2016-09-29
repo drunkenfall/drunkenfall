@@ -3,7 +3,6 @@ package main
 import (
 	"github.com/stretchr/testify/assert"
 	"log"
-	"math/rand"
 	"testing"
 	"time"
 )
@@ -38,8 +37,8 @@ func testPerson() *Person {
 		Name: FakeName(),
 		Nick: FakeNick(),
 		ColorPreference: []string{
-			Colors[rand.Intn(len(Colors))],
-			Colors[rand.Intn(len(Colors))],
+			RandomColor(Colors),
+			RandomColor(Colors),
 		},
 	}
 }

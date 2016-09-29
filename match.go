@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"github.com/deckarep/golang-set"
 	"log"
 	"strings"
 	"time"
@@ -28,7 +29,7 @@ type Match struct {
 	// One commit per round - the changeset of what happened in it.
 	Commits []MatchCommit `json:"commits"`
 
-	presentColors map[string]bool
+	presentColors mapset.Set
 }
 
 // MatchCommit is a state commit for a round of a match
@@ -47,7 +48,7 @@ func NewMatch(t *Tournament, index int, kind string) *Match {
 		Length:     10,
 		Pause:      time.Minute * 5,
 	}
-	m.presentColors = make(map[string]bool)
+	m.presentColors = mapset.NewSet()
 
 	// The pause between tryout/semi brackets should be longer
 	if kind == "semi" && index == 0 {
@@ -134,15 +135,16 @@ func (m *Match) AddPlayer(p Player) error {
 
 	c := p.PreferredColor()
 	p.OriginalColor = c
-	if _, ok := m.presentColors[c]; ok {
+	if m.presentColors.Contains(c) {
+		a := AvailableColors(m)
 		// Color is already present - give the player a new random one.
-		c = Colors.Available(m).Random()
+		c = RandomColor(a)
 		log.Printf("Corrected color of %s from %s to %s", p.Person.Nick, p.OriginalColor, c)
 	}
 
 	// Set the player color
 	p.Color = c
-	m.presentColors[c] = true
+	m.presentColors.Add(c)
 
 	// Also set the match pointer
 	p.Match = m

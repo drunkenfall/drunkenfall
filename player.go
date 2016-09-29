@@ -7,11 +7,8 @@ import (
 	"sort"
 )
 
-// ColorList is the representation of colors players can choose from
-type ColorSet mapset.Set
-
-// Colors is a list of the available player colors
-var Colors = []string{
+// AllColors is a list of the available player colors
+var AllColors = []interface{}{
 	"green",
 	"blue",
 	"pink",
@@ -22,6 +19,8 @@ var Colors = []string{
 	"purple",
 	"red",
 }
+
+var Colors = mapset.NewSetFromSlice(AllColors)
 
 // ScoreData is a structured Key/Value pair list for scores
 type ScoreData struct {
@@ -137,11 +136,6 @@ func (p *Player) Classes() string {
 		return "out"
 	}
 	return p.PreferredColor()
-}
-
-// RandomizeColor sets the color of this player to an unused one
-func (p *Player) RandomizeColor(m *Match) {
-	p.Color = Colors.Available(m).Random()
 }
 
 // Index returns the index in the current match
@@ -399,31 +393,17 @@ func SortByRunnerup(ps []Player) []Player {
 }
 
 // Random returns a random color from the ColorList
-func (c ColorSet) Random() string {
-	x := len(c)
-	fmt.Println(c)
-	return c[rand.Intn(x)]
+func RandomColor(s mapset.Set) string {
+	colors := s.ToSlice()
+	x := len(colors)
+	return colors[rand.Intn(x)].(string)
 }
 
-// Available returns a ColorList with the colors not used in a match
-func (c ColorSet) Available(m *Match) ColorSet {
-	ret := make(ColorSet, 0)
-	matchcolors := make(ColorSet, 0)
-
-	// Make a list with all the colors that are in use
-	for _, p := range m.Players {
-		matchcolors = append(matchcolors, p.PreferredColor())
-	}
-
-	// Fill the return list with the other colors
-	for _, color := range c {
-		for _, mc := range matchcolors {
-			if color != mc {
-				ret = append(ret, color)
-			}
-		}
-	}
-
+// AvailableColors returns a ColorList with the colors not used in a match
+func AvailableColors(m *Match) mapset.Set {
+	_ = "breakpoint"
+	colors := mapset.NewSetFromSlice(AllColors)
+	ret := colors.Difference(m.presentColors)
 	return ret
 }
 
