@@ -136,6 +136,7 @@ func (m *Match) AddPlayer(p Player) error {
 	c := p.PreferredColor()
 	p.Color = c
 	p.OriginalColor = c
+	fmt.Println(fmt.Sprintf("%s: %s", p.Name(), p.OriginalColor))
 	m.presentColors.Add(c)
 
 	// Also set the match pointer
@@ -179,8 +180,9 @@ func (m *Match) CorrectFuckingColorConflicts() error {
 		// If there are two or more players in the group, there is a conflict and
 		// they need to be corrected.
 		if len(pair) >= 2 {
-			// Sort them by score, so that we can let the player with the highest score keep their color
-			ps := SortByScore(pair)
+			// We want to sort them by score, so that we can let the player with the
+			// highest score keep their color.
+			ps := SortByTournamentScore(pair)
 			fmt.Println(ps[0].Name(), ps[0].Kills)
 			fmt.Println(ps[1].Name(), ps[1].Kills)
 			for _, p := range ps[1:] {
@@ -188,8 +190,13 @@ func (m *Match) CorrectFuckingColorConflicts() error {
 				new := RandomColor(AvailableColors(m))
 				m.presentColors.Add(new)
 				p.Color = new
+
+				// Since we are using the tournament level Player object, the compound
+				// scores from all other matches are currently on it. Reset that.
+				p.Reset()
+
 				m.UpdatePlayer(p)
-				log.Println(fmt.Sprintf("%s corrected from %s to %s", p.Name(), p.OriginalColor, new))
+				log.Println(fmt.Sprintf("%s corrected from %s to %s", p.Name(), p.PreferredColor(), new))
 			}
 		}
 	}

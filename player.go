@@ -333,6 +333,18 @@ func SortByScore(ps []Player) []Player {
 	return tmp
 }
 
+// SortByTournamentScore returns a list in order of the score the players
+// have, computed from the total of the tournament
+func SortByTournamentScore(ps []Player) []Player {
+	tmp := make([]Player, len(ps))
+	for i, p := range ps {
+		// TODO(thiderman): This is not very elegant and should be replaced.
+		tmp[i] = *p.Match.Tournament.getPlayer(p.Name())
+	}
+	sort.Sort(ByScore(tmp))
+	return tmp
+}
+
 // ByKills is a sort.Interface that sorts players by their kills
 type ByKills []Player
 

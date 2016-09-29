@@ -436,25 +436,22 @@ func TestCorrectColorConflictsWithScoresDoubleConflict(t *testing.T) {
 	m := MockMatch(0, "final")
 	m.Players = make([]Player, 0)
 
-	p1 := testPlayer()
-	p1.Person.ColorPreference[0] = "green"
-	p1.Person.Nick = "GreenCorrected"
-	p2 := testPlayer()
-	p2.Person.ColorPreference[0] = "green"
-	p2.Person.Nick = "GreenKeep"
-	p2.AddKill(3)
-	p3 := testPlayer()
-	p3.Person.ColorPreference[0] = "blue"
-	p3.Person.Nick = "BlueCorrected"
-	p4 := testPlayer()
-	p4.Person.ColorPreference[0] = "blue"
-	p4.Person.Nick = "BlueKeep"
-	p4.AddKill(3)
+	m.Tournament.Players[0].Person.ColorPreference[0] = "green"
+	m.Tournament.Players[0].Person.Nick = "GreenCorrected"
 
-	_ = m.AddPlayer(p1)
-	_ = m.AddPlayer(p2)
-	_ = m.AddPlayer(p3)
-	_ = m.AddPlayer(p4)
+	m.Tournament.Players[1].Kills = 3
+	m.Tournament.Players[1].Person.ColorPreference[0] = "green"
+
+	m.Tournament.Players[2].Person.ColorPreference[0] = "blue"
+	m.Tournament.Players[2].Person.Nick = "BlueCorrected"
+
+	m.Tournament.Players[3].Kills = 3
+	m.Tournament.Players[3].Person.ColorPreference[0] = "blue"
+
+	_ = m.AddPlayer(m.Tournament.Players[0])
+	_ = m.AddPlayer(m.Tournament.Players[1])
+	_ = m.AddPlayer(m.Tournament.Players[2])
+	_ = m.AddPlayer(m.Tournament.Players[3])
 
 	assert.NotEqual("green", m.Players[0].Color)
 	assert.Equal("green", m.Players[0].OriginalColor)
