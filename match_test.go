@@ -327,6 +327,7 @@ func TestCorrectColorConflictsNoScores(t *testing.T) {
 	p1.Person.ColorPreference[0] = "green"
 	p2 := testPlayer()
 	p2.Person.ColorPreference[0] = "green"
+	p2.Person.Nick = "ToBeCorrected"
 	p3 := testPlayer()
 	p3.Person.ColorPreference[0] = "blue"
 	p4 := testPlayer()
@@ -347,7 +348,7 @@ func TestCorrectColorConflictsNoScores(t *testing.T) {
 	assert.Equal("red", m.Players[3].OriginalColor)
 }
 
-// This test was needed since somehow getting the color reset
+// This test was needed since somehow the color were being kept
 func TestCorrectColorConflictsResetsToOriginalColor(t *testing.T) {
 	assert := assert.New(t)
 
@@ -397,45 +398,73 @@ func TestCorrectColorConflictsResetsToOriginalColor(t *testing.T) {
 
 }
 
-// func TestCorrectColorConflictsNoScoresDoubleConflict(t *testing.T) {
-// 	assert := assert.New(t)
+func TestCorrectColorConflictsNoScoresDoubleConflict(t *testing.T) {
+	assert := assert.New(t)
 
-// 	m := MockMatch(0, "final")
-// 	_ = m.AddPlayer(testPlayer())
-// 	_ = m.AddPlayer(testPlayer())
-// 	_ = m.AddPlayer(testPlayer())
-// 	_ = m.AddPlayer(testPlayer())
+	m := MockMatch(0, "final")
+	m.Players = make([]Player, 0)
 
-// 	err := m.CorrectColorConflicts()
-// 	assert.Nil(err)
+	p1 := testPlayer()
+	p1.Person.ColorPreference[0] = "green"
+	p2 := testPlayer()
+	p2.Person.ColorPreference[0] = "green"
+	p2.Person.Nick = "GreenCorrected"
+	p3 := testPlayer()
+	p3.Person.ColorPreference[0] = "blue"
+	p4 := testPlayer()
+	p4.Person.ColorPreference[0] = "blue"
+	p4.Person.Nick = "BlueCorrected"
 
-// 	assert.Equal("green", m.Players[0].PreferredColor())
-// 	assert.NotEqual("green", m.Players[1].PreferredColor())
-// 	assert.Equal("blue", m.Players[2].PreferredColor())
-// 	assert.NotEqual("blue", m.Players[3].PreferredColor())
-// }
+	_ = m.AddPlayer(p1)
+	_ = m.AddPlayer(p2)
+	_ = m.AddPlayer(p3)
+	_ = m.AddPlayer(p4)
 
-// func TestCorrectColorConflictPlayerTwoHasHigherScore(t *testing.T) {
-// 	assert := assert.New(t)
+	assert.Equal("green", m.Players[0].Color)
+	assert.Equal("green", m.Players[0].OriginalColor)
+	assert.NotEqual("green", m.Players[1].Color)
+	assert.Equal("green", m.Players[1].OriginalColor)
+	assert.Equal("blue", m.Players[2].Color)
+	assert.Equal("blue", m.Players[2].OriginalColor)
+	assert.NotEqual("blue", m.Players[3].Color)
+	assert.Equal("blue", m.Players[3].OriginalColor)
+}
 
-// 	m := MockMatch(0, "final")
-// 	_ = m.AddPlayer(testPlayer())
-// 	_ = m.AddPlayer(testPlayer())
-// 	_ = m.AddPlayer(testPlayer())
-// 	_ = m.AddPlayer(testPlayer())
+func TestCorrectColorConflictsWithScoresDoubleConflict(t *testing.T) {
+	assert := assert.New(t)
 
-// 	// Add some score to player 2 so that it has preference over green.
-// 	m.Players[1].AddKill(3)
+	m := MockMatch(0, "final")
+	m.Players = make([]Player, 0)
 
-// 	err := m.CorrectColorConflicts()
-// 	assert.Nil(err)
+	p1 := testPlayer()
+	p1.Person.ColorPreference[0] = "green"
+	p1.Person.Nick = "GreenCorrected"
+	p2 := testPlayer()
+	p2.Person.ColorPreference[0] = "green"
+	p2.Person.Nick = "GreenKeep"
+	p2.AddKill(3)
+	p3 := testPlayer()
+	p3.Person.ColorPreference[0] = "blue"
+	p3.Person.Nick = "BlueCorrected"
+	p4 := testPlayer()
+	p4.Person.ColorPreference[0] = "blue"
+	p4.Person.Nick = "BlueKeep"
+	p4.AddKill(3)
 
-// 	// TODO(thiderman): Fix this
-// 	// assert.NotEqual("green", m.Players[0].PreferredColor())
-// 	// assert.Equal("green", m.Players[1].PreferredColor())
-// 	// assert.Equal("blue", m.Players[2].PreferredColor())
-// 	// assert.Equal("cyan", m.Players[3].PreferredColor())
-// }
+	_ = m.AddPlayer(p1)
+	_ = m.AddPlayer(p2)
+	_ = m.AddPlayer(p3)
+	_ = m.AddPlayer(p4)
+
+	assert.NotEqual("green", m.Players[0].Color)
+	assert.Equal("green", m.Players[0].OriginalColor)
+	assert.Equal("green", m.Players[1].Color)
+	assert.Equal("green", m.Players[1].OriginalColor)
+	assert.NotEqual("blue", m.Players[2].Color)
+	assert.Equal("blue", m.Players[2].OriginalColor)
+	assert.Equal("blue", m.Players[3].Color)
+	assert.Equal("blue", m.Players[3].OriginalColor)
+}
 
 func TestSortByScoreDoesNotAlterSourceList(t *testing.T) {
 	assert := assert.New(t)

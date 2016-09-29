@@ -51,19 +51,14 @@ func NewPlayer(ps *Person) Player {
 }
 
 func (p *Player) String() string {
-	IsPointed := "."
-	if p.Match != nil {
-		IsPointed = "!"
-	}
 	return fmt.Sprintf(
-		"<%s: %dsh %dsw %dk %ds %de %s>",
+		"<%s: %dsh %dsw %dk %ds %de>",
 		p.Name(),
 		p.Shots,
 		p.Sweeps,
 		p.Kills,
 		p.Self,
 		p.Explosions,
-		IsPointed,
 	)
 }
 

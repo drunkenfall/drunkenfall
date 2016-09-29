@@ -134,22 +134,19 @@ func (m *Match) AddPlayer(p Player) error {
 	p.Reset()
 
 	c := p.PreferredColor()
-	p.OriginalColor = c
-	if m.presentColors.Contains(c) {
-		a := AvailableColors(m)
-		// Color is already present - give the player a new random one.
-		c = RandomColor(a)
-		log.Printf("Corrected color of %s from %s to %s", p.Person.Nick, p.OriginalColor, c)
-	}
-
-	// Set the player color
 	p.Color = c
+	p.OriginalColor = c
 	m.presentColors.Add(c)
 
 	// Also set the match pointer
 	p.Match = m
 
 	m.Players = append(m.Players, p)
+
+	// If we're adding the fourth player, it's time to correct the conflicts
+	if len(m.Players) == 4 && len(m.presentColors.ToSlice()) != 4 {
+		m.CorrectFuckingColorConflicts()
+	}
 
 	return nil
 }
@@ -159,6 +156,41 @@ func (m *Match) UpdatePlayer(p Player) error {
 	for i, o := range m.Players {
 		if o.Name() == p.Name() {
 			m.Players[i] = p
+		}
+	}
+	return nil
+}
+
+// CorrectFuckingColorConflicts corrects color conflicts :@
+func (m *Match) CorrectFuckingColorConflicts() error {
+	// Make a map of conflicting players keyed on the color
+	pairs := make(map[string][]Player)
+	for _, color := range m.presentColors.ToSlice() {
+		c := color.(string)
+		for _, p := range m.Players {
+			if p.PreferredColor() == c {
+				pairs[c] = append(pairs[c], p)
+			}
+		}
+	}
+
+	// Loop over the colors and
+	for _, pair := range pairs {
+		// If there are two or more players in the group, there is a conflict and
+		// they need to be corrected.
+		if len(pair) >= 2 {
+			// Sort them by score, so that we can let the player with the highest score keep their color
+			ps := SortByScore(pair)
+			fmt.Println(ps[0].Name(), ps[0].Kills)
+			fmt.Println(ps[1].Name(), ps[1].Kills)
+			for _, p := range ps[1:] {
+				// For the players with lower scores, set their new colors
+				new := RandomColor(AvailableColors(m))
+				m.presentColors.Add(new)
+				p.Color = new
+				m.UpdatePlayer(p)
+				log.Println(fmt.Sprintf("%s corrected from %s to %s", p.Name(), p.OriginalColor, new))
+			}
 		}
 	}
 	return nil
