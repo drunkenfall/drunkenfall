@@ -133,11 +133,8 @@ func (m *Match) AddPlayer(p Player) error {
 	// Reset all possible scores
 	p.Reset()
 
-	c := p.PreferredColor()
-	p.Color = c
-	p.OriginalColor = c
-	fmt.Println(fmt.Sprintf("%s: %s", p.Name(), p.OriginalColor))
-	m.presentColors.Add(c)
+	p.Color = p.PreferredColor
+	m.presentColors.Add(p.Color)
 
 	// Also set the match pointer
 	p.Match = m
@@ -169,7 +166,7 @@ func (m *Match) CorrectFuckingColorConflicts() error {
 	for _, color := range m.presentColors.ToSlice() {
 		c := color.(string)
 		for _, p := range m.Players {
-			if p.PreferredColor() == c {
+			if p.PreferredColor == c {
 				pairs[c] = append(pairs[c], p)
 			}
 		}
