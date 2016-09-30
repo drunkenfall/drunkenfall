@@ -131,7 +131,6 @@ func TestNextMatchNoMatchesAreStartedWithTryoutsDone(t *testing.T) {
 	tm.StartTournament()
 	err := endTryouts(tm)
 	assert.Nil(err)
-	_ = "breakpoint"
 
 	m, err := tm.NextMatch()
 	assert.Nil(err)

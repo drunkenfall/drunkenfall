@@ -405,7 +405,6 @@ func RandomColor(s mapset.Set) string {
 
 // AvailableColors returns a ColorList with the colors not used in a match
 func AvailableColors(m *Match) mapset.Set {
-	_ = "breakpoint"
 	colors := mapset.NewSetFromSlice(AllColors)
 	ret := colors.Difference(m.presentColors)
 	return ret
