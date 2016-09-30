@@ -31,22 +31,24 @@ type ScoreData struct {
 
 // Player is a Participant that is actively participating in battles.
 type Player struct {
-	Person        *Person `json:"person"`
-	Color         string  `json:"color"`
-	OriginalColor string  `json:"original_color"`
-	Shots         int     `json:"shots"`
-	Sweeps        int     `json:"sweeps"`
-	Kills         int     `json:"kills"`
-	Self          int     `json:"self"`
-	Explosions    int     `json:"explosions"`
-	Matches       int     `json:"matches"`
-	TotalScore    int     `json:"score"`
-	Match         *Match  `json:"-"`
+	Person         *Person `json:"person"`
+	Color          string  `json:"color"`
+	PreferredColor string  `json:"preferred_color"`
+	Shots          int     `json:"shots"`
+	Sweeps         int     `json:"sweeps"`
+	Kills          int     `json:"kills"`
+	Self           int     `json:"self"`
+	Explosions     int     `json:"explosions"`
+	Matches        int     `json:"matches"`
+	TotalScore     int     `json:"score"`
+	Match          *Match  `json:"-"`
 }
 
 // NewPlayer returns a new instance of a player
-func NewPlayer(ps *Person) Player {
-	p := Player{Person: ps}
+func NewPlayer(ps *Person) *Player {
+	p := &Player{Person: ps}
+	p.PreferredColor = ps.ColorPreference[0]
+
 	return p
 }
 
@@ -65,11 +67,6 @@ func (p *Player) String() string {
 // Name returns the nickname
 func (p *Player) Name() string {
 	return p.Person.Nick
-}
-
-// PreferredColor returns the color
-func (p *Player) PreferredColor() string {
-	return p.Person.PreferredColor()
 }
 
 // Score calculates the score to determine runnerup positions.
@@ -130,7 +127,7 @@ func (p *Player) Classes() string {
 
 		return "out"
 	}
-	return p.PreferredColor()
+	return p.PreferredColor
 }
 
 // Index returns the index in the current match

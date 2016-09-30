@@ -113,21 +113,19 @@ func (t *Tournament) URL() string {
 // AddPlayer adds a player into the tournament
 //
 // If the four default tryout matches are full, four more will be generated.
-func (t *Tournament) AddPlayer(ps *Person) error {
-	ps.Correct()
+func (t *Tournament) AddPlayer(p *Player) error {
+	p.Person.Correct()
 
-	if err := t.CanJoin(ps); err != nil {
+	if err := t.CanJoin(p.Person); err != nil {
 		return err
 	}
 
-	p := Player{Person: ps}
-
-	t.Players = append(t.Players, p)
+	t.Players = append(t.Players, *p)
 
 	// If the tournament is already started, just add the player into the
 	// runnerups so that they will be placed at the end immediately.
 	if !t.Started.IsZero() {
-		t.Runnerups = append(t.Runnerups, p.Name())
+		t.Runnerups = append(t.Runnerups, p.Person)
 	}
 
 	t.Persist() // TODO: Error handling
@@ -182,7 +180,8 @@ func (t *Tournament) StartTournament() error {
 // UsurpTournament starts a fake tournament with all registered players
 func (t *Tournament) UsurpTournament() error {
 	t.db.LoadPeople()
-	for _, p := range t.db.People {
+	for _, ps := range t.db.People {
+		p := NewPlayer(ps)
 		t.AddPlayer(p)
 	}
 	return nil
@@ -464,7 +463,8 @@ func SetupFakeTournament(s *Server) *Tournament {
 			AvatarURL:       FakeAvatar(),
 			ColorPreference: []string{RandomColor(Colors)},
 		}
-		t.AddPlayer(ps)
+		p := NewPlayer(ps)
+		t.AddPlayer(p)
 	}
 
 	return t

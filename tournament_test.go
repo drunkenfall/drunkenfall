@@ -17,7 +17,7 @@ func testTournament(count int) (t *Tournament) {
 	}
 
 	for i := 1; i <= count; i++ {
-		t.AddPlayer(testPerson())
+		_ = t.AddPlayer(NewPlayer(testPerson()))
 	}
 
 	return

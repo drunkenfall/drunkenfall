@@ -157,7 +157,8 @@ func (s *Server) JoinHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	tm := s.getTournament(r)
-	p := PersonFromSession(s, r)
+	ps := PersonFromSession(s, r)
+	p := NewPlayer(ps)
 
 	err := tm.AddPlayer(p)
 	if err != nil {
