@@ -14,9 +14,9 @@ import (
 type Tournament struct {
 	Name        string       `json:"name"`
 	ID          string       `json:"id"`
-	Players     []Player     `json:"players"`
-	Winners     []Player     `json:"winners"` // TODO: Refactor to pointer
-	Runnerups   []string     `json:"runnerups"`
+	Players     []Player     `json:"players"` // See getTournamentPlayerObject()
+	Winners     []Player     `json:"winners"` // TODO(thiderman): Refactor to pointer
+	Runnerups   []*Person    `json:"runnerups"`
 	Judges      []Judge      `json:"judges"`
 	Tryouts     []*Match     `json:"tryouts"`
 	Semis       []*Match     `json:"semis"`
@@ -189,7 +189,7 @@ func (t *Tournament) UsurpTournament() error {
 
 // PopulateRunnerups fills a match with the runnerups with best scores
 func (t *Tournament) PopulateRunnerups(m *Match) error {
-	r, err := t.GetRunnerups()
+	r, err := t.GetRunnerupPlayers()
 	if err != nil {
 		return err
 	}
@@ -201,10 +201,11 @@ func (t *Tournament) PopulateRunnerups(m *Match) error {
 	return nil
 }
 
-// GetRunnerups gets the runnerups for this tournament
+// GetRunnerupPlayers gets the runnerups for this tournament
 //
 // The returned list is sorted descending by score.
-func (t *Tournament) GetRunnerups() (ps []Player, err error) {
+func (t *Tournament) GetRunnerupPlayers() (ps []Player, err error) {
+	var l *Player
 	err = t.UpdatePlayers()
 	if err != nil {
 		return
@@ -213,7 +214,11 @@ func (t *Tournament) GetRunnerups() (ps []Player, err error) {
 	rs := len(t.Runnerups)
 	p := make([]Player, 0, rs)
 	for _, r := range t.Runnerups {
-		l := t.getPlayer(r)
+		l, err = t.getTournamentPlayerObject(r)
+		if err != nil {
+			return
+		}
+
 		p = append(p, *l)
 	}
 	bs := SortByRunnerup(p)
@@ -231,18 +236,30 @@ func (t *Tournament) UpdatePlayers() error {
 
 	for _, m := range t.Tryouts {
 		for _, p := range m.Players {
-			t.getPlayer(p.Name()).Update(p)
+			tp, err := t.getTournamentPlayerObject(p.Person)
+			if err != nil {
+				return err
+			}
+			tp.Update(p)
 		}
 	}
 
 	for _, m := range t.Semis {
 		for _, p := range m.Players {
-			t.getPlayer(p.Name()).Update(p)
+			tp, err := t.getTournamentPlayerObject(p.Person)
+			if err != nil {
+				return err
+			}
+			tp.Update(p)
 		}
 	}
 
 	for _, p := range t.Final.Players {
-		t.getPlayer(p.Name()).Update(p)
+		tp, err := t.getTournamentPlayerObject(p.Person)
+		if err != nil {
+			return err
+		}
+		tp.Update(p)
 	}
 
 	return nil
@@ -268,7 +285,7 @@ func (t *Tournament) MovePlayers(m *Match) error {
 				// only happens for players that win the runnerup rounds.
 				for j := 0; j < len(t.Runnerups); j++ {
 					r := t.Runnerups[j]
-					if r == p.Name() {
+					if r == p.Person {
 						t.Runnerups = append(t.Runnerups[:j], t.Runnerups[j+1:]...)
 						break
 					}
@@ -280,13 +297,13 @@ func (t *Tournament) MovePlayers(m *Match) error {
 				found := false
 				for j := 0; j < len(t.Runnerups); j++ {
 					r := t.Runnerups[j]
-					if r == p.Name() {
+					if r == p.Person {
 						found = true
 						break
 					}
 				}
 				if !found {
-					t.Runnerups = append(t.Runnerups, p.Name())
+					t.Runnerups = append(t.Runnerups, p.Person)
 				}
 			}
 		}
@@ -301,14 +318,14 @@ func (t *Tournament) MovePlayers(m *Match) error {
 		}
 	}
 
-	// Get the runnerups and sort their names into the Runnerup array
-	ps, err := t.GetRunnerups()
+	// Get the runnerups and sort them into the Runnerup array
+	ps, err := t.GetRunnerupPlayers()
 	if err != nil {
 		log.Fatal(err)
 	}
-	t.Runnerups = make([]string, 0)
+	t.Runnerups = make([]*Person, 0)
 	for _, p := range ps {
-		t.Runnerups = append(t.Runnerups, p.Name())
+		t.Runnerups = append(t.Runnerups, p.Person)
 	}
 
 	// Finally, if the next match is a tryout and does not have enough players,
@@ -470,14 +487,20 @@ func SetupFakeTournament(s *Server) *Tournament {
 	return t
 }
 
-func (t *Tournament) getPlayer(name string) (p *Player) {
+// getTournamentPlayerObject returns the tournament-wide player object.
+//
+// The need for this distinction is that the ones that are stored in t.Players
+// have scores from all the matches they have participated in, whereas the
+// ones started in m.Players are local to that match only. This is also why
+// the Match objects don't have pointers to their Player objects.
+func (t *Tournament) getTournamentPlayerObject(ps *Person) (p *Player, err error) {
 	for i := range t.Players {
 		p := &t.Players[i]
-		if p.Name() == name {
-			return p
+		if ps.ID == p.Person.ID {
+			return p, nil
 		}
 	}
 
-	log.Print(fmt.Sprintf("no player named %s found", name))
+	err = fmt.Errorf("no player found for %s", ps)
 	return
 }
