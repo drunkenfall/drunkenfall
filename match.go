@@ -143,7 +143,9 @@ func (m *Match) AddPlayer(p Player) error {
 
 	// If we're adding the fourth player, it's time to correct the conflicts
 	if len(m.Players) == 4 && len(m.presentColors.ToSlice()) != 4 {
-		m.CorrectFuckingColorConflicts()
+		if err := m.CorrectFuckingColorConflicts(); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -179,9 +181,11 @@ func (m *Match) CorrectFuckingColorConflicts() error {
 		if len(pair) >= 2 {
 			// We want to sort them by score, so that we can let the player with the
 			// highest score keep their color.
-			ps := SortByTournamentScore(pair)
-			fmt.Println(ps[0].Name(), ps[0].Kills)
-			fmt.Println(ps[1].Name(), ps[1].Kills)
+			ps, err := SortByTournamentScore(pair)
+			if err != nil {
+				return err
+			}
+
 			for _, p := range ps[1:] {
 				// For the players with lower scores, set their new colors
 				new := RandomColor(AvailableColors(m))
@@ -192,8 +196,10 @@ func (m *Match) CorrectFuckingColorConflicts() error {
 				// scores from all other matches are currently on it. Reset that.
 				p.Reset()
 
-				m.UpdatePlayer(p)
-				log.Println(fmt.Sprintf("%s corrected from %s to %s", p.Name(), p.PreferredColor(), new))
+				if err := m.UpdatePlayer(p); err != nil {
+					return err
+				}
+				log.Println(fmt.Sprintf("%s corrected from %s to %s", p.Name(), p.PreferredColor, new))
 			}
 		}
 	}
