@@ -26,12 +26,29 @@ export default {
     }
   },
   methods: {
+    reconnect: function () {
+      this.$delete("ws")
+
+      if (this.reconnections < 30) {
+        console.warn(`closed uncleanly, reconnecting (try number ${this.reconnections})`)
+        setTimeout(() => {
+          this.reconnections = this.reconnections + 1
+          this.connect()
+        }, 500)
+      } else {
+        console.warn("Tried too many times, stopping.")
+        this.reconnections = 0
+      }
+    },
+
     // (Re-)Connect the websocket.
     // Is safe to run when the connection is already up - then it will be a noop.
     connect: function () {
       if (!this.ws) {
         console.log('Setting up new websocket')
         this.$set('ws', new WebSocket('ws://' + window.location.host + '/api/towerfall/auto-updater'))
+
+        let timeoutId
 
         this.ws.onmessage = (event) => {
           let res
@@ -45,6 +62,16 @@ export default {
           // If p is set, this is a ping message that only serves to keep the connection open.
           // Break immediately.
           if (res.p !== undefined) {
+            if (timeoutId) {
+              clearTimeout(timeoutId)
+            }
+
+            timeoutId = setTimeout(() => {
+              // we're disconnected, try to connect again
+              console.warn("Disconnected, try to reconnect a few times")
+              this.reconnect()
+            }, 10000)
+            console.debug("Ping")
             return
           }
 
@@ -75,17 +102,7 @@ export default {
         this.ws.onclose = (closeEvent) => {
           console.debug("websocket closed", closeEvent)
           if (!closeEvent.wasClean) {
-            this.$delete("ws")
-
-            if (this.reconnections < 10) {
-              this.reconnections = this.reconnections + 1
-              console.warn(`closed uncleanly, reconnecting (try number ${this.reconnections})`)
-              setTimeout(() => {
-                this.connect()
-              }, 500)
-            } else {
-              console.warn("Tried too many times, stopping.")
-            }
+            this.reconnect()
           }
         }
       }
