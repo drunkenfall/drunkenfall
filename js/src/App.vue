@@ -67,9 +67,13 @@ export default {
             }
 
             timeoutId = setTimeout(() => {
-              // we're disconnected, try to connect again
-              console.warn("Disconnected, try to reconnect a few times")
-              this.reconnect()
+              if (this.ws && this.ws.readyState === 0) {
+                // we're already trying to reconnect, don't try more
+              } else {
+                // the server probably died, try to connect again
+                console.warn("The server probably died, try to reconnect a few times")
+                this.reconnect()
+              }
             }, 10000)
             console.debug("Ping")
             return
