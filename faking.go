@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	"fmt"
 	roman "github.com/StefanSchroeder/Golang-Roman"
 	"io/ioutil"
@@ -17,9 +18,16 @@ type Cracklib []string
 var words Cracklib
 
 func init() {
-	out, err := ioutil.ReadFile("/usr/share/cracklib/cracklib-small")
+	cracklib_location := os.Getenv("DF_CRACKLIB_LOCATION")
+	default_cracklib_location := "/usr/share/cracklib/cracklib-small"
+	if cracklib_location == "" {
+		log.Print("Cracklib location set to default: " + default_cracklib_location)
+
+		cracklib_location = default_cracklib_location
+	}
+	out, err := ioutil.ReadFile(cracklib_location)
 	if err != nil {
-		log.Print("Cracklib failed to load.")
+		log.Print("Cracklib failed to load. Set location by env variable DF_CRACKLIB_LOCATION")
 		return
 	}
 	words = removeApostrophes(strings.Split(string(out), "\n"))
