@@ -229,11 +229,11 @@ type MatchFunctor func(w http.ResponseWriter, r *http.Request, match *Match) err
 
 // MatchHandler is the common function for match operations. 
 func (s *Server) MatchHandler(w http.ResponseWriter, r *http.Request, functor MatchFunctor) {
-		if !HasPermission(r, PermissionJudge) {
+	if !HasPermission(r, PermissionJudge) {
 		PermissionFailure(w, r, "Cannot stop match unless judge or above")
 		return
 	}
-
+	
 	m := s.getMatch(r)
 	log.Printf("Got match %s", m.String())
 	err := functor(w, r, m)
