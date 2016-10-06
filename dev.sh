@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-cd $(dirname $(readlink -f $0))
-
 # Check that we have the things that we need to run this
 error=false
 for x in go npm nginx; do
