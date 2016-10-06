@@ -97,7 +97,7 @@ export default {
       this.$set('updated', Date.now())
     },
     end: function () {
-      this.api.toggle({ id: this.tournament.id, kind: this.match.kind, index: this.match.index }).then(function (res) {
+      this.api.end({ id: this.tournament.id, kind: this.match.kind, index: this.match.index }).then(function (res) {
         console.log(res)
         this.$route.router.go('/towerfall/' + this.tournament.id + '/')
       }, function (res) {
@@ -106,7 +106,7 @@ export default {
       })
     },
     start: function () {
-      this.api.toggle({ id: this.tournament.id, kind: this.match.kind, index: this.match.index }).then(function (res) {
+      this.api.start({ id: this.tournament.id, kind: this.match.kind, index: this.match.index }).then(function (res) {
         console.log(res)
         this.setData(
           res.data.tournament,
@@ -139,7 +139,8 @@ export default {
     console.debug("Creating API resource")
     let customActions = {
       commit: { method: "POST", url: "/api/towerfall/tournament{/id}{/kind}{/index}/commit/" },
-      toggle: { method: "GET", url: "/api/towerfall/tournament{/id}{/kind}{/index}/toggle/" },
+      start: { method: "GET", url: "/api/towerfall/tournament{/id}{/kind}{/index}/start/" },
+      end: { method: "GET", url: "/api/towerfall/tournament{/id}{/kind}{/index}/end/" },
       getTournamentData: { method: "GET", url: "/api/towerfall/tournament{/id}/" }
     }
     this.api = this.$resource("/api/towerfall", {}, customActions)

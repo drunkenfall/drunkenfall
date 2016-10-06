@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"errors"
 
 	"fmt"
 	"github.com/thiderman/drunkenfall/websockets"
@@ -222,21 +223,25 @@ func (s *Server) NextHandler(w http.ResponseWriter, r *http.Request) {
 	s.Redirect(w, m.URL())
 }
 
-// MatchToggleHandler starts and stops matches
-func (s *Server) MatchToggleHandler(w http.ResponseWriter, r *http.Request) {
-	// TODO(thiderman): This should really be two different methods.
-	if !HasPermission(r, PermissionJudge) {
-		PermissionFailure(w, r, "Cannot start match unless judge or above")
+
+// Common function for usage in MatchHandler
+type MatchFunctor func(w http.ResponseWriter, r *http.Request, match *Match) error
+
+// MatchHandler is the common function for match operations. 
+func (s *Server) MatchHandler(w http.ResponseWriter, r *http.Request, functor MatchFunctor) {
+		if !HasPermission(r, PermissionJudge) {
+		PermissionFailure(w, r, "Cannot stop match unless judge or above")
 		return
 	}
 
 	m := s.getMatch(r)
-	if !m.IsStarted() {
-		log.Printf("%s started", m.String())
-		m.Start()
-	} else {
-		log.Printf("%s ended", m.String())
-		m.End()
+	log.Printf("Got match %s", m.String())
+	err := functor(w, r, m)
+	if err != nil {
+		msg := err.Error()
+		log.Print(msg)
+		ErrorResponse(w, r, msg)
+		return
 	}
 
 	data, err := json.Marshal(UpdateMessage{
@@ -250,6 +255,37 @@ func (s *Server) MatchToggleHandler(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write(data)
 }
 
+
+// MatchEndHandler ends matches
+func (s *Server) MatchEndHandler(w http.ResponseWriter, r *http.Request) {
+	s.MatchHandler(w, r, func(w http.ResponseWriter, r *http.Request, m *Match) error {
+		if !m.IsStarted() {
+			error_msg := fmt.Sprintf("Cannot end the match `%s` that is in not started.", m.String())
+			return errors.New(error_msg)
+		}
+		log.Printf("%s ended", m.String())
+		m.End()
+		return nil
+	})
+}
+
+// MatchStartHandler starts matches
+func (s *Server) MatchStartHandler(w http.ResponseWriter, r *http.Request) {
+	s.MatchHandler(w, r, func(w http.ResponseWriter, r *http.Request, m *Match) error {
+		log.Print("Trying to start match!")
+		if m.IsStarted() {
+			log.Print("Trying to send error. Wäääääääää")
+			error_msg := fmt.Sprintf("Cannot start the match `%s` that is already in progress.", m.String())
+			return errors.New(error_msg)
+		}
+		log.Printf("%s started", m.String())
+		err := m.Start()
+		if err != nil {
+			log.Fatal(err)
+		}
+		return nil
+	})
+}
 // MatchCommitHandler commits a single round of a match
 func (s *Server) MatchCommitHandler(w http.ResponseWriter, r *http.Request) {
 	if !HasPermission(r, PermissionJudge) {
@@ -322,7 +358,10 @@ func (s *Server) BuildRouter(ws *websockets.Server) http.Handler {
 	s.FacebookRouter(a)
 
 	m := r.PathPrefix("/tournament/{id}/{kind:(tryout|runnerup|semi|final)}/{index:[0-9]+}").Subrouter()
-	m.HandleFunc("/toggle/", s.MatchToggleHandler)
+
+	m.HandleFunc("/end/", s.MatchEndHandler)
+	m.HandleFunc("/start/", s.MatchStartHandler)
+
 	m.HandleFunc("/commit/", s.MatchCommitHandler)
 
 	return n
@@ -398,6 +437,18 @@ func HasPermission(r *http.Request, lvl int) bool {
 
 // PermissionFailure returns an error 401
 func PermissionFailure(w http.ResponseWriter, r *http.Request, msg string) {
+	GeneralResponse(w, r, http.StatusUnauthorized, msg)
+}
+
+
+// ErrorResponse returns an error with the statuscode of 401
+func ErrorResponse(w http.ResponseWriter, r *http.Request, msg string) {
+	GeneralResponse(w, r, http.StatusBadRequest, msg)
+}
+
+
+// ErrorResponse returns an error with the statuscode of 401
+func GeneralResponse(w http.ResponseWriter, r *http.Request, status int, msg string) {
 	data, err := json.Marshal(PermissionRedirect{
 		Message:  msg,
 		Redirect: "/",
@@ -407,9 +458,10 @@ func PermissionFailure(w http.ResponseWriter, r *http.Request, msg string) {
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusUnauthorized)
+	w.WriteHeader(status)
 	_, _ = w.Write(data)
 }
+
 
 func main() {
 	db, err := NewDatabase("production.db")
