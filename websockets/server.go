@@ -110,7 +110,7 @@ func (s *Server) Listen() {
 	go func() {
 		for {
 			s.Pulse()
-			time.Sleep(time.Second * 55)
+			time.Sleep(5 * time.Second)
 		}
 	}()
 
