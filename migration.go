@@ -63,21 +63,21 @@ func Migrate(db *bolt.DB) error {
 }
 
 func applyMigrations(db *bolt.DB, version int) error {
-	log.Printf(" --- Migrating %d -> %d:", version, TopVersion)
+	log.Printf(" --- Migrating %d -> %d:\n", version, TopVersion)
 	if err := backup(db, version, "db-migration-backup/"); err != nil {
 		return err
 	}
 
 	// Run the new migrations and the new migrations only
 	for x, migration := range migrations[version:] {
-		log.Printf("  Applying migration %d", x)
+		log.Printf("     Applying migration %d\n", x)
 		if err := migration(db); err != nil {
-			log.Print("  Migration failure: ", err)
+			log.Print("     Migration failure: ", err)
 			return err
 		}
 	}
 
-	log.Printf(" --- Migrations applied successfully. <3")
+	log.Printf(" --- Migrations applied successfully. <3\n")
 	return nil
 }
 
@@ -97,7 +97,7 @@ func backup(db *bolt.DB, version int, path string) error {
 		return err
 	}
 
-	fmt.Printf(" Backed up into %s", fn)
+	log.Printf("     Backed up into %s\n", fn)
 	return nil
 }
 
