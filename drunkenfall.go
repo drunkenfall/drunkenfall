@@ -37,8 +37,8 @@ type JSONMessage struct {
 	Redirect string `json:"redirect"`
 }
 
-// PermissionRedirect is an explicit permission failure
-type PermissionRedirect JSONMessage
+// GeneralRedirect is an explicit permission failure
+type GeneralRedirect JSONMessage
 
 // TournamentMessage returns a single tournament
 type TournamentMessage struct {
@@ -442,14 +442,16 @@ func PermissionFailure(w http.ResponseWriter, r *http.Request, msg string) {
 	GeneralResponse(w, r, http.StatusUnauthorized, msg)
 }
 
-// ErrorResponse returns an error with the statuscode of 401
+// ErrorResponse returns an error with the statuscode of 400
 func ErrorResponse(w http.ResponseWriter, r *http.Request, msg string) {
 	GeneralResponse(w, r, http.StatusBadRequest, msg)
 }
 
-// ErrorResponse returns an error with the statuscode of 401
+// GeneralResponse returns an error with the statuscode of status, status being
+// the input of the function. Also redirects the user to the best of its ability
+// to / (meaning errors are completely ignored :') ).
 func GeneralResponse(w http.ResponseWriter, r *http.Request, status int, msg string) {
-	data, err := json.Marshal(PermissionRedirect{
+	data, err := json.Marshal(GeneralRedirect{
 		Message:  msg,
 		Redirect: "/",
 	})
