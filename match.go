@@ -24,7 +24,7 @@ type Match struct {
 
 	// Stores the index to the player in the relative position.  E.g. if player
 	// 3 is in the lead, ScoreOrder[0] will be 2 (the index of player 3).
-	ScoreOrder []int `json:"score_order"`
+	KillOrder []int `json:"score_order"`
 
 	// One commit per round - the changeset of what happened in it.
 	Commits []MatchCommit `json:"commits"`
@@ -200,7 +200,7 @@ func (m *Match) Commit(c MatchCommit) {
 		}
 	}
 
-	m.ScoreOrder = m.MakeScoreOrder()
+	m.KillOrder = m.MakeKillOrder()
 	m.Commits = append(m.Commits, c)
 	_ = m.Tournament.Persist()
 }
@@ -236,10 +236,10 @@ func (m *Match) End() error {
 	// and therefore this might not have been set. Since the calculation is
 	// quick and has no side effects, it's easier to just add it here now. In
 	// the future, make the tests better.
-	m.ScoreOrder = m.MakeScoreOrder()
+	m.KillOrder = m.MakeKillOrder()
 
 	// Give the winner one last shot
-	winner := m.ScoreOrder[0]
+	winner := m.KillOrder[0]
 	m.Players[winner].AddShot()
 
 	m.Ended = time.Now()
@@ -294,9 +294,9 @@ func (m *Match) IsOpen() bool {
 	return m.IsStarted() && !m.IsEnded()
 }
 
-// MakeScoreOrder returns the score order of the current state of the match
-func (m *Match) MakeScoreOrder() (ret []int) {
-	ps := SortByScore(m.Players)
+// MakeKillOrder returns the score in order of the number of kills in the match.
+func (m *Match) MakeKillOrder() (ret []int) {
+	ps := SortByKills(m.Players)
 	for _, p := range ps {
 		for i, o := range m.Players {
 			if p.Name() == o.Name() {

@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
@@ -10,7 +11,6 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-	"errors"
 
 	"fmt"
 	"github.com/thiderman/drunkenfall/websockets"
@@ -223,17 +223,16 @@ func (s *Server) NextHandler(w http.ResponseWriter, r *http.Request) {
 	s.Redirect(w, m.URL())
 }
 
-
 // Common function for usage in MatchHandler
 type MatchFunctor func(w http.ResponseWriter, r *http.Request, match *Match) error
 
-// MatchHandler is the common function for match operations. 
+// MatchHandler is the common function for match operations.
 func (s *Server) MatchHandler(w http.ResponseWriter, r *http.Request, functor MatchFunctor) {
 	if !HasPermission(r, PermissionJudge) {
 		PermissionFailure(w, r, "Cannot stop match unless judge or above")
 		return
 	}
-	
+
 	m := s.getMatch(r)
 	log.Printf("Got match %s", m.String())
 	err := functor(w, r, m)
@@ -254,7 +253,6 @@ func (s *Server) MatchHandler(w http.ResponseWriter, r *http.Request, functor Ma
 	w.Header().Set("Content-Type", "application/json")
 	_, _ = w.Write(data)
 }
-
 
 // MatchEndHandler ends matches
 func (s *Server) MatchEndHandler(w http.ResponseWriter, r *http.Request) {
@@ -286,6 +284,7 @@ func (s *Server) MatchStartHandler(w http.ResponseWriter, r *http.Request) {
 		return nil
 	})
 }
+
 // MatchCommitHandler commits a single round of a match
 func (s *Server) MatchCommitHandler(w http.ResponseWriter, r *http.Request) {
 	if !HasPermission(r, PermissionJudge) {
@@ -390,8 +389,11 @@ func (s *Server) getMatch(r *http.Request) *Match {
 
 	tm := s.DB.tournamentRef[vars["id"]]
 	kind := vars["kind"]
-	index, _ := strconv.Atoi(vars["index"])
-
+	index, err := strconv.Atoi(vars["index"])
+	if err != nil {
+		log.Printf("Translation went horribly wrong from %s. Index is now 0. Error is: %s", vars["index"], err)
+		log.Printf("Vars are: %s", vars)
+	}
 	if kind == "tryout" {
 		m = tm.Tryouts[index]
 	} else if kind == "semi" {
@@ -440,12 +442,10 @@ func PermissionFailure(w http.ResponseWriter, r *http.Request, msg string) {
 	GeneralResponse(w, r, http.StatusUnauthorized, msg)
 }
 
-
 // ErrorResponse returns an error with the statuscode of 401
 func ErrorResponse(w http.ResponseWriter, r *http.Request, msg string) {
 	GeneralResponse(w, r, http.StatusBadRequest, msg)
 }
-
 
 // ErrorResponse returns an error with the statuscode of 401
 func GeneralResponse(w http.ResponseWriter, r *http.Request, status int, msg string) {
@@ -461,7 +461,6 @@ func GeneralResponse(w http.ResponseWriter, r *http.Request, status int, msg str
 	w.WriteHeader(status)
 	_, _ = w.Write(data)
 }
-
 
 func main() {
 	// Instantiate the database
