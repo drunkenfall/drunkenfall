@@ -1,23 +1,29 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/boltdb/bolt"
+	"io/ioutil"
 	"log"
 	"os"
+	"path/filepath"
 	"strconv"
+	"time"
 )
 
-// Migration is the current level pf patches that the database knows of.
+// TopVersion is the current level of patches that the database knows of.
 // This should always be the total amount of migrations.
 //
 // If you add a new migration, increase this number to make sure that your
 // migration is actually applied.
-const Migration = 1
+const TopVersion = 1
+const backupPath = "db-migration-backup/"
 
 var (
 	errNoMigrationsYet = errors.New("no migrations have been added yet")
-	levelBucket        = []byte("level")
+	levelKey           = []byte("level")
 )
 
 // migrations is a list of all the migration functions.
@@ -29,10 +35,10 @@ var migrations = []func(db *bolt.DB) error{
 // Migrate is the main migration entrypoint
 //
 // When called, it will check the database to see what migrations have already
-// been applied. If that is lower than the const Migration, all migrations up
+// been applied. If that is lower than the const TopVersion, all migrations up
 // to that point will sequentially be applied.
 func Migrate(fn string) error {
-	var lvl int
+	var version int
 
 	db, err := bolt.Open(fn, 0600, nil)
 	if err != nil {
@@ -46,8 +52,8 @@ func Migrate(fn string) error {
 			return errNoMigrationsYet
 		}
 
-		x := b.Get(levelBucket)
-		lvl, err = strconv.Atoi(string(x))
+		x := b.Get(levelKey)
+		version, err = strconv.Atoi(string(x))
 		if err != nil {
 			return err
 		}
@@ -58,39 +64,79 @@ func Migrate(fn string) error {
 	if err == errNoMigrationsYet {
 		// No migrations have been done yet, so lets do the first one by adding
 		// the migration bucket.
-		lvl = 0
-
+		version = 0
 	} else if err != nil {
 		// Something actually went wrong. Oh noes.
 		return err
 	}
 
+	// If version is lower than the latest known version, it's time to apply the
+	// migrations!
+	if version < TopVersion {
+		if err := applyMigrations(db, version); err != nil {
+			log.Print("Error: Migration application failed ;'(")
+			return err
+		}
+	}
+
 	return nil
 }
 
-// backup creates a backup of the database to be migrated
-func backup(fn, name string) error {
-	os.Mkdir("db-migration-backup/", 0755)
+func applyMigrations(db *bolt.DB, version int) error {
+	log.Printf(" --- Migrating %d -> %d:", version, TopVersion)
+	if err := backup(db, version); err != nil {
+		return err
+	}
+
+	// Run the new migrations and the new migrations only
+	for x, migration := range migrations[version:] {
+		log.Printf("  Applying migration %d", x)
+		if err := migration(db); err != nil {
+			log.Print("  Migration failure: ", err)
+			return err
+		}
+	}
+
+	log.Printf(" --- Migrations applied successfully. <3")
+	return nil
+}
+
+func backup(db *bolt.DB, version int) error {
+	_ = os.Mkdir(backupPath, 0755)
+
+	fn := fmt.Sprintf(
+		"%d_%d-%d.db",
+		time.Now().UnixNano(),
+		version,
+		TopVersion,
+	)
+	dst := filepath.Join(backupPath, fn)
+
+	data, _ := ioutil.ReadFile(db.Path())
+	if err := ioutil.WriteFile(dst, data, 0644); err != nil {
+		return err
+	}
+
+	fmt.Printf(" Backed up into %s", fn)
+	return nil
+}
+
+func setVersion(tx *bolt.Tx, version int) error {
+	b, err := tx.CreateBucketIfNotExists(MigrationKey)
+	if err != nil {
+		return err
+	}
+
+	out, _ := json.Marshal(version)
+	if err := b.Put(levelKey, out); err != nil {
+		return err
+	}
 	return nil
 }
 
 // InitialMigration adds the db_version bucket with the sole entry
 func InitialMigration(db *bolt.DB) error {
-	if err := backup(db.Path(), "0-init"); err != nil {
-		log.Printf("backup() failed: %s", err)
-		return err
-	}
-
-	ret := db.Update(func(tx *bolt.Tx) error {
-		b, err := tx.CreateBucketIfNotExists(MigrationKey)
-		if err != nil {
-			return err
-		}
-		b.Cursor()
-		// b.Put(levelBucket)
-
-		return nil
+	return db.Update(func(tx *bolt.Tx) error {
+		return setVersion(tx, 1)
 	})
-
-	return ret
 }
