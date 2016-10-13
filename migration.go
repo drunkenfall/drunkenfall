@@ -19,7 +19,6 @@ import (
 // If you add a new migration, increase this number to make sure that your
 // migration is actually applied.
 const TopVersion = 1
-const backupPath = "db-migration-backup/"
 
 var (
 	errNoMigrationsYet = errors.New("no migrations have been added yet")
@@ -65,7 +64,7 @@ func Migrate(db *bolt.DB) error {
 
 func applyMigrations(db *bolt.DB, version int) error {
 	log.Printf(" --- Migrating %d -> %d:", version, TopVersion)
-	if err := backup(db, version); err != nil {
+	if err := backup(db, version, "db-migration-backup/"); err != nil {
 		return err
 	}
 
@@ -82,8 +81,8 @@ func applyMigrations(db *bolt.DB, version int) error {
 	return nil
 }
 
-func backup(db *bolt.DB, version int) error {
-	_ = os.Mkdir(backupPath, 0755)
+func backup(db *bolt.DB, version int, path string) error {
+	_ = os.Mkdir(path, 0755)
 
 	fn := fmt.Sprintf(
 		"%d_%d-%d.db",
@@ -91,7 +90,7 @@ func backup(db *bolt.DB, version int) error {
 		version,
 		TopVersion,
 	)
-	dst := filepath.Join(backupPath, fn)
+	dst := filepath.Join(path, fn)
 
 	data, _ := ioutil.ReadFile(db.Path())
 	if err := ioutil.WriteFile(dst, data, 0644); err != nil {
