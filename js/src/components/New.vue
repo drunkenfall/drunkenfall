@@ -10,12 +10,16 @@
     <div class="clear"></div>
 
     <form v-on:submit="create">
-      <input v-model="name" name="name" type="text" value="" placeholder="Name"/>
-      <input v-model="id" name="id" type="text" value="" placeholder="ID"/>
-      <input type="checkbox" id="checkbox" v-model="fake">
-      <label for="checkbox">Fake</label>
+      <label for="name">Name</label>
+      <input class="text name" v-model="name" name="name" type="text" value="" placeholder="Name"/>
+      <label for="id">Id</label>
+      <input class="text id" v-model="id" name="id" type="text" value="" placeholder="ID"/>
+      <div class="fake-checkbox">
+        <label for="checkbox">Fake</label>
+        <input type="checkbox" id="checkbox" v-model="fake">
+      </div>
 
-      <input type="submit"/>
+      <input class="submit" type="submit"/>
     </form>
 
     <div class="button">
@@ -61,5 +65,31 @@ export default {
 }
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
+form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  label {
+    font-size: 1.5em;
+    margin: 1.5em 0 0.5em 0;
+  }
+
+  div.fake-checkbox {
+    margin: 1.5em 0 0.5em 0;
+  }
+
+  input.text {
+    width: 11em;
+  }
+
+  input.submit {
+    border: none;
+    margin: 1.5em;
+    background-color: #333333;
+    font-size: 2em;
+    width: auto;
+  }
+}
 </style>
