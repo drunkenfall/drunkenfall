@@ -20,7 +20,7 @@
     </div>
 
     <div class="players">
-      <template v-for="player in match.players" v-ref:players>
+      <template v-for="player in playersReversed" v-ref:players>
         <preview-player :index="$index + 1" :player="player" :match="match">
       </template>
     </div>
@@ -47,6 +47,12 @@ export default {
       timer: "00:00",
       clock: "00:00 (+02:00)",
       intervalID: 0,
+    }
+  },
+
+  computed: {
+    playersReversed: function () {
+      return _.reverse(this.match.players)
     }
   },
 
