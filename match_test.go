@@ -91,7 +91,7 @@ func TestEndGivesShotToWinner(t *testing.T) {
 	err := m.Start()
 	assert.Nil(err)
 	m.Players[2].AddKill(10)
-	m.ScoreOrder = m.MakeKillOrder()
+	m.KillOrder = m.MakeKillOrder()
 
 	err = m.End()
 	assert.Nil(err)
@@ -455,7 +455,7 @@ func TestSortByScoreDoesNotAlterSourceList(t *testing.T) {
 	assert.Equal(ps[3].Name(), m.Players[0].Name())
 }
 
-func TestMakeScoreOrder(t *testing.T) {
+func TestMakeKillOrder(t *testing.T) {
 	assert := assert.New(t)
 	m := MockMatch(0, "tryout")
 
