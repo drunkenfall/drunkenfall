@@ -464,14 +464,25 @@ func GeneralResponse(w http.ResponseWriter, r *http.Request, status int, msg str
 
 
 func main() {
+	// Instantiate the database
 	db, err := NewDatabase("production.db")
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	// Apply any applicable migrations
+	err = Migrate(db.DB)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Create the server instance...
 	s := NewServer(db)
+	// ...and give the db a reference to the server.
+	// Not the cleanest, but y'know... here we are.
 	db.Server = s
 
+	// Load tournaments from the database
 	err = db.LoadTournaments()
 	if err != nil {
 		log.Fatal(err)
@@ -479,9 +490,9 @@ func main() {
 
 	// Set up the paths and the websocket listeners
 	s.RegisterHandlersAndListeners()
-	err = s.Serve()
 
-	if err != nil {
+	// Actually start serving
+	if err := s.Serve(); err != nil {
 		log.Fatal(err)
 	}
 }

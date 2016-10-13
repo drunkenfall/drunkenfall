@@ -16,10 +16,12 @@ type Database struct {
 }
 
 var (
-	// TournamentKey is the byte string identifying the tournament buckets
+	// TournamentKey defines the tournament buckets
 	TournamentKey = []byte("tournaments")
-	// PeopleKey is the byte string identifying the bucket of people and their data
+	// PeopleKey defines the bucket of people
 	PeopleKey = []byte("people")
+	// MigrationKey defines the bucket of migration levels
+	MigrationKey = []byte("migration")
 )
 
 // NewDatabase returns a new database object

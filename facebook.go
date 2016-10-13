@@ -53,7 +53,11 @@ func init() {
 	}
 
 	if os.Getenv("DF_FB_ID") != "" {
-		log.Print("Facebook configuration loaded.")
+		if strings.Contains(oauthConf.RedirectURL, "localhost") {
+			log.Print("Facebook dev configuration loaded.")
+		} else {
+			log.Print("Facebook configuration loaded.")
+		}
 	} else {
 		log.Print("Facebook app configuration missing. Auth will not work.")
 	}
