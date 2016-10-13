@@ -56,7 +56,8 @@ func TestPermissionsDenied(t *testing.T) {
 		"/%s/start/",
 		"/%s/next/",
 		"/%s/join/",
-		"/tournament/%s/tryout/0/toggle/",
+		"/tournament/%s/tryout/0/start/",
+		"/tournament/%s/tryout/0/end/",
 		"/tournament/%s/tryout/0/commit/",
 	}
 

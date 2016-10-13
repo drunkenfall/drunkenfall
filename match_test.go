@@ -91,7 +91,7 @@ func TestEndGivesShotToWinner(t *testing.T) {
 	err := m.Start()
 	assert.Nil(err)
 	m.Players[2].AddKill(10)
-	m.ScoreOrder = m.MakeScoreOrder()
+	m.KillOrder = m.MakeKillOrder()
 
 	err = m.End()
 	assert.Nil(err)
@@ -455,7 +455,7 @@ func TestSortByScoreDoesNotAlterSourceList(t *testing.T) {
 	assert.Equal(ps[3].Name(), m.Players[0].Name())
 }
 
-func TestMakeScoreOrder(t *testing.T) {
+func TestMakeKillOrder(t *testing.T) {
 	assert := assert.New(t)
 	m := MockMatch(0, "tryout")
 
@@ -464,12 +464,12 @@ func TestMakeScoreOrder(t *testing.T) {
 	m.Players[2].AddKill(5)
 	m.Players[3].AddKill(10)
 
-	so := m.MakeScoreOrder()
+	ko := m.MakeKillOrder()
 
 	// As long as the order is reversed, this test is proven.
 	// ...just like above. <3
-	assert.Equal(so[0], 3)
-	assert.Equal(so[1], 2)
-	assert.Equal(so[2], 1)
-	assert.Equal(so[3], 0)
+	assert.Equal(ko[0], 3)
+	assert.Equal(ko[1], 2)
+	assert.Equal(ko[2], 1)
+	assert.Equal(ko[3], 0)
 }
