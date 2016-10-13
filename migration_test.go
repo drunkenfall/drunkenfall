@@ -1,8 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"github.com/boltdb/bolt"
 	"github.com/stretchr/testify/assert"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
@@ -19,6 +21,29 @@ func testDB(fn string) *bolt.DB {
 	if err != nil {
 		log.Fatal(err)
 	}
+	return db
+}
+
+// migrationDB opens a fixture database, makes a copy and returns a bolt
+// instance of the copy
+func migrationDB(version int) *bolt.DB {
+	base := fmt.Sprintf("migration%d.db", version)
+	src := "migration-dbs/" + base
+	dst := "test/" + base
+
+	_ = os.Remove(dst) // Clear it if it exists
+	d, err := os.Create(dst)
+	fatalError(err)
+
+	s, err := os.Open(src)
+	fatalError(err)
+
+	_, err = io.Copy(d, s)
+	fatalError(err)
+
+	db, err := bolt.Open(d.Name(), 0600, nil)
+	fatalError(err)
+
 	return db
 }
 

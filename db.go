@@ -39,7 +39,6 @@ func NewDatabase(fn string) (*Database, error) {
 
 // LoadTournaments loads the tournaments from the database and into memory
 func (d *Database) LoadTournaments() error {
-	loaded := 0
 	err := d.DB.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket(TournamentKey)
 		if b == nil {
@@ -57,7 +56,6 @@ func (d *Database) LoadTournaments() error {
 
 			d.Tournaments = append(d.Tournaments, t)
 			d.tournamentRef[t.ID] = t
-			loaded++
 			return nil
 		})
 		return err
