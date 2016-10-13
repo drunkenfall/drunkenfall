@@ -37,29 +37,8 @@ var migrations = []func(db *bolt.DB) error{
 // When called, it will check the database to see what migrations have already
 // been applied. If that is lower than the const TopVersion, all migrations up
 // to that point will sequentially be applied.
-func Migrate(fn string) error {
-	var version int
-
-	db, err := bolt.Open(fn, 0600, nil)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	err = db.View(func(tx *bolt.Tx) error {
-		var err error
-		b := tx.Bucket(MigrationKey)
-		if b == nil {
-			return errNoMigrationsYet
-		}
-
-		x := b.Get(levelKey)
-		version, err = strconv.Atoi(string(x))
-		if err != nil {
-			return err
-		}
-
-		return nil
-	})
+func Migrate(db *bolt.DB) error {
+	version, err := getVersion(db)
 
 	if err == errNoMigrationsYet {
 		// No migrations have been done yet, so lets do the first one by adding
@@ -77,6 +56,8 @@ func Migrate(fn string) error {
 			log.Print("Error: Migration application failed ;'(")
 			return err
 		}
+	} else {
+		log.Print("Database up to date.")
 	}
 
 	return nil
@@ -119,6 +100,27 @@ func backup(db *bolt.DB, version int) error {
 
 	fmt.Printf(" Backed up into %s", fn)
 	return nil
+}
+
+func getVersion(db *bolt.DB) (int, error) {
+	var version int
+	err := db.View(func(tx *bolt.Tx) error {
+		var err error
+		b := tx.Bucket(MigrationKey)
+		if b == nil {
+			return errNoMigrationsYet
+		}
+
+		x := b.Get(levelKey)
+		version, err = strconv.Atoi(string(x))
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	return version, err
 }
 
 func setVersion(tx *bolt.Tx, version int) error {
