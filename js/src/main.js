@@ -2,7 +2,7 @@ import Vue from 'vue'
 import Router from 'vue-router'
 import Resource from 'vue-resource'
 import Cookie from 'vue-cookie'
-// import DateTimePicker from 'vue-datetime-picker'
+import vPikaday from 'vue-pikaday'
 import App from './App'
 
 import TournamentList from './components/TournamentList.vue'
@@ -20,7 +20,7 @@ import FacebookFinalize from './components/FacebookFinalize.vue'
 Vue.use(Router)
 Vue.use(Resource)
 Vue.use(Cookie)
-// Vue.use(DateTimePicker)
+Vue.use(vPikaday)
 
 // routing
 var router = new Router({

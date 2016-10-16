@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"time"
 
 	"fmt"
 	"github.com/thiderman/drunkenfall/websockets"
@@ -63,9 +64,10 @@ type UpdateStateMessage TournamentList
 
 // NewRequest is the request to make a new tournament
 type NewRequest struct {
-	Name string `json:"name"`
-	ID   string `json:"id"`
-	Fake bool   `json:"fake"`
+	Name      string     `json:"name"`
+	ID        string     `json:"id"`
+	Scheduled *time.Time `json:"scheduled"`
+	Fake      bool       `json:"fake"`
 }
 
 // CommitPlayer is one state for a player in a commit message
