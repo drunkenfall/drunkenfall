@@ -28,7 +28,7 @@ type Match struct {
 	Started       time.Time     `json:"started"`
 	Ended         time.Time     `json:"ended"`
 	Tournament    *Tournament   `json:"-"`
-	KillOrder     []int         `json:"score_order"`
+	KillOrder     []int         `json:"kill_order"`
 	Commits       []MatchCommit `json:"commits"`
 	presentColors mapset.Set
 }

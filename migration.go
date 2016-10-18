@@ -26,7 +26,7 @@ var migrations = []func(db *bolt.DB) error{
 	InitialMigration,
 	MigrateOriginalColorPreferredColor,
 	MigrateTournamentRunnerupStringPerson,
-	MigrateMatchScoreOrder,
+	MigrateMatchScoreOrderKillOrder,
 }
 
 // Migrate is the main migration entrypoint
