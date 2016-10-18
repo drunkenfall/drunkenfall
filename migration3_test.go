@@ -46,4 +46,7 @@ func TestMigration3(t *testing.T) {
 	assert.Equal([]int{1, 3, 0, 2}, mig.Semis[1].ScoreOrder)
 
 	assert.Equal([]int{0, 3, 2, 1}, mig.Final.ScoreOrder)
+
+	db.Close()
+	ro.Close()
 }

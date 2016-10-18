@@ -79,4 +79,7 @@ func TestMigration1(t *testing.T) {
 		assert.Equal(orig.Final.Players[i].OriginalColor, mig.Final.Players[i].PreferredColor)
 		assert.Equal(orig.Final.Players[i].Color, mig.Final.Players[i].Color)
 	}
+
+	db.Close()
+	ro.Close()
 }

@@ -54,4 +54,7 @@ func TestMigration2(t *testing.T) {
 	for x, n := range orig.Runnerups {
 		assert.Equal(n, mig.Runnerups[x].Nick)
 	}
+
+	db.Close()
+	ro.Close()
 }
