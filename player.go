@@ -20,6 +20,7 @@ var AllColors = []interface{}{
 	"red",
 }
 
+// Colors is the definitive set of all the colors
 var Colors = mapset.NewSetFromSlice(AllColors)
 
 // ScoreData is a structured Key/Value pair list for scores
@@ -401,7 +402,7 @@ func SortByRunnerup(ps []Player) []Player {
 	return ps
 }
 
-// Random returns a random color from the ColorList
+// RandomColor returns a random color from the ColorList
 func RandomColor(s mapset.Set) string {
 	colors := s.ToSlice()
 	x := len(colors)
