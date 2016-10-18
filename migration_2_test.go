@@ -9,7 +9,7 @@ import (
 )
 
 // loadmig2Tournaments
-func loadmig2Tournaments(db, ro *bolt.DB) (*mig2prevTournament, *mig2curTournament) {
+func loadmig2Tournaments(db, ro *bolt.DB) (*mig2curTournament, *mig2prevTournament) {
 	id := "moon"
 	orig := &mig2prevTournament{}
 	tx, err := ro.Begin(false)
@@ -33,7 +33,7 @@ func loadmig2Tournaments(db, ro *bolt.DB) (*mig2prevTournament, *mig2curTourname
 	bs = b.Get([]byte(id))
 	_ = json.Unmarshal(bs, mig)
 
-	return orig, mig
+	return mig, orig
 }
 
 func TestMigration2(t *testing.T) {
@@ -46,7 +46,7 @@ func TestMigration2(t *testing.T) {
 	v, err := getVersion(db)
 	assert.Nil(err)
 	assert.Equal(3, v)
-	orig, mig := loadmig2Tournaments(db, ro)
+	mig, orig := loadmig2Tournaments(db, ro)
 
 	assert.Equal(len(orig.Runnerups), len(mig.Runnerups))
 

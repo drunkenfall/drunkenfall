@@ -15,7 +15,7 @@ func fatalError(err error) {
 }
 
 // loadmig1Tournaments ...
-func loadmig1Tournaments(db, ro *bolt.DB) (*mig1prevTournament, *mig1curTournament) {
+func loadmig1Tournaments(db, ro *bolt.DB) (*mig1curTournament, *mig1prevTournament) {
 	id := "moon"
 	orig := &mig1prevTournament{}
 	tx, err := ro.Begin(false)
@@ -39,7 +39,7 @@ func loadmig1Tournaments(db, ro *bolt.DB) (*mig1prevTournament, *mig1curTourname
 	bs = b.Get([]byte(id))
 	_ = json.Unmarshal(bs, mig)
 
-	return orig, mig
+	return mig, orig
 }
 
 func TestMigration1(t *testing.T) {
@@ -53,7 +53,7 @@ func TestMigration1(t *testing.T) {
 	assert.Nil(err)
 	assert.Equal(2, v)
 
-	orig, mig := loadmig1Tournaments(db, ro)
+	mig, orig := loadmig1Tournaments(db, ro)
 
 	assert.Equal(len(orig.Players), len(mig.Players))
 
