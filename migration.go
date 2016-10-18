@@ -88,7 +88,7 @@ func backup(db *bolt.DB, version int, path string) error {
 	_ = os.Mkdir(path, 0755)
 
 	fn := fmt.Sprintf(
-		"%d_%d-%d.db",
+		"%d_from-v%d-to-v%d.db",
 		time.Now().UnixNano(),
 		version,
 		TopVersion,

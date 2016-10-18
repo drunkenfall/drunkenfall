@@ -77,7 +77,7 @@ func TestBackup(t *testing.T) {
 	assert.Equal(1, len(files))
 
 	assert.True(
-		strings.Contains(files[0].Name(), "_"+strconv.Itoa(255)+"-"),
+		strings.Contains(files[0].Name(), "v"+strconv.Itoa(255)+"-"),
 		"Backup file did not contain the version number",
 	)
 }
