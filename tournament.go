@@ -160,7 +160,7 @@ func (t *Tournament) StartTournament() error {
 	log.Printf("Starting %s...", t.Name)
 	ps := len(t.Players)
 	if ps < 8 || ps > 32 {
-		return fmt.Errorf("Tournament needs at 8-32 players, got %d", ps)
+		return fmt.Errorf("Tournament needs 8-32 players, got %d", ps)
 	}
 
 	// More than 16 players - add four more tryouts
