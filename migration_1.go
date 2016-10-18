@@ -32,6 +32,8 @@ type mig1prevMatch struct {
 	Started    time.Time        `json:"started"`
 	Ended      time.Time        `json:"ended"`
 	Tournament *Tournament      `json:"-"`
+	ScoreOrder []int            `json:"score_order"`
+	Commits    []MatchCommit    `json:"commits"`
 }
 
 type mig1prevTournament struct {
@@ -76,6 +78,8 @@ type mig1curMatch struct {
 	Started    time.Time       `json:"started"`
 	Ended      time.Time       `json:"ended"`
 	Tournament *Tournament     `json:"-"`
+	ScoreOrder []int           `json:"score_order"`
+	Commits    []MatchCommit   `json:"commits"`
 }
 
 type mig1curTournament struct {
@@ -164,6 +168,8 @@ func MigrateOriginalColorPreferredColor(db *bolt.DB) error {
 					Started:    pm.Started,
 					Ended:      pm.Ended,
 					Tournament: pm.Tournament,
+					ScoreOrder: pm.ScoreOrder,
+					Commits:    pm.Commits,
 				}
 
 				// For each match, also update each of the player objects
@@ -197,6 +203,8 @@ func MigrateOriginalColorPreferredColor(db *bolt.DB) error {
 					Started:    pm.Started,
 					Ended:      pm.Ended,
 					Tournament: pm.Tournament,
+					ScoreOrder: pm.ScoreOrder,
+					Commits:    pm.Commits,
 				}
 
 				// For each match, also update each of the player objects
@@ -228,6 +236,8 @@ func MigrateOriginalColorPreferredColor(db *bolt.DB) error {
 				Started:    pt.Final.Started,
 				Ended:      pt.Final.Ended,
 				Tournament: pt.Final.Tournament,
+				ScoreOrder: pt.Final.ScoreOrder,
+				Commits:    pt.Final.Commits,
 			}
 			t.Final.Players = make([]mig1curPlayer, len(pt.Final.Players))
 

@@ -10,25 +10,26 @@ import (
 )
 
 // Match represents a game being played
+//
+// Match.ScoreOrder stores the index to the player in the relative position.
+// E.g. if player 3 is in the lead, ScoreOrder[0] will be 2 (the index of
+// player 3).
+//
+// Match.Commits is a list of one commit per round and represents the
+// changeset of what happened in the match.
 type Match struct {
-	Players    []Player      `json:"players"`
-	Judges     []Judge       `json:"judges"`
-	Kind       string        `json:"kind"`
-	Index      int           `json:"index"`
-	Length     int           `json:"length"`
-	Pause      time.Duration `json:"pause"`
-	Scheduled  time.Time     `json:"scheduled"`
-	Started    time.Time     `json:"started"`
-	Ended      time.Time     `json:"ended"`
-	Tournament *Tournament   `json:"-"`
-
-	// Stores the index to the player in the relative position.  E.g. if player
-	// 3 is in the lead, ScoreOrder[0] will be 2 (the index of player 3).
-	KillOrder []int `json:"score_order"`
-
-	// One commit per round - the changeset of what happened in it.
-	Commits []MatchCommit `json:"commits"`
-
+	Players       []Player      `json:"players"`
+	Judges        []Judge       `json:"judges"`
+	Kind          string        `json:"kind"`
+	Index         int           `json:"index"`
+	Length        int           `json:"length"`
+	Pause         time.Duration `json:"pause"`
+	Scheduled     time.Time     `json:"scheduled"`
+	Started       time.Time     `json:"started"`
+	Ended         time.Time     `json:"ended"`
+	Tournament    *Tournament   `json:"-"`
+	KillOrder     []int         `json:"score_order"`
+	Commits       []MatchCommit `json:"commits"`
 	presentColors mapset.Set
 }
 
