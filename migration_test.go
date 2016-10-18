@@ -25,8 +25,8 @@ func testDB(fn string) *bolt.DB {
 }
 
 // migrationDB opens a fixture database, makes a copy and returns a bolt
-// instance of the copy
-func migrationDB(version int) *bolt.DB {
+// instance of the copy as well as the original database in RO
+func migrationDB(version int) (*bolt.DB, *bolt.DB) {
 	base := fmt.Sprintf("migration%d.db", version)
 	src := "migration-dbs/" + base
 	dst := "test/" + base
@@ -44,7 +44,10 @@ func migrationDB(version int) *bolt.DB {
 	db, err := bolt.Open(d.Name(), 0600, nil)
 	fatalError(err)
 
-	return db
+	ro, err := bolt.Open(s.Name(), 0400, nil)
+	fatalError(err)
+
+	return db, ro
 }
 
 func TestInitialMigration(t *testing.T) {

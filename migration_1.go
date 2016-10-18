@@ -7,73 +7,109 @@ import (
 	"time"
 )
 
+type mig1prevPlayer struct {
+	Person        *Person `json:"person"`
+	Color         string  `json:"color"`
+	OriginalColor string  `json:"original_color"`
+	Shots         int     `json:"shots"`
+	Sweeps        int     `json:"sweeps"`
+	Kills         int     `json:"kills"`
+	Self          int     `json:"self"`
+	Explosions    int     `json:"explosions"`
+	Matches       int     `json:"matches"`
+	TotalScore    int     `json:"score"`
+	Match         *Match  `json:"-"`
+}
+
+type mig1prevMatch struct {
+	Players    []mig1prevPlayer `json:"players"`
+	Judges     []Judge          `json:"judges"`
+	Kind       string           `json:"kind"`
+	Index      int              `json:"index"`
+	Length     int              `json:"length"`
+	Pause      time.Duration    `json:"pause"`
+	Scheduled  time.Time        `json:"scheduled"`
+	Started    time.Time        `json:"started"`
+	Ended      time.Time        `json:"ended"`
+	Tournament *Tournament      `json:"-"`
+}
+
+type mig1prevTournament struct {
+	Name      string           `json:"name"`
+	ID        string           `json:"id"`
+	Players   []mig1prevPlayer `json:"players"`
+	Winners   []mig1prevPlayer `json:"winners"`
+	Runnerups []string         `json:"runnerups"`
+	Judges    []Judge          `json:"judges"`
+	Tryouts   []*mig1prevMatch `json:"tryouts"`
+	Semis     []*mig1prevMatch `json:"semis"`
+	Final     *mig1prevMatch   `json:"final"`
+	Current   CurrentMatch     `json:"current"`
+	Opened    time.Time        `json:"opened"`
+	Scheduled time.Time        `json:"scheduled"`
+	Started   time.Time        `json:"started"`
+	Ended     time.Time        `json:"ended"`
+}
+
+type mig1curPlayer struct {
+	Person         *Person `json:"person"`
+	Color          string  `json:"color"`
+	PreferredColor string  `json:"preferred_color"`
+	Shots          int     `json:"shots"`
+	Sweeps         int     `json:"sweeps"`
+	Kills          int     `json:"kills"`
+	Self           int     `json:"self"`
+	Explosions     int     `json:"explosions"`
+	Matches        int     `json:"matches"`
+	TotalScore     int     `json:"score"`
+	Match          *Match  `json:"-"`
+}
+
+type mig1curMatch struct {
+	Players    []mig1curPlayer `json:"players"`
+	Judges     []Judge         `json:"judges"`
+	Kind       string          `json:"kind"`
+	Index      int             `json:"index"`
+	Length     int             `json:"length"`
+	Pause      time.Duration   `json:"pause"`
+	Scheduled  time.Time       `json:"scheduled"`
+	Started    time.Time       `json:"started"`
+	Ended      time.Time       `json:"ended"`
+	Tournament *Tournament     `json:"-"`
+}
+
+type mig1curTournament struct {
+	Name      string          `json:"name"`
+	ID        string          `json:"id"`
+	Players   []mig1curPlayer `json:"players"`
+	Winners   []mig1curPlayer `json:"winners"`
+	Runnerups []string        `json:"runnerups"`
+	Judges    []Judge         `json:"judges"`
+	Tryouts   []*mig1curMatch `json:"tryouts"`
+	Semis     []*mig1curMatch `json:"semis"`
+	Final     *mig1curMatch   `json:"final"`
+	Current   CurrentMatch    `json:"current"`
+	Opened    time.Time       `json:"opened"`
+	Scheduled time.Time       `json:"scheduled"`
+	Started   time.Time       `json:"started"`
+	Ended     time.Time       `json:"ended"`
+}
+
 // MigrateOriginalColorPreferredColor changes Player{} to have a preferred
 // color rather than an original color
 func MigrateOriginalColorPreferredColor(db *bolt.DB) error {
 	return db.Update(func(tx *bolt.Tx) error {
-		type previousPlayer struct {
-			Person        *Person `json:"person"`
-			Color         string  `json:"color"`
-			OriginalColor string  `json:"original_color"`
-			Shots         int     `json:"shots"`
-			Sweeps        int     `json:"sweeps"`
-			Kills         int     `json:"kills"`
-			Self          int     `json:"self"`
-			Explosions    int     `json:"explosions"`
-			Matches       int     `json:"matches"`
-			TotalScore    int     `json:"score"`
-			Match         *Match  `json:"-"`
-		}
-
-		type previousMatch struct {
-			Players    []previousPlayer `json:"players"`
-			Judges     []Judge          `json:"judges"`
-			Kind       string           `json:"kind"`
-			Index      int              `json:"index"`
-			Length     int              `json:"length"`
-			Pause      time.Duration    `json:"pause"`
-			Scheduled  time.Time        `json:"scheduled"`
-			Started    time.Time        `json:"started"`
-			Ended      time.Time        `json:"ended"`
-			Tournament *Tournament      `json:"-"`
-		}
-
-		type previousTournament struct {
-			Name        string           `json:"name"`
-			ID          string           `json:"id"`
-			Players     []previousPlayer `json:"players"`
-			Winners     []previousPlayer `json:"winners"`
-			Runnerups   []string         `json:"runnerups"`
-			Judges      []Judge          `json:"judges"`
-			Tryouts     []*previousMatch `json:"tryouts"`
-			Semis       []*previousMatch `json:"semis"`
-			Final       *previousMatch   `json:"final"`
-			Current     CurrentMatch     `json:"current"`
-			Opened      time.Time        `json:"opened"`
-			Scheduled   time.Time        `json:"scheduled"`
-			Started     time.Time        `json:"started"`
-			Ended       time.Time        `json:"ended"`
-			db          *Database
-			server      *Server
-			length      int
-			finalLength int
-		}
-
 		// Load the tournaments
-		var ts []*previousTournament
+		var ts []*mig1prevTournament
 		err := db.View(func(tx *bolt.Tx) error {
 			b := tx.Bucket(TournamentKey)
 			err := b.ForEach(func(k []byte, v []byte) error {
-				t := &previousTournament{}
+				t := &mig1prevTournament{}
 				err := json.Unmarshal(v, t)
 				if err != nil {
 					log.Print(err)
 					return err
 				}
-				if err != nil {
-					return err
-				}
-
 				ts = append(ts, t)
 				return nil
 			})
@@ -84,60 +120,13 @@ func MigrateOriginalColorPreferredColor(db *bolt.DB) error {
 			log.Fatal(err)
 		}
 
-		type currentPlayer struct {
-			Person         *Person `json:"person"`
-			Color          string  `json:"color"`
-			PreferredColor string  `json:"preferred_color"`
-			Shots          int     `json:"shots"`
-			Sweeps         int     `json:"sweeps"`
-			Kills          int     `json:"kills"`
-			Self           int     `json:"self"`
-			Explosions     int     `json:"explosions"`
-			Matches        int     `json:"matches"`
-			TotalScore     int     `json:"score"`
-			Match          *Match  `json:"-"`
-		}
-
-		type currentMatch struct {
-			Players    []currentPlayer `json:"players"`
-			Judges     []Judge         `json:"judges"`
-			Kind       string          `json:"kind"`
-			Index      int             `json:"index"`
-			Length     int             `json:"length"`
-			Pause      time.Duration   `json:"pause"`
-			Scheduled  time.Time       `json:"scheduled"`
-			Started    time.Time       `json:"started"`
-			Ended      time.Time       `json:"ended"`
-			Tournament *Tournament     `json:"-"`
-		}
-
-		type currentTournament struct {
-			Name        string          `json:"name"`
-			ID          string          `json:"id"`
-			Players     []currentPlayer `json:"players"`
-			Winners     []currentPlayer `json:"winners"`
-			Runnerups   []*Person       `json:"runnerups"`
-			Judges      []Judge         `json:"judges"`
-			Tryouts     []*currentMatch `json:"tryouts"`
-			Semis       []*currentMatch `json:"semis"`
-			Final       *currentMatch   `json:"final"`
-			Current     CurrentMatch    `json:"current"`
-			Opened      time.Time       `json:"opened"`
-			Scheduled   time.Time       `json:"scheduled"`
-			Started     time.Time       `json:"started"`
-			Ended       time.Time       `json:"ended"`
-			db          *Database
-			server      *Server
-			length      int
-			finalLength int
-		}
-
-		var out []*currentTournament
+		var out []*mig1curTournament
 		for _, pt := range ts {
-			t := currentTournament{
+			t := mig1curTournament{
 				Name:      pt.Name,
 				ID:        pt.ID,
 				Judges:    pt.Judges,
+				Runnerups: pt.Runnerups,
 				Current:   pt.Current,
 				Opened:    pt.Opened,
 				Scheduled: pt.Scheduled,
@@ -146,12 +135,12 @@ func MigrateOriginalColorPreferredColor(db *bolt.DB) error {
 			}
 
 			// Update the player objects
-			t.Players = make([]currentPlayer, len(pt.Players))
+			t.Players = make([]mig1curPlayer, len(pt.Players))
 			for x, pp := range pt.Players {
-				t.Players[x] = currentPlayer{
+				t.Players[x] = mig1curPlayer{
 					Person:         pp.Person,
-					Color:          pp.Color,
-					PreferredColor: pp.OriginalColor,
+					Color:          pp.Person.ColorPreference[0],
+					PreferredColor: pp.Person.ColorPreference[0],
 					Shots:          pp.Shots,
 					Sweeps:         pp.Sweeps,
 					Kills:          pp.Kills,
@@ -163,9 +152,9 @@ func MigrateOriginalColorPreferredColor(db *bolt.DB) error {
 			}
 
 			// Update the tryouts
-			t.Tryouts = make([]*currentMatch, len(pt.Tryouts))
+			t.Tryouts = make([]*mig1curMatch, len(pt.Tryouts))
 			for x, pm := range pt.Tryouts {
-				t.Tryouts[x] = &currentMatch{
+				t.Tryouts[x] = &mig1curMatch{
 					Judges:     pm.Judges,
 					Kind:       pm.Kind,
 					Index:      pm.Index,
@@ -178,9 +167,9 @@ func MigrateOriginalColorPreferredColor(db *bolt.DB) error {
 				}
 
 				// For each match, also update each of the player objects
-				t.Tryouts[x].Players = make([]currentPlayer, len(pt.Tryouts[x].Players))
+				t.Tryouts[x].Players = make([]mig1curPlayer, len(pt.Tryouts[x].Players))
 				for y, pp := range pt.Tryouts[x].Players {
-					t.Tryouts[x].Players[y] = currentPlayer{
+					t.Tryouts[x].Players[y] = mig1curPlayer{
 						Person:         pp.Person,
 						Color:          pp.Color,
 						PreferredColor: pp.OriginalColor,
@@ -196,9 +185,9 @@ func MigrateOriginalColorPreferredColor(db *bolt.DB) error {
 			}
 
 			// Update the semis
-			t.Semis = make([]*currentMatch, len(pt.Semis))
+			t.Semis = make([]*mig1curMatch, len(pt.Semis))
 			for x, pm := range pt.Semis {
-				t.Semis[x] = &currentMatch{
+				t.Semis[x] = &mig1curMatch{
 					Judges:     pm.Judges,
 					Kind:       pm.Kind,
 					Index:      pm.Index,
@@ -211,12 +200,12 @@ func MigrateOriginalColorPreferredColor(db *bolt.DB) error {
 				}
 
 				// For each match, also update each of the player objects
-				t.Semis[x].Players = make([]currentPlayer, len(pt.Semis[x].Players))
+				t.Semis[x].Players = make([]mig1curPlayer, len(pt.Semis[x].Players))
 				for y, pp := range pt.Semis[x].Players {
-					t.Semis[x].Players[y] = currentPlayer{
+					t.Semis[x].Players[y] = mig1curPlayer{
 						Person:         pp.Person,
-						Color:          pp.Color,
-						PreferredColor: pp.OriginalColor,
+						Color:          pp.Person.ColorPreference[0],
+						PreferredColor: pp.Person.ColorPreference[0],
 						Shots:          pp.Shots,
 						Sweeps:         pp.Sweeps,
 						Kills:          pp.Kills,
@@ -229,7 +218,7 @@ func MigrateOriginalColorPreferredColor(db *bolt.DB) error {
 			}
 
 			// Update the final
-			t.Final = &currentMatch{
+			t.Final = &mig1curMatch{
 				Judges:     pt.Final.Judges,
 				Kind:       pt.Final.Kind,
 				Index:      pt.Final.Index,
@@ -240,13 +229,14 @@ func MigrateOriginalColorPreferredColor(db *bolt.DB) error {
 				Ended:      pt.Final.Ended,
 				Tournament: pt.Final.Tournament,
 			}
+			t.Final.Players = make([]mig1curPlayer, len(pt.Final.Players))
 
 			// For each match, also update each of the player objects
 			for y, pp := range pt.Final.Players {
-				t.Final.Players[y] = currentPlayer{
+				t.Final.Players[y] = mig1curPlayer{
 					Person:         pp.Person,
-					Color:          pp.Color,
-					PreferredColor: pp.OriginalColor,
+					Color:          pp.Person.ColorPreference[0],
+					PreferredColor: pp.Person.ColorPreference[0],
 					Shots:          pp.Shots,
 					Sweeps:         pp.Sweeps,
 					Kills:          pp.Kills,
