@@ -81,6 +81,11 @@ type CommitRequest struct {
 	State []CommitPlayer `json:"state"`
 }
 
+func init() {
+	// To get line numbers in log output
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+}
+
 // NewServer instantiates a server with an active database
 func NewServer(db *Database) *Server {
 	s := Server{DB: db}
@@ -157,7 +162,8 @@ func (s *Server) JoinHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	tm := s.getTournament(r)
-	p := PersonFromSession(s, r)
+	ps := PersonFromSession(s, r)
+	p := NewPlayer(ps)
 
 	err := tm.AddPlayer(p)
 	if err != nil {

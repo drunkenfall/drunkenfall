@@ -13,13 +13,6 @@ import (
 	"time"
 )
 
-// TopVersion is the current level of patches that the database knows of.
-// This should always be the total amount of migrations.
-//
-// If you add a new migration, increase this number to make sure that your
-// migration is actually applied.
-const TopVersion = 1
-
 var (
 	errNoMigrationsYet = errors.New("no migrations have been added yet")
 	levelKey           = []byte("level")
@@ -27,8 +20,13 @@ var (
 
 // migrations is a list of all the migration functions.
 // Their indexes are used to determine when they are to be applied.
+//
+// When adding a new migration, make sure to add it to this list.
 var migrations = []func(db *bolt.DB) error{
 	InitialMigration,
+	MigrateOriginalColorPreferredColor,
+	MigrateTournamentRunnerupStringPerson,
+	MigrateMatchScoreOrderKillOrder,
 }
 
 // Migrate is the main migration entrypoint
@@ -50,7 +48,7 @@ func Migrate(db *bolt.DB) error {
 
 	// If version is lower than the latest known version, it's time to apply the
 	// migrations!
-	if version < TopVersion {
+	if version < len(migrations) {
 		if err := applyMigrations(db, version); err != nil {
 			log.Print("Error: Migration application failed ;'(")
 			return err
@@ -63,16 +61,17 @@ func Migrate(db *bolt.DB) error {
 }
 
 func applyMigrations(db *bolt.DB, version int) error {
-	log.Printf(" --- Migrating %d -> %d:\n", version, TopVersion)
+	log.Printf(" --- Migrating %d -> %d:\n", version, len(migrations))
 	if err := backup(db, version, "db-migration-backup/"); err != nil {
 		return err
 	}
 
 	// Run the new migrations and the new migrations only
-	for x, migration := range migrations[version:] {
-		log.Printf("     Applying migration %d\n", x)
+	new := migrations[version:]
+	for x, migration := range new {
+		log.Printf("Applying migration %d\n", x+len(new))
 		if err := migration(db); err != nil {
-			log.Print("     Migration failure: ", err)
+			log.Print("Migration failure: ", err)
 			return err
 		}
 	}
@@ -85,10 +84,10 @@ func backup(db *bolt.DB, version int, path string) error {
 	_ = os.Mkdir(path, 0755)
 
 	fn := fmt.Sprintf(
-		"%d_%d-%d.db",
+		"%d_from-v%d-to-v%d.db",
 		time.Now().UnixNano(),
 		version,
-		TopVersion,
+		len(migrations),
 	)
 	dst := filepath.Join(path, fn)
 
@@ -97,7 +96,7 @@ func backup(db *bolt.DB, version int, path string) error {
 		return err
 	}
 
-	log.Printf("     Backed up into %s\n", fn)
+	log.Printf("Backed up into %s\n", fn)
 	return nil
 }
 

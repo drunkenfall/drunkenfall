@@ -1,8 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"github.com/boltdb/bolt"
 	"github.com/stretchr/testify/assert"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
@@ -20,6 +22,32 @@ func testDB(fn string) *bolt.DB {
 		log.Fatal(err)
 	}
 	return db
+}
+
+// migrationDB opens a fixture database, makes a copy and returns a bolt
+// instance of the copy as well as the original database in RO
+func migrationDB(version int) (*bolt.DB, *bolt.DB) {
+	base := fmt.Sprintf("migration%d.fixture", version)
+	src := "migration-dbs/" + base
+	dst := "test/" + base
+
+	_ = os.Remove(dst) // Clear it if it exists
+	d, err := os.Create(dst)
+	fatalError(err)
+
+	s, err := os.Open(src)
+	fatalError(err)
+
+	_, err = io.Copy(d, s)
+	fatalError(err)
+
+	db, err := bolt.Open(d.Name(), 0600, nil)
+	fatalError(err)
+
+	ro, err := bolt.Open(s.Name(), 0400, nil)
+	fatalError(err)
+
+	return db, ro
 }
 
 func TestInitialMigration(t *testing.T) {
@@ -49,7 +77,7 @@ func TestBackup(t *testing.T) {
 	assert.Equal(1, len(files))
 
 	assert.True(
-		strings.Contains(files[0].Name(), "_"+strconv.Itoa(255)+"-"),
+		strings.Contains(files[0].Name(), "v"+strconv.Itoa(255)+"-"),
 		"Backup file did not contain the version number",
 	)
 }

@@ -20,6 +20,7 @@ var AllColors = []interface{}{
 	"red",
 }
 
+// Colors is the definitive set of all the colors
 var Colors = mapset.NewSetFromSlice(AllColors)
 
 // ScoreData is a structured Key/Value pair list for scores
@@ -31,50 +32,42 @@ type ScoreData struct {
 
 // Player is a Participant that is actively participating in battles.
 type Player struct {
-	Person        *Person `json:"person"`
-	Color         string  `json:"color"`
-	OriginalColor string  `json:"original_color"`
-	Shots         int     `json:"shots"`
-	Sweeps        int     `json:"sweeps"`
-	Kills         int     `json:"kills"`
-	Self          int     `json:"self"`
-	Explosions    int     `json:"explosions"`
-	Matches       int     `json:"matches"`
-	TotalScore    int     `json:"score"`
-	Match         *Match  `json:"-"`
+	Person         *Person `json:"person"`
+	Color          string  `json:"color"`
+	PreferredColor string  `json:"preferred_color"`
+	Shots          int     `json:"shots"`
+	Sweeps         int     `json:"sweeps"`
+	Kills          int     `json:"kills"`
+	Self           int     `json:"self"`
+	Explosions     int     `json:"explosions"`
+	Matches        int     `json:"matches"`
+	TotalScore     int     `json:"score"`
+	Match          *Match  `json:"-"`
 }
 
 // NewPlayer returns a new instance of a player
-func NewPlayer(ps *Person) Player {
-	p := Player{Person: ps}
+func NewPlayer(ps *Person) *Player {
+	p := &Player{Person: ps}
+	p.PreferredColor = ps.ColorPreference[0]
+
 	return p
 }
 
 func (p *Player) String() string {
-	IsPointed := "."
-	if p.Match != nil {
-		IsPointed = "!"
-	}
 	return fmt.Sprintf(
-		"<%s: %dsh %dsw %dk %ds %de %s>",
+		"<%s: %dsh %dsw %dk %ds %de>",
 		p.Name(),
 		p.Shots,
 		p.Sweeps,
 		p.Kills,
 		p.Self,
 		p.Explosions,
-		IsPointed,
 	)
 }
 
 // Name returns the nickname
 func (p *Player) Name() string {
 	return p.Person.Nick
-}
-
-// PreferredColor returns the color
-func (p *Player) PreferredColor() string {
-	return p.Person.PreferredColor()
 }
 
 // Score calculates the score to determine runnerup positions.
@@ -135,7 +128,7 @@ func (p *Player) Classes() string {
 
 		return "out"
 	}
-	return p.PreferredColor()
+	return p.PreferredColor
 }
 
 // Index returns the index in the current match
@@ -338,6 +331,23 @@ func SortByScore(ps []Player) []Player {
 	return tmp
 }
 
+// SortByTournamentScore returns a list in order of the score the players
+// have, computed from the total of the tournament
+func SortByTournamentScore(ps []Player) (tmp []Player, err error) {
+	var tp *Player
+	tmp = make([]Player, len(ps))
+	for i, p := range ps {
+		// TODO(thiderman): This is not very elegant and should be replaced.
+		tp, err = p.Match.Tournament.getTournamentPlayerObject(p.Person)
+		if err != nil {
+			return
+		}
+		tmp[i] = *tp
+	}
+	sort.Sort(ByScore(tmp))
+	return
+}
+
 // ByKills is a sort.Interface that sorts players by their kills
 type ByKills []Player
 
@@ -392,7 +402,7 @@ func SortByRunnerup(ps []Player) []Player {
 	return ps
 }
 
-// Random returns a random color from the ColorList
+// RandomColor returns a random color from the ColorList
 func RandomColor(s mapset.Set) string {
 	colors := s.ToSlice()
 	x := len(colors)
@@ -401,7 +411,6 @@ func RandomColor(s mapset.Set) string {
 
 // AvailableColors returns a ColorList with the colors not used in a match
 func AvailableColors(m *Match) mapset.Set {
-	_ = "breakpoint"
 	colors := mapset.NewSetFromSlice(AllColors)
 	ret := colors.Difference(m.presentColors)
 	return ret

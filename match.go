@@ -10,25 +10,26 @@ import (
 )
 
 // Match represents a game being played
+//
+// Match.ScoreOrder stores the index to the player in the relative position.
+// E.g. if player 3 is in the lead, ScoreOrder[0] will be 2 (the index of
+// player 3).
+//
+// Match.Commits is a list of one commit per round and represents the
+// changeset of what happened in the match.
 type Match struct {
-	Players    []Player      `json:"players"`
-	Judges     []Judge       `json:"judges"`
-	Kind       string        `json:"kind"`
-	Index      int           `json:"index"`
-	Length     int           `json:"length"`
-	Pause      time.Duration `json:"pause"`
-	Scheduled  time.Time     `json:"scheduled"`
-	Started    time.Time     `json:"started"`
-	Ended      time.Time     `json:"ended"`
-	Tournament *Tournament   `json:"-"`
-
-	// Stores the index to the player in the relative position.  E.g. if player
-	// 3 is in the lead, ScoreOrder[0] will be 2 (the index of player 3).
-	KillOrder []int `json:"score_order"`
-
-	// One commit per round - the changeset of what happened in it.
-	Commits []MatchCommit `json:"commits"`
-
+	Players       []Player      `json:"players"`
+	Judges        []Judge       `json:"judges"`
+	Kind          string        `json:"kind"`
+	Index         int           `json:"index"`
+	Length        int           `json:"length"`
+	Pause         time.Duration `json:"pause"`
+	Scheduled     time.Time     `json:"scheduled"`
+	Started       time.Time     `json:"started"`
+	Ended         time.Time     `json:"ended"`
+	Tournament    *Tournament   `json:"-"`
+	KillOrder     []int         `json:"kill_order"`
+	Commits       []MatchCommit `json:"commits"`
 	presentColors mapset.Set
 }
 
@@ -133,23 +134,20 @@ func (m *Match) AddPlayer(p Player) error {
 	// Reset all possible scores
 	p.Reset()
 
-	c := p.PreferredColor()
-	p.OriginalColor = c
-	if m.presentColors.Contains(c) {
-		a := AvailableColors(m)
-		// Color is already present - give the player a new random one.
-		c = RandomColor(a)
-		log.Printf("Corrected color of %s from %s to %s", p.Person.Nick, p.OriginalColor, c)
-	}
-
-	// Set the player color
-	p.Color = c
-	m.presentColors.Add(c)
+	p.Color = p.PreferredColor
+	m.presentColors.Add(p.Color)
 
 	// Also set the match pointer
 	p.Match = m
 
 	m.Players = append(m.Players, p)
+
+	// If we're adding the fourth player, it's time to correct the conflicts
+	if len(m.Players) == 4 && len(m.presentColors.ToSlice()) != 4 {
+		if err := m.CorrectFuckingColorConflicts(); err != nil {
+			return err
+		}
+	}
 
 	return nil
 }
@@ -159,6 +157,51 @@ func (m *Match) UpdatePlayer(p Player) error {
 	for i, o := range m.Players {
 		if o.Name() == p.Name() {
 			m.Players[i] = p
+		}
+	}
+	return nil
+}
+
+// CorrectFuckingColorConflicts corrects color conflicts :@
+func (m *Match) CorrectFuckingColorConflicts() error {
+	// Make a map of conflicting players keyed on the color
+	pairs := make(map[string][]Player)
+	for _, color := range m.presentColors.ToSlice() {
+		c := color.(string)
+		for _, p := range m.Players {
+			if p.PreferredColor == c {
+				pairs[c] = append(pairs[c], p)
+			}
+		}
+	}
+
+	// Loop over the colors and
+	for _, pair := range pairs {
+		// If there are two or more players in the group, there is a conflict and
+		// they need to be corrected.
+		if len(pair) >= 2 {
+			// We want to sort them by score, so that we can let the player with the
+			// highest score keep their color.
+			ps, err := SortByTournamentScore(pair)
+			if err != nil {
+				return err
+			}
+
+			for _, p := range ps[1:] {
+				// For the players with lower scores, set their new colors
+				new := RandomColor(AvailableColors(m))
+				m.presentColors.Add(new)
+				p.Color = new
+
+				// Since we are using the tournament level Player object, the compound
+				// scores from all other matches are currently on it. Reset that.
+				p.Reset()
+
+				if err := m.UpdatePlayer(p); err != nil {
+					return err
+				}
+				log.Println(fmt.Sprintf("%s corrected from %s to %s", p.Name(), p.PreferredColor, new))
+			}
 		}
 	}
 	return nil

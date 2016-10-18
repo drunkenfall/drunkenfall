@@ -28,13 +28,14 @@ func MockMatch(idx int, cat string) (m *Match) {
 }
 
 func testPlayer() Player {
-	return NewPlayer(testPerson())
+	return *NewPlayer(testPerson())
 }
 
 func testPerson() *Person {
+	n := FakeName()
 	return &Person{
-		ID:   FakeName(),
-		Name: FakeName(),
+		ID:   n,
+		Name: n,
 		Nick: FakeNick(),
 		ColorPreference: []string{
 			RandomColor(Colors),
@@ -323,119 +324,158 @@ func TestCorrectColorConflictsNoScores(t *testing.T) {
 	m := MockMatch(0, "final")
 	m.Players = make([]Player, 0)
 
-	p1 := testPlayer()
-	p1.Person.ColorPreference[0] = "green"
-	p2 := testPlayer()
-	p2.Person.ColorPreference[0] = "green"
-	p3 := testPlayer()
-	p3.Person.ColorPreference[0] = "blue"
-	p4 := testPlayer()
-	p4.Person.ColorPreference[0] = "red"
+	m.Tournament.Players[0].PreferredColor = "green"
+	m.Tournament.Players[1].PreferredColor = "green"
+	m.Tournament.Players[2].PreferredColor = "blue"
+	m.Tournament.Players[3].PreferredColor = "red"
 
-	_ = m.AddPlayer(p1)
-	_ = m.AddPlayer(p2)
-	_ = m.AddPlayer(p3)
-	_ = m.AddPlayer(p4)
+	assert.Nil(m.AddPlayer(m.Tournament.Players[0]))
+	assert.Nil(m.AddPlayer(m.Tournament.Players[1]))
+	assert.Nil(m.AddPlayer(m.Tournament.Players[2]))
+	assert.Nil(m.AddPlayer(m.Tournament.Players[3]))
 
 	assert.Equal("green", m.Players[0].Color)
-	assert.Equal("green", m.Players[0].OriginalColor)
+	assert.Equal("green", m.Players[0].PreferredColor)
 	assert.NotEqual("green", m.Players[1].Color)
-	assert.Equal("green", m.Players[1].OriginalColor)
+	assert.Equal("green", m.Players[1].PreferredColor)
 	assert.Equal("blue", m.Players[2].Color)
-	assert.Equal("blue", m.Players[2].OriginalColor)
+	assert.Equal("blue", m.Players[2].PreferredColor)
 	assert.Equal("red", m.Players[3].Color)
-	assert.Equal("red", m.Players[3].OriginalColor)
+	assert.Equal("red", m.Players[3].PreferredColor)
 }
 
-// This test was needed since somehow getting the color reset
-func TestCorrectColorConflictsResetsToOriginalColor(t *testing.T) {
+// This test was needed since somehow the color were being kept
+func TestCorrectColorConflictsResetsToPreferredColor(t *testing.T) {
 	assert := assert.New(t)
 
-	m := MockMatch(0, "semi")
-	m2 := MockMatch(0, "final")
+	tm := testTournament(12)
+	m := tm.Tryouts[0]
+	m2 := tm.Tryouts[1]
 	m.Players = make([]Player, 0)
 	m2.Players = make([]Player, 0)
 
-	p1 := testPlayer()
-	p1.Person.ColorPreference[0] = "green"
-	p2 := testPlayer()
-	p2.Person.ColorPreference[0] = "green"
-	p3 := testPlayer()
-	p3.Person.ColorPreference[0] = "green"
-	p4 := testPlayer()
-	p4.Person.ColorPreference[0] = "green"
-	p5 := testPlayer()
-	p5.Person.ColorPreference[0] = "green"
+	m.Tournament.Players[0].PreferredColor = "green"
+	m.Tournament.Players[1].PreferredColor = "green"
+	m.Tournament.Players[2].PreferredColor = "green"
+	m.Tournament.Players[3].PreferredColor = "green"
+	m.Tournament.Players[4].PreferredColor = "green"
 
-	_ = m.AddPlayer(p1)
-	_ = m.AddPlayer(p2)
-	_ = m.AddPlayer(p3)
-	_ = m.AddPlayer(p4)
+	assert.Nil(m.AddPlayer(m.Tournament.Players[0]))
+	assert.Nil(m.AddPlayer(m.Tournament.Players[1]))
+	assert.Nil(m.AddPlayer(m.Tournament.Players[2]))
+	assert.Nil(m.AddPlayer(m.Tournament.Players[3]))
+
+	assert.Nil(m2.AddPlayer(m.Tournament.Players[4]))
+	assert.Nil(m2.AddPlayer(m.Tournament.Players[1]))
+	assert.Nil(m2.AddPlayer(m.Tournament.Players[2]))
+	assert.Nil(m2.AddPlayer(m.Tournament.Players[3]))
 
 	assert.Equal("green", m.Players[0].Color)
-	assert.Equal("green", m.Players[0].OriginalColor)
+	assert.Equal("green", m.Players[0].PreferredColor)
 	assert.NotEqual("green", m.Players[1].Color)
-	assert.Equal("green", m.Players[1].OriginalColor)
+	assert.Equal("green", m.Players[1].PreferredColor)
 	assert.NotEqual("green", m.Players[2].Color)
-	assert.Equal("green", m.Players[2].OriginalColor)
+	assert.Equal("green", m.Players[2].PreferredColor)
 	assert.NotEqual("green", m.Players[3].Color)
-	assert.Equal("green", m.Players[3].OriginalColor)
-
-	_ = m2.AddPlayer(p5)
-	_ = m2.AddPlayer(p2)
-	_ = m2.AddPlayer(p3)
-	_ = m2.AddPlayer(p4)
 
 	assert.Equal("green", m2.Players[0].Color)
-	assert.Equal("green", m2.Players[0].OriginalColor)
+	assert.Equal("green", m2.Players[0].PreferredColor)
 	assert.NotEqual("green", m2.Players[1].Color)
-	assert.Equal("green", m2.Players[1].OriginalColor)
+	assert.Equal("green", m2.Players[1].PreferredColor)
 	assert.NotEqual("green", m2.Players[2].Color)
-	assert.Equal("green", m2.Players[2].OriginalColor)
+	assert.Equal("green", m2.Players[2].PreferredColor)
 	assert.NotEqual("green", m2.Players[3].Color)
-	assert.Equal("green", m2.Players[3].OriginalColor)
-
 }
 
-// func TestCorrectColorConflictsNoScoresDoubleConflict(t *testing.T) {
-// 	assert := assert.New(t)
+func TestCorrectColorConflictsNoScoresDoubleConflict(t *testing.T) {
+	assert := assert.New(t)
 
-// 	m := MockMatch(0, "final")
-// 	_ = m.AddPlayer(testPlayer())
-// 	_ = m.AddPlayer(testPlayer())
-// 	_ = m.AddPlayer(testPlayer())
-// 	_ = m.AddPlayer(testPlayer())
+	m := MockMatch(0, "final")
+	m.Players = make([]Player, 0)
 
-// 	err := m.CorrectColorConflicts()
-// 	assert.Nil(err)
+	m.Tournament.Players[0].PreferredColor = "green"
+	m.Tournament.Players[1].PreferredColor = "green"
+	m.Tournament.Players[2].PreferredColor = "blue"
+	m.Tournament.Players[3].PreferredColor = "blue"
 
-// 	assert.Equal("green", m.Players[0].PreferredColor())
-// 	assert.NotEqual("green", m.Players[1].PreferredColor())
-// 	assert.Equal("blue", m.Players[2].PreferredColor())
-// 	assert.NotEqual("blue", m.Players[3].PreferredColor())
-// }
+	assert.Nil(m.AddPlayer(m.Tournament.Players[0]))
+	assert.Nil(m.AddPlayer(m.Tournament.Players[1]))
+	assert.Nil(m.AddPlayer(m.Tournament.Players[2]))
+	assert.Nil(m.AddPlayer(m.Tournament.Players[3]))
 
-// func TestCorrectColorConflictPlayerTwoHasHigherScore(t *testing.T) {
-// 	assert := assert.New(t)
+	assert.Equal("green", m.Players[0].Color)
+	assert.Equal("green", m.Players[0].PreferredColor)
+	assert.NotEqual("green", m.Players[1].Color)
+	assert.Equal("green", m.Players[1].PreferredColor)
+	assert.Equal("blue", m.Players[2].Color)
+	assert.Equal("blue", m.Players[2].PreferredColor)
+	assert.NotEqual("blue", m.Players[3].Color)
+	assert.Equal("blue", m.Players[3].PreferredColor)
+}
 
-// 	m := MockMatch(0, "final")
-// 	_ = m.AddPlayer(testPlayer())
-// 	_ = m.AddPlayer(testPlayer())
-// 	_ = m.AddPlayer(testPlayer())
-// 	_ = m.AddPlayer(testPlayer())
+func TestCorrectColorConflictsWithScoresDoubleConflict(t *testing.T) {
+	assert := assert.New(t)
 
-// 	// Add some score to player 2 so that it has preference over green.
-// 	m.Players[1].AddKill(3)
+	m := MockMatch(0, "final")
+	m.Players = make([]Player, 0)
 
-// 	err := m.CorrectColorConflicts()
-// 	assert.Nil(err)
+	m.Tournament.Players[0].PreferredColor = "green"
+	m.Tournament.Players[0].Person.Nick = "GreenCorrected"
 
-// 	// TODO(thiderman): Fix this
-// 	// assert.NotEqual("green", m.Players[0].PreferredColor())
-// 	// assert.Equal("green", m.Players[1].PreferredColor())
-// 	// assert.Equal("blue", m.Players[2].PreferredColor())
-// 	// assert.Equal("cyan", m.Players[3].PreferredColor())
-// }
+	m.Tournament.Players[1].Kills = 3
+	m.Tournament.Players[1].PreferredColor = "green"
+
+	m.Tournament.Players[2].PreferredColor = "blue"
+	m.Tournament.Players[2].Person.Nick = "BlueCorrected"
+
+	m.Tournament.Players[3].Kills = 3
+	m.Tournament.Players[3].PreferredColor = "blue"
+
+	assert.Nil(m.AddPlayer(m.Tournament.Players[0]))
+	assert.Nil(m.AddPlayer(m.Tournament.Players[1]))
+	assert.Nil(m.AddPlayer(m.Tournament.Players[2]))
+	assert.Nil(m.AddPlayer(m.Tournament.Players[3]))
+
+	assert.NotEqual("green", m.Players[0].Color)
+	assert.Equal("green", m.Players[0].PreferredColor)
+	assert.Equal("green", m.Players[1].Color)
+	assert.Equal("green", m.Players[1].PreferredColor)
+	assert.NotEqual("blue", m.Players[2].Color)
+	assert.Equal("blue", m.Players[2].PreferredColor)
+	assert.Equal("blue", m.Players[3].Color)
+	assert.Equal("blue", m.Players[3].PreferredColor)
+}
+
+func TestCorrectColorConflictsWithScoresTripleConflict(t *testing.T) {
+	assert := assert.New(t)
+
+	m := MockMatch(0, "final")
+	m.Players = make([]Player, 0)
+
+	m.Tournament.Players[0].PreferredColor = "green"
+	m.Tournament.Players[0].Person.Nick = "Green1Corrected"
+
+	m.Tournament.Players[1].Kills = 3
+	m.Tournament.Players[1].PreferredColor = "green"
+	m.Tournament.Players[1].Person.Nick = "Green2Corrected"
+
+	m.Tournament.Players[2].PreferredColor = "blue"
+	m.Tournament.Players[2].Person.Nick = "BlueKeep"
+
+	m.Tournament.Players[3].Kills = 10
+	m.Tournament.Players[3].PreferredColor = "green"
+	m.Tournament.Players[3].Person.Nick = "GreenKeep"
+
+	assert.Nil(m.AddPlayer(m.Tournament.Players[0]))
+	assert.Nil(m.AddPlayer(m.Tournament.Players[1]))
+	assert.Nil(m.AddPlayer(m.Tournament.Players[2]))
+	assert.Nil(m.AddPlayer(m.Tournament.Players[3]))
+
+	assert.NotEqual("green", m.Players[0].Color)
+	assert.NotEqual("green", m.Players[1].Color)
+	assert.Equal("blue", m.Players[2].Color)
+	assert.Equal("green", m.Players[3].Color)
+}
 
 func TestSortByScoreDoesNotAlterSourceList(t *testing.T) {
 	assert := assert.New(t)

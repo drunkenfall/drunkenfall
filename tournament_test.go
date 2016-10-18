@@ -17,7 +17,7 @@ func testTournament(count int) (t *Tournament) {
 	}
 
 	for i := 1; i <= count; i++ {
-		t.AddPlayer(testPerson())
+		_ = t.AddPlayer(NewPlayer(testPerson()))
 	}
 
 	return
@@ -131,7 +131,6 @@ func TestNextMatchNoMatchesAreStartedWithTryoutsDone(t *testing.T) {
 	tm.StartTournament()
 	err := endTryouts(tm)
 	assert.Nil(err)
-	_ = "breakpoint"
 
 	m, err := tm.NextMatch()
 	assert.Nil(err)
