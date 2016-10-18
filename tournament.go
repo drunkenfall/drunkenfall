@@ -165,8 +165,8 @@ func (t *Tournament) StartTournament() error {
 
 	// More than 16 players - add four more tryouts
 	if ps > 16 {
-		for i := 0; i < 4; i++ {
-			match := NewMatch(t, i+4, "tryout")
+		for i := 16; i < ps; i += 4 {
+			match := NewMatch(t, i/4, "tryout")
 			t.Tryouts = append(t.Tryouts, match)
 		}
 	}
@@ -267,13 +267,15 @@ func (t *Tournament) UpdatePlayers() error {
 
 // MovePlayers moves the winner(s) of a Match into the next bracket of matches
 // or into the Runnerup bracket.
+// TODO(thiderman): This method is way too long and should be split into several.
 func (t *Tournament) MovePlayers(m *Match) error {
 	if m.Kind == "tryout" {
 		ps := SortByKills(m.Players)
 		for i := 0; i < len(ps); i++ {
 			p := ps[i]
 			// If we are in a four-match tryout, both the winner and the second-place
-			// are to be sent to the semis
+			// are to be sent to the semis.
+			// If there are more than four matches, just send the winner
 			if len(t.Tryouts) == 4 && i < 2 || i == 0 {
 				// This spreads the winners into the semis so that the winners do not
 				// face off immediately in the semis
@@ -283,13 +285,7 @@ func (t *Tournament) MovePlayers(m *Match) error {
 				// If the player is also inside of the runnerups, move them from the
 				// runnerup roster since they now have advanced to the finals. This
 				// only happens for players that win the runnerup rounds.
-				for j := 0; j < len(t.Runnerups); j++ {
-					r := t.Runnerups[j]
-					if r == p.Person {
-						t.Runnerups = append(t.Runnerups[:j], t.Runnerups[j+1:]...)
-						break
-					}
-				}
+				t.removeFromRunnerups(p.Person)
 
 			} else {
 				// For everyone else, add them into the Runnerup bracket unless they are
@@ -309,15 +305,6 @@ func (t *Tournament) MovePlayers(m *Match) error {
 		}
 	}
 
-	if m.Kind == "semi" {
-		// For the semis, just place the winner and silver into the final
-		for i, p := range SortByKills(m.Players) {
-			if i < 2 {
-				t.Final.AddPlayer(p)
-			}
-		}
-	}
-
 	// Get the runnerups and sort them into the Runnerup array
 	ps, err := t.GetRunnerupPlayers()
 	if err != nil {
@@ -326,6 +313,36 @@ func (t *Tournament) MovePlayers(m *Match) error {
 	t.Runnerups = make([]*Person, 0)
 	for _, p := range ps {
 		t.Runnerups = append(t.Runnerups, p.Person)
+	}
+
+	// If we're on the last tryout, we should backfill the semis with runnerups
+	// until they have have full seats.
+	if m.Kind == "tryout" && m.Index+1 == len(t.Tryouts) {
+		// The amount of players needed; 8 minus the current amount
+		semiPlayers := 8 - (len(t.Semis[0].Players) + len(t.Semis[1].Players))
+		log.Printf("Backfilling %d semi players\n", semiPlayers)
+		runnerups, err := t.GetRunnerupPlayers()
+		if err != nil {
+			return err
+		}
+
+		for _, p := range runnerups[:semiPlayers] {
+			index := 0
+			if len(t.Semis[0].Players) == 4 {
+				index = 1
+			}
+			t.Semis[index].AddPlayer(p)
+			t.removeFromRunnerups(p.Person)
+		}
+	}
+
+	// For the semis, just place the winner and silver into the final
+	if m.Kind == "semi" {
+		for i, p := range SortByKills(m.Players) {
+			if i < 2 {
+				t.Final.AddPlayer(p)
+			}
+		}
 	}
 
 	// Finally, if the next match is a tryout and does not have enough players,
@@ -503,4 +520,14 @@ func (t *Tournament) getTournamentPlayerObject(ps *Person) (p *Player, err error
 
 	err = fmt.Errorf("no player found for %s", ps)
 	return
+}
+
+func (t *Tournament) removeFromRunnerups(p *Person) {
+	for j := 0; j < len(t.Runnerups); j++ {
+		r := t.Runnerups[j]
+		if r == p {
+			t.Runnerups = append(t.Runnerups[:j], t.Runnerups[j+1:]...)
+			break
+		}
+	}
 }
