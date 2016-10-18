@@ -1,12 +1,12 @@
 package main
 
 import (
-	"os"
 	"fmt"
 	roman "github.com/StefanSchroeder/Golang-Roman"
 	"io/ioutil"
 	"log"
 	"math/rand"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -18,14 +18,14 @@ type Cracklib []string
 var words Cracklib
 
 func init() {
-	cracklib_location := os.Getenv("DF_CRACKLIB_LOCATION")
-	default_cracklib_location := "/usr/share/cracklib/cracklib-small"
-	if cracklib_location == "" {
-		log.Print("Cracklib location set to default: " + default_cracklib_location)
+	cracklibLocation := os.Getenv("DF_CRACKLIB_LOCATION")
+	defaultCracklibLocation := "/usr/share/cracklib/cracklib-small"
+	if cracklibLocation == "" {
+		log.Print("Cracklib location set to default: " + defaultCracklibLocation)
 
-		cracklib_location = default_cracklib_location
+		cracklibLocation = defaultCracklibLocation
 	}
-	out, err := ioutil.ReadFile(cracklib_location)
+	out, err := ioutil.ReadFile(cracklibLocation)
 	if err != nil {
 		log.Print("Cracklib failed to load. Set location by env variable DF_CRACKLIB_LOCATION")
 		return
