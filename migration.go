@@ -18,7 +18,7 @@ import (
 //
 // If you add a new migration, increase this number to make sure that your
 // migration is actually applied.
-const TopVersion = 3
+const TopVersion = 4
 
 var (
 	errNoMigrationsYet = errors.New("no migrations have been added yet")
@@ -31,6 +31,7 @@ var migrations = []func(db *bolt.DB) error{
 	InitialMigration,
 	MigrateOriginalColorPreferredColor,
 	MigrateTournamentRunnerupStringPerson,
+	MigrateMatchScoreOrder,
 }
 
 // Migrate is the main migration entrypoint
