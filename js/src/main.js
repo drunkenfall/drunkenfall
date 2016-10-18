@@ -2,8 +2,9 @@ import Vue from 'vue'
 import Router from 'vue-router'
 import Resource from 'vue-resource'
 import Cookie from 'vue-cookie'
-import vPikaday from 'vue-pikaday'
 import App from './App'
+
+import vPikaday from '../vendor/vue-pikaday'
 
 import TournamentList from './components/TournamentList.vue'
 import Tournament from './components/Tournament.vue'

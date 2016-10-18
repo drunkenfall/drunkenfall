@@ -1,2 +1,3 @@
 build/*.js
+vendor/*.js
 config/*.js
