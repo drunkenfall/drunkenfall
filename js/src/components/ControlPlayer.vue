@@ -13,7 +13,7 @@
      </div>
 
      <div class="slider {{player.color}}" @click="reset">
-       <div><p>{{player.displayName}}</p></div>
+       <div v-el:name>{{player.displayName}}</div>
      </div>
 
      <div v-if="match.length == 10" class="scores">
@@ -38,6 +38,7 @@
 
 <script>
 import Match from "../models/Match.js"
+import fitText from "../util/fittext.js"
 
 export default {
   name: 'ControlPlayer',
@@ -121,6 +122,10 @@ export default {
         this.reason = ''
       }
     }
+  },
+
+  ready: function () {
+    fitText(this.$els.name, this.$els.name.innerText, "'Yanone Kaffeesatz', sans-serif", 1)
   }
 }
 </script>
