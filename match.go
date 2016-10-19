@@ -289,9 +289,13 @@ func (m *Match) End() error {
 	// TODO: This is for the tests not to break. Fix by setting up better tests.
 	if m.Tournament != nil {
 		if m.Kind == "final" {
-			m.Tournament.AwardMedals(m)
+			if err := m.Tournament.AwardMedals(m); err != nil {
+				return err
+			}
 		} else {
-			m.Tournament.MovePlayers(m)
+			if err := m.Tournament.MovePlayers(m); err != nil {
+				return err
+			}
 		}
 
 		m.Tournament.Persist()

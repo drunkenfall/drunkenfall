@@ -268,7 +268,10 @@ func (s *Server) MatchEndHandler(w http.ResponseWriter, r *http.Request) {
 			return errors.New(errorMsg)
 		}
 		log.Printf("%s ended", m.String())
-		m.End()
+		err := m.End()
+		if err != nil {
+			log.Fatal(err)
+		}
 		return nil
 	})
 }
