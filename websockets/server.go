@@ -89,7 +89,6 @@ func (s *Server) Pulse() {
 // websocket.Handler().
 func (s *Server) OnConnected(ws *websocket.Conn) {
 	defer func() {
-		log.Print("Deferring")
 		err := ws.Close()
 		if err != nil {
 			s.errCh <- err
@@ -119,19 +118,18 @@ func (s *Server) Listen() {
 
 		// Add new a client
 		case c := <-s.addCh:
-			log.Println("Added new client")
+			log.Println("Client connected")
 			s.clients[c.id] = c
-			log.Println("Now", len(s.clients), "clients connected.")
+			log.Println(len(s.clients), "clients connected.")
 			s.sendPastMessages(c)
 
 		// del a client
 		case c := <-s.delCh:
-			log.Println("Delete client")
+			log.Println("Client disconnected")
 			delete(s.clients, c.id)
 
 		// broadcast message for all clients
 		case msg := <-s.sendAllCh:
-			log.Println("Send all:", msg)
 			s.messages = append(s.messages, msg)
 			s.sendAll(msg)
 
