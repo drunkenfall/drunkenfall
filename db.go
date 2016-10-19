@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/boltdb/bolt"
 	"log"
+	"strings"
 )
 
 // Database is the persisting class
@@ -133,6 +134,42 @@ func (d *Database) LoadPeople() error {
 			}
 
 			d.People = append(d.People, p)
+			return nil
+		})
+		return err
+	})
+
+	return err
+}
+
+// ClearTestTournaments deletes any tournament that doesn't begin with "DrunkenFall"
+func (d *Database) ClearTestTournaments() error {
+	err := d.DB.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket(TournamentKey)
+
+		err := b.ForEach(func(k []byte, v []byte) error {
+			t, err := LoadTournament(v, d)
+			if err != nil {
+				return err
+			}
+
+			if !strings.HasPrefix(t.Name, "DrunkenFall") {
+				log.Print("Deleting ", t.ID)
+				err := b.Delete([]byte(t.ID))
+				if err != nil {
+					return err
+				}
+
+				// Also remove the database from memory
+				delete(d.tournamentRef, t.ID)
+				for j := 0; j < len(d.Tournaments); j++ {
+					ot := d.Tournaments[j]
+					if t.ID == ot.ID {
+						d.Tournaments = append(d.Tournaments[:j], d.Tournaments[j+1:]...)
+						break
+					}
+				}
+			}
 			return nil
 		})
 		return err

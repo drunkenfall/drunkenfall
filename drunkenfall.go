@@ -344,6 +344,15 @@ func (s *Server) TournamentListHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(data)
 }
 
+// ClearTournamentHandler removes all test tournaments
+func (s *Server) ClearTournamentHandler(w http.ResponseWriter, r *http.Request) {
+	err := s.DB.ClearTestTournaments()
+	if err != nil {
+		log.Fatal(err)
+	}
+	s.TournamentListHandler(w, r)
+}
+
 // BuildRouter sets up the routes
 func (s *Server) BuildRouter(ws *websockets.Server) http.Handler {
 	n := mux.NewRouter()
@@ -351,6 +360,7 @@ func (s *Server) BuildRouter(ws *websockets.Server) http.Handler {
 	r := a.PathPrefix("/towerfall").Subrouter()
 
 	r.HandleFunc("/tournament/", s.TournamentListHandler)
+	r.HandleFunc("/tournament/clear/", s.ClearTournamentHandler)
 	r.HandleFunc("/tournament/{id}/", s.TournamentHandler)
 	// TODO: Normalize for all to use /tournament
 	r.HandleFunc("/new/", s.NewHandler)

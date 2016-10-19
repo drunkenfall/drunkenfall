@@ -6,6 +6,7 @@
       </div>
       <div class="links">
         <a v-link="{name: 'new'}" v-if="user.level(levels.producer)">New Tournament</a>
+        <a @click="clear" v-if="user.level(levels.producer)">Clear tests</a>
         <a v-link="{name: 'facebook'}" v-if="!user.authenticated">Facebook</a>
         <a href="/api/facebook/login" v-if="user.level(levels.producer) && user.authenticated">Re-facebook</a>
       </div>
@@ -37,6 +38,17 @@ export default {
       tournaments: [],
       user: this.$root.user,
       levels: levels,
+    }
+  },
+  methods: {
+    clear (event) {
+      event.preventDefault()
+      return this.$http.get('/api/towerfall/tournament/clear/').then(function (res) {
+        this.$set('tournaments', _.map(res.data.tournaments, Tournament.fromObject))
+      }, function (res) {
+        console.error('error when clearing tournaments', res)
+        return { tournaments: [] }
+      })
     }
   },
   route: {
