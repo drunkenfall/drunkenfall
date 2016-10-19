@@ -293,7 +293,7 @@ func (t *Tournament) MovePlayers(m *Match) error {
 				found := false
 				for j := 0; j < len(t.Runnerups); j++ {
 					r := t.Runnerups[j]
-					if r == p.Person {
+					if r.ID == p.Person.ID {
 						found = true
 						break
 					}
@@ -492,6 +492,7 @@ func SetupFakeTournament(s *Server) *Tournament {
 	// Fake between 14 and 32 players
 	for i := 0; i < rand.Intn(18)+14; i++ {
 		ps := &Person{
+			ID:              FakeName(),
 			Name:            FakeName(),
 			Nick:            FakeNick(),
 			AvatarURL:       FakeAvatar(),
@@ -512,9 +513,9 @@ func SetupFakeTournament(s *Server) *Tournament {
 // the Match objects don't have pointers to their Player objects.
 func (t *Tournament) getTournamentPlayerObject(ps *Person) (p *Player, err error) {
 	for i := range t.Players {
-		p := &t.Players[i]
+		p := t.Players[i]
 		if ps.ID == p.Person.ID {
-			return p, nil
+			return &p, nil
 		}
 	}
 
