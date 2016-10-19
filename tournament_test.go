@@ -212,44 +212,36 @@ func TestNextMatchEverythingDone(t *testing.T) {
 	assert.NotNil(err)
 }
 
-// TODO(thiderman): This needs to be refactored to use the new logic for
-// creating matches.
-// func TestUpdatePlayer(t *testing.T) {
-// 	assert := assert.New(t)
-// 	tm, _ := NewTournament("player test", "test", MockServer())
-// 	tm.AddPlayer(testPerson())
-// 	tm.AddPlayer(testPerson())
-// 	tm.AddPlayer(testPerson())
-// 	tm.AddPlayer(testPerson())
+func TestUpdatePlayer(t *testing.T) {
+	assert := assert.New(t)
+	tm := testTournament(11)
+	tm.StartTournament()
+	m, err := tm.NextMatch()
+	assert.Nil(err)
 
-// 	tm.Tryouts = []*Match{
-// 		{
-// 			Kind: "tryout",
-// 			Players: []Player{
-// 				testPlayer(),
-// 				testPlayer(),
-// 				testPlayer(),
-// 				testPlayer(),
-// 			},
-// 		},
-// 		{
-// 			Kind: "tryout",
-// 			Players: []Player{
-// 				testPlayer(),
-// 				testPlayer(),
-// 				testPlayer(),
-// 				testPlayer(),
-// 			},
-// 		},
-// 	}
-// 	tm.Semis = []*Match{}
-// 	tm.Final = &Match{}
+	m.Start()
 
-// 	tm.SetMatchPointers()
-// 	tm.UpdatePlayers()
-// 	assert.Equal(20, tm.getPlayer("winner").Kills)
-// 	assert.Equal(1, tm.getPlayer("loser1").Shots)
-// }
+	t.Log(m)
+	m.Players[0].AddKill(5)
+	m.Players[1].AddKill(6)
+	m.Players[2].AddKill(7)
+	m.Players[3].AddKill(10)
+
+	m.End() // Calls tm.UpdatePlayers()
+
+	p, err := tm.getTournamentPlayerObject(m.Players[3].Person)
+	assert.Nil(err)
+	assert.Equal(10, p.Kills)
+	p, err = tm.getTournamentPlayerObject(m.Players[2].Person)
+	assert.Nil(err)
+	assert.Equal(7, p.Kills)
+	p, err = tm.getTournamentPlayerObject(m.Players[1].Person)
+	assert.Nil(err)
+	assert.Equal(6, p.Kills)
+	p, err = tm.getTournamentPlayerObject(m.Players[0].Person)
+	assert.Nil(err)
+	assert.Equal(5, p.Kills)
+}
 
 func TestEnd4MatchTryoutsPlacesWinnerAndSecondIntoSemisAndRestIntoRunnerups(t *testing.T) {
 	assert := assert.New(t)

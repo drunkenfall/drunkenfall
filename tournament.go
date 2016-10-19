@@ -513,9 +513,9 @@ func SetupFakeTournament(s *Server) *Tournament {
 // the Match objects don't have pointers to their Player objects.
 func (t *Tournament) getTournamentPlayerObject(ps *Person) (p *Player, err error) {
 	for i := range t.Players {
-		p := t.Players[i]
+		p := &t.Players[i]
 		if ps.ID == p.Person.ID {
-			return &p, nil
+			return p, nil
 		}
 	}
 
