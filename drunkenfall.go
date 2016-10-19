@@ -229,7 +229,7 @@ func (s *Server) NextHandler(w http.ResponseWriter, r *http.Request) {
 	s.Redirect(w, m.URL())
 }
 
-// Common function for usage in MatchHandler
+// MatchFunctor is a common function for usage in MatchHandler
 type MatchFunctor func(w http.ResponseWriter, r *http.Request, match *Match) error
 
 // MatchHandler is the common function for match operations.
@@ -264,11 +264,14 @@ func (s *Server) MatchHandler(w http.ResponseWriter, r *http.Request, functor Ma
 func (s *Server) MatchEndHandler(w http.ResponseWriter, r *http.Request) {
 	s.MatchHandler(w, r, func(w http.ResponseWriter, r *http.Request, m *Match) error {
 		if !m.IsStarted() {
-			error_msg := fmt.Sprintf("Cannot end the match `%s` that is in not started.", m.String())
-			return errors.New(error_msg)
+			errorMsg := fmt.Sprintf("Cannot end the match `%s` that is in not started.", m.String())
+			return errors.New(errorMsg)
 		}
 		log.Printf("%s ended", m.String())
-		m.End()
+		err := m.End()
+		if err != nil {
+			log.Fatal(err)
+		}
 		return nil
 	})
 }
@@ -279,8 +282,8 @@ func (s *Server) MatchStartHandler(w http.ResponseWriter, r *http.Request) {
 		log.Print("Trying to start match!")
 		if m.IsStarted() {
 			log.Print("Trying to send error. Wäääääääää")
-			error_msg := fmt.Sprintf("Cannot start the match `%s` that is already in progress.", m.String())
-			return errors.New(error_msg)
+			errorMsg := fmt.Sprintf("Cannot start the match `%s` that is already in progress.", m.String())
+			return errors.New(errorMsg)
 		}
 		log.Printf("%s started", m.String())
 		err := m.Start()

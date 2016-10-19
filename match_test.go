@@ -32,10 +32,9 @@ func testPlayer() Player {
 }
 
 func testPerson() *Person {
-	n := FakeName()
 	return &Person{
-		ID:   n,
-		Name: n,
+		ID:   FakeName(),
+		Name: FakeName(),
 		Nick: FakeNick(),
 		ColorPreference: []string{
 			RandomColor(Colors),

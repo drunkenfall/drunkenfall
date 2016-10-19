@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/stretchr/testify/assert"
 	"log"
 	"strconv"
@@ -75,6 +76,35 @@ func TestStartingTournamentWith24PlayersWorks(t *testing.T) {
 	assert.Nil(err)
 }
 
+// TestStartingGivesTheRightAmountOfTryouts
+func TestStartingGivesTheRightAmountOfTryouts(t *testing.T) {
+	assert := assert.New(t)
+	for x := 8; x <= 32; x++ {
+		tm := testTournament(x)
+		err := tm.StartTournament()
+		assert.Nil(err)
+
+		if x <= 16 {
+			// Until 16 players, it's just always 4 matches
+			assert.Equal(4, len(tm.Tryouts))
+		} else {
+			// But if there's more, then we need to check that only the needed
+			// amount of matches are added.
+			// The -1 in the calculation is to balance it out. I can't really put it
+			// into words, but it works exactly as intended. The logic in
+			// Tournament.StartTournament() is much more straightforward, luckily.
+			y := (x-16-1)/4 + 1
+
+			assert.Equal(
+				4+y,
+				len(tm.Tryouts),
+				fmt.Sprintf("%d player tournament had %d matches, not %d", x, len(tm.Tryouts), 4+y),
+			)
+		}
+	}
+
+}
+
 func TestStartingTournamentSetsStartedTimestamp(t *testing.T) {
 	assert := assert.New(t)
 	tm := testTournament(8)
@@ -103,6 +133,22 @@ func TestPopulateMatchesPopulatesAllMatchesFor24Players(t *testing.T) {
 	assert.Equal(4, len(tm.Tryouts[3].Players))
 	assert.Equal(4, len(tm.Tryouts[4].Players))
 	assert.Equal(4, len(tm.Tryouts[5].Players))
+}
+
+func TestRunnerupInsertion(t *testing.T) {
+	assert := assert.New(t)
+	tm := testTournament(23)
+	tm.StartTournament()
+
+	m, err := tm.NextMatch()
+	assert.Nil(err)
+	m.Start()
+	m.Players[0].AddKill(10)
+	m.End()
+
+	assert.Equal(m.Players[1].Person.ID, tm.Runnerups[0].ID)
+	assert.Equal(m.Players[2].Person.ID, tm.Runnerups[1].ID)
+	assert.Equal(m.Players[3].Person.ID, tm.Runnerups[2].ID)
 }
 
 func TestNextMatchNoMatchesAreStartedWithTryouts(t *testing.T) {
@@ -166,44 +212,36 @@ func TestNextMatchEverythingDone(t *testing.T) {
 	assert.NotNil(err)
 }
 
-// TODO(thiderman): This needs to be refactored to use the new logic for
-// creating matches.
-// func TestUpdatePlayer(t *testing.T) {
-// 	assert := assert.New(t)
-// 	tm, _ := NewTournament("player test", "test", MockServer())
-// 	tm.AddPlayer(testPerson())
-// 	tm.AddPlayer(testPerson())
-// 	tm.AddPlayer(testPerson())
-// 	tm.AddPlayer(testPerson())
+func TestUpdatePlayer(t *testing.T) {
+	assert := assert.New(t)
+	tm := testTournament(11)
+	tm.StartTournament()
+	m, err := tm.NextMatch()
+	assert.Nil(err)
 
-// 	tm.Tryouts = []*Match{
-// 		{
-// 			Kind: "tryout",
-// 			Players: []Player{
-// 				testPlayer(),
-// 				testPlayer(),
-// 				testPlayer(),
-// 				testPlayer(),
-// 			},
-// 		},
-// 		{
-// 			Kind: "tryout",
-// 			Players: []Player{
-// 				testPlayer(),
-// 				testPlayer(),
-// 				testPlayer(),
-// 				testPlayer(),
-// 			},
-// 		},
-// 	}
-// 	tm.Semis = []*Match{}
-// 	tm.Final = &Match{}
+	m.Start()
 
-// 	tm.SetMatchPointers()
-// 	tm.UpdatePlayers()
-// 	assert.Equal(20, tm.getPlayer("winner").Kills)
-// 	assert.Equal(1, tm.getPlayer("loser1").Shots)
-// }
+	t.Log(m)
+	m.Players[0].AddKill(5)
+	m.Players[1].AddKill(6)
+	m.Players[2].AddKill(7)
+	m.Players[3].AddKill(10)
+
+	m.End() // Calls tm.UpdatePlayers()
+
+	p, err := tm.getTournamentPlayerObject(m.Players[3].Person)
+	assert.Nil(err)
+	assert.Equal(10, p.Kills)
+	p, err = tm.getTournamentPlayerObject(m.Players[2].Person)
+	assert.Nil(err)
+	assert.Equal(7, p.Kills)
+	p, err = tm.getTournamentPlayerObject(m.Players[1].Person)
+	assert.Nil(err)
+	assert.Equal(6, p.Kills)
+	p, err = tm.getTournamentPlayerObject(m.Players[0].Person)
+	assert.Nil(err)
+	assert.Equal(5, p.Kills)
+}
 
 func TestEnd4MatchTryoutsPlacesWinnerAndSecondIntoSemisAndRestIntoRunnerups(t *testing.T) {
 	assert := assert.New(t)
@@ -401,7 +439,7 @@ func TestEndComplete19PlayerTournamentKillsOnly(t *testing.T) {
 	tm := testTournament(19)
 	tm.StartTournament()
 
-	assert.Equal(8, len(tm.Tryouts))
+	assert.Equal(5, len(tm.Tryouts))
 
 	// Tryout 1
 	m, err := tm.NextMatch()
@@ -502,85 +540,13 @@ func TestEndComplete19PlayerTournamentKillsOnly(t *testing.T) {
 
 	m5.End()
 
-	assert.Equal(3, len(tm.Semis[0].Players))
-	assert.Equal(2, len(tm.Semis[1].Players))
-	assert.Equal(14, len(tm.Runnerups))
-
 	assert.Equal(winner5, tm.Semis[0].Players[2].Name())
 
-	// Tryout 6 / Runnerup 2
-	m6, err6 := tm.NextMatch()
-	assert.Nil(err6)
-	assert.Equal("tryout", m6.Kind)
-	assert.Equal("tryout", m6.Kind)
-
-	m6.Start()
-	// Given the 19 player match, there are no new players.
-	// As such, the backfill is completely from the runnerups.
-	assert.Equal(4, len(m6.Players))
-	assert.Equal(14, len(tm.Runnerups))
-
-	m6.Players[0].AddKill(10)
-	m6.Players[1].AddKill(3)
-	m6.Players[2].AddKill(1)
-	m6.Players[3].AddKill(8)
-	winner6 := m6.Players[0].Name()
-
-	m6.End()
-
-	assert.Equal(3, len(tm.Semis[0].Players))
-	assert.Equal(3, len(tm.Semis[1].Players))
-	assert.Equal(13, len(tm.Runnerups))
-
-	assert.Equal(winner6, tm.Semis[1].Players[2].Name())
-
-	// Tryout 7 / Runnerup 3
-	m7, err7 := tm.NextMatch()
-	assert.Nil(err7)
-	assert.Equal("tryout", m7.Kind)
-
-	m7.Start()
-
-	assert.Equal(4, len(m7.Players))
-	assert.Equal(13, len(tm.Runnerups))
-
-	m7.Players[0].AddKill(7)
-	m7.Players[1].AddKill(9)
-	m7.Players[2].AddKill(10)
-	m7.Players[3].AddKill(8)
-	winner7 := m7.Players[2].Name()
-
-	m7.End()
-
-	assert.Equal(4, len(tm.Semis[0].Players))
-	assert.Equal(3, len(tm.Semis[1].Players))
-	assert.Equal(12, len(tm.Runnerups))
-
-	assert.Equal(winner7, tm.Semis[0].Players[3].Name())
-
-	// Tryout 8 / Runnerup 4
-	m8, err8 := tm.NextMatch()
-	assert.Nil(err8)
-	assert.Equal("tryout", m8.Kind)
-
-	m8.Start()
-
-	assert.Equal(4, len(m8.Players))
-	assert.Equal(12, len(tm.Runnerups))
-
-	m8.Players[0].AddKill(10)
-	m8.Players[1].AddKill(5)
-	m8.Players[2].AddKill(6)
-	m8.Players[3].AddKill(9)
-	winner8 := m8.Players[0].Name()
-
-	m8.End()
-
+	// Since we backfill players into the semis once all the tryouts are done,
+	// we should now see four players in both
 	assert.Equal(4, len(tm.Semis[0].Players))
 	assert.Equal(4, len(tm.Semis[1].Players))
 	assert.Equal(11, len(tm.Runnerups))
-
-	assert.Equal(winner8, tm.Semis[1].Players[3].Name())
 
 	// Semi 1
 	s1, serr1 := tm.NextMatch()
