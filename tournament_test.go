@@ -135,6 +135,22 @@ func TestPopulateMatchesPopulatesAllMatchesFor24Players(t *testing.T) {
 	assert.Equal(4, len(tm.Tryouts[5].Players))
 }
 
+func TestRunnerupInsertion(t *testing.T) {
+	assert := assert.New(t)
+	tm := testTournament(23)
+	tm.StartTournament()
+
+	m, err := tm.NextMatch()
+	assert.Nil(err)
+	m.Start()
+	m.Players[0].AddKill(10)
+	m.End()
+
+	assert.Equal(m.Players[1].Person.ID, tm.Runnerups[0].ID)
+	assert.Equal(m.Players[2].Person.ID, tm.Runnerups[1].ID)
+	assert.Equal(m.Players[3].Person.ID, tm.Runnerups[2].ID)
+}
+
 func TestNextMatchNoMatchesAreStartedWithTryouts(t *testing.T) {
 	assert := assert.New(t)
 	tm := testTournament(16)
