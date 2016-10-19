@@ -14,8 +14,13 @@
     </header>
 
     <div class="tournaments" :class="{ loading: !tournament }">
-      <div v-for="tournament in tournaments" :tournament="tournament.id" track-by="id">
-        <a v-link="{ name: 'tournament', params: { tournament: tournament.id }}">{{tournament.name}}</a>
+      <div v-for="tournament in tournaments"
+        :tournament="tournament.id" track-by="id">
+
+        <a v-link="{ name: 'tournament', params: { tournament: tournament.id }}"
+          :class="{ test: !tournament.name.startsWith('DrunkenFall')}">
+          {{tournament.name}}
+        </a>
       </div>
     </div>
 
@@ -86,5 +91,11 @@ h1 {
   text-decoration: none;
   width: 60%;
   margin: 0.2em auto;
+
+  &.test {
+    background-color: #353535;
+    font-size: 1.5em;
+    width: 40%;
+  }
 }
 </style>
