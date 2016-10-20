@@ -30,6 +30,8 @@
 </template>
 
 <script>
+import moment from "moment"
+
 export default {
   name: 'New',
 
@@ -49,6 +51,7 @@ export default {
       var payload = {
         name: this.name,
         id: this.id,
+        scheduled: moment(this.scheduled),
         fake: this.fake,
       }
 
