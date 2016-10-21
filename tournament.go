@@ -38,16 +38,24 @@ type CurrentMatch struct {
 	Index int    `json:"index"`
 }
 
-// NewTournament returns a completely new Tournament
-func NewTournament(name, id string, server *Server) (*Tournament, error) {
-	longForm := "Jan 2, 2006 at 3:04pm (MST)"
-	sch, _ := time.Parse(longForm, "Sep 24, 2016 at 6:00pm (UTC)")
+const timeLayout = "2006-01-02 03:04:00 -0700 MST"
 
+func NewTournamentWithRawTime(name, id, scheduledStartRaw string, server *Server) (*Tournament, error) {
+	sch, err := time.Parse(timeLayout, scheduledStartRaw)
+	if err != nil {
+		return nil, err
+	}
+
+	return NewTournament(name, id, sch, server)
+}
+
+// NewTournament returns a completely new Tournament
+func NewTournament(name, id string, scheduledStart time.Time, server *Server) (*Tournament, error) {
 	t := Tournament{
 		Name:      name,
 		ID:        id,
 		Opened:    time.Now(),
-		Scheduled: sch,
+		Scheduled: scheduledStart,
 		db:        server.DB,
 		server:    server,
 	}
@@ -486,8 +494,12 @@ func (t *Tournament) SetMatchPointers() error {
 // SetupFakeTournament creates a fake tournament
 func SetupFakeTournament(s *Server) *Tournament {
 	title, id := FakeTournamentTitle()
-	t, _ := NewTournament(title, id, s)
-	t.Scheduled = time.Now().Add(1 * time.Hour)
+
+	t, err := NewTournament(title, id, time.Now().Add(time.Hour), s)
+	if err != nil {
+		// TODO this is the least we can do
+		log.Printf("error creating tournament: %v", err)
+	}
 
 	// Fake between 14 and 32 players
 	for i := 0; i < rand.Intn(18)+14; i++ {

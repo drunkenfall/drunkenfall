@@ -6,13 +6,14 @@ import (
 	"log"
 	"strconv"
 	"testing"
+	"time"
 )
 
 // testTournament makes a test tournament with `count` players.
 func testTournament(count int) (t *Tournament) {
 	s := strconv.Itoa(count)
 	server := MockServer()
-	t, err := NewTournament("Tournament "+s, s, server)
+	t, err := NewTournament("Tournament "+s, s, time.Now().Add(time.Hour), server)
 	if err != nil {
 		log.Fatal("tournament creation failed")
 	}

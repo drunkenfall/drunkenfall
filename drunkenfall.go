@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"time"
 
 	"fmt"
 	"github.com/thiderman/drunkenfall/websockets"
@@ -63,9 +64,10 @@ type UpdateStateMessage TournamentList
 
 // NewRequest is the request to make a new tournament
 type NewRequest struct {
-	Name string `json:"name"`
-	ID   string `json:"id"`
-	Fake bool   `json:"fake"`
+	Name      string    `json:"name"`
+	ID        string    `json:"id"`
+	Scheduled time.Time `json:"scheduled"`
+	Fake      bool      `json:"fake"`
 }
 
 // CommitPlayer is one state for a player in a commit message
@@ -128,7 +130,11 @@ func (s *Server) NewHandler(w http.ResponseWriter, r *http.Request) {
 	if req.Fake {
 		t = SetupFakeTournament(s)
 	} else {
-		t, _ = NewTournament(req.Name, req.ID, s)
+		t, err = NewTournament(req.Name, req.ID, req.Scheduled, s)
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
 	}
 
 	log.Printf("Created tournament %s!", t.Name)

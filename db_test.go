@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"testing"
+	"time"
 )
 
 // MockServer returns a Server{} a with clean test Database{}
@@ -40,7 +41,7 @@ func TestSaveTournament(t *testing.T) {
 	db := s.DB
 
 	id := "1241234"
-	tm, err := NewTournament("hehe", id, s)
+	tm, err := NewTournament("hehe", id, time.Now().Add(time.Hour), s)
 	assert.Nil(err)
 
 	db.SaveTournament(tm)

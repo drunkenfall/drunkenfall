@@ -14,6 +14,8 @@
       <input class="text name" v-model="name" name="name" type="text" value="" placeholder="Name"/>
       <label for="id">Id</label>
       <input class="text id" v-model="id" name="id" type="text" value="" placeholder="ID"/>
+      <label for="scheduled">Scheduled to start at</label>
+      <input class="text" v-date="scheduled"/>
       <div class="fake-checkbox">
         <label for="checkbox">Fake</label>
         <input type="checkbox" id="checkbox" v-model="fake">
@@ -28,6 +30,8 @@
 </template>
 
 <script>
+import moment from "moment"
+
 export default {
   name: 'New',
 
@@ -35,6 +39,7 @@ export default {
     return {
       name: '',
       id: '',
+      scheduled: null,
       fake: false,
     }
   },
@@ -46,6 +51,7 @@ export default {
       var payload = {
         name: this.name,
         id: this.id,
+        scheduled: moment(this.scheduled),
         fake: this.fake,
       }
 
@@ -65,7 +71,9 @@ export default {
 }
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
+@import "../pikaday.scss";
+
 form {
   display: flex;
   flex-direction: column;
