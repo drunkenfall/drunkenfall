@@ -136,9 +136,42 @@ func (t *Tournament) AddPlayer(p *Player) error {
 		t.Runnerups = append(t.Runnerups, p.Person)
 	}
 
-	t.Persist() // TODO: Error handling
+	err := t.Persist()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	return nil
+}
+
+func (t *Tournament) removePlayer(p Player) error {
+	for i := 0; i < len(t.Players); i++ {
+		r := t.Players[i]
+		if r == p {
+			t.Players = append(t.Players[:i], t.Players[i+1:]...)
+			break
+		}
+	}
+
+	err := t.Persist()
+	return err
+}
+
+// TogglePlayer toggles a player in a tournament
+func (t *Tournament) TogglePlayer(id string) error {
+	ps := t.db.GetPerson(id)
+	p, err := t.getTournamentPlayerObject(ps)
+
+	if err != nil {
+		// If there is an error, the player is not in the tournament and we should add them
+		p := NewPlayer(ps)
+		err := t.AddPlayer(p)
+		return err
+	}
+
+	// If there was no error, the player is in the tournament and we should remove them!
+	err = t.removePlayer(*p)
+	return err
 }
 
 // ShufflePlayers will position players into matches

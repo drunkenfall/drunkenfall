@@ -5,9 +5,10 @@
         <div class="title">{{tournament.name}}</div>
       </div>
       <div class="links">
-        <a v-if="user.level(10)" v-link="{ name: 'join', params: { tournament: tournament.id }}">Join</a>
         <a v-if="tournament.canStart && user.level(30)" @click="start">Start</a>
         <a v-if="tournament.canStart && user.level(100)" @click="usurp">Usurp</a>
+        <a v-if="user.level(10)" v-link="{ name: 'join', params: { tournament: tournament.id }}">Join</a>
+        <a v-if="user.level(50)" v-link="{ name: 'participants', params: { tournament: tournament.id }}">Participants</a>
       </div>
       <div class="clear"></div>
     </header>

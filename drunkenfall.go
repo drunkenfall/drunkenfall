@@ -62,6 +62,11 @@ type TournamentList struct {
 // UpdateStateMessage returns an update to the current match
 type UpdateStateMessage TournamentList
 
+// PeopleList returns a list with users
+type PeopleList struct {
+	People []*Person `json:"people"`
+}
+
 // NewRequest is the request to make a new tournament
 type NewRequest struct {
 	Name      string    `json:"name"`
@@ -359,20 +364,53 @@ func (s *Server) ClearTournamentHandler(w http.ResponseWriter, r *http.Request) 
 	s.TournamentListHandler(w, r)
 }
 
+// ToggleHandler manages who's in the tournament or not
+func (s *Server) ToggleHandler(w http.ResponseWriter, r *http.Request) {
+	if !HasPermission(r, PermissionJudge) {
+		PermissionFailure(w, r, "You need to be a manager to change joins")
+		return
+	}
+
+	vars := mux.Vars(r)
+	id := vars["person"]
+	t := s.getTournament(r)
+
+	t.TogglePlayer(id)
+}
+
+// PeopleHandler returns a list of all the players registered in the app
+func (s *Server) PeopleHandler(w http.ResponseWriter, r *http.Request) {
+	if err := s.DB.LoadPeople(); err != nil {
+		log.Fatal(err)
+	}
+
+	data, err := json.Marshal(&PeopleList{
+		People: s.DB.People,
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	_, _ = w.Write(data)
+}
+
 // BuildRouter sets up the routes
 func (s *Server) BuildRouter(ws *websockets.Server) http.Handler {
 	n := mux.NewRouter()
 	a := n.PathPrefix("/api").Subrouter()
 	r := a.PathPrefix("/towerfall").Subrouter()
 
+	r.HandleFunc("/people/", s.PeopleHandler)
 	r.HandleFunc("/tournament/", s.TournamentListHandler)
 	r.HandleFunc("/tournament/clear/", s.ClearTournamentHandler)
 	r.HandleFunc("/tournament/{id}/", s.TournamentHandler)
-	// TODO: Normalize for all to use /tournament
+	// TODO(thiderman): Normalize for all to use /tournament
 	r.HandleFunc("/new/", s.NewHandler)
 	r.HandleFunc("/{id}/start/", s.StartTournamentHandler)
 	r.HandleFunc("/{id}/usurp/", s.UsurpTournamentHandler)
 	r.HandleFunc("/{id}/join/", s.JoinHandler)
+	r.HandleFunc("/{id}/toggle/{person}", s.ToggleHandler)
 	r.HandleFunc("/{id}/next/", s.NextHandler)
 
 	// Install the websockets
