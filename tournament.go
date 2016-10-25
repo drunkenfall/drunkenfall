@@ -71,7 +71,7 @@ func NewTournament(name, id string, scheduledStart time.Time, server *Server) (*
 	t.Final = NewMatch(&t, 0, "final")
 
 	// Mark the current match
-	t.Current = CurrentMatch{"tryouts", 0}
+	t.Current = CurrentMatch{"tryout", 0}
 
 	t.SetMatchPointers()
 	t.Persist()
@@ -214,6 +214,14 @@ func (t *Tournament) StartTournament() error {
 
 	t.ShufflePlayers()
 	t.Started = time.Now()
+
+	// Get the first match and set the scheduled date to be now.
+	m, err := t.NextMatch()
+	if err != nil {
+		log.Fatal(err)
+	}
+	m.SetTime(0)
+
 	t.Persist()
 	return nil
 }
@@ -388,6 +396,8 @@ func (t *Tournament) MovePlayers(m *Match) error {
 
 	// Finally, if the next match is a tryout and does not have enough players,
 	// fill it up with runnerups.
+	// TODO(thiderman): Currently this is what will set t.Current. Might not be
+	// the best place and should probably be fixed.
 	nm, err := t.NextMatch()
 	if err != nil {
 		return err

@@ -304,8 +304,11 @@ func (m *Match) End() error {
 }
 
 // SetTime sets the scheduled time based on the Pause attribute
-func (m *Match) SetTime() {
-	m.Scheduled = time.Now().Add(m.Pause)
+func (m *Match) SetTime(minutes int) {
+	log.Print(fmt.Sprintf("Setting time for %s in %d minutes", m, minutes))
+	m.Scheduled = time.Now().Add(time.Minute * time.Duration(minutes))
+	log.Print(m.Scheduled)
+	m.Tournament.Persist()
 }
 
 // IsStarted returns boolean whether the match has started or not
@@ -316,6 +319,11 @@ func (m *Match) IsStarted() bool {
 // IsEnded returns boolean whether the match has ended or not
 func (m *Match) IsEnded() bool {
 	return !m.Ended.IsZero()
+}
+
+// IsScheduled returns boolean whether the match has been scheduled or not
+func (m *Match) IsScheduled() bool {
+	return !m.Scheduled.IsZero()
 }
 
 // CanStart returns boolean the match can be controlled or not

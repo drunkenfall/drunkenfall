@@ -15,6 +15,31 @@
       <div class="clear"></div>
     </header>
 
+    <div class="subheader" v-if="user.level(levels.commentator)">
+      <div v-if="!nextMatch.isScheduled">
+        <p>
+          Pause until
+          <span>{{tournament.current.kind}}</span>
+          <span>{{tournament.current.index+1}}</span>:
+        </p>
+        <div class="links">
+          <a @click="setTime(10)">10 min</a>
+          <a @click="setTime(7)">7 min</a>
+          <a @click="setTime(5)">5 min</a>
+          <a @click="setTime(3)">3 min</a>
+        </div>
+        <div class="clear"></div>
+      </div>
+      <div v-if="nextMatch.isScheduled">
+        <p class="center">
+          <span>{{tournament.current.kind}}</span>
+          <span>{{tournament.current.index+1}}</span> scheduled at
+          {{nextMatch.scheduled.format("HH:mm")}}
+        </p>
+        <div class="clear"></div>
+      </div>
+    </div>
+
     <div class="category tryouts">
       <h3>Tryouts</h3>
       <div class="matches">
@@ -66,6 +91,7 @@ import MatchOverview from './MatchOverview'
 import Tournament from '../models/Tournament'
 import * as levels from "../models/Level"
 import User from '../models/User'
+import Match from '../models/Match'
 import _ from 'lodash'
 
 export default {
@@ -82,6 +108,26 @@ export default {
   },
 
   computed: {
+    nextMatch: function () {
+      let kind = this.tournament.current.kind
+      let idx = this.tournament.current.index
+
+      if (kind === 'tryout') {
+        kind = 'tryouts'
+      } else if (kind === 'semi') {
+        kind = 'semis'
+      }
+
+      console.log("kind", kind)
+      let m
+      if (kind === 'final') {
+        m = Match.fromObject(this.tournament[kind])
+      } else {
+        m = Match.fromObject(this.tournament[kind][idx])
+      }
+      return m
+    },
+
     runnerups: function () {
       let t = this.tournament
 
@@ -124,6 +170,16 @@ export default {
       } else {
         console.error("next called with no tournament")
       }
+    },
+    setTime: function (x) {
+      this.api.setTime({ id: this.tournament.id, time: x }).then((res) => {
+        console.debug("settime response:", res)
+        let j = res.json()
+        console.log('Redirect to /towerfall' + j.redirect)
+        // this.$route.router.go('/towerfall' + j.redirect)
+      }, (err) => {
+        console.error(`settime for ${this.tournament} failed`, err)
+      })
     }
   },
 
@@ -132,6 +188,7 @@ export default {
     let customActions = {
       start: { method: "GET", url: "/api/towerfall{/id}/start/" },
       next: { method: "GET", url: "/api/towerfall{/id}/next/" },
+      setTime: { method: "GET", url: "/api/towerfall{/id}/time{/time}" },
       getData: { method: "GET", url: "/api/towerfall/tournament{/id}/" }
     }
     this.api = this.$resource("/api/towerfall", {}, customActions)
@@ -164,8 +221,6 @@ export default {
   font-size: 150%;
   display: block;
   position: relative;
-
-
 
   &.gold, &.silver, &.bronze {
     color: #fff;
@@ -204,6 +259,42 @@ export default {
   }
   .runnerup:nth-child(even) {
     background-color: #272727;
+  }
+}
+
+.subheader {
+  width: 80%;
+  margin: 30px auto;
+  background-color: #333339;
+  box-shadow: 2px 2px 3px rgba(0,0,0,0.3);
+  text-shadow: 2px 2px 3px rgba(0,0,0,0.5);
+
+  p {
+    font-size: 2em;
+    padding: 0.3em 0.5em;
+    float: left;
+
+    span {
+      text-transform: capitalize;
+    }
+  }
+
+  .links {
+    float: right;
+    a, .action {
+      margin: 15px  !important;
+      font-size: 24px;
+      float: right;
+      background-color: #405060;
+      color: #dbdbdb;
+      display: block;
+      font-weight: bold;
+      padding: 7px 30px;
+      text-align: center;
+      text-decoration: none;
+      margin: 10px auto;
+      min-width: 60px;
+    }
   }
 }
 
