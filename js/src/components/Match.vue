@@ -3,14 +3,14 @@
     <header>
       <div class="content">
         <div class="title">
-          {{tournament.name}} / {{match.kind | capitalize}} {{match.index +1}} / Round {{match.commits.length + 1}}
+          {{tournament.name}} / {{match.kind | capitalize}} {{match.index +1}} / Round {{(match.commits || []).length + 1}}
         </div>
       </div>
       <div class="links" v-if="user.level(levels.judge)">
         <a v-if="match.canStart" @click="start">Start match</a>
 
         <a v-if="match.isRunning" @click="commit"
-          v-bind:class="{'disabled': !can_commit}">End round</a>
+          v-bind:class="{'disabled': !can_commit()}">End round</a>
         <a v-if="match.canEnd" @click="end">End match</a>
 
         <a v-if="match.isRunning" @click="reset"
@@ -66,15 +66,16 @@ export default {
       levels: levels,
     }
   },
-
-  computed: {
-    can_commit: function () {
-      return true
-    }
-  },
-
   methods: {
+    can_commit: function () {
+      let ups = _.sumBy(this.$refs.players, 'ups')
+      let downs = -_.sumBy(this.$refs.players, 'downs') // downs are negative
+      return ups + downs >= (this.$refs.players - 1)
+    },
     commit: function () {
+      if (!this.can_commit()) {
+        return
+      }
       // TODO this could potentially be a class
       let payload = {
         'state': _.map(this.$refs.players, (controlPlayer) => {
