@@ -229,7 +229,6 @@ func (s *Server) NextHandler(w http.ResponseWriter, r *http.Request) {
 
 	tm := s.getTournament(r)
 	m, err := tm.NextMatch()
-	m.SetTime()
 
 	tm.Persist() // TODO(thiderman): Move into NextMatch, probably. Should not be here.
 	if err != nil {
@@ -378,6 +377,35 @@ func (s *Server) ToggleHandler(w http.ResponseWriter, r *http.Request) {
 	t.TogglePlayer(id)
 }
 
+// SetTimeHandler sets the pause time for the next match
+func (s *Server) SetTimeHandler(w http.ResponseWriter, r *http.Request) {
+	if !HasPermission(r, PermissionCommentator) {
+		PermissionFailure(w, r, "You need to be a commentator to change times")
+		return
+	}
+
+	vars := mux.Vars(r)
+	t := s.getTournament(r)
+	x, err := strconv.Atoi(vars["time"])
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	m, err := t.NextMatch()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// If the match is already started, we need to bail
+	if m.IsScheduled() {
+		PermissionFailure(w, r, "Match already started")
+		return
+	}
+
+	m.SetTime(x)
+	s.Redirect(w, m.URL())
+}
+
 // PeopleHandler returns a list of all the players registered in the app
 func (s *Server) PeopleHandler(w http.ResponseWriter, r *http.Request) {
 	if err := s.DB.LoadPeople(); err != nil {
@@ -411,6 +439,7 @@ func (s *Server) BuildRouter(ws *websockets.Server) http.Handler {
 	r.HandleFunc("/{id}/usurp/", s.UsurpTournamentHandler)
 	r.HandleFunc("/{id}/join/", s.JoinHandler)
 	r.HandleFunc("/{id}/toggle/{person}", s.ToggleHandler)
+	r.HandleFunc("/{id}/time/{time}", s.SetTimeHandler)
 	r.HandleFunc("/{id}/next/", s.NextHandler)
 
 	// Install the websockets
