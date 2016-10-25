@@ -39,6 +39,10 @@ export default class Match {
     return !isGoZeroDateOrFalsy(this.ended)
   }
 
+  get isScheduled () {
+    return !isGoZeroDateOrFalsy(this.scheduled)
+  }
+
   get canStart () {
     return !this.isStarted
   }
