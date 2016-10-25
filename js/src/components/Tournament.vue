@@ -86,7 +86,11 @@ export default {
       // listen for tournaments from App
       this.$on(`tournament${to.params.tournament}`, (tournament) => {
         console.debug("New tournament from App:", tournament)
-        this.$set('tournament', tournament)
+
+        this.$set(
+          'tournament',
+          Tournament.fromObject(tournament)
+        )
       })
 
       // TODO perhaps use $root.tournaments again?
