@@ -71,7 +71,7 @@ func NewTournament(name, id string, scheduledStart time.Time, server *Server) (*
 	t.Final = NewMatch(&t, 0, "final")
 
 	// Mark the current match
-	t.Current = CurrentMatch{"tryouts", 0}
+	t.Current = CurrentMatch{"tryout", 0}
 
 	t.SetMatchPointers()
 	t.Persist()
