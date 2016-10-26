@@ -18,7 +18,7 @@
         :tournament="tournament.id" track-by="id">
 
         <a v-link="{ name: 'tournament', params: { tournament: tournament.id }}"
-          :class="{ test: !tournament.name.startsWith('DrunkenFall')}">
+          :class="{ test: tournament.isTest, current: !tournament.isStest && !tournament.isStarted}">
           {{tournament.name}}
         </a>
       </div>
@@ -81,7 +81,8 @@ h1 {
 }
 
 .tournaments a {
-  background-color: #405060;
+  text-shadow: 2px 2px 1px rgba(0,0,0,0.7);
+  background-color: #454545;
   color: #dbdbdb;
   display: block;
   font-size: 2.5em;
@@ -89,13 +90,19 @@ h1 {
   padding: 1% 3%;
   text-align: center;
   text-decoration: none;
-  width: 60%;
+  width: 40%;
   margin: 0.2em auto;
 
   &.test {
     background-color: #353535;
-    font-size: 1.5em;
-    width: 40%;
+    font-size: 1.2em;
+    width: 30%;
+  }
+
+  &.current {
+    background-color: #405060;
+    width: 60%;
+    font-size: 3.5em;
   }
 }
 </style>

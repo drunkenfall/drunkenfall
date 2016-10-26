@@ -28,6 +28,11 @@ export default class Tournament {
     return !isGoZeroDateOrFalsy(this.ended)
   }
 
+  get isTest () {
+    // tournament is ended if 'ended' is defined and NOT equal to go's zero date
+    return !this.name.startsWith('DrunkenFall')
+  }
+
   get canStart () {
     return !this.isStarted
   }
