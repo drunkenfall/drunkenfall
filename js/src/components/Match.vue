@@ -70,7 +70,15 @@ export default {
     can_commit: function () {
       let ups = _.sumBy(this.$refs.players, 'ups')
       let downs = -_.sumBy(this.$refs.players, 'downs') // downs are negative
-      return ups + downs >= (this.$refs.players - 1)
+      let anyFinished = _.some(this.$refs.players, (player) => {
+        let relPoints = player.ups - player.downs
+        let currentPoints = player.player.kills + relPoints
+
+        return currentPoints >= this.match.length
+      })
+      let minPointsDistributed = (ups + downs >= (this.$refs.players.length - 1))
+
+      return anyFinished || minPointsDistributed
     },
     commit: function () {
       if (!this.can_commit()) {
