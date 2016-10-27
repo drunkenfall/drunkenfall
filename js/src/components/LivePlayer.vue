@@ -5,7 +5,7 @@
     </div>
 
     <div class="section">
-      <h2>{{player.kills}} / {{match.length}}</h2>
+      <h2>{{player.kills}} <span>/ {{match.length}}</span></h2>
       <h3>kills</h3>
     </div>
 
@@ -92,6 +92,10 @@ export default {
     font-size: 13vh;
     margin: 0 0 0 0;
     text-shadow: 5px 5px 5px rgba(0,0,0,0.7);
+
+    span {
+      font-size: 0.4em;
+    }
   }
 
   h3 {
