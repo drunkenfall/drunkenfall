@@ -3,14 +3,19 @@
     <header>
       <div class="content">
         <div class="title">
-          {{tournament.name}} / {{match.kind | capitalize}} {{match.index +1}}
+          {{tournament.name}} / {{match.kind | capitalize}} {{match.index +1}} / Round {{match.commits.length + 1}}
         </div>
       </div>
       <div class="links" v-if="user.level(levels.judge)">
         <a v-if="match.canStart" @click="start">Start match</a>
+
         <a v-if="match.isRunning" @click="commit"
           v-bind:class="{'disabled': !can_commit}">End round</a>
         <a v-if="match.canEnd" @click="end">End match</a>
+
+        <a v-if="match.isRunning" @click="reset"
+          class="danger">Reset match</a>
+
       </div>
       <div class="clear"></div>
     </header>
@@ -66,7 +71,6 @@ export default {
     can_commit: function () {
       return true
     }
-
   },
 
   methods: {
@@ -118,6 +122,19 @@ export default {
         console.log(res)
       })
     },
+    reset: function () {
+      this.api.reset({ id: this.tournament.id, kind: this.match.kind, index: this.match.index }).then(function (res) {
+        console.log(res)
+        this.setData(
+          res.data.tournament,
+          this.match.kind,
+          this.match.index
+        )
+      }, function (res) {
+        console.log('error when getting tournament')
+        console.log(res)
+      })
+    },
     setData: function (tournament, kind, match) {
       if (kind === 'tryout') {
         kind = 'tryouts'
@@ -141,6 +158,7 @@ export default {
       commit: { method: "POST", url: "/api/towerfall/tournament{/id}{/kind}{/index}/commit/" },
       start: { method: "GET", url: "/api/towerfall/tournament{/id}{/kind}{/index}/start/" },
       end: { method: "GET", url: "/api/towerfall/tournament{/id}{/kind}{/index}/end/" },
+      reset: { method: "GET", url: "/api/towerfall/tournament{/id}{/kind}{/index}/reset/" },
       getTournamentData: { method: "GET", url: "/api/towerfall/tournament{/id}/" }
     }
     this.api = this.$resource("/api/towerfall", {}, customActions)

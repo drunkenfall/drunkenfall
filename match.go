@@ -303,6 +303,20 @@ func (m *Match) End() error {
 	return nil
 }
 
+// Reset resets all the player scores to zero and removes all the commits
+func (m *Match) Reset() error {
+	// Reset dem players
+	for i := range m.Players {
+		m.Players[i].Reset()
+	}
+
+	// And remove dem commits
+	m.Commits = make([]MatchCommit, 0)
+
+	m.Tournament.Persist()
+	return nil
+}
+
 // SetTime sets the scheduled time based on the Pause attribute
 func (m *Match) SetTime(minutes int) {
 	log.Print(fmt.Sprintf("Setting time for %s in %d minutes", m, minutes))

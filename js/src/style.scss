@@ -96,6 +96,12 @@ header {
         color: #666;
         cursor: default;
       }
+
+      &.danger {
+        background-color: #604040;
+        color: #dbdbdb;
+        margin-right: 200px !important;
+      }
     }
   }
 }

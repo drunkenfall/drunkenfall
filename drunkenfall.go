@@ -273,12 +273,11 @@ type MatchFunctor func(w http.ResponseWriter, r *http.Request, match *Match) err
 // MatchHandler is the common function for match operations.
 func (s *Server) MatchHandler(w http.ResponseWriter, r *http.Request, functor MatchFunctor) {
 	if !HasPermission(r, PermissionJudge) {
-		PermissionFailure(w, r, "Cannot stop match unless judge or above")
+		PermissionFailure(w, r, "Cannot modify match unless judge or above")
 		return
 	}
 
 	m := s.getMatch(r)
-	log.Printf("Got match %s", m.String())
 	err := functor(w, r, m)
 	if err != nil {
 		msg := err.Error()
@@ -328,6 +327,24 @@ func (s *Server) MatchStartHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Fatal(err)
 		}
+		return nil
+	})
+}
+
+// MatchResetHandler starts matches
+func (s *Server) MatchResetHandler(w http.ResponseWriter, r *http.Request) {
+	s.MatchHandler(w, r, func(w http.ResponseWriter, r *http.Request, m *Match) error {
+		if !m.IsStarted() {
+			errorMsg := fmt.Sprintf("Cannot reset the match `%s` that is not started yet.", m.String())
+			return errors.New(errorMsg)
+		}
+
+		err := m.Reset()
+		if err != nil {
+			return err
+		}
+
+		log.Printf("%s has been reset", m.String())
 		return nil
 	})
 }
@@ -481,6 +498,7 @@ func (s *Server) BuildRouter(ws *websockets.Server) http.Handler {
 
 	m.HandleFunc("/end/", s.MatchEndHandler)
 	m.HandleFunc("/start/", s.MatchStartHandler)
+	m.HandleFunc("/reset/", s.MatchResetHandler)
 
 	m.HandleFunc("/commit/", s.MatchCommitHandler)
 
