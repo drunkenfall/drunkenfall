@@ -149,6 +149,7 @@ export default {
       height: 100px;
       box-shadow: -1px -1px 6px rgba(0,0,0,0.5);
       background-color: rgba(10,12,14,0.3);
+      margin-bottom: -30px;
     }
     p {
       width: 80%;
@@ -156,6 +157,8 @@ export default {
       padding: 0.2em 0.3em;
       margin: 0.5em auto;
       display: inline-block;
+      box-shadow: 1px 1px 6px rgba(0,0,0,0.5);
+      font-weight: bold;
     }
   }
 }
