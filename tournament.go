@@ -39,6 +39,7 @@ type CurrentMatch struct {
 }
 
 const timeLayout = "2006-01-02 03:04:00 -0700 MST"
+const max_players = 20
 
 func NewTournamentWithRawTime(name, id, scheduledStartRaw string, server *Server) (*Tournament, error) {
 	sch, err := time.Parse(timeLayout, scheduledStartRaw)
@@ -196,12 +197,12 @@ func (t *Tournament) ShufflePlayers() {
 //  Generating Tryout matches
 //  Setting Started date
 //
-// It will fail if there are not between 8 and 24 players.
+// It will fail if there are not between 16 and max_players players.
 func (t *Tournament) StartTournament() error {
 	log.Printf("Starting %s...", t.Name)
 	ps := len(t.Players)
-	if ps < 8 || ps > 32 {
-		return fmt.Errorf("Tournament needs 8-32 players, got %d", ps)
+	if ps < 16 || ps > max_players {
+		return fmt.Errorf("Tournament needs more than 16 players and less than %d, got %d", max_players, ps)
 	}
 
 	// More than 16 players - add four more tryouts
@@ -469,7 +470,7 @@ func (t *Tournament) IsOpen() bool {
 
 // IsJoinable returns boolean true if the tournament is joinable
 func (t *Tournament) IsJoinable() bool {
-	if len(t.Players) >= 32 {
+	if len(t.Players) >= max_players {
 		return false
 	}
 	return t.IsOpen() && t.Started.IsZero()
@@ -478,7 +479,7 @@ func (t *Tournament) IsJoinable() bool {
 // IsStartable returns boolean true if the tournament can be started
 func (t *Tournament) IsStartable() bool {
 	p := len(t.Players)
-	return t.IsOpen() && t.Started.IsZero() && p >= 16 && p <= 32
+	return t.IsOpen() && t.Started.IsZero() && p >= 16 && p <= max_players
 }
 
 // IsRunning returns boolean true if the tournament is running or not
@@ -488,7 +489,7 @@ func (t *Tournament) IsRunning() bool {
 
 // CanJoin checks if a player is allowed to join or is already in the tournament
 func (t *Tournament) CanJoin(ps *Person) error {
-	if len(t.Players) >= 32 {
+	if len(t.Players) >= max_players {
 		return errors.New("tournament is full")
 	}
 	for _, p := range t.Players {
@@ -544,7 +545,7 @@ func SetupFakeTournament(s *Server) *Tournament {
 		log.Printf("error creating tournament: %v", err)
 	}
 
-	// Fake between 14 and 32 players
+	// Fake between 14 and max_players players
 	for i := 0; i < rand.Intn(18)+14; i++ {
 		ps := &Person{
 			ID:              FakeName(),
