@@ -29,12 +29,24 @@ var migrations = []func(db *bolt.DB) error{
 	MigrateMatchScoreOrderKillOrder,
 }
 
+var EmptyDBError = errors.New("drunkenfall: Empty DB.")
+
 // Migrate is the main migration entrypoint
 //
 // When called, it will check the database to see what migrations have already
 // been applied. If that is lower than the const TopVersion, all migrations up
 // to that point will sequentially be applied.
 func Migrate(db *bolt.DB) error {
+	err := db.View(func(tx *bolt.Tx) error {
+		if tx.Bucket(TournamentKey) == nil {
+			return EmptyDBError
+		}
+		return nil
+	})
+	if err == EmptyDBError {
+		log.Print("Empty db detected, nothing to migrate.")
+		return nil
+	}
 	version, err := getVersion(db)
 
 	if err == errNoMigrationsYet {
