@@ -186,6 +186,34 @@ func (s *Server) JoinHandler(w http.ResponseWriter, r *http.Request) {
 	s.Redirect(w, tm.URL())
 }
 
+// EditHandler shows the tournament view and handles tournaments
+func (s *Server) EditHandler(w http.ResponseWriter, r *http.Request) {
+	if !HasPermission(r, PermissionProducer) {
+		PermissionFailure(w, r, "You need to be very hax to edit a tournament")
+		return
+	}
+
+	ps := PersonFromSession(s, r)
+
+	data, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+	t, err := LoadTournament([]byte(data), s.DB)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = s.DB.OverwriteTournament(t)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Printf("%s has edited %s!", ps.Nick, t.ID)
+	t.Persist()
+	s.Redirect(w, t.URL())
+}
+
 // StartTournamentHandler starts tournaments
 func (s *Server) StartTournamentHandler(w http.ResponseWriter, r *http.Request) {
 	if !HasPermission(r, PermissionCommentator) {
@@ -438,6 +466,7 @@ func (s *Server) BuildRouter(ws *websockets.Server) http.Handler {
 	r.HandleFunc("/{id}/start/", s.StartTournamentHandler)
 	r.HandleFunc("/{id}/usurp/", s.UsurpTournamentHandler)
 	r.HandleFunc("/{id}/join/", s.JoinHandler)
+	r.HandleFunc("/{id}/edit/", s.EditHandler)
 	r.HandleFunc("/{id}/toggle/{person}", s.ToggleHandler)
 	r.HandleFunc("/{id}/time/{time}", s.SetTimeHandler)
 	r.HandleFunc("/{id}/next/", s.NextHandler)

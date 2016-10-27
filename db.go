@@ -85,6 +85,43 @@ func (d *Database) SaveTournament(t *Tournament) error {
 	return ret
 }
 
+// OverwriteTournament takes a new foreign Tournament{} object and replaces
+// the one with the same ID with that one.
+//
+// Used from the EditHandler()
+func (d *Database) OverwriteTournament(t *Tournament) error {
+	ret := d.DB.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket(TournamentKey)
+
+		json, err := t.JSON()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		err = b.Put([]byte(t.ID), json)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		// Replace the tournament in the in-memory list
+		for j := 0; j < len(d.Tournaments); j++ {
+			ot := d.Tournaments[j]
+			if t.ID == ot.ID {
+				d.Tournaments = d.Tournaments[:j]
+				d.Tournaments = append(d.Tournaments, t)
+				d.Tournaments = append(d.Tournaments, d.Tournaments[j+1:]...)
+				break
+			}
+		}
+		// And lastly the reference
+		d.tournamentRef[t.ID] = t
+
+		return nil
+	})
+
+	return ret
+}
+
 // SavePerson stores a person into the DB
 func (d *Database) SavePerson(p *Person) error {
 	ret := d.DB.Update(func(tx *bolt.Tx) error {

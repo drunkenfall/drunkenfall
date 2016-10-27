@@ -11,6 +11,7 @@ import Tournament from './components/Tournament.vue'
 import New from './components/New.vue'
 import Join from './components/Join.vue'
 import Participants from './components/Participants.vue'
+import Edit from './components/Edit.vue'
 import Match from './components/Match.vue'
 import ScoreScreen from './components/ScoreScreen.vue'
 import NextScreen from './components/NextScreen.vue'
@@ -56,6 +57,10 @@ router.map({
   '/towerfall/:tournament/participants/': {
     name: 'participants',
     component: Participants
+  },
+  '/towerfall/:tournament/edit/': {
+    name: 'edit',
+    component: Edit
   },
   '/towerfall/:tournament/scores/': {
     name: 'scores',
