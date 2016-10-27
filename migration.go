@@ -45,7 +45,10 @@ func Migrate(db *bolt.DB) error {
 	})
 	if err == EmptyDBError {
 		log.Print("Empty db detected, nothing to migrate.")
-		return nil
+		err := db.Update(func(tx *bolt.Tx) error {
+			return setVersion(tx, len(migrations))
+		})
+		return err
 	}
 	version, err := getVersion(db)
 
