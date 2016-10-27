@@ -210,6 +210,20 @@ func TestSortPlayers(t *testing.T) {
 	assert.Equal(2, ret[2].Score())
 }
 
+// Same number of kills, but more pints for player p2.
+func TestSortTiedPlayersByKills(t *testing.T) {
+	assert := assert.New(t)
+	p1 := testPlayer()
+	p2 := testPlayer()
+
+	p2.AddShot()
+
+	ps := []Player{p1, p2}
+	ret := SortByKills(ps)
+	assert.Equal(ret[0], p2)
+	assert.Equal(ret[1], p1)
+}
+
 func TestSortRunnerups(t *testing.T) {
 	assert := assert.New(t)
 	p1 := testPlayer() // 10 points, 1 match

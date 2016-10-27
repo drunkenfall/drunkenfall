@@ -365,7 +365,12 @@ func (s ByKills) Swap(i, j int) {
 }
 func (s ByKills) Less(i, j int) bool {
 	// Technically not Less, but we want biggest first...
-	return s[i].Kills > s[j].Kills
+	iKills := s[i].Kills
+	jKills := s[j].Kills
+	if iKills == jKills {
+		return s[i].Score() > s[j].Score()
+	}
+	return iKills > jKills
 }
 
 // SortByKills returns a list in order of the kills the players have
