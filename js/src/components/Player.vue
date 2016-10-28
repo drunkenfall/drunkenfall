@@ -1,6 +1,9 @@
 <template>
   <div class="player {{classes}}">
-    <p>{{display_name}}</p>
+    <img id="{{player.person.id}}" alt="{{player.person.nick}}" src="https://graph.facebook.com/{{player.person.facebook_id}}/picture?width=9999"/>
+    <p class="{{player.color}}">{{display_name}}</p>
+    <div class="clear"></div>
+
   </div>
 </template>
 
@@ -45,4 +48,44 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+@import "../variables.scss";
+
+.player {
+  display: inline-block;
+  width: 100px;
+  margin-top: 0px;
+  cursor: pointer;
+
+  img {
+    object-fit: cover;
+    border-radius: 100%;
+    width:  125px;
+    height: 125px;
+    box-shadow: -1px -1px 6px rgba(0,0,0,0.5);
+    margin-bottom: -40px;
+    z-index: 10;
+  }
+  p {
+    z-index: 100;
+    width: 80%;
+    text-align: center;
+    padding: 0.05em 0.1em;
+    margin: 0.5em auto;
+    display: block;
+    font-weight: bold;
+    text-shadow: 2px 2px 3px rgba(0,0,0,0.9);
+
+    &.green  { color: $green ; }
+    &.blue   { color: $blue  ; }
+    &.pink   { color: $pink  ; }
+    &.orange { color: $orange; }
+    &.white  { color: $white ; }
+    &.yellow { color: $yellow; }
+    &.cyan   { color: $cyan  ; }
+    &.purple { color: $purple; }
+    &.red    { color: $red; }
+
+  }
+}
+
 </style>

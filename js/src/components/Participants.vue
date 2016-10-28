@@ -162,6 +162,7 @@ export default {
     }
   }
 }
+
 .joined p {
   background-color: #406040;
 }
