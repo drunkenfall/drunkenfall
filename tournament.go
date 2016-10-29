@@ -365,27 +365,6 @@ func (t *Tournament) MovePlayers(m *Match) error {
 		t.Runnerups = append(t.Runnerups, p.Person)
 	}
 
-	// If we're on the last tryout, we should backfill the semis with runnerups
-	// until they have have full seats.
-	if m.Kind == "tryout" && m.Index+1 == len(t.Tryouts) {
-		// The amount of players needed; 8 minus the current amount
-		semiPlayers := 8 - (len(t.Semis[0].Players) + len(t.Semis[1].Players))
-		log.Printf("Backfilling %d semi players\n", semiPlayers)
-		runnerups, err := t.GetRunnerupPlayers()
-		if err != nil {
-			return err
-		}
-
-		for _, p := range runnerups[:semiPlayers] {
-			index := 0
-			if len(t.Semis[0].Players) == 4 {
-				index = 1
-			}
-			t.Semis[index].AddPlayer(p)
-			t.removeFromRunnerups(p.Person)
-		}
-	}
-
 	// For the semis, just place the winner and silver into the final
 	if m.Kind == "semi" {
 		for i, p := range SortByKills(m.Players) {
@@ -409,6 +388,37 @@ func (t *Tournament) MovePlayers(m *Match) error {
 		if err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+// BackfillSemis takes a few Person IDs and shuffles those into the remaining slots
+// of the semi matches
+func (t *Tournament) BackfillSemis(ids []string) error {
+	// If we're on the last tryout, we should backfill the semis with runnerups
+	// until they have have full seats.
+	// The amount of players needed; 8 minus the current amount
+	semiPlayers := 8 - (len(t.Semis[0].Players) + len(t.Semis[1].Players))
+	if len(ids) != semiPlayers {
+		return fmt.Errorf("Need %d players, got %d", semiPlayers, len(ids))
+	}
+
+	log.Printf("Backfilling %d semi players\n", semiPlayers)
+	for _, id := range ids {
+		index := 0
+		if len(t.Semis[0].Players) == 4 {
+			index = 1
+		}
+
+		ps := t.db.GetPerson(id)
+		p, err := t.getTournamentPlayerObject(ps)
+		if err != nil {
+			return err
+		}
+
+		t.Semis[index].AddPlayer(*p)
+		t.removeFromRunnerups(ps)
 	}
 
 	return nil

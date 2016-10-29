@@ -59,11 +59,24 @@
       </div>
       <div class="clear"></div>
 
-      <div v-if="runnerups.length > 0">
+      <div v-if="runnerups.length > 0 && user.level(levels.judge)">
+        <div class="selected-runnerups" v-if="selected.length > 0">
+          <h3>Selected</h3>
+          <template v-for="p in selected">
+            <div @click="selectRunnerup(p)" class="runnerup">
+              <p class="name">{{p.displayName}}</p>
+              <div class="clear"></div>
+            </div>
+          </template>
+          <div @click="backfillSemis()" class="button">
+            Send
+          </div>
+        </div>
+
         <h3>Runnerups</h3>
         <div class="runnerups">
           <template v-for="player in runnerups">
-            <div class="runnerup">
+            <div @click="selectRunnerup(player)" class="runnerup">
               <p class="name">{{player.displayName}}</p>
               <p class="score">
                 <b>{{player.score}}</b> points
@@ -105,6 +118,7 @@ export default {
     tournament: new Tournament(),
     user: new User(),
     levels: levels,
+    selected: [],
   },
 
   computed: {
@@ -141,7 +155,7 @@ export default {
           return p.person.id === runnerup.id
         })
       })
-    }
+    },
   },
 
   methods: {
@@ -180,6 +194,36 @@ export default {
       }, (err) => {
         console.error(`settime for ${this.tournament} failed`, err)
       })
+    },
+
+    selectRunnerup: function (p) {
+      if (this.isSelected(p)) {
+        // TODO(thiderman): Doesn't work. Fuck this.
+        console.log("selected, to remove", this.selected)
+        this.selected = _.remove(this.selected, function (o) {
+          console.log(o.person.id, p.person.id)
+          return o.person.id === p.person.id
+        })
+        return
+      }
+
+      this.selected.push(p)
+    },
+    isSelected: function (p) {
+      return _.find(this.selected, p) !== undefined
+    },
+    backfillSemis: function () {
+      let b = _.map(this.selected, 'person.id').join(',')
+      console.log(b)
+
+      this.api.backfill({id: this.tournament.id}, b).then((res) => {
+        console.debug("backfill response:", res)
+        let j = res.json()
+        console.log('Redirect to /towerfall' + j.redirect)
+        // this.$route.router.go('/towerfall' + j.redirect)
+      }, (err) => {
+        console.error(`backfill for ${this.tournament} failed`, err)
+      })
     }
   },
 
@@ -189,6 +233,7 @@ export default {
       start: { method: "GET", url: "/api/towerfall{/id}/start/" },
       next: { method: "GET", url: "/api/towerfall{/id}/next/" },
       setTime: { method: "GET", url: "/api/towerfall{/id}/time{/time}" },
+      backfill: { method: "POST", url: "/api/towerfall{/id}/backfill/" },
       getData: { method: "GET", url: "/api/towerfall/tournament{/id}/" }
     }
     this.api = this.$resource("/api/towerfall", {}, customActions)
@@ -229,7 +274,7 @@ export default {
 
 }
 
-.runnerups {
+.runnerups, .selected-runnerups {
   width: 100%;
   margin: 10px;
   box-shadow: 2px 2px 3px rgba(0,0,0,0.3);
@@ -259,6 +304,25 @@ export default {
   }
   .runnerup:nth-child(even) {
     background-color: #272727;
+  }
+}
+
+.selected-runnerups {
+  .runnerup:nth-child(odd) {
+    background-color: #405040;
+  }
+  .runnerup:nth-child(even) {
+    background-color: #394939;
+  }
+
+  .button {
+    width: 50px;
+    margin: 10px auto;
+    padding: 0.3em 0.5em;
+    background-color: #405060;
+    cursor: pointer;
+    text-shadow: 1px 1px 1px rgba(0,0,0,0.4);
+    text-align: center;
   }
 }
 

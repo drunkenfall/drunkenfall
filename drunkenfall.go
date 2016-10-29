@@ -16,6 +16,7 @@ import (
 	"fmt"
 	"github.com/thiderman/drunkenfall/websockets"
 	"golang.org/x/net/websocket"
+	"strings"
 )
 
 // Setup variables for the cookies. Can be used outside of this file.
@@ -212,6 +213,31 @@ func (s *Server) EditHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("%s has edited %s!", ps.Nick, t.ID)
 	t.Persist()
 	s.Redirect(w, t.URL())
+}
+
+// BackfillSemisHandler shows the tournament view and handles tournaments
+func (s *Server) BackfillSemisHandler(w http.ResponseWriter, r *http.Request) {
+	if !HasPermission(r, PermissionJudge) {
+		PermissionFailure(w, r, "You need to be a judge to backfill")
+		return
+	}
+
+	tm := s.getTournament(r)
+	data, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		PermissionFailure(w, r, err.Error())
+		return
+	}
+
+	spl := strings.Split(string(data), ",")
+	err = tm.BackfillSemis(spl)
+
+	if err != nil {
+		PermissionFailure(w, r, err.Error())
+		return
+	}
+
+	s.Redirect(w, tm.URL())
 }
 
 // StartTournamentHandler starts tournaments
@@ -484,6 +510,7 @@ func (s *Server) BuildRouter(ws *websockets.Server) http.Handler {
 	r.HandleFunc("/{id}/usurp/", s.UsurpTournamentHandler)
 	r.HandleFunc("/{id}/join/", s.JoinHandler)
 	r.HandleFunc("/{id}/edit/", s.EditHandler)
+	r.HandleFunc("/{id}/backfill/", s.BackfillSemisHandler)
 	r.HandleFunc("/{id}/toggle/{person}", s.ToggleHandler)
 	r.HandleFunc("/{id}/time/{time}", s.SetTimeHandler)
 	r.HandleFunc("/{id}/next/", s.NextHandler)

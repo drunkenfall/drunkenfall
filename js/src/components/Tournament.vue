@@ -1,7 +1,7 @@
 <template>
   <div>
     <tournament-preview v-if="!tournament.isStarted" :tournament="tournament" :user="user" :levels="levels"></tournament-preview>
-    <tournament-overview v-if="tournament.isStarted" :tournament="tournament" :user="user" :levels="levels"></tournament-overview>
+    <tournament-overview v-if="tournament.isStarted" :tournament="tournament" :user="user" :levels="levels" :selected="[]"></tournament-overview>
   </div>
 </template>
 
