@@ -39,8 +39,9 @@ type CurrentMatch struct {
 }
 
 const timeLayout = "2006-01-02 03:04:00 -0700 MST"
-const max_players = 20
+const maxPlayers = 20
 
+// NewTournamentWithRawTime makes a new tournament with raw time..?
 func NewTournamentWithRawTime(name, id, scheduledStartRaw string, server *Server) (*Tournament, error) {
 	sch, err := time.Parse(timeLayout, scheduledStartRaw)
 	if err != nil {
@@ -201,8 +202,8 @@ func (t *Tournament) ShufflePlayers() {
 func (t *Tournament) StartTournament() error {
 	log.Printf("Starting %s...", t.Name)
 	ps := len(t.Players)
-	if ps < 16 || ps > max_players {
-		return fmt.Errorf("Tournament needs more than 16 players and less than %d, got %d", max_players, ps)
+	if ps < 16 || ps > maxPlayers {
+		return fmt.Errorf("Tournament needs more than 16 players and less than %d, got %d", maxPlayers, ps)
 	}
 
 	// More than 16 players - add four more tryouts
@@ -480,7 +481,7 @@ func (t *Tournament) IsOpen() bool {
 
 // IsJoinable returns boolean true if the tournament is joinable
 func (t *Tournament) IsJoinable() bool {
-	if len(t.Players) >= max_players {
+	if len(t.Players) >= maxPlayers {
 		return false
 	}
 	return t.IsOpen() && t.Started.IsZero()
@@ -489,7 +490,7 @@ func (t *Tournament) IsJoinable() bool {
 // IsStartable returns boolean true if the tournament can be started
 func (t *Tournament) IsStartable() bool {
 	p := len(t.Players)
-	return t.IsOpen() && t.Started.IsZero() && p >= 16 && p <= max_players
+	return t.IsOpen() && t.Started.IsZero() && p >= 16 && p <= maxPlayers
 }
 
 // IsRunning returns boolean true if the tournament is running or not
@@ -499,7 +500,7 @@ func (t *Tournament) IsRunning() bool {
 
 // CanJoin checks if a player is allowed to join or is already in the tournament
 func (t *Tournament) CanJoin(ps *Person) error {
-	if len(t.Players) >= max_players {
+	if len(t.Players) >= maxPlayers {
 		return errors.New("tournament is full")
 	}
 	for _, p := range t.Players {
