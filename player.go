@@ -48,7 +48,7 @@ type Player struct {
 // NewPlayer returns a new instance of a player
 func NewPlayer(ps *Person) *Player {
 	p := &Player{Person: ps}
-	if len(p.PreferredColor) > 0 {
+	if len(ps.ColorPreference) > 0 {
 		p.PreferredColor = ps.ColorPreference[0]
 	} else {
 		p.PreferredColor = RandomColor(Colors)
