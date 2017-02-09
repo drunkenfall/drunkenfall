@@ -1,8 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"github.com/stretchr/testify/assert"
 	"log"
+	"math/rand"
 	"testing"
 	"time"
 )
@@ -31,13 +33,13 @@ func MockMatch(idx int, cat string) (m *Match) {
 }
 
 func testPlayer() Player {
-	return *NewPlayer(testPerson())
+	return *NewPlayer(testPerson(rand.Int()))
 }
 
-func testPerson() *Person {
+func testPerson(i int) *Person {
 	return &Person{
-		ID:   FakeName(),
-		Name: FakeName(),
+		ID:   fmt.Sprintf("%d: %s", i, FakeName()),
+		Name: fmt.Sprintf("%d: %s", i, FakeName()),
 		Nick: FakeNick(),
 		ColorPreference: []string{
 			RandomColor(Colors),
