@@ -39,7 +39,8 @@ type CurrentMatch struct {
 }
 
 const timeLayout = "2006-01-02 03:04:00 -0700 MST"
-const maxPlayers = 20
+const minPlayers = 8
+const maxPlayers = 32
 
 // NewTournamentWithRawTime makes a new tournament with raw time..?
 func NewTournamentWithRawTime(name, id, scheduledStartRaw string, server *Server) (*Tournament, error) {
@@ -202,8 +203,8 @@ func (t *Tournament) ShufflePlayers() {
 func (t *Tournament) StartTournament() error {
 	log.Printf("Starting %s...", t.Name)
 	ps := len(t.Players)
-	if ps < 16 || ps > maxPlayers {
-		return fmt.Errorf("Tournament needs more than 16 players and less than %d, got %d", maxPlayers, ps)
+	if ps < minPlayers || ps > maxPlayers {
+		return fmt.Errorf("Tournament needs %d or more players and %d or less, got %d", minPlayers, maxPlayers, ps)
 	}
 
 	// More than 16 players - add four more tryouts
