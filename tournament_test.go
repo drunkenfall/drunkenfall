@@ -19,7 +19,16 @@ func testTournament(count int) (t *Tournament) {
 	}
 
 	for i := 1; i <= count; i++ {
-		_ = t.AddPlayer(NewPlayer(testPerson()))
+		p := testPerson(i)
+		err := t.AddPlayer(NewPlayer(p))
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		// XXX: If we don't add the person to the database anything that tries to
+		// grab from it will fail. Backfilling from the semis is one of those
+		// cases. This should be refactored away and this should be removed.
+		t.db.SavePerson(p)
 	}
 
 	return
@@ -543,8 +552,16 @@ func TestEndComplete19PlayerTournamentKillsOnly(t *testing.T) {
 
 	assert.Equal(winner5, tm.Semis[0].Players[2].Name())
 
-	// Since we backfill players into the semis once all the tryouts are done,
-	// we should now see four players in both
+	// We need to backfill the players, and since that is a judge action we need
+	// to simulate that
+	err = tm.BackfillSemis([]string{
+		tm.Runnerups[0].ID,
+		tm.Runnerups[1].ID,
+		tm.Runnerups[2].ID,
+	})
+
+	assert.Nil(err)
+
 	assert.Equal(4, len(tm.Semis[0].Players))
 	assert.Equal(4, len(tm.Semis[1].Players))
 	assert.Equal(11, len(tm.Runnerups))
