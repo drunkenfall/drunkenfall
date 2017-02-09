@@ -11,7 +11,10 @@ import (
 func MockMatch(idx int, cat string) (m *Match) {
 	tm := testTournament(8)
 	tm.SetMatchPointers()
-	tm.StartTournament()
+	err := tm.StartTournament()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	switch cat {
 	case "tryout":
