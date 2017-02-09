@@ -128,6 +128,7 @@ func (t *Tournament) AddPlayer(p *Player) error {
 	p.Person.Correct()
 
 	if err := t.CanJoin(p.Person); err != nil {
+		log.Print(err)
 		return err
 	}
 
@@ -594,7 +595,7 @@ func (t *Tournament) getTournamentPlayerObject(ps *Person) (p *Player, err error
 func (t *Tournament) removeFromRunnerups(p *Person) {
 	for j := 0; j < len(t.Runnerups); j++ {
 		r := t.Runnerups[j]
-		if r == p {
+		if r.ID == p.ID {
 			t.Runnerups = append(t.Runnerups[:j], t.Runnerups[j+1:]...)
 			break
 		}
