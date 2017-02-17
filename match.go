@@ -29,12 +29,12 @@ type Match struct {
 	Ended         time.Time     `json:"ended"`
 	Tournament    *Tournament   `json:"-"`
 	KillOrder     []int         `json:"kill_order"`
-	Commits       []MatchCommit `json:"commits"`
+	Rounds        []Round       `json:"commits"`
 	presentColors mapset.Set
 }
 
 // MatchCommit is a state commit for a round of a match
-type MatchCommit struct {
+type Round struct {
 	Kills     [][]int `json:"kills"`
 	Shots     []bool  `json:"shots"`
 	Committed string  `json:"comitted"` // ISO-8601
@@ -215,7 +215,7 @@ func (m *Match) CorrectFuckingColorConflicts() error {
 }
 
 // Commit adds a state of the players
-func (m *Match) Commit(c MatchCommit) {
+func (m *Match) Commit(c Round) {
 	for i, score := range c.Kills {
 		shotGiven := false
 		ups := score[0]
@@ -251,7 +251,7 @@ func (m *Match) Commit(c MatchCommit) {
 	}
 
 	m.KillOrder = m.MakeKillOrder()
-	m.Commits = append(m.Commits, c)
+	m.Rounds = append(m.Rounds, c)
 	_ = m.Tournament.Persist()
 }
 
@@ -317,8 +317,8 @@ func (m *Match) Reset() error {
 		m.Players[i].Reset()
 	}
 
-	// And remove dem commits
-	m.Commits = make([]MatchCommit, 0)
+	// And remove all the rounds
+	m.Rounds = make([]Round, 0)
 
 	m.Tournament.Persist()
 	return nil
@@ -386,9 +386,9 @@ func (m *Match) MakeKillOrder() (ret []int) {
 }
 
 // NewMatchCommit makes a new MatchCommit object from a CommitRequest
-func NewMatchCommit(c CommitRequest) MatchCommit {
+func NewMatchCommit(c CommitRequest) Round {
 	states := c.State
-	m := MatchCommit{
+	m := Round{
 		[][]int{
 			[]int{states[0].Ups, states[0].Downs},
 			[]int{states[1].Ups, states[1].Downs},

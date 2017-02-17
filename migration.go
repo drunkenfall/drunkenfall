@@ -27,6 +27,7 @@ var migrations = []func(db *bolt.DB) error{
 	MigrateOriginalColorPreferredColor,
 	MigrateTournamentRunnerupStringPerson,
 	MigrateMatchScoreOrderKillOrder,
+	MigrateMatchCommitToRound,
 }
 
 var EmptyDBError = errors.New("drunkenfall: Empty DB.")

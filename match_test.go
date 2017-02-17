@@ -121,7 +121,7 @@ func TestCommitSweepPlayer1(t *testing.T) {
 	_ = m.AddPlayer(testPlayer())
 	_ = m.AddPlayer(testPlayer())
 
-	c := MatchCommit{
+	c := Round{
 		Kills: [][]int{
 			[]int{3, 0},
 			[]int{0, 0},
@@ -149,7 +149,7 @@ func TestCommitDoubleKillPlayer2(t *testing.T) {
 	_ = m.AddPlayer(testPlayer())
 	_ = m.AddPlayer(testPlayer())
 
-	c := MatchCommit{
+	c := Round{
 		Kills: [][]int{
 			[]int{0, 0},
 			[]int{2, 0},
@@ -177,7 +177,7 @@ func TestCommitSweepAndSuicidePlayer3(t *testing.T) {
 	_ = m.AddPlayer(testPlayer())
 	_ = m.AddPlayer(testPlayer())
 
-	c := MatchCommit{
+	c := Round{
 		Kills: [][]int{
 			[]int{0, 0},
 			[]int{0, 0},
@@ -207,7 +207,7 @@ func TestCommitSuicidePlayer4(t *testing.T) {
 	_ = m.AddPlayer(testPlayer())
 	_ = m.AddPlayer(testPlayer())
 
-	c := MatchCommit{
+	c := Round{
 		Kills: [][]int{
 			[]int{0, 0},
 			[]int{0, 0},
@@ -236,7 +236,7 @@ func TestCommitShotsForPlayer2and3(t *testing.T) {
 	_ = m.AddPlayer(testPlayer())
 	_ = m.AddPlayer(testPlayer())
 
-	c := MatchCommit{
+	c := Round{
 		Kills: [][]int{
 			[]int{0, 0},
 			[]int{0, 0},
@@ -265,7 +265,7 @@ func TestCommitSweepForPlayer1(t *testing.T) {
 	_ = m.AddPlayer(testPlayer())
 	_ = m.AddPlayer(testPlayer())
 
-	c := MatchCommit{
+	c := Round{
 		Kills: [][]int{
 			[]int{3, 0},
 			[]int{0, 0},
@@ -296,7 +296,7 @@ func TestCommitStoredOnMatch(t *testing.T) {
 	_ = m.AddPlayer(testPlayer())
 	_ = m.AddPlayer(testPlayer())
 
-	c := MatchCommit{
+	c := Round{
 		Kills: [][]int{
 			[]int{0, 0},
 			[]int{1, 0},
@@ -313,13 +313,13 @@ func TestCommitStoredOnMatch(t *testing.T) {
 		},
 	}
 
-	assert.Equal(0, len(m.Commits))
+	assert.Equal(0, len(m.Rounds))
 	m.Commit(c)
-	assert.Equal(1, len(m.Commits))
-	assert.Equal(1, m.Commits[0].Kills[1][0])
-	assert.Equal(1, m.Commits[0].Kills[2][0])
-	assert.Equal(1, m.Commits[0].Kills[3][0])
-	assert.Equal(true, m.Commits[0].Shots[0])
+	assert.Equal(1, len(m.Rounds))
+	assert.Equal(1, m.Rounds[0].Kills[1][0])
+	assert.Equal(1, m.Rounds[0].Kills[2][0])
+	assert.Equal(1, m.Rounds[0].Kills[3][0])
+	assert.Equal(true, m.Rounds[0].Shots[0])
 }
 
 func TestCorrectColorConflictsNoScores(t *testing.T) {

@@ -33,7 +33,7 @@ type mig2prevMatch struct {
 	Ended      time.Time        `json:"ended"`
 	Tournament *Tournament      `json:"-"`
 	ScoreOrder []int            `json:"score_order"`
-	Commits    []MatchCommit    `json:"commits"`
+	Commits    []Round          `json:"commits"`
 }
 
 type mig2prevTournament struct {
