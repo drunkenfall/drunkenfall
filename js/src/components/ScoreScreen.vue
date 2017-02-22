@@ -31,6 +31,7 @@ export default {
       console.log("setData tournament", tournament)
       let kind = tournament.current.kind
       let index = tournament.current.index
+      let match
       if (kind === 'tryout') {
         kind = 'tryouts'
       } else if (kind === 'semi') {
@@ -38,12 +39,22 @@ export default {
       }
 
       if (kind === 'final') {
-        this.$set('match', Match.fromObject(tournament[kind]))
+        match = Match.fromObject(tournament[kind])
       } else {
-        this.$set('match', Match.fromObject(tournament[kind][index]))
+        match = Match.fromObject(tournament[kind][index])
       }
 
-      this.$set('tournament', Tournament.fromObject(tournament))
+      // HACK(thiderman): So, this is pretty nasty, but it works. We don't
+      // want this screen to update to the new match until it is started, but
+      // we also at the same time want to show the /next/ screen with the next
+      // match data. To avoid this, we just simply don't set the data on this
+      // until the match has started.
+      // This will break if we have to reload the page since there will be no
+      // previous state.
+      if (match.isStarted) {
+        this.$set('match', match)
+        this.$set('tournament', Tournament.fromObject(tournament))
+      }
     }
   },
 
