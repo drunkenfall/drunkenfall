@@ -424,6 +424,7 @@ func (t *Tournament) BackfillSemis(ids []string) error {
 		t.removeFromRunnerups(ps)
 	}
 
+	t.Persist()
 	return nil
 }
 
