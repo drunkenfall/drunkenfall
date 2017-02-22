@@ -240,6 +240,24 @@ func (s *Server) BackfillSemisHandler(w http.ResponseWriter, r *http.Request) {
 	s.Redirect(w, tm.URL())
 }
 
+// ReshuffleHandler reshuffles the player order of the tournament
+func (s *Server) ReshuffleHandler(w http.ResponseWriter, r *http.Request) {
+	if !HasPermission(r, PermissionProducer) {
+		PermissionFailure(w, r, "You need to be a producer to reshuffle")
+		return
+	}
+
+	tm := s.getTournament(r)
+	err := tm.Reshuffle()
+
+	if err != nil {
+		PermissionFailure(w, r, err.Error())
+		return
+	}
+
+	s.Redirect(w, tm.URL())
+}
+
 // StartTournamentHandler starts tournaments
 func (s *Server) StartTournamentHandler(w http.ResponseWriter, r *http.Request) {
 	if !HasPermission(r, PermissionCommentator) {
@@ -510,6 +528,7 @@ func (s *Server) BuildRouter(ws *websockets.Server) http.Handler {
 	r.HandleFunc("/{id}/usurp/", s.UsurpTournamentHandler)
 	r.HandleFunc("/{id}/join/", s.JoinHandler)
 	r.HandleFunc("/{id}/edit/", s.EditHandler)
+	r.HandleFunc("/{id}/reshuffle/", s.ReshuffleHandler)
 	r.HandleFunc("/{id}/backfill/", s.BackfillSemisHandler)
 	r.HandleFunc("/{id}/toggle/{person}", s.ToggleHandler)
 	r.HandleFunc("/{id}/time/{time}", s.SetTimeHandler)

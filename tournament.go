@@ -230,6 +230,20 @@ func (t *Tournament) StartTournament() error {
 	return nil
 }
 
+// Reshuffle shuffles the players of an already started tournament
+func (t *Tournament) Reshuffle() error {
+	// First we need to clear the player slots in the matches.
+	for x := range t.Tryouts {
+		t.Tryouts[x].Players = nil
+		t.Tryouts[x].presentColors = mapset.NewSet()
+	}
+
+	t.ShufflePlayers()
+	t.Persist()
+
+	return nil
+}
+
 // UsurpTournament starts a fake tournament with all registered players
 func (t *Tournament) UsurpTournament() error {
 	t.db.LoadPeople()

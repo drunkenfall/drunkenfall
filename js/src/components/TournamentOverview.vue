@@ -11,6 +11,8 @@
           v-if="user.level(levels.judge) && tournament.canStart">Start</div>
         <div class="action" @click="next"
           v-if="user.level(levels.judge) && tournament.isRunning">Next match</div>
+        <div class="action" @click="reshuffle"
+          v-if="user.level(levels.producer) && tournament.canShuffle">Reshuffle</div>
       </div>
       <div class="clear"></div>
     </header>
@@ -185,6 +187,19 @@ export default {
         console.error("next called with no tournament")
       }
     },
+    reshuffle: function () {
+      if (this.tournament) {
+        this.api.reshuffle({ id: this.tournament.id }).then((res) => {
+          console.debug("reshuffle response:", res)
+          let j = res.json()
+          this.$route.router.go('/towerfall' + j.redirect)
+        }, (err) => {
+          console.error(`reshuffle for ${this.tournament} failed`, err)
+        })
+      } else {
+        console.error("reshuffle called with no tournament")
+      }
+    },
     setTime: function (x) {
       this.api.setTime({ id: this.tournament.id, time: x }).then((res) => {
         console.debug("settime response:", res)
@@ -232,6 +247,7 @@ export default {
     let customActions = {
       start: { method: "GET", url: "/api/towerfall{/id}/start/" },
       next: { method: "GET", url: "/api/towerfall{/id}/next/" },
+      reshuffle: { method: "GET", url: "/api/towerfall{/id}/reshuffle/" },
       setTime: { method: "GET", url: "/api/towerfall{/id}/time{/time}" },
       backfill: { method: "POST", url: "/api/towerfall{/id}/backfill/" },
       getData: { method: "GET", url: "/api/towerfall/tournament{/id}/" }
