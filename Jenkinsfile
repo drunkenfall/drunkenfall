@@ -15,17 +15,13 @@ pipeline {
     }
 
     // Verification steps
-    stage('Unit tests') {
+    stage('Verify') {
       steps {
         sh 'make test'
       }
-    }
-    stage('Linting checks') {
       steps {
         sh 'make lint'
       }
-    }
-    stage('Race condition check') {
       steps {
         sh 'make race'
       }
