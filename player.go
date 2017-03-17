@@ -39,7 +39,6 @@ type Player struct {
 	Sweeps         int     `json:"sweeps"`
 	Kills          int     `json:"kills"`
 	Self           int     `json:"self"`
-	Explosions     int     `json:"explosions"`
 	Matches        int     `json:"matches"`
 	TotalScore     int     `json:"score"`
 	Match          *Match  `json:"-"`
@@ -59,13 +58,12 @@ func NewPlayer(ps *Person) *Player {
 
 func (p *Player) String() string {
 	return fmt.Sprintf(
-		"<%s: %dsh %dsw %dk %ds %de>",
+		"<%s: %dsh %dsw %dk %ds>",
 		p.Name(),
 		p.Shots,
 		p.Sweeps,
 		p.Kills,
 		p.Self,
-		p.Explosions,
 	)
 }
 
@@ -85,7 +83,6 @@ func (p *Player) Score() (out int) {
 	out += p.Shots * 3
 	out += p.Kills * 2
 	out += p.Self
-	out += p.Explosions
 
 	return
 }
@@ -97,7 +94,6 @@ func (p *Player) ScoreData() []ScoreData {
 		{Key: "shots", Value: p.Shots, Player: p},
 		{Key: "sweeps", Value: p.Sweeps, Player: p},
 		{Key: "self", Value: p.Self, Player: p},
-		{Key: "explosions", Value: p.Explosions, Player: p},
 	}
 	return sd
 }
@@ -147,44 +143,6 @@ func (p *Player) Index() int {
 	return -1
 }
 
-// Action performs an action for a player
-// nolint: gocyclo
-func (p *Player) Action(action, dir string) error {
-	// TODO: This could use with a refactoring...
-	if dir == "up" {
-		switch action {
-		case "kills":
-			p.AddKill()
-		case "shots":
-			p.AddShot()
-		case "sweeps":
-			p.AddSweep()
-		case "self":
-			p.AddSelf()
-		case "explosions":
-			p.AddExplosion()
-		}
-	} else {
-		switch action {
-		case "kills":
-			p.RemoveKill()
-		case "shots":
-			p.RemoveShot()
-		case "sweeps":
-			p.RemoveSweep()
-		case "self":
-			p.RemoveSelf()
-		case "explosions":
-			p.RemoveExplosion()
-		}
-	}
-
-	// Save the change to the database
-	p.Match.Tournament.Persist()
-
-	return nil
-}
-
 // AddShot increases the shot count
 func (p *Player) AddShot() {
 	p.Shots++
@@ -199,37 +157,17 @@ func (p *Player) RemoveShot() {
 	p.Shots--
 }
 
-// AddSweep increases the sweep count, gives three kills and a shot.
+// AddSweep increases the sweep count
 func (p *Player) AddSweep() {
 	p.Sweeps++
-	p.AddShot()
-	p.AddKill()
-	p.AddKill()
-	p.AddKill()
 }
 
-// RemoveSweep decreases the sweep count, three kills and a shot
-// Fails silently if sweeps are zero.
-func (p *Player) RemoveSweep() {
-	if p.Sweeps == 0 {
-		return
-	}
-	p.Sweeps--
-	p.RemoveShot()
-	p.RemoveKill()
-	p.RemoveKill()
-	p.RemoveKill()
-}
 
-// AddKill increases the kill count
-func (p *Player) AddKill(kills ...int) {
-	// This is basically only to help out with testing.
-	// Adding an optional argument with the amount of kills lets us just use
-	// one call to AddKill() rather than 10.
-	if len(kills) > 0 {
-		p.Kills += kills[0]
-	} else {
-		p.Kills++
+// AddKills increases the kill count and adds a sweep if necessary
+func (p *Player) AddKills(kills int) {
+	p.Kills += kills
+	if kills == 3 {
+		p.AddSweep()
 	}
 }
 
@@ -242,39 +180,9 @@ func (p *Player) RemoveKill() {
 	p.Kills--
 }
 
-// AddSelf increases the self count, decreases the kill, and gives a shot
+// AddSelf increases the self count and decreases the kill
 func (p *Player) AddSelf() {
 	p.Self++
-	p.RemoveKill()
-	p.AddShot()
-}
-
-// RemoveSelf decreases the self count and a shot
-// Fails silently if selfs are zero.
-func (p *Player) RemoveSelf() {
-	if p.Self == 0 {
-		return
-	}
-	p.Self--
-	p.AddKill()
-	p.RemoveShot()
-}
-
-// AddExplosion increases the explosion count, the kill count and gives a shot
-func (p *Player) AddExplosion() {
-	p.Explosions++
-	p.AddShot()
-	p.AddKill()
-}
-
-// RemoveExplosion decreases the explosion count, a shot and a kill
-// Fails silently if Explosions are zero.
-func (p *Player) RemoveExplosion() {
-	if p.Explosions == 0 {
-		return
-	}
-	p.Explosions--
-	p.RemoveShot()
 	p.RemoveKill()
 }
 
@@ -286,7 +194,6 @@ func (p *Player) Reset() {
 	p.Sweeps = 0
 	p.Kills = 0
 	p.Self = 0
-	p.Explosions = 0
 	p.Matches = 0
 }
 
@@ -298,7 +205,6 @@ func (p *Player) Update(other Player) {
 	p.Sweeps += other.Sweeps
 	p.Kills += other.Kills
 	p.Self += other.Self
-	p.Explosions += other.Explosions
 	p.TotalScore = p.Score()
 
 	// Every call to this method is per match. Count every call
