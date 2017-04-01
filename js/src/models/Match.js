@@ -60,4 +60,17 @@ export default class Match {
   get isRunning () {
     return this.isStarted && !this.isEnded
   }
+
+  get chartData () {
+    var out = []
+    for (var i = 0; i < this.players.length; i++) {
+      out.push([0])
+      _.forEach(this.commits, function (commit) {
+        let pastScore = _.last(out[i])
+        let roundScore = _.sum(commit.kills[i])
+        out[i].push(pastScore + roundScore)
+      })
+    }
+    return out
+  }
 };

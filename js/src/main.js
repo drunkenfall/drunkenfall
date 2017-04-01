@@ -13,6 +13,7 @@ import Join from './components/Join.vue'
 import Participants from './components/Participants.vue'
 import Edit from './components/Edit.vue'
 import Match from './components/Match.vue'
+import PostMatch from './components/PostMatch.vue'
 import ScoreScreen from './components/ScoreScreen.vue'
 import NextScreen from './components/NextScreen.vue'
 import User from './models/User.js'
@@ -73,6 +74,10 @@ router.map({
   '/towerfall/:tournament/:kind/:match/': {
     name: 'match',
     component: Match
+  },
+  '/towerfall/:tournament/:kind/:match/post': {
+    name: 'postmatch',
+    component: PostMatch
   }
 })
 
