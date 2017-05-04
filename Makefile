@@ -12,8 +12,7 @@ export GOPATH := $(shell go env GOPATH)
 export PATH := $(GOPATH)/bin:$(PATH)
 # gotype is disabled since it seems pointless and also produces 250 errors
 # about not finding dependencies that definitely exists.
-LINTER_ARGS = -j 4 \
-  --enable-gc \
+LINTER_ARGS = --enable-gc \
   --enable=gofmt \
   --enable=misspell \
   --enable=unparam \
