@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"io/ioutil"
@@ -19,6 +20,7 @@ import (
 	"sync"
 
 	"github.com/drunkenfall/drunkenfall/websockets"
+	"golang.org/x/crypto/acme/autocert"
 	"golang.org/x/net/websocket"
 )
 
@@ -567,8 +569,20 @@ func (s *Server) BuildRouter(ws *websockets.Server) http.Handler {
 
 // Serve serves forever
 func (s *Server) Serve() error {
-	log.Print("Listening on :42001")
-	return http.ListenAndServe(":42001", s.logger)
+	domain := "dev.drunkenfall.com"
+	port := 14000
+	log.Printf("Listening HTTPS on %s:%d", domain, port)
+
+	m := autocert.Manager{
+		Prompt:     autocert.AcceptTOS,
+		HostPolicy: autocert.HostWhitelist(domain),
+		Cache:      autocert.DirCache("certs"),
+	}
+	srv := http.Server{
+		Addr:      fmt.Sprintf("%s:%d", domain, port),
+		TLSConfig: &tls.Config{GetCertificate: m.GetCertificate},
+	}
+	return srv.ListenAndServeTLS("", "") // Passed from letsencrypt
 }
 
 // SendWebsocketUpdate sends an update to all listening sockets
