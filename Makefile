@@ -25,65 +25,55 @@ LINTER_ARGS = -j 4 \
 
 .DEFAULT_GOAL: all
 
+.PHONY: clean clobber download install install-linter test cover race lint npm npm-dist nginx-start
+
 all: clean download npm test race lint $(BINARY)
 
 check: test lint
 
-.PHONY: clean
 clean:
 	rm -f $(BINARY)
 
-.PHONY: clobber
 clobber: clean
 	rm -rf js/node_modules
 
 $(BINARY): download $(SOURCES)
 	go build -v ${LDFLAGS} -o ${BINARY}
 
-.PHONY: download
 download:
 	go get -t -d -v ./...
 
-.PHONY: install
 install:
 	go install -v ${LDFLAGS} ./...
 
-.PHONY: install-linter
 install-linter:
 	go get -v -u github.com/alecthomas/gometalinter
 	gometalinter --install
 
-.PHONY: test
 test:
 	go test
 
-.PHONY: cover
 cover:
 	go test -coverprofile=cover.out
 
-.PHONY: race
 race:
 	go test -race -v
 
-.PHONY: lint
 lint: install-linter
 	gometalinter $(LINTER_ARGS) $(SOURCEDIR)
 
 npm: js/package.json
 	cd js; npm install
 
-.PHONY: npm
 npm-start: npm
 	cd js; npm run dev
 
-.PHONY: npm-dist
 npm-dist: npm
 	cd js; npm run build
 
 $(BINARY)-start: $(BINARY)
 	./$(BINARY)
 
-.PHONY: nginx-start
 nginx-start:
 	mkdir -p logs
 	sudo nginx -p . -c conf/nginx.conf # TODO: Make sure we can run this without sudo
