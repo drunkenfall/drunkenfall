@@ -94,7 +94,6 @@ export default {
   },
 
   created: function () {
-    console.log("levels: ", levels)
     // API definitions
     console.debug("Creating API resource")
     let customActions = {

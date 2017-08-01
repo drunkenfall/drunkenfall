@@ -7,7 +7,6 @@ export default class User {
       authenticated: cookieHandler.get('session') && true || false,
       userlevel: cookieHandler.get('userlevel') || 0,
     }
-    console.log(data.userlevel)
 
     Object.assign(u, data)
     return u

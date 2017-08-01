@@ -85,7 +85,8 @@ export default {
       console.log(payload)
       this.api.commit({ id: this.tournament.id, kind: this.match.kind, index: this.match.index }, payload).then(function (res) {
         console.log(res)
-        this.$set('match', Match.fromObject(res.data.match))
+        let data = res.json()
+        this.$set('match', Match.fromObject(data.match))
 
         _.each(this.$refs.players, (controlPlayer) => { controlPlayer.reset() })
       }, function (res) {
@@ -177,8 +178,9 @@ export default {
         // data manually
         this.api.getTournamentData({ id: to.params.tournament }).then(function (res) {
           console.log(res)
+          let data = res.json()
           this.setData(
-            res.data.tournament,
+            data.tournament,
             to.params.kind,
             parseInt(to.params.match)
           )

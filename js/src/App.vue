@@ -79,15 +79,16 @@ export default {
             return
           }
 
-          console.log(event)
           if (res.data) {
             if (res.data.tournaments) {
               // The main bulk update. This contains the latest state.
-              console.log('Updating tournaments')
               let tournaments = _.map(res.data.tournaments, Tournament.fromObject)
               this.$set('tournaments', tournaments)
+              console.log("data", this.$data.tournaments)
 
-              _.each(tournaments, (tournament) => { this.$broadcast(`tournament${tournament.id}`, tournament) })
+              _.each(tournaments, (tournament) => {
+                this.$broadcast(`tournament${tournament.id}`, tournament)
+              })
               return
             }
 
