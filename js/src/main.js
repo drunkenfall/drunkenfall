@@ -135,8 +135,15 @@ router.beforeEach((to, from, next) => {
   setTimeout(function () {
     router.app.connect()
 
-    // Always set up the user model from cookies
-    router.app.$store.commit('setUser', User.fromCookies(router.app.$cookie))
+    console.log(router)
+    router.app.$http.get('/api/towerfall/user/').then(response => {
+      console.log("Got response", response)
+      router.app.$store.commit('setUser', Person.fromObject(
+        JSON.parse(response.data)
+      ))
+    }, response => {
+      console.log("Failed getting user data", response)
+    })
   }, 50)
 
   // Reset any pulsating lights

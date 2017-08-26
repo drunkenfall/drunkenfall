@@ -549,6 +549,23 @@ func (s *Server) PeopleHandler(w http.ResponseWriter, _ *http.Request) {
 	_, _ = w.Write(data)
 }
 
+// UserHandler returns data about the current user
+func (s *Server) UserHandler(w http.ResponseWriter, r *http.Request) {
+	if !HasPermission(r, PermissionPlayer) {
+		PermissionFailure(w, r, "You need to be signed in.")
+		return
+	}
+
+	p := PersonFromSession(s, r)
+
+	data, err := json.Marshal(p)
+	if err != nil {
+		log.Fatal(err)
+	}
+	w.Header().Set("Content-Type", "application/json")
+	_, _ = w.Write(data)
+}
+
 // BuildRouter sets up the routes
 func (s *Server) BuildRouter(ws *websockets.Server) http.Handler {
 	n := mux.NewRouter()
@@ -556,9 +573,12 @@ func (s *Server) BuildRouter(ws *websockets.Server) http.Handler {
 	r := a.PathPrefix("/towerfall").Subrouter()
 
 	r.HandleFunc("/people/", s.PeopleHandler)
+	r.HandleFunc("/user/", s.UserHandler)
+
 	r.HandleFunc("/tournament/", s.TournamentListHandler)
 	r.HandleFunc("/tournament/clear/", s.ClearTournamentHandler)
 	r.HandleFunc("/tournament/{id}/", s.TournamentHandler)
+
 	// TODO(thiderman): Normalize for all to use /tournament
 	r.HandleFunc("/new/", s.NewHandler)
 	r.HandleFunc("/{id}/start/", s.StartTournamentHandler)
