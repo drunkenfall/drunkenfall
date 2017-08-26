@@ -1,7 +1,13 @@
+export const PRODUCER = 100
+export const COMMENTATOR = 50
+export const JUDGE = 30
+export const PLAYER = 10
+
 export default class Person {
   static fromObject (obj) {
     let p = new Person()
     Object.assign(p, obj)
+    p.authenticated = p.session && true || false
     return p
   }
 
@@ -24,6 +30,22 @@ export default class Person {
   }
 
   get firstName () {
+    if (!this.name) {
+      return ""
+    }
     return this.name.split(" ")[0]
+  }
+
+  get isProducer () {
+    return this.userlevel >= PRODUCER
+  }
+  get isCommentator () {
+    return this.userlevel >= COMMENTATOR
+  }
+  get isJudge () {
+    return this.userlevel >= JUDGE
+  }
+  get isPlayer () {
+    return this.userlevel >= PLAYER
   }
 }

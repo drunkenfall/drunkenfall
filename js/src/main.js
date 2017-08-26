@@ -26,7 +26,7 @@ import Facebook from './components/Facebook.vue'
 import FacebookFinalize from './components/FacebookFinalize.vue'
 import Credits from './components/Credits.vue'
 
-import User from './models/User.js'
+import Person from './models/Person.js'
 import {Credits as CreditsModel} from './models/Credits.js'
 import Tournament from './models/Tournament.js'
 
@@ -147,7 +147,7 @@ router.beforeEach((to, from, next) => {
 const store = new Vuex.Store({ // eslint-disable-line
   state: {
     tournaments: [],
-    user: new User(),
+    user: new Person(),
     credits: {}
   },
   mutations: {

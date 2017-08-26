@@ -1,7 +1,7 @@
 <script>
 /* eslint-env browser */
 import _ from 'lodash'
-import User from './models/User.js'
+import Person from './models/Person.js'
 
 export default {
   data () {
@@ -9,7 +9,7 @@ export default {
       // The main websocket object
       ws: null,
       reconnections: 0,
-      user: new User(),
+      user: new Person(),
     }
   },
   methods: {
