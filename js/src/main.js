@@ -27,6 +27,7 @@ import NextScreen from './components/NextScreen.vue'
 import Facebook from './components/Facebook.vue'
 import FacebookFinalize from './components/FacebookFinalize.vue'
 import Credits from './components/Credits.vue'
+import Sidebar from './components/Sidebar.vue'
 
 import Person from './models/Person.js'
 import {Credits as CreditsModel} from './models/Credits.js'
@@ -38,7 +39,9 @@ Vue.use(Router)
 Vue.use(Resource)
 Vue.use(Cookie)
 Vue.use(Vue2Filters)
+
 Vue.component('icon', Icon)
+Vue.component('sidebar', Sidebar)
 
 // routing
 var router = new Router({
@@ -61,12 +64,13 @@ var router = new Router({
     },
     {
       path: '/towerfall/',
+      name: 'start',
       component: TournamentList
     },
     {
       path: '/towerfall/new/',
       name: 'new',
-      component: New
+      component: New,
     },
     {
       path: '/towerfall/:tournament/',

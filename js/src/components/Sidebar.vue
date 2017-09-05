@@ -1,14 +1,25 @@
 <template>
   <div>
     <div id="sidebar">
-      <img class="logo" alt="" src="/static/img/drunkenfall.png"/>
+      <router-link
+        :to="{name: 'start'}">
+        <img class="logo" alt="" src="/static/img/drunkenfall.png"/>
+      </router-link>
+
+
+      <div class="tournaments">
+        <sidebar-tournament
+          class="tournament"
+          :tournament="tournament"
+          v-for="tournament in tournaments"></sidebar-tournament>
+      </div>
 
       <div v-if="user" class="user">
         <icon class="settings" name="cog"></icon>
-
         <img :alt="user.firstName" :src="user.avatar"/>
         <icon class="logout" name="sign-out"></icon>
-        <h1>{{user.firstName}}</h1>
+
+        <h1 :class="user.color">{{user.nick}}</h1>
       </div>
     </div>
   </div>
@@ -16,16 +27,21 @@
 
 <script>
 import Person from '../models/Person.js'
+import SidebarTournament from './SidebarTournament'
 
 export default {
   name: 'Sidebar',
   components: {
     Person,
+    SidebarTournament,
   },
 
   computed: {
     user () {
       return this.$store.state.user
+    },
+    tournaments () {
+      return this.$store.state.tournaments
     },
   },
 }
@@ -44,8 +60,16 @@ export default {
 
   box-shadow: 4px 0px 4px rgba(0,0,0,0.3);
 
+  >a {
+    box-shadow: none;
+  }
+
   .logo {
     width: 100%;
+  }
+
+  .tournaments {
+    margin: 1.5rem;
   }
 
   .user {
@@ -89,7 +113,6 @@ export default {
         right: 40px;
       }
     }
-
   }
 }
 
