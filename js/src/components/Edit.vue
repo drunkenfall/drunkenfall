@@ -1,19 +1,16 @@
 <template>
-  <div>
-    <header>
-      <div class="content">
-        <div class="title">Drunken TowerFall / {{tournament.name}} / Edit</div>
-      </div>
-      <div class="clear"></div>
-    </header>
+  <div v-if="tournament">
+    <sidebar></sidebar>
 
-    <form v-on:submit="edit">
-      <textarea v-model="data"
-        autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
-        cols="30" id="" name="" rows="40"></textarea>
+    <div class="sidebared-content">
+       <form v-on:submit="edit">
+        <textarea v-model="data"
+          autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+          cols="30" id="" name="" rows="50"></textarea>
 
-      <input id="doit" type="submit" value="Edit tournament"/>
-    </form>
+        <input id="doit" type="submit" value="Edit tournament"/>
+      </form>
+    </div>
   </div>
 </template>
 
@@ -54,6 +51,9 @@ export default {
     }
     this.api = this.$resource("/api/towerfall", {}, customActions)
   },
+  mounted () {
+    this.$set(this.$data, 'data', JSON.stringify(this.tournament, null, 2))
+  },
   watch: {
     tournament (val) {
       this.$set(this.$data, 'data', JSON.stringify(val, null, 2))
@@ -64,7 +64,7 @@ export default {
 
 <style lang="scss" scoped>
 
-* {
+.sidebared-content {
   text-align: center;
 }
 
@@ -98,7 +98,7 @@ textarea {
   color: #dbdbdb;
   background-color: #333339;
   width: 90%;
-  height: 60%;
+  height: 90%;
   box-shadow: inset 2px 2px 2px 0px rgba(0,0,0,0.5);
   outline: none;
   border: none;
