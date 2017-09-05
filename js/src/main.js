@@ -165,7 +165,7 @@ const store = new Vuex.Store({ // eslint-disable-line
   },
   mutations: {
     updateAll (state, tournaments) {
-      state.tournaments = _.map(tournaments, Tournament.fromObject)
+      state.tournaments = _.reverse(_.map(tournaments, Tournament.fromObject))
     },
     setUser (state, user) {
       state.user = user
