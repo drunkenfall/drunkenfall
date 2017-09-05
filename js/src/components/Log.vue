@@ -1,9 +1,6 @@
 <template>
   <div v-if="tournament">
-    <sidebar></sidebar>
-    <div class="sidebared-content">
-      <basic-event v-for="event in events" :event="event"></basic-event>
-    </div>
+    <basic-event v-for="event in events" :event="event"></basic-event>
     <div class="clear"></div>
   </div>
 </template>

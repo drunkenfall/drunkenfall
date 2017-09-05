@@ -1,36 +1,32 @@
 <template>
   <div>
-    <sidebar></sidebar>
-
-    <div class="sidebared-content">
-      <header>
-        <div class="content">
-          <div class="title">Drunken TowerFall</div>
-        </div>
-        <div class="links">
-          <router-link :to="{name: 'new'}" v-if="user.isProducer">New Tournament</router-link>
-          <a @click="clear" v-if="user.isProducer">Clear tests</a>
-          <router-link :to="{name: 'facebook'}" v-if="!user">Facebook</router-link>
-          <a href="/api/facebook/login" v-if="user.isProducer && user.authenticated">Re-facebook</a>
-        </div>
-        <div class="clear"></div>
-      </header>
-
-      <div class="tournaments" :class="{ loading: !tournaments }">
-        <div v-for="tournament in tournaments"
-          :tournament="tournament.id" track-by="id">
-
-          <router-link :to="{ name: 'tournament', params: { tournament: tournament.id }}"
-            :class="{ test: tournament.isTest, current: !tournament.isStest && !tournament.isStarted}">
-            {{tournament.name}}
-          </router-link>
-        </div>
+    <header>
+      <div class="content">
+        <div class="title">Drunken TowerFall</div>
       </div>
+      <div class="links">
+        <router-link :to="{name: 'new'}" v-if="user.isProducer">New Tournament</router-link>
+        <a @click="clear" v-if="user.isProducer">Clear tests</a>
+        <router-link :to="{name: 'facebook'}" v-if="!user">Facebook</router-link>
+        <a href="/api/facebook/login" v-if="user.isProducer && user.authenticated">Re-facebook</a>
+      </div>
+      <div class="clear"></div>
+    </header>
 
-      <h1 v-if="tournaments.length === 0">
-        Loading... &lt;3
-      </h1>
+    <div class="tournaments" :class="{ loading: !tournaments }">
+      <div v-for="tournament in tournaments"
+        :tournament="tournament.id" track-by="id">
+
+        <router-link :to="{ name: 'tournament', params: { tournament: tournament.id }}"
+          :class="{ test: tournament.isTest, current: !tournament.isStest && !tournament.isStarted}">
+          {{tournament.name}}
+        </router-link>
+      </div>
     </div>
+
+    <h1 v-if="tournaments.length === 0">
+      Loading... &lt;3
+    </h1>
   </div>
 </template>
 

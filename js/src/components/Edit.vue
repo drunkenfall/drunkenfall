@@ -1,16 +1,12 @@
 <template>
   <div v-if="tournament">
-    <sidebar></sidebar>
+    <form v-on:submit="edit">
+      <textarea v-model="data"
+        autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+        cols="30" id="" name="" rows="50"></textarea>
 
-    <div class="sidebared-content">
-       <form v-on:submit="edit">
-        <textarea v-model="data"
-          autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
-          cols="30" id="" name="" rows="50"></textarea>
-
-        <input id="doit" type="submit" value="Edit tournament"/>
-      </form>
-    </div>
+      <input id="doit" type="submit" value="Edit tournament"/>
+    </form>
   </div>
 </template>
 

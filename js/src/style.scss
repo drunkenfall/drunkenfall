@@ -20,6 +20,23 @@ body, html {
     height: 100%;
     overflow-y: hidden;
   }
+
+  // Whenever we don't need a sidebar, just add this class and it will
+  // go away. <3
+  &.sidebar-less {
+    #sidebar {
+      left: -$sidebar-width;
+      box-shadow: none;
+    }
+    #app > .sidebared {
+      margin-left: 0;
+    }
+  }
+}
+
+#app > .sidebared {
+  margin-left: $sidebar-width;
+  transition: margin-left 0.5s ease-in-out;
 }
 
 body.red-pulse {
@@ -123,10 +140,6 @@ header {
       }
     }
   }
-}
-
-.sidebared-content {
-  margin-left: 280px;
 }
 
 form {

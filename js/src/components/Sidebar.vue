@@ -48,6 +48,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+@import "../variables.scss";
 
 #sidebar {
   position: absolute;
@@ -55,8 +56,9 @@ export default {
   bottom: 0;
   left: 0;
 
-  width: 280px;
+  width: $sidebar-width;
   background-color: #333339;
+  transition: 0.5s ease-in-out;
 
   box-shadow: 4px 0px 4px rgba(0,0,0,0.3);
 

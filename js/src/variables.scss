@@ -43,6 +43,8 @@ $red-bg: #6d1e17;
 $red-bg-darker: hsla(5,65%,19%,1);
 $red-bg-darkest: #380d09;
 
+$sidebar-width: 280px;
+
 @mixin ribbon-colorizer($bg, $darker, $darkest) {
   background-color: $bg;
   &:before, &:after {

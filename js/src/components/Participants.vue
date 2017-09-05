@@ -1,24 +1,20 @@
 <template>
   <div v-if="tournament">
-    <sidebar></sidebar>
+    <h2>Not joined ({{notJoined.length}})</h2>
+    <div class="players not-joined">
+      <div v-for="person in notJoined" class="player">
+        <img @click="toggle" :id="person.id" :alt="person.nick" :src="'https://graph.facebook.com/'+person.facebook_id+'/picture?width=9999'"/>
+        <p>{{person.name.split(" ")[0]}}</p>
+      </div>
+    </div>
 
-    <div class="sidebared-content">
-      <h2>Not joined ({{notJoined.length}})</h2>
-      <div class="players not-joined">
-        <div v-for="person in notJoined" class="player">
-          <img @click="toggle" :id="person.id" :alt="person.nick" :src="'https://graph.facebook.com/'+person.facebook_id+'/picture?width=9999'"/>
-          <p>{{person.name.split(" ")[0]}}</p>
-        </div>
+    <h2>Joined ({{tournament.players.length}}/32)</h2>
+    <div class="players joined">
+      <div v-for="player in joined" class="player">
+        <img @click="toggle" :id="player.person.id" :alt="player.person.nick" :src="player.avatar"/>
+        <p>{{player.person.name.split(" ")[0]}}</p>
       </div>
-
-      <h2>Joined ({{tournament.players.length}}/32)</h2>
-      <div class="players joined">
-        <div v-for="player in joined" class="player">
-          <img @click="toggle" :id="player.person.id" :alt="player.person.nick" :src="player.avatar"/>
-          <p>{{player.person.name.split(" ")[0]}}</p>
-        </div>
-      </div>
-      </div>
+    </div>
   </div>
 </template>
 
