@@ -678,7 +678,6 @@ func HasPermission(r *http.Request, lvl int) bool {
 		return false
 	}
 
-	log.Print(fmt.Sprintf("Auth check: %s: %d", s.Values, lvl))
 	return l.(int) >= lvl
 }
 
