@@ -25,6 +25,15 @@ export default class Tournament {
     return t
   }
 
+  get numeral () {
+    let n = this.name.split(" ")[1]
+    return n.substring(0, n.length - 1) // Remove the colon
+  }
+
+  get subtitle () {
+    return this.name.replace(/.*: /, "")
+  }
+
   get isStarted () {
     // tournament is started if 'started' is defined and NOT equal to go's zero date
     return !isGoZeroDateOrFalsy(this.started)
@@ -54,4 +63,7 @@ export default class Tournament {
     return !match.isStarted
   }
 
+  get isUsurpable () {
+    return this.players.length < 32
+  }
 }
