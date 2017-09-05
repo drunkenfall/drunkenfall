@@ -108,6 +108,8 @@ export default {
 
   box-shadow: 4px 0px 4px rgba(0,0,0,0.3);
 
+  user-select: none;
+
   h1 {
     font-size: 1em;
   }
