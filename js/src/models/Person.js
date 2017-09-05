@@ -4,10 +4,10 @@ export const JUDGE = 30
 export const PLAYER = 10
 
 export default class Person {
-  static fromObject (obj) {
+  static fromObject (obj, cookie) {
     let p = new Person()
     Object.assign(p, obj)
-    p.authenticated = p.session && true || false
+    p.authenticated = cookie && cookie.get && cookie.get('session') && true || false
     return p
   }
 
