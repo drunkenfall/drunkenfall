@@ -37,14 +37,9 @@
 <script>
 import _ from "lodash"
 import Tournament from "../models/Tournament.js"
-import Sidebar from "./Sidebar.vue"
 
 export default {
   name: 'TournamentList',
-
-  components: {
-    Sidebar
-  },
 
   computed: {
     user () {

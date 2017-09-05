@@ -1,18 +1,9 @@
 <template>
   <div v-if="tournament">
-    <header>
-      <div class="content">
-        <div class="title">
-          {{tournament.name}} / Events
-        </div>
-      </div>
-      <div class="links" v-if="user.isJudge">
-      </div>
-      <div class="clear"></div>
-    </header>
-
-    <basic-event v-for="event in events" :event="event"></basic-event>
-
+    <sidebar></sidebar>
+    <div class="sidebared-content">
+      <basic-event v-for="event in events" :event="event"></basic-event>
+    </div>
     <div class="clear"></div>
   </div>
 </template>

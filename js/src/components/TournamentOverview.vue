@@ -1,85 +1,89 @@
 <template>
   <div>
-    <header>
-      <div class="content">
-        <div class="title">{{tournament.name}}</div>
-      </div>
-      <div class="links">
-        <div class="action" @click="start"
-          v-if="user.isJudge && tournament.canStart">Start</div>
-        <div class="action" @click="next"
-          v-if="user.isJudge && tournament.isRunning">Next match</div>
-        <div class="action" @click="reshuffle"
-          v-if="user.isProducer && tournament.canShuffle">Reshuffle</div>
-        <div class="action" @click="log"
-          v-if="user.isProducer">Log</div>
+    <sidebar></sidebar>
 
-        <router-link :to="{ name: 'credits', params: { tournament: tournament.id }}"
-          v-if="user.isProducer && tournament.isEnded">
-          Roll credits
-        </router-link>
-
-        <router-link :to="{ name: 'participants', params: { tournament: tournament.id }}"
-          v-if="user.isProducer && canParticipants">
-          Participants
-        </router-link>
-
-        <router-link :to="{ name: 'runnerups', params: { tournament: tournament.id }}"
-          v-if="user.isCommentator && shouldBackfill">
-          Backfill semis
-        </router-link>
-      </div>
-      <div class="clear"></div>
-    </header>
-
-    <div class="subheader" v-if="user.isCommentator && nextMatch && !tournament.isEnded">
-      <div v-if="!nextMatch.isScheduled">
-        <p>
-          Pause until
-          <span>{{tournament.current.kind}}</span>
-          <span>{{tournament.current.index+1}}</span>:
-        </p>
+    <div class="sidebared-content">
+      <header>
+        <div class="content">
+          <div class="title">{{tournament.name}}</div>
+        </div>
         <div class="links">
-          <a @click="setTime(10)">10 min</a>
-          <a @click="setTime(7)">7 min</a>
-          <a @click="setTime(5)">5 min</a>
-          <a @click="setTime(3)">3 min</a>
+          <div class="action" @click="start"
+            v-if="user.isJudge && tournament.canStart">Start</div>
+          <div class="action" @click="next"
+            v-if="user.isJudge && tournament.isRunning">Next match</div>
+          <div class="action" @click="reshuffle"
+            v-if="user.isProducer && tournament.canShuffle">Reshuffle</div>
+          <div class="action" @click="log"
+            v-if="user.isProducer">Log</div>
+
+          <router-link :to="{ name: 'credits', params: { tournament: tournament.id }}"
+            v-if="user.isProducer && tournament.isEnded">
+            Roll credits
+          </router-link>
+
+          <router-link :to="{ name: 'participants', params: { tournament: tournament.id }}"
+            v-if="user.isProducer && canParticipants">
+            Participants
+          </router-link>
+
+          <router-link :to="{ name: 'runnerups', params: { tournament: tournament.id }}"
+            v-if="user.isCommentator && shouldBackfill">
+            Backfill semis
+          </router-link>
+        </div>
+        <div class="clear"></div>
+      </header>
+
+      <div class="subheader" v-if="user.isCommentator && nextMatch && !tournament.isEnded">
+        <div v-if="!nextMatch.isScheduled">
+          <p>
+            Pause until
+            <span>{{tournament.current.kind}}</span>
+            <span>{{tournament.current.index+1}}</span>:
+          </p>
+          <div class="links">
+            <a @click="setTime(10)">10 min</a>
+            <a @click="setTime(7)">7 min</a>
+            <a @click="setTime(5)">5 min</a>
+            <a @click="setTime(3)">3 min</a>
+          </div>
+          <div class="clear"></div>
+        </div>
+        <div v-if="nextMatch.isScheduled">
+          <p class="center">
+            <span>{{tournament.current.kind}}</span>
+            <span>{{tournament.current.index+1}}</span> scheduled at
+            {{nextMatch.scheduled.format("HH:mm")}}
+          </p>
+          <div class="clear"></div>
+        </div>
+      </div>
+
+      <div class="category tryouts">
+        <h3>Tryouts</h3>
+        <div class="matches">
+          <template v-for="m in tournament.tryouts">
+            <match-overview :match="m" :class="'match ' + m.kind"></match-overview>
+          </template>
         </div>
         <div class="clear"></div>
       </div>
-      <div v-if="nextMatch.isScheduled">
-        <p class="center">
-          <span>{{tournament.current.kind}}</span>
-          <span>{{tournament.current.index+1}}</span> scheduled at
-          {{nextMatch.scheduled.format("HH:mm")}}
-        </p>
+
+      <div class="category semis">
+        <h3>Semi-finals</h3>
+        <div class="matches">
+          <template v-for="m in tournament.semis">
+            <match-overview :match="m" :class="'match ' + m.kind"></match-overview>
+          </template>
+        </div>
         <div class="clear"></div>
       </div>
-    </div>
-
-    <div class="category tryouts">
-      <h3>Tryouts</h3>
-      <div class="matches">
-        <template v-for="m in tournament.tryouts">
-          <match-overview :match="m" :class="'match ' + m.kind"></match-overview>
-        </template>
-      </div>
-      <div class="clear"></div>
-    </div>
-
-    <div class="category semis">
-      <h3>Semi-finals</h3>
-      <div class="matches">
-        <template v-for="m in tournament.semis">
-          <match-overview :match="m" :class="'match ' + m.kind"></match-overview>
-        </template>
-      </div>
-      <div class="clear"></div>
-    </div>
-    <div class="category final">
-      <h3>Final</h3>
-      <div class="matches">
-        <match-overview :match="tournament.final" class="match final"></match-overview>
+      <div class="category final">
+        <h3>Final</h3>
+        <div class="matches">
+          <match-overview :match="tournament.final" class="match final"></match-overview>
+        </div>
       </div>
     </div>
   </div>
