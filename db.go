@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"log"
+	"sort"
 	"strings"
 
 	"github.com/boltdb/bolt"
@@ -62,6 +63,8 @@ func (d *Database) LoadTournaments() error {
 			tournamentMutex.Unlock()
 			return nil
 		})
+
+		d.Tournaments = SortByScheduleDate(d.Tournaments)
 		return err
 	})
 
@@ -224,4 +227,25 @@ func (d *Database) ClearTestTournaments() error {
 // Close closes the database
 func (d *Database) Close() error {
 	return d.DB.Close()
+}
+
+// ByScheduleDate is a sort.Interface that sorts tournaments accoring
+// to when they were scheduled.
+type ByScheduleDate []*Tournament
+
+func (s ByScheduleDate) Len() int {
+	return len(s)
+}
+func (s ByScheduleDate) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+
+}
+func (s ByScheduleDate) Less(i, j int) bool {
+	return s[i].Scheduled.Before(s[j].Scheduled)
+}
+
+// SortByScheduleDate returns a list in order of schedule date
+func SortByScheduleDate(ps []*Tournament) []*Tournament {
+	sort.Sort(ByScheduleDate(ps))
+	return ps
 }
