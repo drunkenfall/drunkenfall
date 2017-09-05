@@ -1,49 +1,25 @@
 <template>
   <div v-if="tournament">
-    <sidebar></sidebar>
+    <h1>
+      Starting soon
+    </h1>
 
-    <div class="sidebared-content">
-      <header v-if="user.authenticated">
-        <div class="content">
-          <div class="title">{{tournament.name}}</div>
-        </div>
-        <div class="links">
-          <a v-if="tournament.canStart && user.isCommentator" @click="start">Start</a>
-          <a v-if="tournament.canStart && user.isProducer" @click="usurp">Usurp</a>
+    <div class="players">
+      <div v-for="player in tournament.players" class="player">
+        <img :alt="player.person.nick" :src="player.avatar"/>
+      </div>
+      <div class="clear"></div>
+    </div>
 
-          <router-link v-if="user.isPlayer"
-            :to="{ name: 'join', params: { tournament: tournament.id }}">
-            Join
-          </router-link>
-          <router-link v-if="user.isJudge"
-            :to="{ name: 'participants', params: { tournament: tournament.id }}">
-            Participants
-          </router-link>
-        </div>
-        <div class="clear"></div>
-      </header>
-
-      <h1>
-        Starting soon
-      </h1>
-
-      <div class="players">
-        <div v-for="player in tournament.players" class="player">
-          <img :alt="player.person.nick" :src="player.avatar"/>
-        </div>
-        <div class="clear"></div>
+    <div class="protector">
+      <div class="super-ribbon">
+        drunkenfall.com
       </div>
 
-      <div class="protector">
-        <div class="super-ribbon">
-          drunkenfall.com
-        </div>
-
-        <div class="ribbon">
-          <strong class="ribbon-content">
-            {{ countdown.time }}
-          </strong>
-        </div>
+      <div class="ribbon">
+        <strong class="ribbon-content">
+          {{ countdown.time }}
+        </strong>
       </div>
     </div>
   </div>

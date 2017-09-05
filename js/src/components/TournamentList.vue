@@ -1,18 +1,5 @@
 <template>
   <div>
-    <header>
-      <div class="content">
-        <div class="title">Drunken TowerFall</div>
-      </div>
-      <div class="links">
-        <router-link :to="{name: 'new'}" v-if="user.isProducer">New Tournament</router-link>
-        <a @click="clear" v-if="user.isProducer">Clear tests</a>
-        <router-link :to="{name: 'facebook'}" v-if="!user">Facebook</router-link>
-        <a href="/api/facebook/login" v-if="user.isProducer && user.authenticated">Re-facebook</a>
-      </div>
-      <div class="clear"></div>
-    </header>
-
     <div class="tournaments" :class="{ loading: !tournaments }">
       <div v-for="tournament in tournaments"
         :tournament="tournament.id" track-by="id">
@@ -66,6 +53,10 @@ h1 {
   text-shadow: 3px 3px 3px rgba(0,0,0,0.7);
   margin: 2em;
   font-size: 3em;
+}
+
+.tournaments {
+  margin: 5em 0;
 }
 
 .tournaments a {
