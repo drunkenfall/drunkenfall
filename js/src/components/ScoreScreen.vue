@@ -37,6 +37,10 @@ export default {
       return this.tournament[kind][idx]
     },
   },
+
+  mounted () {
+    document.getElementsByTagName("body")[0].className = "sidebar-less"
+  },
 }
 </script>
 

@@ -69,8 +69,13 @@ export default {
       return match
     },
     playersReversed () {
-      return _.reverse(this.match.players)
+      // Work on a clone, not the original data object.
+      return _.reverse(_.map(this.match.players, _.clone))
     },
+  },
+
+  mounted () {
+    document.getElementsByTagName("body")[0].className = "sidebar-less"
   },
 }
 </script>
