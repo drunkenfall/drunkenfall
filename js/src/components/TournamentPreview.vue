@@ -1,45 +1,49 @@
 <template>
   <div v-if="tournament">
-    <header v-if="user.authenticated">
-      <div class="content">
-        <div class="title">{{tournament.name}}</div>
-      </div>
-      <div class="links">
-        <a v-if="tournament.canStart && user.isCommentator" @click="start">Start</a>
-        <a v-if="tournament.canStart && user.isProducer" @click="usurp">Usurp</a>
+    <sidebar></sidebar>
 
-        <router-link v-if="user.isPlayer"
-          :to="{ name: 'join', params: { tournament: tournament.id }}">
-          Join
-        </router-link>
-        <router-link v-if="user.isJudge"
-          :to="{ name: 'participants', params: { tournament: tournament.id }}">
-          Participants
-        </router-link>
-      </div>
-      <div class="clear"></div>
-    </header>
+    <div class="sidebared-content">
+      <header v-if="user.authenticated">
+        <div class="content">
+          <div class="title">{{tournament.name}}</div>
+        </div>
+        <div class="links">
+          <a v-if="tournament.canStart && user.isCommentator" @click="start">Start</a>
+          <a v-if="tournament.canStart && user.isProducer" @click="usurp">Usurp</a>
 
-    <h1>
-      Starting soon
-    </h1>
+          <router-link v-if="user.isPlayer"
+            :to="{ name: 'join', params: { tournament: tournament.id }}">
+            Join
+          </router-link>
+          <router-link v-if="user.isJudge"
+            :to="{ name: 'participants', params: { tournament: tournament.id }}">
+            Participants
+          </router-link>
+        </div>
+        <div class="clear"></div>
+      </header>
 
-    <div class="players">
-      <div v-for="player in tournament.players" class="player">
-        <img :alt="player.person.nick" :src="player.avatar"/>
-      </div>
-      <div class="clear"></div>
-    </div>
+      <h1>
+        Starting soon
+      </h1>
 
-    <div class="protector">
-      <div class="super-ribbon">
-        drunkenfall.com
+      <div class="players">
+        <div v-for="player in tournament.players" class="player">
+          <img :alt="player.person.nick" :src="player.avatar"/>
+        </div>
+        <div class="clear"></div>
       </div>
 
-      <div class="ribbon">
-        <strong class="ribbon-content">
-          {{ countdown.time }}
-        </strong>
+      <div class="protector">
+        <div class="super-ribbon">
+          drunkenfall.com
+        </div>
+
+        <div class="ribbon">
+          <strong class="ribbon-content">
+            {{ countdown.time }}
+          </strong>
+        </div>
       </div>
     </div>
   </div>
@@ -97,15 +101,6 @@ export default {
         console.error("usurp called with no tournament")
       }
     },
-    join () {
-      this.api.join({ id: this.tournament.id }).then((res) => {
-        console.log("join response:", res)
-        var j = res.json()
-        this.$route.router.push('/towerfall' + j.redirect)
-      }, (err) => {
-        console.error(`joining tournament ${this.tournament} failed`, err)
-      })
-    }
   },
 
   created () {
