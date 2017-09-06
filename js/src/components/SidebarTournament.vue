@@ -11,74 +11,89 @@
     </router-link>
 
     <div v-if="isSelected" class="content">
-      <h1>Actions</h1>
-      <div class="actions links">
-        <a v-if="tournament.canStart && user.isCommentator" @click="start">
-          <div class="icon positive">
-            <icon name="play"></icon>
-          </div>
-          <p>Start</p>
-          <div class="clear"></div>
-        </a>
+      <div v-if="viewing(['tournament', 'edit', 'log', 'participants'])">
+        <div class="matches links">
+          <div class="items">
+            <router-link class="action" v-if="user.isJudge"
+              :to="{ name: 'log', params: { tournament: tournament.id }}">
+              <div class="icon">
+                <icon name="book"></icon>
+              </div>
+              <p>Log</p>
+              <div class="clear"></div>
+            </router-link>
 
-        <a class="action" @click="next" v-if="user.isJudge && tournament.isRunning">
-          <div class="icon positive">
-            <icon name="play"></icon>
-          </div>
-          <p>Next match</p>
-          <div class="clear"></div>
-        </a>
+            <router-link class="action" v-if="user.isProducer"
+              :to="{ name: 'participants', params: { tournament: tournament.id }}">
+              <div class="icon"
+                :class="{ warning: tournament.isStarted }">
+                <icon name="users"></icon>
+              </div>
+              <p>Participants</p>
+              <div class="clear"></div>
+            </router-link>
 
-        <a class="action" @click="reshuffle" v-if="user.isProducer && tournament.canShuffle">
-          <div class="icon warning">
-            <icon name="random"></icon>
+            <router-link class="action" v-if="user.isProducer && tournament.canShuffle"
+              :to="{ name: 'edit', params: { tournament: tournament.id }}">
+              <div class="icon danger">
+                <icon name="pencil"></icon>
+              </div>
+              <p>Edit</p>
+              <div class="clear"></div>
+            </router-link>
           </div>
-          <p>Reshuffle</p>
-          <div class="clear"></div>
-        </a>
-
-        <a class="action" @click="usurp"
-          :class="{ disabled: !tournament.isUsurpable}"
-          v-if="user.isProducer && tournament.isTest && tournament.canStart">
-          <div class="icon warning">
-            <icon name="user-plus"></icon>
-          </div>
-          <p>Add testing players</p>
-          <p class="tooltip">Tournament is full.</p>
-          <div class="clear"></div>
-        </a>
+        </div>
       </div>
 
-      <h1>Links</h1>
-      <div class="matches links">
-        <div class="items">
-          <router-link class="action" v-if="user.isJudge"
-            :to="{ name: 'log', params: { tournament: tournament.id }}">
-            <div class="icon">
-              <icon name="book"></icon>
+      <div v-if="viewing(['tournament'])">
+        <h1>Actions</h1>
+        <div class="actions links">
+          <a v-if="tournament.canStart && user.isCommentator" @click="start">
+            <div class="icon positive">
+              <icon name="play"></icon>
             </div>
-            <p>Log</p>
+            <p>Start</p>
             <div class="clear"></div>
-          </router-link>
+          </a>
 
-          <router-link class="action" v-if="user.isProducer"
-            :to="{ name: 'participants', params: { tournament: tournament.id }}">
-            <div class="icon"
-              :class="{ warning: tournament.isStarted }">
-              <icon name="users"></icon>
+          <a class="action" @click="next" v-if="user.isJudge && tournament.isRunning">
+            <div class="icon positive">
+              <icon name="play"></icon>
             </div>
-            <p>Participants</p>
+            <p>Next match</p>
             <div class="clear"></div>
-          </router-link>
+          </a>
 
-          <router-link class="action" v-if="user.isProducer && tournament.canShuffle"
-            :to="{ name: 'edit', params: { tournament: tournament.id }}">
-            <div class="icon danger">
-              <icon name="pencil"></icon>
+          <a class="action" @click="reshuffle" v-if="user.isProducer && tournament.canShuffle">
+            <div class="icon warning">
+              <icon name="random"></icon>
             </div>
-            <p>Edit</p>
+            <p>Reshuffle</p>
             <div class="clear"></div>
-          </router-link>
+          </a>
+
+          <a class="action" @click="usurp"
+            :class="{ disabled: !tournament.isUsurpable}"
+            v-if="user.isProducer && tournament.isTest && tournament.canStart">
+            <div class="icon warning">
+              <icon name="user-plus"></icon>
+            </div>
+            <p>Add testing players</p>
+            <p class="tooltip">Tournament is full.</p>
+            <div class="clear"></div>
+          </a>
+        </div>
+      </div>
+
+      <div class="actions links">
+        <div v-if="match">
+          <a v-if="match.canStart && user.isCommentator" @click="startMatch">
+            <div class="icon positive">
+              <icon name="play"></icon>
+            </div>
+            <p>Start match</p>
+            <div class="clear"></div>
+          </a>
         </div>
       </div>
     </div>
@@ -86,6 +101,7 @@
 </template>
 
 <script>
+import _ from "lodash"
 import Tournament from '../models/Tournament.js'
 
 export default {
@@ -98,6 +114,20 @@ export default {
   computed: {
     user () {
       return this.$store.state.user
+    },
+    match () {
+      if (!this.viewing(["match"])) {
+        return undefined
+      }
+
+      let kind = this.$route.params.kind
+      let idx = this.$route.params.match
+
+      if (kind === 'final') {
+        return this.tournament.final
+      }
+      kind = kind + 's'
+      return this.tournament[kind][idx]
     },
     numeralColor () {
       return "background-color: #405060;"
@@ -114,6 +144,10 @@ export default {
   },
 
   methods: {
+    viewing (names) {
+      // Returns true if currently viewing any of the route names.
+      return _.includes(names, this.$route.name)
+    },
     start () {
       this.api.start({ id: this.tournament.id }).then((res) => {
         console.log("start response:", res)
@@ -163,6 +197,11 @@ export default {
       usurp: { method: "GET", url: "/api/towerfall{/id}/usurp/" },
       next: { method: "GET", url: "/api/towerfall{/id}/next/" },
       reshuffle: { method: "GET", url: "/api/towerfall{/id}/reshuffle/" },
+
+      commitMatch: { method: "POST", url: "/api/towerfall/tournament{/id}{/kind}{/index}/commit/" },
+      startMatch: { method: "GET", url: "/api/towerfall/tournament{/id}{/kind}{/index}/start/" },
+      endMatch: { method: "GET", url: "/api/towerfall/tournament{/id}{/kind}{/index}/end/" },
+      resetMatch: { method: "GET", url: "/api/towerfall/tournament{/id}{/kind}{/index}/reset/" },
     })
   },
 }
@@ -171,6 +210,10 @@ export default {
 
 <style lang="scss" scoped>
 @import "../variables.scss";
+
+.content {
+  margin-top: 1.5rem;
+}
 
 .tournament {
   margin-bottom: 0.5em;
