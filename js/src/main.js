@@ -142,14 +142,16 @@ router.beforeEach((to, from, next) => {
   setTimeout(function () {
     router.app.connect()
 
-    router.app.$http.get('/api/towerfall/user/').then(response => {
-      router.app.$store.commit('setUser', Person.fromObject(
-        JSON.parse(response.data),
-        router.app.$cookie
-      ))
-    }, response => {
-      console.log("Failed getting user data", response)
-    })
+    if (!router.app.$store.state.user.authenticated) {
+      router.app.$http.get('/api/towerfall/user/').then(response => {
+        router.app.$store.commit('setUser', Person.fromObject(
+          JSON.parse(response.data),
+          router.app.$cookie
+        ))
+      }, response => {
+        console.log("Failed getting user data", response)
+      })
+    }
   }, 20)
 
   // Reset any pulsating lights
