@@ -7,40 +7,42 @@
       </router-link>
 
 
-      <div class="tournaments">
-        <sidebar-tournament
-          class="tournament"
-          :tournament="tournament"
-          v-for="tournament in tournaments"></sidebar-tournament>
-      </div>
+      <div class="content">
+        <div class="tournaments">
+          <sidebar-tournament
+            class="tournament"
+            :tournament="tournament"
+            v-for="tournament in tournaments"></sidebar-tournament>
+        </div>
 
-      <div v-if="user.isProducer && viewing(['start'])">
-        <h1>Actions</h1>
-        <div class="actions links">
-          <router-link class="action"
-            :to="{ name: 'new'}">
-            <div class="icon positive">
-              <icon name="plus"></icon>
-            </div>
-            <p>New tournament</p>
-            <div class="clear"></div>
-          </router-link>
+        <div v-if="user.isProducer && viewing(['start'])">
+          <h1>Actions</h1>
+          <div class="actions links">
+            <router-link class="action"
+              :to="{ name: 'new'}">
+              <div class="icon positive">
+                <icon name="plus"></icon>
+              </div>
+              <p>New tournament</p>
+              <div class="clear"></div>
+            </router-link>
 
-          <a href="/api/facebook/login">
-            <div class="icon warning">
-              <icon name="facebook"></icon>
-            </div>
-            <p>Re-facebook</p>
-            <div class="clear"></div>
-          </a>
+            <a href="/api/facebook/login">
+              <div class="icon warning">
+                <icon name="facebook"></icon>
+              </div>
+              <p>Re-facebook</p>
+              <div class="clear"></div>
+            </a>
 
-          <a @click="clear">
-            <div class="icon danger">
-              <icon name="trash"></icon>
-            </div>
-            <p>Clear test tournaments</p>
-            <div class="clear"></div>
-          </a>
+            <a @click="clear">
+              <div class="icon danger">
+                <icon name="trash"></icon>
+              </div>
+              <p>Clear test tournaments</p>
+              <div class="clear"></div>
+            </a>
+          </div>
         </div>
       </div>
 
@@ -122,7 +124,7 @@ export default {
     width: 100%;
   }
 
-  .tournaments, .links{
+  >.content {
     margin: 1.5rem;
   }
 
@@ -134,7 +136,6 @@ export default {
       position: relative;
       background-color: $button-bg;
       text-shadow: 2px 2px 2px rgba(0,0,0,0.3);
-      width: 100%;
       display: block;
       margin-bottom: 0.5em;
       transition: 0.3s;

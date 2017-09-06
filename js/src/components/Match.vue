@@ -1,51 +1,47 @@
 <template>
   <div v-if="tournament">
-    <sidebar></sidebar>
-
-    <div class="sidebared-content">
-      <header>
-        <div class="content">
-          <div class="title">
-            {{tournament.name}} / {{match.title}} / Round {{round}}
-          </div>
+    <header>
+      <div class="content">
+        <div class="title">
+          {{match.title}} / Round {{round}}
         </div>
-        <div class="links" v-if="user.isJudge">
-          <a v-if="match.canStart" @click="start">Start match</a>
-
-          <a v-if="match.isRunning" @click="commit"
-            v-bind:class="{'disabled': !can_commit}">End round</a>
-          <a v-if="match.canEnd" @click="end">End match</a>
-          <router-link
-            v-if="match.isEnded"
-            :to="{ name: 'tournament', params: { tournament: tournament.id }}">
-            Back
-          </router-link>
-
-          <a v-if="match.isRunning" @click="reset"
-            class="danger">Reset match</a>
-
-        </div>
-        <div class="clear"></div>
-      </header>
-
-      <div class="control" v-if="user.isJudge">
-        <template v-for="(player, index) in match.players" ref="players">
-          <control-player :index="index"></control-player>
-        </template>
       </div>
+      <div class="links" v-if="user.isJudge">
+        <a v-if="match.canStart" @click="start">Start match</a>
 
-      <div class="control" v-if="!user.isJudge">
-        <template v-if="!match.isStarted" v-for="(player, index) in match.players" ref="players">
-          <preview-player :index="index" :player="player" :match="match"></preview-player>
-        </template>
+        <a v-if="match.isRunning" @click="commit"
+          v-bind:class="{'disabled': !can_commit}">End round</a>
+        <a v-if="match.canEnd" @click="end">End match</a>
+        <router-link
+          v-if="match.isEnded"
+          :to="{ name: 'tournament', params: { tournament: tournament.id }}">
+          Back
+        </router-link>
 
-        <template v-if="match.isStarted" v-for="(player, index) in match.players" ref="players">
-          <live-player :index="index" :player="player" :match="match"></live-player>
-        </template>
+        <a v-if="match.isRunning" @click="reset"
+          class="danger">Reset match</a>
+
       </div>
-
       <div class="clear"></div>
+    </header>
+
+    <div class="control" v-if="user.isJudge">
+      <template v-for="(player, index) in match.players" ref="players">
+        <control-player :index="index"></control-player>
+      </template>
     </div>
+
+    <div class="control" v-if="!user.isJudge">
+      <template v-if="!match.isStarted" v-for="(player, index) in match.players" ref="players">
+        <preview-player :index="index" :player="player" :match="match"></preview-player>
+      </template>
+
+      <template v-if="match.isStarted" v-for="(player, index) in match.players" ref="players">
+        <live-player :index="index" :player="player" :match="match"></live-player>
+      </template>
+    </div>
+
+    <div class="clear"></div>
   </div>
 </template>
 
