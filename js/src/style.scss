@@ -186,6 +186,12 @@ form input.text {
   margin-left: 1em;
   font-size: 1.2em;
 
+  &.standalone a  {
+    margin: 4em auto;
+    font-size: 1.5em;
+    width: 10em;
+  }
+
   a {
     position: relative;
     background-color: $button-bg;

@@ -1,17 +1,5 @@
 <template>
   <div v-if="tournament">
-    <header>
-      <div class="content">
-        <div class="title">Drunken TowerFall / {{tournament.name}} / Runnerup backfill</div>
-      </div>
-      <div class="links">
-        <a @click="commit" v-if="canCommit">Commit</a>
-      </div>
-      <div class="clear"></div>
-    </header>
-
-    <div class="clear"></div>
-
     <h2>Already the semi</h2>
     <div class="players joined">
       <div v-for="player in inSemi" class="player">
@@ -35,6 +23,17 @@
         <p>{{person.name.split(" ")[0]}}</p>
       </div>
     </div>
+
+
+    <div class="links standalone">
+      <a @click="commit" :class="{ disabled: !canCommit}">
+        <div class="icon positive">
+          <icon name="cloud-upload"></icon>
+        </div>
+        <p>Save</p>
+        <div class="clear"></div>
+      </a>
+      </div>
   </div>
 </template>
 
