@@ -103,6 +103,7 @@ export default {
   top: 0;
   bottom: 0;
   left: 0;
+  z-index: 100;
 
   width: $sidebar-width;
   background-color: #333339;
@@ -126,84 +127,6 @@ export default {
 
   >.content {
     margin: 1.5rem;
-  }
-
-  .links {
-    margin-left: 1em;
-    font-size: 1.2em;
-
-    a {
-      position: relative;
-      background-color: $button-bg;
-      text-shadow: 2px 2px 2px rgba(0,0,0,0.3);
-      display: block;
-      margin-bottom: 0.5em;
-      transition: 0.3s;
-
-      &:hover {
-        background-color: $button-hover-bg;
-      }
-
-      .tooltip {
-        visibility: hidden;
-        opacity: 0;
-        position: absolute;
-        top: 0.4em;
-        left: 105%;
-        z-index: 1;
-
-        transition: opacity .15s, visibility .15s;
-
-        color: #dbdbdb;
-        background-color: #504040;
-        box-shadow: 2px 2px 3px rgba(0,0,0,0.3);
-
-        white-space: nowrap;
-        font-size: 0.8em;
-      }
-
-      &.router-link-active p {
-        color: #708090;
-      }
-
-      &.disabled {
-        color: #555;
-        background-color: #373739;
-
-        .icon {
-          background-color: #404040 !important;
-        }
-
-        &:hover .tooltip {
-          visibility: visible;
-          opacity: 1;
-        }
-      }
-
-      .icon, p {
-        padding: 0.5em 0.5em 0.2em;
-      }
-
-      .icon {
-        float: left;
-        width: 1em;
-        text-align: center;
-        background-color: #405060;
-
-        &.positive {background-color: #406040;}
-        &.warning {background-color: #774e2e;}
-        &.danger {background-color: #772e2e;}
-
-        .fa-icon {
-          filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.3));
-        }
-      }
-
-      p {
-        display: inline-block;
-
-      }
-    }
   }
 
   .user {

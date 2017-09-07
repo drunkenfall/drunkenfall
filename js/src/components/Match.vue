@@ -6,22 +6,6 @@
           {{match.title}} / Round {{round}}
         </div>
       </div>
-      <div class="links" v-if="user.isJudge">
-        <a v-if="match.canStart" @click="start">Start match</a>
-
-        <a v-if="match.isRunning" @click="commit"
-          v-bind:class="{'disabled': !can_commit}">End round</a>
-        <a v-if="match.canEnd" @click="end">End match</a>
-        <router-link
-          v-if="match.isEnded"
-          :to="{ name: 'tournament', params: { tournament: tournament.id }}">
-          Back
-        </router-link>
-
-        <a v-if="match.isRunning" @click="reset"
-          class="danger">Reset match</a>
-
-      </div>
       <div class="clear"></div>
     </header>
 
@@ -30,6 +14,41 @@
         <control-player :index="index"></control-player>
       </template>
     </div>
+
+    <footer v-if="user.isJudge">
+
+      <div class="content">
+        <div class="title">
+          Actions
+        </div>
+      </div>
+      <div class="links" v-if="user.isJudge">
+        <a v-if="match.canStart && user.isCommentator" @click="start">
+          <div class="icon positive">
+            <icon name="play"></icon>
+          </div>
+          <p>Start match</p>
+          <div class="clear"></div>
+        </a>
+
+        <a v-if="match.isRunning && match.canEnd" @click="end">
+          <div class="icon positive">
+            <icon name="check"></icon>
+          </div>
+          <p>End match</p>
+          <div class="clear"></div>
+        </a>
+
+        <a v-if="match.isRunning && !match.canEnd" @click="commit">
+          <div class="icon warning">
+            <icon name="gavel"></icon>
+          </div>
+          <p>End round</p>
+          <div class="clear"></div>
+        </a>
+      </div>
+      <div class="clear"></div>
+    </footer>
 
     <div class="control" v-if="!user.isJudge">
       <template v-if="!match.isStarted" v-for="(player, index) in match.players" ref="players">
@@ -49,8 +68,6 @@
 import ControlPlayer from './ControlPlayer.vue'
 import PreviewPlayer from './PreviewPlayer.vue'
 import LivePlayer from './LivePlayer.vue'
-import Match from '../models/Match.js'
-import Tournament from '../models/Tournament.js'
 import _ from 'lodash'
 
 export default {
@@ -93,24 +110,34 @@ export default {
         index: this.match.index
       }
     },
-    can_commit () {
-      return true
-    },
+    players () {
+      return _.filter(this.$children, (o) => {
+        return o.$options._componentTag === "control-player"
+      })
+    }
   },
 
   methods: {
     commit () {
-      // TODO this could potentially be a class
-      let payload = {
-        'state': _.map(this.$children, (controlPlayer) => {
-          return _.pick(controlPlayer, ['ups', 'downs', 'shot', 'reason'])
-        })
+      let data = _.map(this.players, (controlPlayer) => {
+        return _.pick(controlPlayer, ['ups', 'downs', 'shot', 'reason'])
+      })
+
+      let payload = { 'state': data }
+
+      let hasShots = _.some(data, ['shot', true])
+      let hasKills = _.sumBy(data, (o) => { return o.ups }) > 0
+      let hasSelfs = _.sumBy(data, (o) => { return o.downs }) < 0
+
+      if (!hasShots && !hasKills && !hasSelfs) {
+        console.log("Nothing to commit. Doing nothing.")
+        return
       }
 
       console.log(payload)
       this.api.commit(this.match_id, payload).then(function (res) {
         console.log("Round committed.")
-        _.each(this.$children, (controlPlayer) => { controlPlayer.reset() })
+        _.each(this.players, (controlPlayer) => { controlPlayer.reset() })
       }, function (res) {
         console.log('error when setting score')
         console.log(res)
@@ -128,11 +155,6 @@ export default {
     start () {
       this.api.start(this.match_id).then(function (res) {
         console.log(res)
-        this.setData(
-          res.data.tournament,
-          this.match.kind,
-          this.match.index
-        )
       }, function (res) {
         console.log('error when getting tournament')
         console.log(res)
@@ -141,42 +163,22 @@ export default {
     reset () {
       this.api.reset(this.match_id).then(function (res) {
         console.log(res)
-        this.setData(
-          res.data.tournament,
-          this.match.kind,
-          this.match.index
-        )
       }, function (res) {
         console.log('error when getting tournament')
         console.log(res)
       })
     },
-    setData (tournament, kind, match) {
-      if (kind === 'tryout') {
-        kind = 'tryouts'
-      } else if (kind === 'semi') {
-        kind = 'semis'
-      }
-
-      if (kind === 'final') {
-        this.$set('match', Match.fromObject(tournament[kind]))
-      } else {
-        this.$set('match', Match.fromObject(tournament[kind][match]))
-      }
-
-      this.$set('tournament', Tournament.fromObject(tournament))
-    }
   },
 
   created () {
-    console.debug("Creating API resource")
-    let customActions = {
+    document.getElementsByTagName("body")[0].className = "scroll-less"
+
+    this.api = this.$resource("/api/towerfall", {}, {
       commit: { method: "POST", url: "/api/towerfall/tournament{/id}{/kind}{/index}/commit/" },
       start: { method: "GET", url: "/api/towerfall/tournament{/id}{/kind}{/index}/start/" },
       end: { method: "GET", url: "/api/towerfall/tournament{/id}{/kind}{/index}/end/" },
       reset: { method: "GET", url: "/api/towerfall/tournament{/id}{/kind}{/index}/reset/" },
-    }
-    this.api = this.$resource("/api/towerfall", {}, customActions)
+    })
   },
 }
 </script>

@@ -33,7 +33,7 @@
               <div class="clear"></div>
             </router-link>
 
-            <router-link class="action" v-if="user.isProducer && tournament.canShuffle"
+            <router-link class="action" v-if="user.isProducer"
               :to="{ name: 'edit', params: { tournament: tournament.id }}">
               <div class="icon danger">
                 <icon name="pencil"></icon>
@@ -85,16 +85,22 @@
         </div>
       </div>
 
-      <div class="actions links">
-        <div v-if="match">
-          <a v-if="match.canStart && user.isCommentator" @click="startMatch">
-            <div class="icon positive">
-              <icon name="play"></icon>
-            </div>
-            <p>Start match</p>
-            <div class="clear"></div>
-          </a>
-        </div>
+      <div v-if="match && user.isJudge" class="actions links">
+        <a v-if="match.canStart && user.isCommentator" @click="start">
+          <div class="icon positive">
+            <icon name="play"></icon>
+          </div>
+          <p>Start match</p>
+          <div class="clear"></div>
+        </a>
+
+        <a v-if="match.isRunning && user.isJudge" @click="reset" class="separate">
+          <div class="icon danger">
+            <icon name="recycle"></icon>
+          </div>
+          <p>Reset match</p>
+          <div class="clear"></div>
+        </a>
       </div>
     </div>
   </div>
@@ -108,7 +114,7 @@ export default {
   name: 'SidebarTournament',
 
   props: {
-    tournament: new Tournament()
+    tournament: new Tournament(),
   },
 
   computed: {
@@ -140,7 +146,18 @@ export default {
     },
     isSelected () {
       return this.$route.params.tournament === this.tournament.id
-    }
+    },
+    match_id () {
+      return {
+        id: this.tournament.id,
+        kind: this.match.kind,
+        index: this.match.index
+      }
+    },
+    canCommit () {
+      console.log("checking canCommit")
+      return this.getChild("Match").canCommit
+    },
   },
 
   methods: {
@@ -148,11 +165,18 @@ export default {
       // Returns true if currently viewing any of the route names.
       return _.includes(names, this.$route.name)
     },
+    getChild (name) {
+      for (let child of this.$root.$children) if (child.$options.name === name) return child
+    },
+    commit () {
+      if (!this.canCommit) {
+        return this.getChild("Match").commit()
+      }
+    },
+
     start () {
-      this.api.start({ id: this.tournament.id }).then((res) => {
+      this.api.start(this.match_id).then((res) => {
         console.log("start response:", res)
-        let j = res.json()
-        this.$route.router.push('/towerfall' + j.redirect)
       }, (err) => {
         console.error(`start for ${this.tournament} failed`, err)
       })
@@ -161,7 +185,7 @@ export default {
       this.api.join({ id: this.tournament.id }).then((res) => {
         console.log("join response:", res)
         var j = res.json()
-        this.$route.router.push('/towerfall' + j.redirect)
+        this.$router.push('/towerfall' + j.redirect)
       }, (err) => {
         console.error(`joining tournament ${this.tournament} failed`, err)
       })
@@ -189,19 +213,35 @@ export default {
         console.error(`usurp for ${this.tournament} failed`, err)
       })
     },
+    end () {
+      this.api.end(this.match_id).then(function (res) {
+        console.log(res)
+        this.$router.push('/towerfall/' + this.tournament.id + '/')
+      }, function (res) {
+        console.log('error when getting tournament')
+        console.log(res)
+      })
+    },
+    reset () {
+      this.api.reset(this.match_id).then(function (res) {
+        console.log(res)
+      }, function (res) {
+        console.log('error when getting tournament')
+        console.log(res)
+      })
+    },
   },
 
   created () {
     this.api = this.$resource("/api/towerfall", {}, {
-      start: { method: "GET", url: "/api/towerfall{/id}/start/" },
       usurp: { method: "GET", url: "/api/towerfall{/id}/usurp/" },
       next: { method: "GET", url: "/api/towerfall{/id}/next/" },
       reshuffle: { method: "GET", url: "/api/towerfall{/id}/reshuffle/" },
 
-      commitMatch: { method: "POST", url: "/api/towerfall/tournament{/id}{/kind}{/index}/commit/" },
-      startMatch: { method: "GET", url: "/api/towerfall/tournament{/id}{/kind}{/index}/start/" },
-      endMatch: { method: "GET", url: "/api/towerfall/tournament{/id}{/kind}{/index}/end/" },
-      resetMatch: { method: "GET", url: "/api/towerfall/tournament{/id}{/kind}{/index}/reset/" },
+      commit: { method: "POST", url: "/api/towerfall/tournament{/id}{/kind}{/index}/commit/" },
+      start: { method: "GET", url: "/api/towerfall/tournament{/id}{/kind}{/index}/start/" },
+      end: { method: "GET", url: "/api/towerfall/tournament{/id}{/kind}{/index}/end/" },
+      reset: { method: "GET", url: "/api/towerfall/tournament{/id}{/kind}{/index}/reset/" },
     })
   },
 }
@@ -213,6 +253,15 @@ export default {
 
 .content {
   margin-top: 1.5rem;
+}
+
+.separate {
+  margin-top: 10em;
+  background-color: #553333 !important;
+
+  &:hover {
+    background-color: #603333 !important;
+  }
 }
 
 .tournament {

@@ -5,23 +5,9 @@
         <div class="title">{{tournament.name}}</div>
       </div>
       <div class="links">
-        <div class="action" @click="start"
-          v-if="user.isJudge && tournament.canStart">Start</div>
-        <div class="action" @click="next"
-          v-if="user.isJudge && tournament.isRunning">Next match</div>
-        <div class="action" @click="reshuffle"
-          v-if="user.isProducer && tournament.canShuffle">Reshuffle</div>
-        <div class="action" @click="log"
-          v-if="user.isProducer">Log</div>
-
         <router-link :to="{ name: 'credits', params: { tournament: tournament.id }}"
           v-if="user.isProducer && tournament.isEnded">
           Roll credits
-        </router-link>
-
-        <router-link :to="{ name: 'participants', params: { tournament: tournament.id }}"
-          v-if="user.isProducer && canParticipants">
-          Participants
         </router-link>
 
         <router-link :to="{ name: 'runnerups', params: { tournament: tournament.id }}"
