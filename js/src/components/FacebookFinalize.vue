@@ -1,14 +1,5 @@
 <template>
   <div>
-    <header>
-      <div class="content">
-        <div class="title">Drunken TowerFall</div>
-      </div>
-      <div class="links">
-      </div>
-      <div class="clear"></div>
-    </header>
-
     <form @submit="submit">
       <input name="id" v-model="id" type="hidden" value=""/>
 

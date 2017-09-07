@@ -1,18 +1,6 @@
 <template>
   <div v-if="tournament">
-    <header>
-      <div class="content">
-        <div class="title">
-          {{tournament.name}} / {{match.title}}
-        </div>
-      </div>
-      <div class="links" v-if="user.isJudge">
-      </div>
-      <div class="clear"></div>
-    </header>
-
     <div class="chart"></div>
-
     <div class="clear"></div>
   </div>
 </template>

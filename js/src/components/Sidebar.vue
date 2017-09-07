@@ -104,6 +104,7 @@ export default {
   bottom: 0;
   left: 0;
   z-index: 100;
+  font-size: 1.3em;
 
   width: $sidebar-width;
   background-color: #333339;

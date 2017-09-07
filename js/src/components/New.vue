@@ -1,14 +1,5 @@
 <template>
   <div>
-    <header>
-      <div class="content">
-        <div class="title">Drunken TowerFall / New tournament</div>
-      </div>
-      <div class="clear"></div>
-    </header>
-
-    <div class="clear"></div>
-
     <form v-on:submit="create">
       <label for="name">Name</label>
       <input class="text name" v-model="name" name="name" type="text" value="" placeholder="Name"/>

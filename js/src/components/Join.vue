@@ -1,14 +1,5 @@
 <template>
   <div>
-    <header>
-      <div class="content">
-        <div class="title">Drunken TowerFall / {{tournament.name}} / Join</div>
-      </div>
-      <div class="clear"></div>
-    </header>
-
-    <div class="clear"></div>
-
     <h1>Joining {{tournament.name}}</h1>
 
     <p>

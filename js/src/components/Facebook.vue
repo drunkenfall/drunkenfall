@@ -1,14 +1,5 @@
 <template>
   <div>
-    <header>
-      <div class="content">
-        <div class="title">Drunken TowerFall</div>
-      </div>
-      <div class="links">
-      </div>
-      <div class="clear"></div>
-    </header>
-
     <a href="/api/facebook/login">Touch this Facebook button, gorgeous &lt;3</a>
   </div>
 </template>
