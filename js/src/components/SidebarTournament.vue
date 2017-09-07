@@ -48,6 +48,27 @@
       <div v-if="viewing(['tournament'])">
         <h1>Actions</h1>
         <div class="actions links">
+
+          <router-link class="action"
+            :to="{ name: 'credits', params: { tournament: tournament.id }}"
+            v-if="user.isProducer && tournament.isEnded">
+            <div class="icon positive">
+              <icon name="film"></icon>
+            </div>
+            <p>Roll credits</p>
+            <div class="clear"></div>
+          </router-link>
+
+          <router-link class="action"
+            :to="{ name: 'runnerups', params: { tournament: tournament.id }}"
+            v-if="user.isCommentator && shouldBackfill">
+            <div class="icon positive">
+              <icon name="cloud-upload"></icon>
+            </div>
+            <p>Backfill semis</p>
+            <div class="clear"></div>
+          </router-link>
+
           <a v-if="tournament.canStart && user.isCommentator" @click="start">
             <div class="icon positive">
               <icon name="play"></icon>
@@ -157,6 +178,15 @@ export default {
     canCommit () {
       console.log("checking canCommit")
       return this.getChild("Match").canCommit
+    },
+    shouldBackfill () {
+      let c = this.tournament.current
+      let ps = _.sumBy(this.tournament.semis, (m) => { return m.players.length })
+
+      if (c.kind === 'semi' && c.index === 0 && ps < 8) {
+        return true
+      }
+      return false
     },
   },
 
