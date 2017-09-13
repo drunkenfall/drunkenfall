@@ -23,6 +23,12 @@ export default {
     },
     classes () {
       if (this.match.isEnded) {
+        // TODO(thiderman): This makes the old tournaments work
+        // again. They lack color, but hey.
+        if (!this.match.kill_order) {
+          return this.player.color
+        }
+
         if (this.index === this.match.kill_order[0]) {
           return 'gold'
         } else if (this.index === this.match.kill_order[1]) {
