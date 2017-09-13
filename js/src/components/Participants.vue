@@ -85,6 +85,10 @@ export default {
   text-align: center;
 }
 
+h2 {
+  text-align: center;
+}
+
 .players {
   text-align: center;
   width: 80%;
