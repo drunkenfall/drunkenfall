@@ -62,17 +62,14 @@ export default class Tournament {
   }
 
   get isStarted () {
-    // tournament is started if 'started' is defined and NOT equal to go's zero date
     return !isGoZeroDateOrFalsy(this.started)
   }
 
   get isEnded () {
-    // tournament is ended if 'ended' is defined and NOT equal to go's zero date
     return !isGoZeroDateOrFalsy(this.ended)
   }
 
   get isTest () {
-    // tournament is ended if 'ended' is defined and NOT equal to go's zero date
     return !this.name.startsWith('DrunkenFall')
   }
 
@@ -85,9 +82,11 @@ export default class Tournament {
   }
 
   get canShuffle () {
-    // We can only shuffle before the first match has been started.
+    // We can only shuffle after the tournament has started (otherwise
+    // technically no matches exists, so nothing can be shuffled
+    // into), and before the first match has been started.
     let match = Match.fromObject(this.tryouts[0])
-    return !match.isStarted
+    return this.isStarted && !match.isStarted
   }
 
   get isUsurpable () {
