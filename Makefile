@@ -76,4 +76,4 @@ $(BINARY)-start: $(BINARY)
 
 nginx-start:
 	mkdir -p logs
-	sudo nginx -p . -c conf/nginx.conf # TODO: Make sure we can run this without sudo
+	sudo nginx -p . -c conf/nginx.conf
