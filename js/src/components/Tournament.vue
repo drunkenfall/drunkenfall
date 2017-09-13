@@ -9,9 +9,11 @@
 import TournamentOverview from '../components/TournamentOverview'
 import TournamentPreview from '../components/TournamentPreview'
 import _ from 'lodash'
+import DrunkenFallMixin from "../mixin"
 
 export default {
   name: 'TournamentView',
+  mixins: [DrunkenFallMixin],
 
   components: {
     TournamentOverview,
@@ -25,14 +27,6 @@ export default {
   },
 
   computed: {
-    tournament () {
-      return this.$store.getters.getTournament(
-        this.$route.params.tournament
-      )
-    },
-    user () {
-      return this.$store.state.user
-    },
     runnerups () {
       let t = this.tournament
 

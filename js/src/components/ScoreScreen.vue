@@ -1,7 +1,7 @@
 <template>
   <div v-if="tournament">
-    <template v-for="(player, index) in match.players" ref="players">
-      <live-player :index="index" :player="player" :match="match"></live-player>
+    <template v-for="(player, index) in nextMatch.players" ref="players">
+      <live-player :index="index" :player="player" :match="nextMatch"></live-player>
     </template>
     <div class="clear"></div>
   </div>
@@ -9,37 +9,16 @@
 
 <script>
 import LivePlayer from './LivePlayer.vue'
+import DrunkenFallMixin from "../mixin"
 
 export default {
   name: 'ScoreScreen',
+  mixins: [DrunkenFallMixin],
   components: {
     LivePlayer,
   },
-
-  computed: {
-    tournament () {
-      return this.$store.getters.getTournament(
-        this.$route.params.tournament
-      )
-    },
-    // TODO: We're missing the old hack that only set the match once
-    // it was started. Right now, this will move as soon as the match
-    // is ended. Presumably this will be fixed once the tournament
-    // match structure is flattened.
-    match () {
-      let kind = this.tournament.current.kind
-      let idx = this.tournament.current.index
-
-      if (kind === 'final') {
-        return this.tournament.final
-      }
-      kind = kind + 's'
-      return this.tournament[kind][idx]
-    },
-  },
-
   mounted () {
-    document.getElementsByTagName("body")[0].className = "sidebar-less"
+    document.getElementsByTagName("body")[0].className += "scroll-less sidebar-less"
   },
 }
 </script>

@@ -21,9 +21,11 @@
 <script>
 import Tournament from '../models/Tournament'
 import _ from 'lodash'
+import DrunkenFallMixin from "../mixin"
 
 export default {
-  name: 'Join',
+  name: 'Participants',
+  mixins: [DrunkenFallMixin],
 
   data () {
     return {
@@ -49,14 +51,6 @@ export default {
   },
 
   computed: {
-    tournament () {
-      return this.$store.getters.getTournament(
-        this.$route.params.tournament
-      )
-    },
-    user () {
-      return this.$store.state.user
-    },
     joined () {
       return _.sortBy(this.tournament.players, ['person.name'])
     },

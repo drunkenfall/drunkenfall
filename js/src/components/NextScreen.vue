@@ -3,7 +3,7 @@
     <header>
       <div class="content">
         <div class="title">
-          {{tournament.name}} / {{match.title}}
+          {{tournament.name}} / {{nextMatch.title}}
         </div>
       </div>
       <div class="links">
@@ -21,7 +21,7 @@
 
     <div class="players">
       <template v-for="(player, index) in playersReversed" ref="players">
-        <preview-player :index="index + 1" :player="player" :match="match"></preview-player>
+        <preview-player :index="index + 1" :player="player" :match="nextMatch"></preview-player>
       </template>
     </div>
   </div>
@@ -31,9 +31,11 @@
 import PreviewPlayer from './PreviewPlayer.vue'
 import {Countdown, Clock} from '../models/Timer'
 import _ from 'lodash'
+import DrunkenFallMixin from "../mixin"
 
 export default {
   name: 'NextScreen',
+  mixins: [DrunkenFallMixin],
   components: {
     PreviewPlayer,
   },
@@ -46,37 +48,26 @@ export default {
   },
 
   computed: {
-    tournament () {
-      return this.$store.getters.getTournament(
-        this.$route.params.tournament
-      )
-    },
-    match () {
-      let kind = this.tournament.current.kind
-      let idx = this.tournament.current.index
-      let match
-
-      if (kind === 'final') {
-        match = this.tournament.final
-      } else {
-        kind = kind + 's'
-        match = this.tournament[kind][idx]
-      }
-
-      this.countdown.start(match.scheduled)
-      this.clock.start()
-
-      return match
-    },
     playersReversed () {
       // Work on a clone, not the original data object.
-      return _.reverse(_.map(this.match.players, _.clone))
+      return _.reverse(_.map(this.nextMatch.players, _.clone))
     },
   },
 
   mounted () {
     document.getElementsByTagName("body")[0].className = "sidebar-less"
   },
+
+  watch: {
+    tournament (nt, ot) {
+      if (nt) {
+        console.log("starting clocks")
+        this.countdown.start(this.nextMatch.scheduled)
+        this.clock.start()
+      }
+    }
+  },
+
 }
 </script>
 

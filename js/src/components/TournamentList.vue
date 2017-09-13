@@ -20,18 +20,12 @@
 <script>
 import _ from "lodash"
 import Tournament from "../models/Tournament.js"
+import DrunkenFallMixin from "../mixin"
 
 export default {
   name: 'TournamentList',
+  mixins: [DrunkenFallMixin],
 
-  computed: {
-    user () {
-      return this.$store.state.user
-    },
-    tournaments () {
-      return this.$store.state.tournaments
-    }
-  },
   methods: {
     clear (event) {
       event.preventDefault()

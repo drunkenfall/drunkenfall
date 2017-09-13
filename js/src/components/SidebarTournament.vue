@@ -69,11 +69,11 @@
             <div class="clear"></div>
           </router-link>
 
-          <a v-if="tournament.canStart && user.isCommentator" @click="start">
+          <a v-if="tournament.canStart && user.isCommentator" @click="startTournament">
             <div class="icon positive">
               <icon name="play"></icon>
             </div>
-            <p>Start</p>
+            <p>Start tournament</p>
             <div class="clear"></div>
           </a>
 
@@ -211,6 +211,13 @@ export default {
         console.error(`start for ${this.tournament} failed`, err)
       })
     },
+    startTournament () {
+      this.api.startTournament({ id: this.tournament.id }).then((res) => {
+        console.log("start response:", res)
+      }, (err) => {
+        console.error(`start for ${this.tournament} failed`, err)
+      })
+    },
     join () {
       this.api.join({ id: this.tournament.id }).then((res) => {
         console.log("join response:", res)
@@ -267,6 +274,7 @@ export default {
       usurp: { method: "GET", url: "/api/towerfall{/id}/usurp/" },
       next: { method: "GET", url: "/api/towerfall{/id}/next/" },
       reshuffle: { method: "GET", url: "/api/towerfall{/id}/reshuffle/" },
+      startTournament: { method: "GET", url: "/api/towerfall{/id}/start/" },
 
       commit: { method: "POST", url: "/api/towerfall/tournament{/id}{/kind}{/index}/commit/" },
       start: { method: "GET", url: "/api/towerfall/tournament{/id}{/kind}{/index}/start/" },

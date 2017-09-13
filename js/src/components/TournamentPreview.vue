@@ -27,27 +27,16 @@
 
 <script>
 import {Countdown} from '../models/Timer.js'
+import DrunkenFallMixin from "../mixin"
 
 export default {
   name: 'TournamentPreview',
+  mixins: [DrunkenFallMixin],
 
   data () {
     return {
       countdown: new Countdown(),
     }
-  },
-
-  computed: {
-    tournament () {
-      let t = this.$store.getters.getTournament(
-        this.$route.params.tournament
-      )
-      this.countdown.start(t.scheduled)
-      return t
-    },
-    user () {
-      return this.$store.state.user
-    },
   },
 
   methods: {
@@ -80,11 +69,22 @@ export default {
   },
 
   created () {
+    console.log(this)
     this.api = this.$resource("/api/towerfall", {}, {
       start: { method: "GET", url: "/api/towerfall{/id}/start/" },
       usurp: { method: "GET", url: "/api/towerfall{/id}/usurp/" },
     })
-  }
+  },
+
+  watch: {
+    tournament (nt, ot) {
+      console.log("tournament change")
+      if (nt) {
+        console.log("starting clock")
+        this.countdown.start(nt.scheduled)
+      }
+    }
+  },
 }
 </script>
 

@@ -55,58 +55,21 @@
 
 <script>
 import MatchOverview from './MatchOverview'
-import Match from '../models/Match'
+import DrunkenFallMixin from "../mixin"
 import _ from 'lodash'
 
 export default {
   name: 'TournamentOverview',
+  mixins: [DrunkenFallMixin],
 
   components: {
-    MatchOverview
+    MatchOverview,
   },
 
   computed: {
-    tournament () {
-      return this.$store.getters.getTournament(
-        this.$route.params.tournament
-      )
-    },
-    user () {
-      return this.$store.state.user
-    },
-    match () {
-      let kind = this.$route.params.kind
-      let idx = this.$route.params.match
-
-      if (kind === 'final') {
-        return this.tournament.final
-      }
-      kind = kind + 's'
-      return this.tournament[kind][idx]
-    },
-
     canParticipants () {
       return this.tournament.current.kind === 'tryout'
     },
-    nextMatch () {
-      let kind = this.tournament.current.kind
-      let idx = this.tournament.current.index
-
-      if (kind === 'tryout') {
-        kind = 'tryouts'
-      } else if (kind === 'semi') {
-        kind = 'semis'
-      }
-
-      let m
-      if (kind === 'final') {
-        m = Match.fromObject(this.tournament[kind])
-      } else {
-        m = Match.fromObject(this.tournament[kind][idx])
-      }
-      return m
-    },
-
     runnerups () {
       let t = this.tournament
 
@@ -200,6 +163,7 @@ export default {
   },
 
   created () {
+    console.log(this)
     this.api = this.$resource("/api/towerfall", {}, {
       start: { method: "GET", url: "/api/towerfall{/id}/start/" },
       next: { method: "GET", url: "/api/towerfall{/id}/next/" },

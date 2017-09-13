@@ -77,19 +77,17 @@
 </template>
 
 <script>
+import DrunkenFallMixin from "../mixin"
+
 let pause = 2000
 let duration = 6000
 let roll = 60 * 1000
 
 export default {
   name: 'Credits',
+  mixins: [DrunkenFallMixin],
 
   computed: {
-    tournament () {
-      return this.$store.getters.getTournament(
-        this.$route.params.tournament
-      )
-    },
     credits () {
       return this.$store.state.credits
     },

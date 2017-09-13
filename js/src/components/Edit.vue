@@ -11,21 +11,16 @@
 </template>
 
 <script>
+import DrunkenFallMixin from "../mixin"
+
 export default {
   name: 'Edit',
+  mixins: [DrunkenFallMixin],
 
   data () {
     return {
       data: "",
     }
-  },
-
-  computed: {
-    tournament () {
-      return this.$store.getters.getTournament(
-        this.$route.params.tournament
-      )
-    },
   },
 
   methods: {

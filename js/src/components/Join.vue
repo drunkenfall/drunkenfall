@@ -27,21 +27,16 @@
 </template>
 
 <script>
+import DrunkenFallMixin from "../mixin"
+
 export default {
   name: 'Join',
+  mixins: [DrunkenFallMixin],
 
   data () {
     return {
       approve: false,
     }
-  },
-
-  computed: {
-    tournament () {
-      return this.$store.getters.getTournament(
-        this.$route.params.tournament
-      )
-    },
   },
 
   methods: {

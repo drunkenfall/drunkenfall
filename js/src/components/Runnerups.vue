@@ -39,9 +39,11 @@
 
 <script>
 import _ from 'lodash'
+import DrunkenFallMixin from "../mixin"
 
 export default {
   name: 'Runnerups',
+  mixins: [DrunkenFallMixin],
 
   data () {
     return {
@@ -74,14 +76,6 @@ export default {
   },
 
   computed: {
-    tournament () {
-      return this.$store.getters.getTournament(
-        this.$route.params.tournament
-      )
-    },
-    user () {
-      return this.$store.state.user
-    },
     runnerups () {
       let $vue = this
       let r = _.filter(this.tournament.runnerups, function (p) {

@@ -38,9 +38,11 @@
 
 <script>
 import fitText from "../util/fittext.js"
+import DrunkenFallMixin from "../mixin"
 
 export default {
   name: 'ControlPlayer',
+  mixins: [DrunkenFallMixin],
 
   props: {
     index: 0,
@@ -56,21 +58,6 @@ export default {
   },
 
   computed: {
-    tournament () {
-      return this.$store.getters.getTournament(
-        this.$route.params.tournament
-      )
-    },
-    match () {
-      let kind = this.$route.params.kind
-      let idx = this.$route.params.match
-
-      if (kind === 'final') {
-        return this.tournament.final
-      }
-      kind = kind + 's'
-      return this.tournament[kind][idx]
-    },
     player () {
       return this.match.players[this.index]
     },

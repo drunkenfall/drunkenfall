@@ -7,56 +7,22 @@
 
 <script>
 import * as d3 from "d3"
+import DrunkenFallMixin from "../mixin"
 
 export default {
   name: 'PostMatch',
-
-  computed: {
-    user () {
-      return this.$store.state.user
-    },
-    tournament () {
-      return this.$store.getters.getTournament(
-        this.$route.params.tournament
-      )
-    },
-    match () {
-      let match
-      let index = this.tournament.current.index
-      let kind = this.tournament.current.kind
-
-      if (kind === 'final') {
-        return this.tournament.final
-      }
-
-      kind = kind + 's'
-
-      match = this.tournament[kind][index]
-
-      // We don't want to update until the next match has been
-      // started. If we do, the graphs are removed as soon as the
-      // judges end the previous match.
-      // Also, if we're on the first match there is no previous one,
-      // so don't try to grab the previous one in that case.
-      if (!match.isStarted || (kind === 'tryouts' && index === 0)) {
-        index = this.tournament.previous.index
-        kind = this.tournament.previous.kind + 's'
-        console.log([index, kind])
-        return this.tournament[kind][index]
-      }
-
-      return match
-    },
-  },
+  mixins: [DrunkenFallMixin],
 
   watch: {
     tournament (nt, ot) {
-      console.log(nt)
-      console.log(ot)
       if (nt) {
         this.renderChart()
       }
     }
+  },
+
+  mounted () {
+    document.getElementsByTagName("body")[0].className = "sidebar-less"
   },
 
   methods: {
@@ -91,7 +57,7 @@ export default {
           .attr("transform",
                 "translate(" + margin.left + "," + margin.top + ")")
 
-      var match = this.match
+      var match = this.chartMatch
       var data = match.chartData
 
       var roundCount = data[0] ? data[0].length - 1 : 0

@@ -9,23 +9,17 @@
 import BasicEvent from '../components/events/BasicEvent.vue'
 import Event from '../models/Event.js'
 import _ from 'lodash'
+import DrunkenFallMixin from "../mixin"
 
 export default {
   name: 'Log',
+  mixins: [DrunkenFallMixin],
 
   components: {
     BasicEvent,
   },
 
   computed: {
-    user () {
-      return this.$store.state.user
-    },
-    tournament () {
-      return this.$store.getters.getTournament(
-        this.$route.params.tournament
-      )
-    },
     events () {
       let events
       events = this.tournament.events

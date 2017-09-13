@@ -61,22 +61,16 @@
 import _ from "lodash"
 import Person from '../models/Person.js'
 import SidebarTournament from './SidebarTournament'
+import DrunkenFallMixin from "../mixin"
 
 export default {
   name: 'Sidebar',
+  mixins: [DrunkenFallMixin],
   components: {
     Person,
     SidebarTournament,
   },
 
-  computed: {
-    user () {
-      return this.$store.state.user
-    },
-    tournaments () {
-      return this.$store.state.tournaments
-    },
-  },
   methods: {
     viewing (names) {
       // Returns true if currently viewing any of the route names.

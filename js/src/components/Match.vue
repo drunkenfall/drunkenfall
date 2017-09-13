@@ -69,9 +69,11 @@ import ControlPlayer from './ControlPlayer.vue'
 import PreviewPlayer from './PreviewPlayer.vue'
 import LivePlayer from './LivePlayer.vue'
 import _ from 'lodash'
+import DrunkenFallMixin from "../mixin"
 
 export default {
   name: 'Match',
+  mixins: [DrunkenFallMixin],
   components: {
     ControlPlayer,
     PreviewPlayer,
@@ -79,37 +81,6 @@ export default {
   },
 
   computed: {
-    user () {
-      return this.$store.state.user
-    },
-    tournament () {
-      return this.$store.getters.getTournament(
-        this.$route.params.tournament
-      )
-    },
-    match () {
-      let kind = this.$route.params.kind
-      let idx = this.$route.params.match
-
-      if (kind === 'final') {
-        return this.tournament.final
-      }
-      kind = kind + 's'
-      return this.tournament[kind][idx]
-    },
-    round () {
-      if (!this.match.commits) {
-        return 1
-      }
-      return this.match.commits.length + 1
-    },
-    match_id () {
-      return {
-        id: this.tournament.id,
-        kind: this.match.kind,
-        index: this.match.index
-      }
-    },
     players () {
       return _.filter(this.$children, (o) => {
         return o.$options._componentTag === "control-player"

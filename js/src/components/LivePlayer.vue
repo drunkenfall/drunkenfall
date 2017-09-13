@@ -25,10 +25,6 @@ export default {
     match: {},
     index: 0,
   },
-
-  created () {
-    document.getElementsByTagName("body")[0].className = "scroll-less"
-  }
 }
 </script>
 

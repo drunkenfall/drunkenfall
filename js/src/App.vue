@@ -1,6 +1,7 @@
 <script>
 /* eslint-env browser */
 import _ from 'lodash'
+import DrunkenFallMixin from "./mixin.js"
 
 export default {
   data () {
@@ -10,6 +11,7 @@ export default {
       reconnections: 0,
     }
   },
+  mixins: [DrunkenFallMixin],
   methods: {
     reconnect: function () {
       this.ws = null
