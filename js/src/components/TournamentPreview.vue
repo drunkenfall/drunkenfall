@@ -39,46 +39,8 @@ export default {
     }
   },
 
-  methods: {
-    start () {
-      if (this.tournament) {
-        this.api.start({ id: this.tournament.id }).then((res) => {
-          console.log("start response:", res)
-          let j = res.json()
-          this.$route.router.push('/towerfall' + j.redirect)
-        }, (err) => {
-          console.error(`start for ${this.tournament} failed`, err)
-        })
-      } else {
-        console.error("start called with no tournament")
-      }
-    },
-    usurp () {
-      if (this.tournament) {
-        this.api.usurp({ id: this.tournament.id }).then((res) => {
-          console.log("usurp response:", res)
-          let j = res.json()
-          this.$route.router.push('/towerfall' + j.redirect)
-        }, (err) => {
-          console.error(`usurp for ${this.tournament} failed`, err)
-        })
-      } else {
-        console.error("usurp called with no tournament")
-      }
-    },
-  },
-
-  created () {
-    console.log(this)
-    this.api = this.$resource("/api/towerfall", {}, {
-      start: { method: "GET", url: "/api/towerfall{/id}/start/" },
-      usurp: { method: "GET", url: "/api/towerfall{/id}/usurp/" },
-    })
-  },
-
   watch: {
     tournament (nt, ot) {
-      console.log("tournament change")
       if (nt) {
         console.log("starting clock")
         this.countdown.start(nt.scheduled)

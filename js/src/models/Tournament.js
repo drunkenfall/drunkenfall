@@ -6,7 +6,7 @@ import Match from './Match.js'
 import _ from 'lodash'
 
 export default class Tournament {
-  static fromObject (obj) {
+  static fromObject (obj, $vue) {
     let t = new Tournament()
     Object.assign(t, obj)
 
@@ -15,14 +15,41 @@ export default class Tournament {
     t.started = moment(t.started)
     t.ended = moment(t.ended)
 
-    t.tryouts = _.map(t.tryouts, Match.fromObject)
-    t.semis = _.map(t.semis, Match.fromObject)
-    t.final = Match.fromObject(t.final)
+    t.tryouts = _.map(t.tryouts, (m) => { return Match.fromObject(m, $vue) })
+    t.semis = _.map(t.semis, (m) => { return Match.fromObject(m, $vue) })
+    t.final = Match.fromObject(t.final, $vue)
 
     t.players = _.map(t.players, Player.fromObject)
     t.runnerups = _.map(t.runnerups, Person.fromObject)
 
+    let root = "/api/towerfall/{/id}"
+
+    t.api = $vue.$resource("/api/towerfall/", {}, {
+      startTournament: { method: "GET", url: `${root}/start/` },
+      next: { method: "GET", url: `${root}/next/` },
+      reshuffle: { method: "GET", url: `${root}/reshuffle/` },
+      usurp: { method: "GET", url: `${root}/usurp/` },
+    })
+
     return t
+  }
+
+  next ($vue) {
+    console.log("Going to next match...")
+    this.api.next({ id: this.id }).then((res) => {
+      console.debug("next response:", res)
+      $vue.$router.push('/towerfall' + res.json().redirect)
+    }, (err) => {
+      console.error(`next for ${this.tournament} failed`, err)
+    })
+  }
+
+  usurp () {
+    this.api.usurp({ id: this.id }).then((res) => {
+      console.log("usurp response", res)
+    }, (err) => {
+      console.error(`usurp for ${this.tournament} failed`, err)
+    })
   }
 
   get numeral () {

@@ -16,14 +16,14 @@
        <div ref="name">{{player.displayName}}</div>
      </div>
 
-     <div v-if="match.end == 10" class="scores">
+     <div v-if="match.endScore == 10" class="scores">
        <div v-for="n in 10"
          :class="bulletClass(player, index, n)">
          <p>{{n}}</p>
        </div>
      </div>
 
-     <div v-if="match.end == 20" class="scores final">
+     <div v-if="match.endScore == 20" class="scores final">
        <div v-for="n in 20"
          :class="bulletClass(player, index, n)">
          <p>{{n}}</p>

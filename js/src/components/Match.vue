@@ -115,29 +115,13 @@ export default {
       })
     },
     end () {
-      this.api.end(this.match_id).then(function (res) {
-        console.log(res)
-        this.$router.push('/towerfall/' + this.tournament.id + '/')
-      }, function (res) {
-        console.log('error when getting tournament')
-        console.log(res)
-      })
+      this.match.end(this)
     },
     start () {
-      this.api.start(this.match_id).then(function (res) {
-        console.log(res)
-      }, function (res) {
-        console.log('error when getting tournament')
-        console.log(res)
-      })
+      this.match.start()
     },
     reset () {
-      this.api.reset(this.match_id).then(function (res) {
-        console.log(res)
-      }, function (res) {
-        console.log('error when getting tournament')
-        console.log(res)
-      })
+      this.match.reset()
     },
   },
 
@@ -146,9 +130,6 @@ export default {
 
     this.api = this.$resource("/api/towerfall", {}, {
       commit: { method: "POST", url: "/api/towerfall/tournament{/id}{/kind}{/index}/commit/" },
-      start: { method: "GET", url: "/api/towerfall/tournament{/id}{/kind}{/index}/start/" },
-      end: { method: "GET", url: "/api/towerfall/tournament{/id}{/kind}{/index}/end/" },
-      reset: { method: "GET", url: "/api/towerfall/tournament{/id}{/kind}{/index}/reset/" },
     })
   },
 }

@@ -58,11 +58,9 @@ export default {
   },
 
   created () {
-    console.debug("Creating API resource")
-    let customActions = {
+    this.api = this.$resource("/api/towerfall", {}, {
       join: { method: "GET", url: "/api/towerfall/{id}/join/" },
-    }
-    this.api = this.$resource("/api/towerfall", {}, customActions)
+    })
   },
 }
 </script>

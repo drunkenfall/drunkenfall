@@ -166,8 +166,10 @@ const store = new Vuex.Store({ // eslint-disable-line
     credits: {}
   },
   mutations: {
-    updateAll (state, tournaments) {
-      state.tournaments = _.reverse(_.map(tournaments, Tournament.fromObject))
+    updateAll (state, data) {
+      state.tournaments = _.reverse(_.map(data.tournaments, (t) => {
+        return Tournament.fromObject(t, data.$vue)
+      }))
     },
     setUser (state, user) {
       state.user = user

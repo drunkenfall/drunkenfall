@@ -21,8 +21,7 @@ export default {
 
   computed: {
     events () {
-      let events
-      events = this.tournament.events
+      let events = this.tournament.events
       _.each(this.tournament.tryouts, (tryout) => {
         events = _.concat(events, tryout.events)
       })
@@ -38,14 +37,6 @@ export default {
 
       return events
     }
-  },
-
-  created () {
-    console.debug("Creating API resource")
-    let customActions = {
-      getTournamentData: { method: "GET", url: "/api/towerfall/tournament{/id}/" }
-    }
-    this.api = this.$resource("/api/towerfall", {}, customActions)
   },
 }
 </script>

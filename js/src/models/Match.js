@@ -4,7 +4,7 @@ import _ from 'lodash'
 import Player from './Player.js'
 
 export default class Match {
-  static fromObject (obj) {
+  static fromObject (obj, $vue) {
     let m = new Match()
     Object.assign(m, obj)
 
@@ -16,17 +16,80 @@ export default class Match {
     switch (m.kind) {
       case 'tryout':
       case 'semi':
-        m.end = 10
+        m.endScore = 10
         break
       case 'final':
-        m.end = 20
+        m.endScore = 20
         break
     }
+
+    // This if should super not be needed...
+    if ($vue) {
+      let root = "/api/towerfall/tournament/{/id}{/kind}{/index}"
+
+      m.api = $vue.$resource("/api/towerfall", {}, {
+        start: { method: "GET", url: `${root}/start/` },
+        commit: { method: "POST", url: `${root}/commit/` },
+        end: { method: "GET", url: `${root}/end/` },
+        reset: { method: "GET", url: `${root}/reset/` },
+      })
+
+      m.tournament_id = $vue.$route.params.tournament
+    }
+
     return m
   }
 
-  get end () { return this._end }
-  set end (value) { this._end = value }
+  start () {
+    console.log("Starting match...")
+    this.api.start(this.id).then((res) => {
+      console.log("Match started.", res)
+    }, (res) => {
+      console.error("Match starting failed", res)
+    })
+  }
+
+  end () {
+    console.log("Ending match...")
+    this.api.end(this.id).then((res) => {
+      console.log("Match ended.", res)
+      this.$router.push(`/towerfall/${this.tournament_id}/`)
+    }, (res) => {
+      console.error("Match ending failed", res)
+    })
+  }
+
+  reset () {
+    console.log("Resetting match...")
+    this.api.reset(this.id).then((res) => {
+      console.log("Match reset.", res)
+    }, (res) => {
+      console.error("Match reset failed", res)
+    })
+  }
+
+  // TODO(thiderman): This could somehow not be migrated to here from
+  // Match.vue. When moved, the request turns from a POST into a GET
+  // and the backend rightfully denies it. A thing for later, I guess.
+  // commit ($control, payload) {
+  //   this.api.commit(this.id, payload).then((res) => {
+  //     console.log("Round committed.")
+  //     _.each($control.players, (p) => { p.reset() })
+  //   }, (res) => {
+  //     console.error('error when setting score', res)
+  //   })
+  // }
+
+  get id () {
+    return {
+      id: this.tournament_id,
+      kind: this.kind,
+      index: this.index,
+    }
+  }
+
+  get endScore () { return this._end }
+  set endScore (value) { this._end = value }
 
   get title () {
     return _.capitalize(this.kind) + " " + (this.index + 1)
@@ -57,7 +120,7 @@ export default class Match {
     }
 
     // can end if at least one player has enough kills (ie >= end)
-    return _.some(this.players, (player) => { return player.kills >= this.end })
+    return _.some(this.players, (player) => { return player.kills >= this.endScore })
   }
 
   get isRunning () {

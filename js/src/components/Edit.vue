@@ -28,8 +28,7 @@ export default {
       e.preventDefault()
       this.api.edit({ id: this.tournament.id }, this.data).then((res) => {
         console.log("edit response:", res)
-        var j = res.json()
-        this.$route.router.push('/towerfall' + j.redirect)
+        this.$router.push('/towerfall' + res.json().redirect)
       }, (err) => {
         console.error(`editing tournament ${this.tournament} failed`, err)
       })
@@ -37,10 +36,9 @@ export default {
   },
 
   created () {
-    let customActions = {
+    this.api = this.$resource("/", {}, {
       edit: { method: "POST", url: "/api/towerfall/{id}/edit/" },
-    }
-    this.api = this.$resource("/api/towerfall", {}, customActions)
+    })
   },
   mounted () {
     this.$set(this.$data, 'data', JSON.stringify(this.tournament, null, 2))

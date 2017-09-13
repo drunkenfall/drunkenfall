@@ -74,7 +74,10 @@ export default {
           if (res.data) {
             if (res.data.tournaments) {
               // The main bulk update. This contains the latest state.
-              $vue.$store.commit('updateAll', res.data.tournaments)
+              $vue.$store.commit('updateAll', {
+                '$vue': $vue,
+                'tournaments': res.data.tournaments,
+              })
               return
             }
 

@@ -39,45 +39,6 @@ export default {
       })
     }
   },
-
-  methods: {
-    start () {
-      if (this.tournament) {
-        this.api.start({ id: this.tournament.id }).then((res) => {
-          console.log("start response:", res)
-          let j = res.json()
-          this.$route.router.push('/towerfall' + j.redirect)
-        }, (err) => {
-          console.error(`start for ${this.tournament} failed`, err)
-        })
-      } else {
-        console.error("start called with no tournament")
-      }
-    },
-    next () {
-      if (this.tournament) {
-        this.api.next({ id: this.tournament.id }).then((res) => {
-          console.debug("next response:", res)
-          let j = res.json()
-          this.$route.router.push('/towerfall' + j.redirect)
-        }, (err) => {
-          console.error(`next for ${this.tournament} failed`, err)
-        })
-      } else {
-        console.error("next called with no tournament")
-      }
-    }
-  },
-
-  created () {
-    console.debug("Creating API resource")
-    let customActions = {
-      start: { method: "GET", url: "/api/towerfall{/id}/start/" },
-      next: { method: "GET", url: "/api/towerfall{/id}/next/" },
-      getData: { method: "GET", url: "/api/towerfall/tournament{/id}/" }
-    }
-    this.api = this.$resource("/api/towerfall", {}, customActions)
-  },
 }
 </script>
 

@@ -19,7 +19,6 @@
 </template>
 
 <script>
-import Tournament from '../models/Tournament'
 import _ from 'lodash'
 import DrunkenFallMixin from "../mixin"
 
@@ -44,10 +43,6 @@ export default {
         console.error(`joining tournament ${this.tournament} failed`, err)
       })
     },
-    setData (tournament) {
-      console.log("setData tournament", tournament)
-      this.$set('tournament', Tournament.fromObject(tournament))
-    }
   },
 
   computed: {
@@ -66,13 +61,10 @@ export default {
   },
 
   created () {
-    console.debug("Creating API resource")
-    let customActions = {
-      getTournamentData: { method: "GET", url: "/api/towerfall/tournament{/id}/" },
+    this.api = this.$resource("/api/towerfall", {}, {
       toggle: { method: "GET", url: "/api/towerfall/{id}/toggle/{person}" },
       people: { method: "GET", url: "/api/towerfall/people/" },
-    }
-    this.api = this.$resource("/api/towerfall", {}, customActions)
+    })
 
     // TODO: It could be that this makes more sense to have as
     // something in the Vuex storage.

@@ -205,35 +205,13 @@ export default {
     },
 
     start () {
-      this.api.start(this.match_id).then((res) => {
-        console.log("start response:", res)
-      }, (err) => {
-        console.error(`start for ${this.tournament} failed`, err)
-      })
+      this.match.start()
     },
     startTournament () {
       this.api.startTournament({ id: this.tournament.id }).then((res) => {
         console.log("start response:", res)
       }, (err) => {
         console.error(`start for ${this.tournament} failed`, err)
-      })
-    },
-    join () {
-      this.api.join({ id: this.tournament.id }).then((res) => {
-        console.log("join response:", res)
-        var j = res.json()
-        this.$router.push('/towerfall' + j.redirect)
-      }, (err) => {
-        console.error(`joining tournament ${this.tournament} failed`, err)
-      })
-    },
-    next () {
-      this.api.next({ id: this.tournament.id }).then((res) => {
-        console.debug("next response:", res)
-        let j = res.json()
-        this.$router.push('/towerfall' + j.redirect)
-      }, (err) => {
-        console.error(`next for ${this.tournament} failed`, err)
       })
     },
     reshuffle () {
@@ -243,29 +221,17 @@ export default {
         console.error(`reshuffle for ${this.tournament} failed`, err)
       })
     },
+    next () {
+      // Need to pass the `this` on so that the route can be pushed.
+      this.tournament.next(this)
+    },
     usurp () {
-      this.api.usurp({ id: this.tournament.id }).then((res) => {
-        console.log("usurp response:", res)
-      }, (err) => {
-        console.error(`usurp for ${this.tournament} failed`, err)
-      })
+      this.tournament.usurp()
     },
     end () {
-      this.api.end(this.match_id).then(function (res) {
-        console.log(res)
-        this.$router.push('/towerfall/' + this.tournament.id + '/')
-      }, function (res) {
-        console.log('error when getting tournament')
-        console.log(res)
-      })
     },
     reset () {
-      this.api.reset(this.match_id).then(function (res) {
-        console.log(res)
-      }, function (res) {
-        console.log('error when getting tournament')
-        console.log(res)
-      })
+      this.match.reset()
     },
   },
 
@@ -275,11 +241,6 @@ export default {
       next: { method: "GET", url: "/api/towerfall{/id}/next/" },
       reshuffle: { method: "GET", url: "/api/towerfall{/id}/reshuffle/" },
       startTournament: { method: "GET", url: "/api/towerfall{/id}/start/" },
-
-      commit: { method: "POST", url: "/api/towerfall/tournament{/id}{/kind}{/index}/commit/" },
-      start: { method: "GET", url: "/api/towerfall/tournament{/id}{/kind}{/index}/start/" },
-      end: { method: "GET", url: "/api/towerfall/tournament{/id}{/kind}{/index}/end/" },
-      reset: { method: "GET", url: "/api/towerfall/tournament{/id}{/kind}{/index}/reset/" },
     })
   },
 }

@@ -86,64 +86,15 @@ export default {
   },
 
   methods: {
-    start () {
-      if (this.tournament) {
-        this.api.start({ id: this.tournament.id }).then((res) => {
-          console.log("start response:", res)
-          let j = res.json()
-          this.$route.router.push('/towerfall' + j.redirect)
-        }, (err) => {
-          console.error(`start for ${this.tournament} failed`, err)
-        })
-      } else {
-        console.error("start called with no tournament")
-      }
-    },
-    next () {
-      if (this.tournament) {
-        this.api.next({ id: this.tournament.id }).then((res) => {
-          console.debug("next response:", res)
-          let j = res.json()
-          this.$router.push('/towerfall' + j.redirect)
-        }, (err) => {
-          console.error(`next for ${this.tournament} failed`, err)
-        })
-      } else {
-        console.error("next called with no tournament")
-      }
-    },
-    reshuffle () {
-      if (this.tournament) {
-        this.api.reshuffle({ id: this.tournament.id }).then((res) => {
-          console.debug("reshuffle response:", res)
-          let j = res.json()
-          this.$route.router.push('/towerfall' + j.redirect)
-        }, (err) => {
-          console.error(`reshuffle for ${this.tournament} failed`, err)
-        })
-      } else {
-        console.error("reshuffle called with no tournament")
-      }
-    },
-    log () {
-      this.$router.push({
-        name: "log",
-        params: {
-          tournament: this.tournament.id
-        }
-      })
-    },
     setTime (x) {
       this.api.setTime({ id: this.tournament.id, time: x }).then((res) => {
         console.debug("settime response:", res)
-        let j = res.json()
-        console.log('Redirect to /towerfall' + j.redirect)
+        console.log('Redirect to /towerfall' + res.json().redirect)
         // this.$route.router.push('/towerfall' + j.redirect)
       }, (err) => {
         console.error(`settime for ${this.tournament} failed`, err)
       })
     },
-
     selectRunnerup (p) {
       if (this.isSelected(p)) {
         // TODO(thiderman): Doesn't work. Fuck this.
@@ -163,11 +114,7 @@ export default {
   },
 
   created () {
-    console.log(this)
     this.api = this.$resource("/api/towerfall", {}, {
-      start: { method: "GET", url: "/api/towerfall{/id}/start/" },
-      next: { method: "GET", url: "/api/towerfall{/id}/next/" },
-      reshuffle: { method: "GET", url: "/api/towerfall{/id}/reshuffle/" },
       setTime: { method: "GET", url: "/api/towerfall{/id}/time{/time}" },
     })
   },
