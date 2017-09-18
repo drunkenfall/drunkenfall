@@ -252,7 +252,6 @@ func TestUpdatePlayer(t *testing.T) {
 
 	m.Start(nil)
 
-	t.Log(m)
 	m.Players[0].AddKills(5)
 	m.Players[1].AddKills(6)
 	m.Players[2].AddKills(7)

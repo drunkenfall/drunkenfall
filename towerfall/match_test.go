@@ -89,7 +89,6 @@ func TestStart(t *testing.T) {
 	err := m.Start(nil)
 	assert.Nil(err)
 	assert.Equal(false, m.Started.IsZero())
-	assert.Equal(1, len(m.Events))
 }
 
 func TestEndGivesShotToWinner(t *testing.T) {
