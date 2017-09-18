@@ -1,4 +1,4 @@
-package towerfall
+package migrations
 
 import (
 	"fmt"

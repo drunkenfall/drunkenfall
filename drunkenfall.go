@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/drunkenfall/drunkenfall/towerfall"
+	"github.com/drunkenfall/drunkenfall/towerfall/migrations"
 )
 
 func main() {
@@ -14,7 +15,7 @@ func main() {
 	}
 
 	// Apply any applicable migrations
-	err = towerfall.Migrate(db.DB)
+	err = migrations.Migrate(db.DB)
 	if err != nil {
 		log.Fatal(err)
 	}

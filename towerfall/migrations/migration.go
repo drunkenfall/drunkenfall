@@ -1,4 +1,4 @@
-package towerfall
+package migrations
 
 import (
 	"encoding/json"
@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/boltdb/bolt"
+	"github.com/drunkenfall/drunkenfall/towerfall"
 )
 
 var (
@@ -41,7 +42,7 @@ var ErrEmptyDB = errors.New("drunkenfall: Empty DB")
 // to that point will sequentially be applied.
 func Migrate(db *bolt.DB) error {
 	err := db.View(func(tx *bolt.Tx) error {
-		if tx.Bucket(TournamentKey) == nil {
+		if tx.Bucket(towerfall.TournamentKey) == nil {
 			return ErrEmptyDB
 		}
 		return nil
@@ -122,7 +123,7 @@ func getVersion(db *bolt.DB) (int, error) {
 	var version int
 	err := db.View(func(tx *bolt.Tx) error {
 		var err error
-		b := tx.Bucket(MigrationKey)
+		b := tx.Bucket(towerfall.MigrationKey)
 		if b == nil {
 			return errNoMigrationsYet
 		}
@@ -136,7 +137,7 @@ func getVersion(db *bolt.DB) (int, error) {
 }
 
 func setVersion(tx *bolt.Tx, version int) error {
-	b, err := tx.CreateBucketIfNotExists(MigrationKey)
+	b, err := tx.CreateBucketIfNotExists(towerfall.MigrationKey)
 	if err != nil {
 		return err
 	}

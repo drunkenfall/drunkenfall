@@ -1,4 +1,4 @@
-package towerfall
+package migrations
 
 import (
 	"encoding/json"
@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/boltdb/bolt"
+	"github.com/drunkenfall/drunkenfall/towerfall"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -18,7 +19,7 @@ func loadmig4Tournaments(db, ro *bolt.DB) (*mig4curTournament, *mig4prevTourname
 	}
 	defer tx.Rollback()
 
-	b := tx.Bucket(TournamentKey)
+	b := tx.Bucket(towerfall.TournamentKey)
 	bs := b.Get([]byte(id))
 	_ = json.Unmarshal(bs, orig)
 
@@ -29,7 +30,7 @@ func loadmig4Tournaments(db, ro *bolt.DB) (*mig4curTournament, *mig4prevTourname
 	}
 	defer tx.Rollback()
 
-	b = tx.Bucket(TournamentKey)
+	b = tx.Bucket(towerfall.TournamentKey)
 	bs = b.Get([]byte(id))
 	_ = json.Unmarshal(bs, mig)
 

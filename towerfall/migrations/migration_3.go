@@ -1,4 +1,4 @@
-package towerfall
+package migrations
 
 import (
 	"encoding/json"
@@ -7,84 +7,85 @@ import (
 	"time"
 
 	"github.com/boltdb/bolt"
+	"github.com/drunkenfall/drunkenfall/towerfall"
 )
 
 type mig3prevPlayer struct {
-	Person         *Person `json:"person"`
-	Color          string  `json:"color"`
-	PreferredColor string  `json:"preferred_color"`
-	Shots          int     `json:"shots"`
-	Sweeps         int     `json:"sweeps"`
-	Kills          int     `json:"kills"`
-	Self           int     `json:"self"`
-	Explosions     int     `json:"explosions"`
-	Matches        int     `json:"matches"`
-	TotalScore     int     `json:"score"`
-	Match          *Match  `json:"-"`
+	Person         *towerfall.Person `json:"person"`
+	Color          string            `json:"color"`
+	PreferredColor string            `json:"preferred_color"`
+	Shots          int               `json:"shots"`
+	Sweeps         int               `json:"sweeps"`
+	Kills          int               `json:"kills"`
+	Self           int               `json:"self"`
+	Explosions     int               `json:"explosions"`
+	Matches        int               `json:"matches"`
+	TotalScore     int               `json:"score"`
+	Match          *towerfall.Match  `json:"-"`
 }
 
 type mig3prevMatch struct {
-	Players    []mig3prevPlayer `json:"players"`
-	Judges     []Judge          `json:"judges"`
-	Kind       string           `json:"kind"`
-	Index      int              `json:"index"`
-	Length     int              `json:"length"`
-	Pause      time.Duration    `json:"pause"`
-	Scheduled  time.Time        `json:"scheduled"`
-	Started    time.Time        `json:"started"`
-	Ended      time.Time        `json:"ended"`
-	Tournament *Tournament      `json:"-"`
-	ScoreOrder []int            `json:"score_order"`
-	Commits    []Round          `json:"commits"`
+	Players    []mig3prevPlayer      `json:"players"`
+	Judges     []towerfall.Judge     `json:"judges"`
+	Kind       string                `json:"kind"`
+	Index      int                   `json:"index"`
+	Length     int                   `json:"length"`
+	Pause      time.Duration         `json:"pause"`
+	Scheduled  time.Time             `json:"scheduled"`
+	Started    time.Time             `json:"started"`
+	Ended      time.Time             `json:"ended"`
+	Tournament *towerfall.Tournament `json:"-"`
+	ScoreOrder []int                 `json:"score_order"`
+	Commits    []towerfall.Round     `json:"commits"`
 }
 
 type mig3prevTournament struct {
-	Name      string           `json:"name"`
-	ID        string           `json:"id"`
-	Players   []mig3prevPlayer `json:"players"`
-	Winners   []mig3prevPlayer `json:"winners"`
-	Runnerups []*Person        `json:"runnerups"`
-	Judges    []Judge          `json:"judges"`
-	Tryouts   []*mig3prevMatch `json:"tryouts"`
-	Semis     []*mig3prevMatch `json:"semis"`
-	Final     *mig3prevMatch   `json:"final"`
-	Current   CurrentMatch     `json:"current"`
-	Opened    time.Time        `json:"opened"`
-	Scheduled time.Time        `json:"scheduled"`
-	Started   time.Time        `json:"started"`
-	Ended     time.Time        `json:"ended"`
+	Name      string                 `json:"name"`
+	ID        string                 `json:"id"`
+	Players   []mig3prevPlayer       `json:"players"`
+	Winners   []mig3prevPlayer       `json:"winners"`
+	Runnerups []*towerfall.Person    `json:"runnerups"`
+	Judges    []towerfall.Judge      `json:"judges"`
+	Tryouts   []*mig3prevMatch       `json:"tryouts"`
+	Semis     []*mig3prevMatch       `json:"semis"`
+	Final     *mig3prevMatch         `json:"final"`
+	Current   towerfall.CurrentMatch `json:"current"`
+	Opened    time.Time              `json:"opened"`
+	Scheduled time.Time              `json:"scheduled"`
+	Started   time.Time              `json:"started"`
+	Ended     time.Time              `json:"ended"`
 }
 
 type mig3curMatch struct {
-	Players    []mig3prevPlayer `json:"players"`
-	Judges     []Judge          `json:"judges"`
-	Kind       string           `json:"kind"`
-	Index      int              `json:"index"`
-	Length     int              `json:"length"`
-	Pause      time.Duration    `json:"pause"`
-	Scheduled  time.Time        `json:"scheduled"`
-	Started    time.Time        `json:"started"`
-	Ended      time.Time        `json:"ended"`
-	Tournament *Tournament      `json:"-"`
-	KillOrder  []int            `json:"kill_order"`
-	Commits    []Round          `json:"commits"`
+	Players    []mig3prevPlayer      `json:"players"`
+	Judges     []towerfall.Judge     `json:"judges"`
+	Kind       string                `json:"kind"`
+	Index      int                   `json:"index"`
+	Length     int                   `json:"length"`
+	Pause      time.Duration         `json:"pause"`
+	Scheduled  time.Time             `json:"scheduled"`
+	Started    time.Time             `json:"started"`
+	Ended      time.Time             `json:"ended"`
+	Tournament *towerfall.Tournament `json:"-"`
+	KillOrder  []int                 `json:"kill_order"`
+	Commits    []towerfall.Round     `json:"commits"`
 }
 
 type mig3curTournament struct {
-	Name      string           `json:"name"`
-	ID        string           `json:"id"`
-	Players   []mig3prevPlayer `json:"players"`
-	Winners   []mig3prevPlayer `json:"winners"`
-	Runnerups []*Person        `json:"runnerups"`
-	Judges    []Judge          `json:"judges"`
-	Tryouts   []*mig3curMatch  `json:"tryouts"`
-	Semis     []*mig3curMatch  `json:"semis"`
-	Final     *mig3curMatch    `json:"final"`
-	Current   CurrentMatch     `json:"current"`
-	Opened    time.Time        `json:"opened"`
-	Scheduled time.Time        `json:"scheduled"`
-	Started   time.Time        `json:"started"`
-	Ended     time.Time        `json:"ended"`
+	Name      string                 `json:"name"`
+	ID        string                 `json:"id"`
+	Players   []mig3prevPlayer       `json:"players"`
+	Winners   []mig3prevPlayer       `json:"winners"`
+	Runnerups []*towerfall.Person    `json:"runnerups"`
+	Judges    []towerfall.Judge      `json:"judges"`
+	Tryouts   []*mig3curMatch        `json:"tryouts"`
+	Semis     []*mig3curMatch        `json:"semis"`
+	Final     *mig3curMatch          `json:"final"`
+	Current   towerfall.CurrentMatch `json:"current"`
+	Opened    time.Time              `json:"opened"`
+	Scheduled time.Time              `json:"scheduled"`
+	Started   time.Time              `json:"started"`
+	Ended     time.Time              `json:"ended"`
 }
 
 // mig3ByKills is a sort.Interface that sorts mig3prevPlayers by their kills
@@ -121,7 +122,7 @@ func MigrateMatchScoreOrderKillOrder(db *bolt.DB) error {
 		// Load the tournaments
 		var ts []*mig3prevTournament
 		err := db.View(func(tx *bolt.Tx) error {
-			b := tx.Bucket(TournamentKey)
+			b := tx.Bucket(towerfall.TournamentKey)
 			err := b.ForEach(func(k []byte, v []byte) error {
 				t := &mig3prevTournament{}
 				err := json.Unmarshal(v, t)
@@ -250,7 +251,7 @@ func MigrateMatchScoreOrderKillOrder(db *bolt.DB) error {
 				log.Fatal(err)
 			}
 
-			err = tx.Bucket(TournamentKey).Put([]byte(t.ID), j)
+			err = tx.Bucket(towerfall.TournamentKey).Put([]byte(t.ID), j)
 			if err != nil {
 				log.Fatal(err)
 			}
