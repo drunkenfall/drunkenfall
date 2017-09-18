@@ -1,12 +1,8 @@
 /drunkenfall
-/match
 /*.test
 /*.out
 /test/*
+/towerfall/test/*
 *.db
 *.log
-*.swp
 /*.env
-boltdbweb/
-.idea
-env.sh

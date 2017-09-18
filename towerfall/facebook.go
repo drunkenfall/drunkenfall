@@ -1,4 +1,4 @@
-package main
+package towerfall
 
 // Based on http://stackoverflow.com/a/36672164
 

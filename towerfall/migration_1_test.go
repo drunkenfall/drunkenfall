@@ -1,11 +1,12 @@
-package main
+package towerfall
 
 import (
 	"encoding/json"
-	"github.com/boltdb/bolt"
-	"github.com/stretchr/testify/assert"
 	"log"
 	"testing"
+
+	"github.com/boltdb/bolt"
+	"github.com/stretchr/testify/assert"
 )
 
 // loadmig1Tournaments ...

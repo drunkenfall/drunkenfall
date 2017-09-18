@@ -1,14 +1,14 @@
-package main
+package towerfall
 
 import (
 	"encoding/json"
-	"github.com/boltdb/bolt"
 	"log"
-	"sort"
 	"time"
+
+	"github.com/boltdb/bolt"
 )
 
-type mig3prevPlayer struct {
+type mig4prevPlayer struct {
 	Person         *Person `json:"person"`
 	Color          string  `json:"color"`
 	PreferredColor string  `json:"preferred_color"`
@@ -22,8 +22,8 @@ type mig3prevPlayer struct {
 	Match          *Match  `json:"-"`
 }
 
-type mig3prevMatch struct {
-	Players    []mig3prevPlayer `json:"players"`
+type mig4prevMatch struct {
+	Players    []mig4prevPlayer `json:"players"`
 	Judges     []Judge          `json:"judges"`
 	Kind       string           `json:"kind"`
 	Index      int              `json:"index"`
@@ -37,16 +37,16 @@ type mig3prevMatch struct {
 	Commits    []Round          `json:"commits"`
 }
 
-type mig3prevTournament struct {
+type mig4prevTournament struct {
 	Name      string           `json:"name"`
 	ID        string           `json:"id"`
-	Players   []mig3prevPlayer `json:"players"`
-	Winners   []mig3prevPlayer `json:"winners"`
+	Players   []mig4prevPlayer `json:"players"`
+	Winners   []mig4prevPlayer `json:"winners"`
 	Runnerups []*Person        `json:"runnerups"`
 	Judges    []Judge          `json:"judges"`
-	Tryouts   []*mig3prevMatch `json:"tryouts"`
-	Semis     []*mig3prevMatch `json:"semis"`
-	Final     *mig3prevMatch   `json:"final"`
+	Tryouts   []*mig4prevMatch `json:"tryouts"`
+	Semis     []*mig4prevMatch `json:"semis"`
+	Final     *mig4prevMatch   `json:"final"`
 	Current   CurrentMatch     `json:"current"`
 	Opened    time.Time        `json:"opened"`
 	Scheduled time.Time        `json:"scheduled"`
@@ -54,8 +54,8 @@ type mig3prevTournament struct {
 	Ended     time.Time        `json:"ended"`
 }
 
-type mig3curMatch struct {
-	Players    []mig3prevPlayer `json:"players"`
+type mig4curMatch struct {
+	Players    []mig4prevPlayer `json:"players"`
 	Judges     []Judge          `json:"judges"`
 	Kind       string           `json:"kind"`
 	Index      int              `json:"index"`
@@ -66,19 +66,19 @@ type mig3curMatch struct {
 	Ended      time.Time        `json:"ended"`
 	Tournament *Tournament      `json:"-"`
 	KillOrder  []int            `json:"kill_order"`
-	Commits    []Round          `json:"commits"`
+	Rounds     []Round          `json:"rounds"`
 }
 
-type mig3curTournament struct {
+type mig4curTournament struct {
 	Name      string           `json:"name"`
 	ID        string           `json:"id"`
-	Players   []mig3prevPlayer `json:"players"`
-	Winners   []mig3prevPlayer `json:"winners"`
+	Players   []mig4prevPlayer `json:"players"`
+	Winners   []mig4prevPlayer `json:"winners"`
 	Runnerups []*Person        `json:"runnerups"`
 	Judges    []Judge          `json:"judges"`
-	Tryouts   []*mig3curMatch  `json:"tryouts"`
-	Semis     []*mig3curMatch  `json:"semis"`
-	Final     *mig3curMatch    `json:"final"`
+	Tryouts   []*mig4curMatch  `json:"tryouts"`
+	Semis     []*mig4curMatch  `json:"semis"`
+	Final     *mig4curMatch    `json:"final"`
 	Current   CurrentMatch     `json:"current"`
 	Opened    time.Time        `json:"opened"`
 	Scheduled time.Time        `json:"scheduled"`
@@ -86,43 +86,17 @@ type mig3curTournament struct {
 	Ended     time.Time        `json:"ended"`
 }
 
-// mig3ByKills is a sort.Interface that sorts mig3prevPlayers by their kills
-type mig3ByKills []mig3prevPlayer
-
-func (s mig3ByKills) Len() int {
-	return len(s)
-
-}
-func (s mig3ByKills) Swap(i, j int) {
-	s[i], s[j] = s[j], s[i]
-
-}
-func (s mig3ByKills) Less(i, j int) bool {
-	// Technically not Less, but we want biggest first...
-	return s[i].Kills > s[j].Kills
-}
-
-// mig3SortByKills returns a list in order of the kills the mig3prevPlayers have
-func mig3SortByKills(ps []mig3prevPlayer) []mig3prevPlayer {
-	tmp := make([]mig3prevPlayer, len(ps))
-	copy(tmp, ps)
-	sort.Sort(mig3ByKills(tmp))
-	return tmp
-}
-
-// MigrateMatchScoreOrderKillOrder updates the ScoreOrder since the
-// implementation had a bugfix. Previously it sorted by the entertainment
-// score and not the amount of kills. This has been fixed and all the scores
-// need to be updated to reflect this in previous tournaments.
+// MigrateMatchCommitToRound changes the type signature of the object that
+// stores differences between rounds and actually calls it... Round{}.
 // nolint: gocyclo
-func MigrateMatchScoreOrderKillOrder(db *bolt.DB) error {
+func MigrateMatchCommitToRound(db *bolt.DB) error {
 	return db.Update(func(tx *bolt.Tx) error {
 		// Load the tournaments
-		var ts []*mig3prevTournament
+		var ts []*mig4prevTournament
 		err := db.View(func(tx *bolt.Tx) error {
 			b := tx.Bucket(TournamentKey)
 			err := b.ForEach(func(k []byte, v []byte) error {
-				t := &mig3prevTournament{}
+				t := &mig4prevTournament{}
 				err := json.Unmarshal(v, t)
 				if err != nil {
 					log.Print(err)
@@ -142,9 +116,9 @@ func MigrateMatchScoreOrderKillOrder(db *bolt.DB) error {
 			log.Fatal(err)
 		}
 
-		var out []*mig3curTournament
+		var out []*mig4curTournament
 		for _, pt := range ts {
-			t := mig3curTournament{
+			t := mig4curTournament{
 				Name:      pt.Name,
 				ID:        pt.ID,
 				Players:   pt.Players,
@@ -158,9 +132,9 @@ func MigrateMatchScoreOrderKillOrder(db *bolt.DB) error {
 				Ended:     pt.Ended,
 			}
 
-			t.Tryouts = make([]*mig3curMatch, len(pt.Tryouts))
+			t.Tryouts = make([]*mig4curMatch, len(pt.Tryouts))
 			for x, pm := range pt.Tryouts {
-				t.Tryouts[x] = &mig3curMatch{
+				t.Tryouts[x] = &mig4curMatch{
 					Players:    pm.Players,
 					Judges:     pm.Judges,
 					Kind:       pm.Kind,
@@ -171,24 +145,13 @@ func MigrateMatchScoreOrderKillOrder(db *bolt.DB) error {
 					Started:    pm.Started,
 					Ended:      pm.Ended,
 					Tournament: pm.Tournament,
-					Commits:    pm.Commits,
-				}
-
-				t.Tryouts[x].KillOrder = make([]int, 0)
-				ps := mig3SortByKills(pt.Tryouts[x].Players)
-				for _, p := range ps {
-					for i, o := range pt.Tryouts[x].Players {
-						if p.Person.ID == o.Person.ID {
-							t.Tryouts[x].KillOrder = append(t.Tryouts[x].KillOrder, i)
-							break
-						}
-					}
+					Rounds:     pm.Commits,
 				}
 			}
 
-			t.Semis = make([]*mig3curMatch, len(pt.Semis))
+			t.Semis = make([]*mig4curMatch, len(pt.Semis))
 			for x, pm := range pt.Semis {
-				t.Semis[x] = &mig3curMatch{
+				t.Semis[x] = &mig4curMatch{
 					Players:    pm.Players,
 					Judges:     pm.Judges,
 					Kind:       pm.Kind,
@@ -199,22 +162,11 @@ func MigrateMatchScoreOrderKillOrder(db *bolt.DB) error {
 					Started:    pm.Started,
 					Ended:      pm.Ended,
 					Tournament: pm.Tournament,
-					Commits:    pm.Commits,
-				}
-
-				t.Semis[x].KillOrder = make([]int, 0)
-				ps := mig3SortByKills(pt.Semis[x].Players)
-				for _, p := range ps {
-					for i, o := range pt.Semis[x].Players {
-						if p.Person.ID == o.Person.ID {
-							t.Semis[x].KillOrder = append(t.Semis[x].KillOrder, i)
-							break
-						}
-					}
+					Rounds:     pm.Commits,
 				}
 			}
 
-			t.Final = &mig3curMatch{
+			t.Final = &mig4curMatch{
 				Players:    pt.Final.Players,
 				Judges:     pt.Final.Judges,
 				Kind:       pt.Final.Kind,
@@ -225,18 +177,7 @@ func MigrateMatchScoreOrderKillOrder(db *bolt.DB) error {
 				Started:    pt.Final.Started,
 				Ended:      pt.Final.Ended,
 				Tournament: pt.Final.Tournament,
-				Commits:    pt.Final.Commits,
-			}
-
-			t.Final.KillOrder = make([]int, 0)
-			ps := mig3SortByKills(pt.Final.Players)
-			for _, p := range ps {
-				for i, o := range pt.Final.Players {
-					if p.Person.ID == o.Person.ID {
-						t.Final.KillOrder = append(t.Final.KillOrder, i)
-						break
-					}
-				}
+				Rounds:     pt.Final.Commits,
 			}
 
 			out = append(out, &t)
@@ -255,6 +196,6 @@ func MigrateMatchScoreOrderKillOrder(db *bolt.DB) error {
 			}
 		}
 
-		return setVersion(tx, 4)
+		return setVersion(tx, 5)
 	})
 }

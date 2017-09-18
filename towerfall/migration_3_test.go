@@ -1,11 +1,12 @@
-package main
+package towerfall
 
 import (
 	"encoding/json"
-	"github.com/boltdb/bolt"
-	"github.com/stretchr/testify/assert"
 	"log"
 	"testing"
+
+	"github.com/boltdb/bolt"
+	"github.com/stretchr/testify/assert"
 )
 
 func loadmig3Tournaments(db, ro *bolt.DB) (*mig3curTournament, *mig3prevTournament) {

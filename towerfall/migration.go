@@ -1,16 +1,17 @@
-package main
+package towerfall
 
 import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/boltdb/bolt"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
 	"strconv"
 	"time"
+
+	"github.com/boltdb/bolt"
 )
 
 var (

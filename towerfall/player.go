@@ -1,10 +1,11 @@
-package main
+package towerfall
 
 import (
 	"fmt"
-	"github.com/deckarep/golang-set"
 	"math/rand"
 	"sort"
+
+	"github.com/deckarep/golang-set"
 )
 
 // AllColors is a list of the available player colors

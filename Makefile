@@ -51,13 +51,13 @@ install-linter:
 	gometalinter --install
 
 test:
-	go test -v
+	go test -v ./...
 
 cover:
-	go test -coverprofile=cover.out
+	go test -coverprofile=cover.out ./...
 
 race:
-	go test -race -v
+	go test -race -v ./...
 
 lint: install-linter
 	gometalinter $(LINTER_ARGS) $(SOURCEDIR)

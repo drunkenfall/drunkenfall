@@ -56,6 +56,7 @@ const kekkonen = `
                            jK#  ...::,,.  .
 `
 
+// Kekkonen kekkonen
 func Kekkonen() {
 	// Kekkonen
 	fmt.Println(kekkonen)

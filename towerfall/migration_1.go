@@ -1,10 +1,11 @@
-package main
+package towerfall
 
 import (
 	"encoding/json"
-	"github.com/boltdb/bolt"
 	"log"
 	"time"
+
+	"github.com/boltdb/bolt"
 )
 
 type mig1prevPlayer struct {

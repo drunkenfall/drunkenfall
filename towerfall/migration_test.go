@@ -1,9 +1,7 @@
-package main
+package towerfall
 
 import (
 	"fmt"
-	"github.com/boltdb/bolt"
-	"github.com/stretchr/testify/assert"
 	"io"
 	"io/ioutil"
 	"log"
@@ -12,6 +10,9 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+
+	"github.com/boltdb/bolt"
+	"github.com/stretchr/testify/assert"
 )
 
 func testDB(fn string) *bolt.DB {
