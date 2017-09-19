@@ -18,14 +18,11 @@ type Tournament struct {
 	Name        string       `json:"name"`
 	ID          string       `json:"id"`
 	Players     []Player     `json:"players"` // See getTournamentPlayerObject()
-	Winners     []Player     `json:"winners"` // TODO(thiderman): Refactor to pointer
+	Winners     []Player     `json:"winners"`
 	Runnerups   []*Person    `json:"runnerups"`
 	Judges      []Judge      `json:"judges"`
-	Tryouts     []*Match     `json:"tryouts"`
-	Semis       []*Match     `json:"semis"`
-	Final       *Match       `json:"final"`
+	Matches     []*Match     `json:"matches"`
 	Current     CurrentMatch `json:"current"`
-	Previous    CurrentMatch `json:"previous"`
 	Opened      time.Time    `json:"opened"`
 	Scheduled   time.Time    `json:"scheduled"`
 	Started     time.Time    `json:"started"`
@@ -38,10 +35,7 @@ type Tournament struct {
 }
 
 // CurrentMatch holds the pointers needed to find the current match
-type CurrentMatch struct {
-	Kind  string `json:"kind"`
-	Index int    `json:"index"`
-}
+type CurrentMatch int
 
 const minPlayers = 8
 const maxPlayers = 32
@@ -60,19 +54,6 @@ func NewTournament(name, id string, scheduledStart time.Time, r *http.Request, s
 		length:      matchLength,
 		finalLength: finalLength,
 	}
-
-	// Set tryouts
-	for i := 0; i < 4; i++ {
-		match := NewMatch(&t, i, tryout)
-		t.Tryouts = append(t.Tryouts, match)
-	}
-
-	// Set the predefined matches
-	t.Semis = []*Match{NewMatch(&t, 0, semi), NewMatch(&t, 1, semi)}
-	t.Final = NewMatch(&t, 0, final)
-
-	// Mark the current match
-	t.Current = CurrentMatch{tryout, 0}
 
 	t.SetMatchPointers()
 	t.LogEvent(
@@ -99,6 +80,16 @@ func LoadTournament(data []byte, db *Database) (t *Tournament, e error) {
 
 	t.SetMatchPointers()
 	return
+}
+
+// Semi returns one of the two semi matches
+func (t *Tournament) Semi(index int) *Match {
+	return t.Matches[len(t.Matches)-3+index]
+}
+
+// Final returns the final match
+func (t *Tournament) Final() *Match {
+	return t.Matches[len(t.Matches)-1]
 }
 
 // Persist tells the database to save this tournament to disk
@@ -207,33 +198,37 @@ func (t *Tournament) ShufflePlayers() {
 		slice[i], slice[j] = slice[j], slice[i]
 	}
 
-	// Loop the players and set them into the matches
+	// Loop the players and set them into the matches. This exhausts the
+	// list before it leaves the tryouts.
 	for i, p := range slice {
-		m := t.Tryouts[i/4]
+		m := t.Matches[i/4]
 		m.AddPlayer(p)
 	}
 }
 
 // StartTournament will generate the tournament.
-//
-// This includes:
-//  Generating Tryout matches
-//  Setting Started date
-//
-// It will fail if there are not between 16 and max_players players.
 func (t *Tournament) StartTournament(r *http.Request) error {
 	ps := len(t.Players)
 	if ps < minPlayers || ps > maxPlayers {
 		return fmt.Errorf("Tournament needs %d or more players and %d or less, got %d", minPlayers, maxPlayers, ps)
 	}
 
-	// More than 16 players - add more tryouts until every player gets to play once.
-	if ps > 16 {
-		for i := 16; i < ps; i += 4 {
+	// If there are only eight players, we should skip doing tryouts and
+	// just do the semi and the finals. Everything above that needs
+	// tryout matches.
+	if ps != minPlayers {
+		// If there are more than eight then we add more tryouts until
+		// every player gets to play in the tryouts once.
+		for i := 0; i < ps; i += 4 {
 			match := NewMatch(t, i/4, tryout)
-			t.Tryouts = append(t.Tryouts, match)
+			t.Matches = append(t.Matches, match)
 		}
 	}
+
+	// Set the semis and the final
+	t.Matches = append(t.Matches, NewMatch(t, 0, semi))
+	t.Matches = append(t.Matches, NewMatch(t, 1, semi))
+	t.Matches = append(t.Matches, NewMatch(t, 0, final))
 
 	t.ShufflePlayers()
 	t.Started = time.Now()
@@ -254,9 +249,9 @@ func (t *Tournament) StartTournament(r *http.Request) error {
 // Reshuffle shuffles the players of an already started tournament
 func (t *Tournament) Reshuffle(r *http.Request) error {
 	// First we need to clear the player slots in the matches.
-	for x := range t.Tryouts {
-		t.Tryouts[x].Players = nil
-		t.Tryouts[x].presentColors = mapset.NewSet()
+	for x := 0; x < len(t.Matches)-3; x++ {
+		t.Matches[x].Players = nil
+		t.Matches[x].presentColors = mapset.NewSet()
 	}
 
 	t.ShufflePlayers()
@@ -277,6 +272,20 @@ func (t *Tournament) UsurpTournament() error {
 	}
 
 	return nil
+}
+
+// MatchIndex returns the index of the match
+func (t *Tournament) MatchIndex(m *Match) int {
+	var x int
+	var o *Match
+
+	for x, o = range t.Matches {
+		if o == m {
+			break
+		}
+	}
+
+	return x
 }
 
 // PopulateRunnerups fills a match with the runnerups with best scores
@@ -326,7 +335,7 @@ func (t *Tournament) UpdatePlayers() error {
 		t.Players[i].Reset()
 	}
 
-	for _, m := range t.Tryouts {
+	for _, m := range t.Matches {
 		for _, p := range m.Players {
 			tp, err := t.getTournamentPlayerObject(p.Person)
 			if err != nil {
@@ -334,24 +343,6 @@ func (t *Tournament) UpdatePlayers() error {
 			}
 			tp.Update(p)
 		}
-	}
-
-	for _, m := range t.Semis {
-		for _, p := range m.Players {
-			tp, err := t.getTournamentPlayerObject(p.Person)
-			if err != nil {
-				return err
-			}
-			tp.Update(p)
-		}
-	}
-
-	for _, p := range t.Final.Players {
-		tp, err := t.getTournamentPlayerObject(p.Person)
-		if err != nil {
-			return err
-		}
-		tp.Update(p)
 	}
 
 	return nil
@@ -385,7 +376,7 @@ func (t *Tournament) MovePlayers(m *Match) error {
 	if m.Kind == semi {
 		for i, p := range SortByKills(m.Players) {
 			if i < 2 {
-				t.Final.AddPlayer(p)
+				t.Matches[len(t.Matches)-1].AddPlayer(p)
 			}
 		}
 	}
@@ -400,11 +391,14 @@ func (t *Tournament) moveTryoutPlayers(m *Match) error {
 		// If we are in a four-match tryout, both the winner and the second-place
 		// are to be sent to the semis.
 		// If there are more than four matches, just send the winner
-		if len(t.Tryouts) == 4 && i < 2 || i == 0 {
+		if len(t.Matches)-3 <= 4 && i < 2 || i == 0 {
 			// This spreads the winners into the semis so that the winners do not
 			// face off immediately in the semis
-			index := (i + m.Index) % 2
-			t.Semis[index].AddPlayer(p)
+			offset := len(t.Matches) - 3 + ((i + m.Index) % 2)
+			err := t.Matches[offset].AddPlayer(p)
+			if err != nil {
+				log.Fatal(err)
+			}
 
 			// If the player is also inside of the runnerups, move them from the
 			// runnerup roster since they now have advanced to the finals. This
@@ -451,7 +445,8 @@ func (t *Tournament) BackfillSemis(r *http.Request, ids []string) error {
 	// If we're on the last tryout, we should backfill the semis with runnerups
 	// until they have have full seats.
 	// The amount of players needed; 8 minus the current amount
-	semiPlayers := 8 - (len(t.Semis[0].Players) + len(t.Semis[1].Players))
+	offset := len(t.Matches) - 3
+	semiPlayers := 8 - (len(t.Matches[offset].Players) + len(t.Matches[offset+1].Players))
 	if len(ids) != semiPlayers {
 		return fmt.Errorf("Need %d players, got %d", semiPlayers, len(ids))
 	}
@@ -459,7 +454,7 @@ func (t *Tournament) BackfillSemis(r *http.Request, ids []string) error {
 	added := make([]*Person, semiPlayers)
 	for x, id := range ids {
 		index := 0
-		if len(t.Semis[0].Players) == 4 {
+		if len(t.Matches[offset].Players) == 4 {
 			index = 1
 		}
 
@@ -469,7 +464,7 @@ func (t *Tournament) BackfillSemis(r *http.Request, ids []string) error {
 			return err
 		}
 
-		t.Semis[index].AddPlayer(*p)
+		t.Matches[offset+index].AddPlayer(*p)
 		added[x] = ps
 		t.removeFromRunnerups(ps)
 	}
@@ -484,43 +479,12 @@ func (t *Tournament) BackfillSemis(r *http.Request, ids []string) error {
 	return nil
 }
 
-// SetCurrent sets the current match of the tournament
-func (t *Tournament) SetCurrent(m *Match) {
-	t.Current = CurrentMatch{m.Kind, m.Index}
-}
-
-// SetPrevious sets the previous match of the tournament
-func (t *Tournament) SetPrevious(m *Match) {
-	t.Previous = CurrentMatch{m.Kind, m.Index}
-}
-
 // NextMatch returns the next match
 func (t *Tournament) NextMatch() (m *Match, err error) {
-	// Firstly, check the tryouts
-	for x := range t.Tryouts {
-		m = t.Tryouts[x]
-		if !m.IsEnded() {
-			t.SetCurrent(m)
-			return
-		}
+	if !t.IsRunning() {
+		return nil, errors.New("tournament not running")
 	}
-
-	// If we don't have any tryouts, or there are no tryouts left,
-	// check the semis
-	for x := range t.Semis {
-		m = t.Semis[x]
-		if !m.IsEnded() {
-			t.SetCurrent(m)
-			return
-		}
-	}
-
-	if !t.Final.IsEnded() {
-		t.SetCurrent(t.Final)
-		return t.Final, nil
-	}
-
-	return m, errors.New("all matches have been played")
+	return t.Matches[t.Current], nil
 }
 
 // AwardMedals places the winning players in the Winners position
@@ -586,10 +550,9 @@ func (t *Tournament) CanJoin(ps *Person) error {
 // This also sets *Match pointers for Player objects.
 func (t *Tournament) SetMatchPointers() error {
 	var m *Match
-	// log.Printf("%s: Setting match pointers...", t.ID)
 
-	for i := range t.Tryouts {
-		m = t.Tryouts[i]
+	for i := range t.Matches {
+		m = t.Matches[i]
 		m.presentColors = mapset.NewSet()
 		m.Tournament = t
 		for j := range m.Players {
@@ -597,21 +560,6 @@ func (t *Tournament) SetMatchPointers() error {
 		}
 	}
 
-	for i := range t.Semis {
-		m = t.Semis[i]
-		m.presentColors = mapset.NewSet()
-		m.Tournament = t
-		for j := range m.Players {
-			m.Players[j].Match = m
-		}
-	}
-	t.Final.Tournament = t
-	t.Final.presentColors = mapset.NewSet()
-	for i := range t.Final.Players {
-		t.Final.Players[i].Match = t.Final
-	}
-
-	// log.Printf("%s: Pointers loaded.", t.ID)
 	return nil
 }
 
@@ -657,14 +605,9 @@ func (t *Tournament) GetCredits() (*Credits, error) {
 // ArchersHarmed returns the amount of killed archers during the tournament
 func (t *Tournament) ArchersHarmed() int {
 	ret := 0
-
-	for _, m := range t.Tryouts {
+	for _, m := range t.Matches {
 		ret += m.ArchersHarmed()
 	}
-	for _, m := range t.Semis {
-		ret += m.ArchersHarmed()
-	}
-	ret += t.Final.ArchersHarmed()
 
 	return ret
 }

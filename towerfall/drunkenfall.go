@@ -20,12 +20,6 @@ import (
 	"golang.org/x/net/websocket"
 )
 
-const (
-	semi   = "semi"
-	final  = "final"
-	tryout = "tryout"
-)
-
 var tournamentMutex = &sync.Mutex{}
 
 // Setup variables for the cookies. Can be used outside of this file.
@@ -628,26 +622,17 @@ func (s *Server) SendWebsocketUpdate() {
 	s.ws.SendAll(&msg)
 }
 
+// TODO(thiderman): Should definitely return an error
 func (s *Server) getMatch(r *http.Request) *Match {
-	var m *Match
 	vars := mux.Vars(r)
 
-	tm := s.DB.tournamentRef[vars["id"]]
-	kind := vars["kind"]
+	t := s.DB.tournamentRef[vars["id"]]
 	index, err := strconv.Atoi(vars["index"])
 	if err != nil {
-		log.Printf("Translation went horribly wrong from %s. Index is now 0. Error is: %s", vars["index"], err)
-		log.Printf("Vars are: %s", vars)
-	}
-	if kind == "tryout" {
-		m = tm.Tryouts[index]
-	} else if kind == "semi" {
-		m = tm.Semis[index]
-	} else if kind == "final" {
-		m = tm.Final
+		return nil
 	}
 
-	return m
+	return t.Matches[index]
 }
 
 func (s *Server) getTournament(r *http.Request) *Tournament {

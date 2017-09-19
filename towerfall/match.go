@@ -11,6 +11,12 @@ import (
 	"github.com/deckarep/golang-set"
 )
 
+const (
+	semi   = "semi"
+	final  = "final"
+	tryout = "tryout"
+)
+
 // Match represents a game being played
 //
 // Match.ScoreOrder stores the index to the player in the relative position.
@@ -34,6 +40,7 @@ type Match struct {
 	KillOrder     []int         `json:"kill_order"`
 	Rounds        []Round       `json:"commits"`
 	presentColors mapset.Set
+	tournament    *Tournament
 }
 
 // Round is a state commit for a round of a match
@@ -43,7 +50,7 @@ type Round struct {
 	Committed string  `json:"committed"` // ISO-8601
 }
 
-// NewMatch creates a new Match for usage!
+// NewMatch creates a new Match
 func NewMatch(t *Tournament, index int, kind string) *Match {
 	m := Match{
 		Index:      index,
@@ -54,15 +61,9 @@ func NewMatch(t *Tournament, index int, kind string) *Match {
 	}
 	m.presentColors = mapset.NewSet()
 
-	// The pause between tryout/semi brackets should be longer
-	if kind == semi && index == 0 {
-		m.Pause = time.Minute * 10
-	}
-
 	// Finals are longer <3
 	if kind == final {
 		m.Length = t.finalLength
-		m.Pause = time.Minute * 10
 	}
 
 	return &m
@@ -105,7 +106,7 @@ func (m *Match) Title() string {
 	if m.Kind == final {
 		return "Final"
 	} else if m.Kind == tryout {
-		l = len(m.Tournament.Tryouts)
+		l = len(m.Tournament.Matches) - 3
 	}
 
 	out := fmt.Sprintf(
@@ -287,6 +288,12 @@ func (m *Match) End(r *http.Request) error {
 		return errors.New("match already ended")
 	}
 
+	// Increment the current match number. Some of the operations below
+	// count on the t.NextMatch() method to already return the actually
+	// next match, and until this has been incremented it would return
+	// _this_ match.
+	m.Tournament.Current++
+
 	// XXX(thiderman): In certain test cases a Commit() might not have been run
 	// and therefore this might not have been set. Since the calculation is
 	// quick and has no side effects, it's easier to just add it here now. In
@@ -313,7 +320,6 @@ func (m *Match) End(r *http.Request) error {
 		}
 	}
 
-	m.Tournament.SetPrevious(m)
 	m.Tournament.Persist()
 	return nil
 }
