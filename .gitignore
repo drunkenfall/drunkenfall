@@ -6,3 +6,6 @@
 *.db
 *.log
 /*.env
+
+towerfall/migrations/*/in/*
+towerfall/migrations/*/out/*

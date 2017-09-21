@@ -30,6 +30,7 @@ var migrations = []func(db *bolt.DB) error{
 	MigrateTournamentRunnerupStringPerson,
 	MigrateMatchScoreOrderKillOrder,
 	MigrateMatchCommitToRound,
+	FlattenMatches,
 }
 
 // ErrEmptyDB is raised when bucket is found for the given key
@@ -48,7 +49,8 @@ func Migrate(db *bolt.DB) error {
 		return nil
 	})
 	if err == ErrEmptyDB {
-		log.Print("Empty db detected, nothing to migrate.")
+		p, _ := filepath.Abs(db.Path())
+		log.Printf("Empty db detected at '%s', nothing to migrate.", p)
 		err = db.Update(func(tx *bolt.Tx) error {
 			return setVersion(tx, len(migrations))
 		})
@@ -88,7 +90,7 @@ func applyMigrations(db *bolt.DB, version int) error {
 	// Run the new migrations and the new migrations only
 	new := migrations[version:]
 	for x, migration := range new {
-		log.Printf("Applying migration %d\n", x+len(new))
+		log.Printf("Applying migration %d\n", x+len(migrations))
 		if err := migration(db); err != nil {
 			log.Print("Migration failure: ", err)
 			return err
@@ -103,8 +105,8 @@ func backup(db *bolt.DB, version int, path string) error {
 	_ = os.Mkdir(path, 0700)
 
 	fn := fmt.Sprintf(
-		"%d_from-v%d-to-v%d.db",
-		time.Now().UnixNano(),
+		"%s_from-v%d-to-v%d.db",
+		time.Now().Format(time.RFC3339),
 		version,
 		len(migrations),
 	)

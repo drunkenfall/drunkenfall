@@ -3,6 +3,8 @@ package towerfall
 import (
 	"encoding/json"
 	"log"
+	"os"
+	"path/filepath"
 	"sort"
 	"strings"
 
@@ -29,7 +31,10 @@ var (
 
 // NewDatabase returns a new database object
 func NewDatabase(fn string) (*Database, error) {
-	bolt, err := bolt.Open(fn, 0600, nil)
+	// Make sure that we always use the DB next to the executable
+	dir, _ := filepath.Abs(filepath.Dir(os.Args[0]))
+
+	bolt, err := bolt.Open(filepath.Join(dir, fn), 0600, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
