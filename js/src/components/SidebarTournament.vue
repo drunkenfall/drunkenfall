@@ -107,13 +107,25 @@
       </div>
 
       <div v-if="match && user.isJudge" class="actions links">
-        <a v-if="match.canStart && user.isCommentator" @click="start">
+        <a v-if="match.canStart && user.isCommentator" @click="start"
+           :class="{ disabled: tournament.shouldBackfill}">
           <div class="icon positive">
             <icon name="play"></icon>
           </div>
           <p>Start match</p>
+          <p class="tooltip">Semis need to be backfilled.</p>
           <div class="clear"></div>
         </a>
+
+        <router-link class="action"
+          :to="{ name: 'runnerups', params: { tournament: tournament.id }}"
+          v-if="user.isCommentator && shouldBackfill">
+          <div class="icon positive">
+            <icon name="cloud-upload"></icon>
+          </div>
+          <p>Backfill semis</p>
+          <div class="clear"></div>
+        </router-link>
 
         <a v-if="match.isRunning && user.isJudge" @click="reset" class="separate">
           <div class="icon danger">
@@ -170,16 +182,7 @@ export default {
       return this.getChild("Match").canCommit
     },
     shouldBackfill () {
-      let c = this.tournament.currentMatch
-      if (!c) {
-        return false
-      }
-      let ps = _.sumBy(this.tournament.semis, (m) => { return m.players.length })
-
-      if (c.kind === 'semi' && c.index === 0 && ps < 8) {
-        return true
-      }
-      return false
+      return this.tournament.shouldBackfill
     },
   },
 

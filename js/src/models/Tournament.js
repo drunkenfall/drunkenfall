@@ -91,6 +91,20 @@ export default class Tournament {
     return this.players.length < 32
   }
 
+  get shouldBackfill () {
+    let c = this.currentMatch
+    if (!c) {
+      return false
+    }
+
+    let ps = _.sumBy(this.semis, (m) => { return m.players.length })
+
+    if (c.kind === 'semi' && ps < 8) {
+      return true
+    }
+    return false
+  }
+
   get currentMatch () {
     return this.matches[this.current]
   }

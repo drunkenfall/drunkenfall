@@ -16,18 +16,19 @@
     </div>
 
     <footer v-if="user.isJudge">
-
       <div class="content">
         <div class="title">
           Actions
         </div>
       </div>
       <div class="links" v-if="user.isJudge">
-        <a v-if="match.canStart && user.isCommentator" @click="start">
+        <a v-if="match.canStart && user.isCommentator" @click="start"
+           :class="{ disabled: tournament.shouldBackfill}">
           <div class="icon positive">
             <icon name="play"></icon>
           </div>
           <p>Start match</p>
+          <p class="tooltip">Semis need to be backfilled.</p>
           <div class="clear"></div>
         </a>
 

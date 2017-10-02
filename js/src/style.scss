@@ -104,6 +104,11 @@ footer {
   left: $sidebar-width !important;
   bottom: 0px;
   box-shadow: -2px -2px 3px rgba(0,0,0,0.3);
+
+  .links a .tooltip {
+    left: -105% !important;
+    right: 105% !important;
+  }
 }
 
 header, footer {

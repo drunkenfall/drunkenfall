@@ -42,6 +42,11 @@ export default class Match {
   }
 
   start () {
+    if (this.tournament.shouldBackfill) {
+      console.log("Not starting match; backfill required.")
+      return
+    }
+
     console.log("Starting match...")
     this.api.start(this.id).then((res) => {
       console.log("Match started.", res)
@@ -100,8 +105,7 @@ export default class Match {
 
   get relativeIndex () {
     if (this.kind === "semi") {
-      let t = this.$vue.$store.getters.getTournament(this.tournament_id)
-      return this.index - t.tryouts.length + 1
+      return this.index - this.tournament.tryouts.length + 1
     }
     return this.index + 1
   }
@@ -149,5 +153,9 @@ export default class Match {
       })
     }
     return out
+  }
+
+  get tournament () {
+    return this.$vue.$store.getters.getTournament(this.tournament_id)
   }
 };
