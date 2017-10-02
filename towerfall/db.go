@@ -33,8 +33,10 @@ var (
 func NewDatabase(fn string) (*Database, error) {
 	// Make sure that we always use the DB next to the executable
 	dir, _ := filepath.Abs(filepath.Dir(os.Args[0]))
+	fn = filepath.Join(dir, fn)
 
-	bolt, err := bolt.Open(filepath.Join(dir, fn), 0600, nil)
+	log.Printf("Opening database at '%s'", fn)
+	bolt, err := bolt.Open(fn, 0600, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
