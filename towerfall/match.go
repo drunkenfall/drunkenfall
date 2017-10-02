@@ -51,7 +51,8 @@ type Round struct {
 }
 
 // NewMatch creates a new Match
-func NewMatch(t *Tournament, index int, kind string) *Match {
+func NewMatch(t *Tournament, kind string) *Match {
+	index := len(t.Matches)
 	m := Match{
 		Index:      index,
 		Kind:       kind,

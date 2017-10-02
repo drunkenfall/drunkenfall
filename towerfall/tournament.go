@@ -220,15 +220,15 @@ func (t *Tournament) StartTournament(r *http.Request) error {
 		// If there are more than eight then we add more tryouts until
 		// every player gets to play in the tryouts once.
 		for i := 0; i < ps; i += 4 {
-			match := NewMatch(t, i/4, tryout)
+			match := NewMatch(t, tryout)
 			t.Matches = append(t.Matches, match)
 		}
 	}
 
 	// Set the semis and the final
-	t.Matches = append(t.Matches, NewMatch(t, 0, semi))
-	t.Matches = append(t.Matches, NewMatch(t, 1, semi))
-	t.Matches = append(t.Matches, NewMatch(t, 0, final))
+	t.Matches = append(t.Matches, NewMatch(t, semi))
+	t.Matches = append(t.Matches, NewMatch(t, semi))
+	t.Matches = append(t.Matches, NewMatch(t, final))
 
 	t.ShufflePlayers()
 	t.Started = time.Now()
