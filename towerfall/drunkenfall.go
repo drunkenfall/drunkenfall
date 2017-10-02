@@ -592,12 +592,11 @@ func (s *Server) BuildRouter(ws *websockets.Server) http.Handler {
 	// Handle Facebook
 	s.FacebookRouter(a)
 
-	m := r.PathPrefix("/tournament/{id}/{kind:(?:tryout|runnerup|semi|final)}/{index:[0-9]+}").Subrouter()
+	m := r.PathPrefix("/tournament/{id}/{index:[0-9]+}").Subrouter()
 
 	m.HandleFunc("/end/", s.MatchEndHandler)
 	m.HandleFunc("/start/", s.MatchStartHandler)
 	m.HandleFunc("/reset/", s.MatchResetHandler)
-
 	m.HandleFunc("/commit/", s.MatchCommitHandler)
 
 	return n

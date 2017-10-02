@@ -16,18 +16,11 @@ var DrunkenFallMixin = {
       return this.$store.state.user
     },
     match () {
-      if (!this.$route.params.kind) {
+      if (this.$route.params.match === undefined) {
         // Nothing set in params - will fail.
         return
       }
-      let kind = this.$route.params.kind
-      let idx = this.$route.params.match
-
-      if (kind === 'final') {
-        return this.tournament.final
-      }
-      kind = kind + 's'
-      return this.tournament[kind][idx]
+      return this.tournament.matches[this.$route.params.match]
     },
     currentMatch () {
       // TODO(thiderman): This needs to be written as the kind that
@@ -36,18 +29,11 @@ var DrunkenFallMixin = {
       return
     },
     nextMatch () {
-      if (!this.tournament.current) {
+      if (this.tournament.current === undefined) {
         // Nothing set - will fail.
         return
       }
-      let kind = this.tournament.current.kind
-      let idx = this.tournament.current.index
-
-      if (kind === 'final') {
-        return this.tournament.final
-      }
-      kind = kind + 's'
-      return this.tournament[kind][idx]
+      return this.tournament.matches[this.tournament.current]
     },
     round () {
       if (!this.match || !this.match.commits) {
@@ -61,7 +47,6 @@ var DrunkenFallMixin = {
       }
       return {
         id: this.tournament.id,
-        kind: this.match.kind,
         index: this.match.index
       }
     },
@@ -71,28 +56,15 @@ var DrunkenFallMixin = {
         return
       }
 
-      let match
-      let index = this.tournament.current.index
-      let kind = this.tournament.current.kind
-
-      if (kind === 'final') {
-        return this.tournament.final
-      }
-
-      kind = kind + 's'
-
-      match = this.tournament[kind][index]
+      let match = this.tournament.currentMatch
 
       // We don't want to update until the next match has been
       // started. If we do, the graphs are removed as soon as the
       // judges end the previous match.
       // Also, if we're on the first match there is no previous one,
       // so don't try to grab the previous one in that case.
-      if (!match.isStarted || (kind === 'tryouts' && index === 0)) {
-        index = this.tournament.previous.index
-        kind = this.tournament.previous.kind + 's'
-        console.log([index, kind])
-        return this.tournament[kind][index]
+      if (!match.isStarted || this.tournament.current === 0) {
+        return this.tournament.matches[this.tournament.current - 1]
       }
 
       return match

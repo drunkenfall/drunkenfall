@@ -7,25 +7,26 @@ export default class Match {
   static fromObject (obj, $vue) {
     let m = new Match()
     Object.assign(m, obj)
+    m.$vue = $vue
 
     m.started = moment(m.started)
     m.ended = moment(m.ended)
     m.scheduled = moment(m.scheduled)
     m.players = _.map(m.players, Player.fromObject)
 
-    switch (m.kind) {
-      case 'tryout':
-      case 'semi':
-        m.endScore = 10
-        break
-      case 'final':
-        m.endScore = 20
-        break
+    m.endScore = m.length
+
+    // TODO(thiderman): There is this weird bug where some matches are
+    // created without a length. This circumvents this in a semi-ugly
+    // way. Also, this has only been observed on tryouts, so just
+    // force it to be 10 if such is the case.
+    if (m.endScore === 0) {
+      m.endScore = 10
     }
 
     // This if should super not be needed...
     if ($vue) {
-      let root = "/api/towerfall/tournament/{/id}{/kind}{/index}"
+      let root = "/api/towerfall/tournament{/id}{/index}"
 
       m.api = $vue.$resource("/api/towerfall", {}, {
         start: { method: "GET", url: `${root}/start/` },
@@ -53,7 +54,7 @@ export default class Match {
     console.log("Ending match...")
     this.api.end(this.id).then((res) => {
       console.log("Match ended.", res)
-      this.$router.push(`/towerfall/${this.tournament_id}/`)
+      this.$vue.$router.push(`/towerfall/${this.tournament_id}/`)
     }, (res) => {
       console.error("Match ending failed", res)
     })
@@ -83,7 +84,6 @@ export default class Match {
   get id () {
     return {
       id: this.tournament_id,
-      kind: this.kind,
       index: this.index,
     }
   }
@@ -92,7 +92,18 @@ export default class Match {
   set endScore (value) { this._end = value }
 
   get title () {
-    return _.capitalize(this.kind) + " " + (this.index + 1)
+    if (this.kind === "final") {
+      return "Final"
+    }
+    return _.capitalize(this.kind) + " " + this.relativeIndex
+  }
+
+  get relativeIndex () {
+    if (this.kind === "semi") {
+      let t = this.$vue.$store.getters.getTournament(this.tournament_id)
+      return this.index - t.tryouts.length + 1
+    }
+    return this.index + 1
   }
 
   get isStarted () {

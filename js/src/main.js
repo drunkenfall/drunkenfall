@@ -123,7 +123,7 @@ var router = new Router({
       component: Credits
     },
     {
-      path: '/towerfall/:tournament/:kind/:match/',
+      path: '/towerfall/:tournament/:match/',
       name: 'match',
       component: Match
     },

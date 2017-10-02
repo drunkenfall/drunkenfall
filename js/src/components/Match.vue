@@ -129,7 +129,7 @@ export default {
     document.getElementsByTagName("body")[0].className = "scroll-less"
 
     this.api = this.$resource("/api/towerfall", {}, {
-      commit: { method: "POST", url: "/api/towerfall/tournament{/id}{/kind}{/index}/commit/" },
+      commit: { method: "POST", url: "/api/towerfall/tournament{/id}{/index}/commit/" },
     })
   },
 }

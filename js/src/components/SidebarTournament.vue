@@ -77,7 +77,7 @@
             <div class="clear"></div>
           </a>
 
-          <a class="action" @click="next" v-if="user.isJudge && tournament.isRunning">
+          <a class="action" @click="next" v-if="user.isJudge &&tournament.isRunning && !shouldBackfill">
             <div class="icon positive">
               <icon name="play"></icon>
             </div>
@@ -147,14 +147,8 @@ export default {
         return undefined
       }
 
-      let kind = this.$route.params.kind
       let idx = this.$route.params.match
-
-      if (kind === 'final') {
-        return this.tournament.final
-      }
-      kind = kind + 's'
-      return this.tournament[kind][idx]
+      return this.tournament.matches[idx]
     },
     numeralColor () {
       return "background-color: #405060;"
@@ -169,18 +163,17 @@ export default {
       return this.$route.params.tournament === this.tournament.id
     },
     match_id () {
-      return {
-        id: this.tournament.id,
-        kind: this.match.kind,
-        index: this.match.index
-      }
+      return this.match.match_id
     },
     canCommit () {
       console.log("checking canCommit")
       return this.getChild("Match").canCommit
     },
     shouldBackfill () {
-      let c = this.tournament.current
+      let c = this.tournament.currentMatch
+      if (!c) {
+        return false
+      }
       let ps = _.sumBy(this.tournament.semis, (m) => { return m.players.length })
 
       if (c.kind === 'semi' && c.index === 0 && ps < 8) {

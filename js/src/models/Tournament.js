@@ -15,9 +15,7 @@ export default class Tournament {
     t.started = moment(t.started)
     t.ended = moment(t.ended)
 
-    t.tryouts = _.map(t.tryouts, (m) => { return Match.fromObject(m, $vue) })
-    t.semis = _.map(t.semis, (m) => { return Match.fromObject(m, $vue) })
-    t.final = Match.fromObject(t.final, $vue)
+    t.matches = _.map(t.matches, (m) => { return Match.fromObject(m, $vue) })
 
     t.players = _.map(t.players, Player.fromObject)
     t.runnerups = _.map(t.runnerups, Person.fromObject)
@@ -85,11 +83,28 @@ export default class Tournament {
     // We can only shuffle after the tournament has started (otherwise
     // technically no matches exists, so nothing can be shuffled
     // into), and before the first match has been started.
-    let match = Match.fromObject(this.tryouts[0])
+    let match = Match.fromObject(this.matches[0])
     return this.isStarted && !match.isStarted
   }
 
   get isUsurpable () {
     return this.players.length < 32
+  }
+
+  get currentMatch () {
+    return this.matches[this.current]
+  }
+
+  get tryouts () {
+    return _.slice(this.matches, 0, this.matches.length - 3)
+  }
+
+  get semis () {
+    let l = this.matches.length
+    return _.slice(this.matches, l - 3, l - 1)
+  }
+
+  get final () {
+    return this.matches[this.matches.length - 1]
   }
 }

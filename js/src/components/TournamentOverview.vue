@@ -4,8 +4,7 @@
       <div v-if="!nextMatch.isScheduled">
         <p>
           Pause until
-          <span>{{tournament.current.kind}}</span>
-          <span>{{tournament.current.index+1}}</span>:
+          <span>{{tournament.currentMatch.title}}</span>:
         </p>
         <div class="links">
           <a @click="setTime(10)">10 min</a>
@@ -17,8 +16,7 @@
       </div>
       <div v-if="nextMatch.isScheduled">
         <p class="center">
-          <span>{{tournament.current.kind}}</span>
-          <span>{{tournament.current.index+1}}</span> scheduled at
+          <span>{{tournament.currentMatch.title}}</span> scheduled at
           {{nextMatch.scheduled.format("HH:mm")}}
         </p>
         <div class="clear"></div>
@@ -68,7 +66,7 @@ export default {
 
   computed: {
     canParticipants () {
-      return this.tournament.current.kind === 'tryout'
+      return this.tournament.currentMatch.kind === 'tryout'
     },
     runnerups () {
       let t = this.tournament
