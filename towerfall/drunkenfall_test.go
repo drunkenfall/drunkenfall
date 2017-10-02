@@ -57,9 +57,9 @@ func TestPermissionsDenied(t *testing.T) {
 		"/%s/start/",
 		"/%s/next/",
 		"/%s/join/",
-		"/tournament/%s/tryout/0/start/",
-		"/tournament/%s/tryout/0/end/",
-		"/tournament/%s/tryout/0/commit/",
+		"/tournament/%s/0/start/",
+		"/tournament/%s/0/end/",
+		"/tournament/%s/0/commit/",
 	}
 
 	for _, url := range urls {
