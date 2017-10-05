@@ -46,12 +46,29 @@
         </div>
       </div>
 
-      <div v-if="user" class="user">
-        <icon class="settings" name="cog"></icon>
+      <div v-if="userLoaded && user.authenticated" class="user">
+        <div class="settings">
+          <icon name="cog"></icon>
+        </div>
         <img :alt="user.firstName" :src="user.avatar"/>
-        <icon class="logout" name="sign-out"></icon>
+
+        <div @click="logout" class="logout">
+          <icon name="sign-out"></icon>
+        </div>
 
         <h1 :class="user.color">{{user.nick}}</h1>
+      </div>
+
+      <div v-if="userLoaded && !user.authenticated" class="content facebook">
+        <div class="links">
+          <a href="/api/facebook/login">
+            <div class="icon">
+              <icon name="facebook"></icon>
+            </div>
+            <p>Facebook login</p>
+            <div class="clear"></div>
+          </a>
+        </div>
       </div>
     </div>
   </div>
@@ -84,7 +101,10 @@ export default {
         console.error('error when clearing tournaments', res)
         return { tournaments: [] }
       })
-    }
+    },
+    logout () {
+      this.user.logout(this)
+    },
   },
 }
 </script>
@@ -144,7 +164,7 @@ export default {
     h1 {
       font-size: 1rem;
     }
-    .fa-icon {
+    div {
       position: absolute;
       top: 30px;
       height: 1.3em;
@@ -152,6 +172,7 @@ export default {
       color: #999;
       filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.5));
       transition: 0.3s;
+      font-size: 1.2em;
 
       &:hover {
         cursor: pointer;
@@ -164,6 +185,17 @@ export default {
       &.logout {
         right: 40px;
       }
+    }
+  }
+
+  .facebook {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    >.links {
+      margin: 1.5em;
     }
   }
 }

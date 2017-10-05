@@ -174,7 +174,7 @@ func (t *Tournament) removePlayer(p Player) error {
 
 // TogglePlayer toggles a player in a tournament
 func (t *Tournament) TogglePlayer(id string) error {
-	ps := t.db.GetPerson(id)
+	ps, _ := t.db.GetPerson(id)
 	p, err := t.getTournamentPlayerObject(ps)
 
 	if err != nil {
@@ -458,7 +458,7 @@ func (t *Tournament) BackfillSemis(r *http.Request, ids []string) error {
 			index = 1
 		}
 
-		ps := t.db.GetPerson(id)
+		ps, _ := t.db.GetPerson(id)
 		p, err := t.getTournamentPlayerObject(ps)
 		if err != nil {
 			return err
@@ -574,15 +574,15 @@ func (t *Tournament) GetCredits() (*Credits, error) {
 	// We should move towards specifying these live when setting
 	// up the tournament itself.
 
-	executive := t.db.GetPerson("1279099058796903") // thiderman
+	executive := t.db.GetSafePerson("1279099058796903") // thiderman
 	producers := []*Person{
-		t.db.GetPerson("10153943465786915"), // GoosE
-		t.db.GetPerson("10154542569541289"), // Queen Obscene
-		t.db.GetPerson("10153964695568099"), // Karl-Astrid
-		t.db.GetPerson("10153910124391516"), // Hest
-		t.db.GetPerson("10154040229117471"), // Skolpadda
-		t.db.GetPerson("10154011729888111"), // Moijra
-		t.db.GetPerson("10154296655435218"), // Dalan
+		t.db.GetSafePerson("10153943465786915"), // GoosE
+		t.db.GetSafePerson("10154542569541289"), // Queen Obscene
+		t.db.GetSafePerson("10153964695568099"), // Karl-Astrid
+		t.db.GetSafePerson("10153910124391516"), // Hest
+		t.db.GetSafePerson("10154040229117471"), // Skolpadda
+		t.db.GetSafePerson("10154011729888111"), // Moijra
+		t.db.GetSafePerson("10154296655435218"), // Dalan
 	}
 
 	players := []*Person{

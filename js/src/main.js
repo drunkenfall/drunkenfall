@@ -144,8 +144,20 @@ router.beforeEach((to, from, next) => {
 
     if (!router.app.$store.state.user.authenticated) {
       router.app.$http.get('/api/towerfall/user/').then(response => {
+        let data = JSON.parse(response.data)
+
+        // If we're not signed in, then the backend will return an
+        // object with just "false" and nothing else. If this happens,
+        // we should just skip this.
+        if (data.authenticated === false) {
+          // Mark that we tried to load the user. This means that the
+          // interface will show the Facebook login button.
+          router.app.$store.commit("setUserLoaded", true)
+          return
+        }
+
         router.app.$store.commit('setUser', Person.fromObject(
-          JSON.parse(response.data),
+          data,
           router.app.$cookie
         ))
       }, response => {
@@ -163,6 +175,7 @@ const store = new Vuex.Store({ // eslint-disable-line
   state: {
     tournaments: [],
     user: new Person(),
+    userLoaded: false,
     credits: {}
   },
   mutations: {
@@ -173,6 +186,10 @@ const store = new Vuex.Store({ // eslint-disable-line
     },
     setUser (state, user) {
       state.user = user
+      state.userLoaded = true
+    },
+    setUserLoaded (state, loaded) {
+      state.userLoaded = loaded
     },
     setCredits (state, credits) {
       state.credits = CreditsModel.fromObject(credits)

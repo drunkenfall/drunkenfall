@@ -15,6 +15,9 @@ var DrunkenFallMixin = {
     user () {
       return this.$store.state.user
     },
+    userLoaded () {
+      return this.$store.state.userLoaded
+    },
     match () {
       if (this.$route.params.match === undefined) {
         // Nothing set in params - will fail.

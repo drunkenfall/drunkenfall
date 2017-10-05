@@ -546,7 +546,8 @@ func (s *Server) PeopleHandler(w http.ResponseWriter, _ *http.Request) {
 // UserHandler returns data about the current user
 func (s *Server) UserHandler(w http.ResponseWriter, r *http.Request) {
 	if !HasPermission(r, PermissionPlayer) {
-		PermissionFailure(w, r, "You need to be signed in.")
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"authenticated":false}`))
 		return
 	}
 
@@ -560,6 +561,16 @@ func (s *Server) UserHandler(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write(data)
 }
 
+// LogoutHandler logs out the user
+func (s *Server) LogoutHandler(w http.ResponseWriter, r *http.Request) {
+	p := PersonFromSession(s, r)
+
+	log.Printf("User '%s' logging out", p.Nick)
+	p.RemoveCookies(w, r)
+	w.Header().Set("Content-Type", "application/json")
+	_, _ = w.Write([]byte(""))
+}
+
 // BuildRouter sets up the routes
 func (s *Server) BuildRouter(ws *websockets.Server) http.Handler {
 	n := mux.NewRouter()
@@ -568,6 +579,7 @@ func (s *Server) BuildRouter(ws *websockets.Server) http.Handler {
 
 	r.HandleFunc("/people/", s.PeopleHandler)
 	r.HandleFunc("/user/", s.UserHandler)
+	r.HandleFunc("/user/logout/", s.LogoutHandler)
 
 	r.HandleFunc("/tournament/", s.TournamentListHandler)
 	r.HandleFunc("/tournament/clear/", s.ClearTournamentHandler)

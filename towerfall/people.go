@@ -2,10 +2,13 @@ package towerfall
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
+	"time"
 )
 
 // A Person is someone having a role in the tournament
@@ -36,6 +39,8 @@ const (
 	PermissionJudge       = 30
 	PermissionPlayer      = 10
 )
+
+var ErrFacebookAlreadyExists = errors.New("facebook user already exists")
 
 type score map[int]string
 
@@ -170,6 +175,42 @@ func (p *Person) Correct() {
 	}
 }
 
+// StoreCookies stores the cookies of the
+func (p *Person) StoreCookies(w http.ResponseWriter, r *http.Request) error {
+	c := &http.Cookie{
+		Name:    "userlevel",
+		Value:   strconv.Itoa(p.Userlevel),
+		Path:    "/",
+		Expires: time.Now().Add(30 * 24 * time.Hour), // Set to the same as CookieStore
+	}
+	http.SetCookie(w, c)
+
+	session, _ := CookieStore.Get(r, "session")
+	session.Values["user"] = p.ID
+	session.Values["userlevel"] = p.Userlevel
+	session.Save(r, w)
+
+	return nil
+}
+
+// RemoveCookies ...
+func (p *Person) RemoveCookies(w http.ResponseWriter, r *http.Request) error {
+	c := &http.Cookie{
+		Name:    "userlevel",
+		Value:   "0",
+		Path:    "/",
+		Expires: time.Now(),
+	}
+	http.SetCookie(w, c)
+
+	session, _ := CookieStore.Get(r, "session")
+	delete(session.Values, "user")
+	delete(session.Values, "userlevel")
+	session.Save(r, w)
+
+	return nil
+}
+
 // PersonFromSession returns the Person{} object attached to the session
 func PersonFromSession(s *Server, r *http.Request) *Person {
 	if r == nil {
@@ -179,7 +220,11 @@ func PersonFromSession(s *Server, r *http.Request) *Person {
 	session, _ := CookieStore.Get(r, "session")
 	id := session.Values["user"].(string)
 
-	p := s.DB.GetPerson(id)
+	p, err := s.DB.GetPerson(id)
+	if err != nil {
+		log.Printf("Nonexisting session for '%s'", id)
+		return nil
+	}
 	return p
 }
 

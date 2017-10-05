@@ -5,7 +5,7 @@
     </div>
 
     <div class="section">
-      <h2>{{player.kills}} <span>/ {{match.end}}</span></h2>
+      <h2>{{player.kills}} <span>/ {{match.endScore}}</span></h2>
     </div>
 
     <div class="section">

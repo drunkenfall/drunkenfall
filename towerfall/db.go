@@ -150,11 +150,10 @@ func (d *Database) SavePerson(p *Person) error {
 }
 
 // GetPerson gets a Person{} from the DB
-func (d *Database) GetPerson(id string) *Person {
+func (d *Database) GetPerson(id string) (*Person, error) {
 	tx, err := d.DB.Begin(false)
 	if err != nil {
-		log.Fatal(err)
-		return nil
+		return nil, err
 	}
 	defer tx.Rollback()
 
@@ -162,6 +161,15 @@ func (d *Database) GetPerson(id string) *Person {
 	out := b.Get([]byte(id))
 	p := &Person{}
 	_ = json.Unmarshal(out, p)
+	return p, nil
+}
+
+// GetSafePerson gets a Person{} from the DB, while being absolutely
+// sure there will be no error.
+//
+// This is only for hardcoded cases where error handling is just pointless.
+func (d *Database) GetSafePerson(id string) *Person {
+	p, _ := d.GetPerson(id)
 	return p
 }
 

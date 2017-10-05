@@ -7,7 +7,6 @@ export default class Person {
   static fromObject (obj, cookie) {
     let p = new Person()
     Object.assign(p, obj)
-    p.authenticated = cookie && cookie.get && cookie.get('session') && true || false
     return p
   }
 
@@ -47,5 +46,26 @@ export default class Person {
   }
   get isPlayer () {
     return this.userlevel >= PLAYER
+  }
+
+  get authenticated () {
+    if (this.userlevel === undefined) {
+      return false
+    }
+    return this.userlevel > 0
+  }
+
+  logout ($vue) {
+    console.log("Logging out...")
+    let $this = this
+
+    $vue.$http.get('/api/towerfall/user/logout/').then(function (res) {
+      console.log("Logged out: ", res)
+      $this.userlevel = 0
+      $vue.$store.commit("setUser", $this)
+    }, function (res) {
+      console.error('error when logging out', res)
+      return
+    })
   }
 }
