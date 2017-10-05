@@ -48,7 +48,6 @@ func (d *Database) LoadTournaments() error {
 		if b == nil {
 			// If there is no bucket, bail silently.
 			// This only really happens in tests.
-			// TODO: Fix pls
 			return nil
 		}
 
