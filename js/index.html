@@ -12,7 +12,9 @@
   <body>
     <div id="app">
       <sidebar></sidebar>
-      <router-view class="sidebared"></router-view>
+      <transition name="fade" appear mode="out-in">
+        <router-view class="sidebared"></router-view>
+      </transition>
     </div>
   </body>
 </html>
