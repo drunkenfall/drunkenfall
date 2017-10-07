@@ -23,5 +23,4 @@ export default class Event {
         .replace("{preferred}", "<span class='{preferred}'>{preferred}</span>"),
       this.items)
   }
-
 }

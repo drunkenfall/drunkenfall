@@ -32,12 +32,19 @@ export default {
 
 .event {
   font-size: 1.4em;
-  float: left;
   margin: 1% 0.7%;
+  border-radius: 0;
   width: 30%;
   background-color: #333339;
   box-shadow: 2px 2px 3px rgba(0,0,0,0.3);
-  position: relative;
+
+  &.alert {
+    background-color: $danger;
+  }
+
+  &.warning {
+    background-color: $warning;
+  }
 
   .content {
     padding: 1em 1.3em;

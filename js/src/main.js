@@ -6,7 +6,7 @@ import Router from 'vue-router'
 import Resource from 'vue-resource'
 import Cookie from 'vue-cookie'
 import Vue2Filters from 'vue2-filters'
-// import 'vue-awesome/icons'
+import Toast from 'vue-easy-toast'
 import * as Icon from 'vue-awesome'
 import App from './App'
 
@@ -38,6 +38,7 @@ Vue.use(Vuex)
 Vue.use(Router)
 Vue.use(Resource)
 Vue.use(Cookie)
+Vue.use(Toast)
 Vue.use(Vue2Filters)
 
 Vue.component('icon', Icon)

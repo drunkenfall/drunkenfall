@@ -1,5 +1,6 @@
 import { isGoZeroDateOrFalsy } from '../util/date.js'
 import moment from 'moment'
+import Event from './Event.js'
 import Player from './Player.js'
 import Person from './Person.js'
 import Match from './Match.js'
@@ -19,6 +20,17 @@ export default class Tournament {
 
     t.players = _.map(t.players, Player.fromObject)
     t.runnerups = _.map(t.runnerups, Person.fromObject)
+
+    let events = t.events
+    _.each(t.matches, (m) => {
+      events = _.concat(events, m.events)
+    })
+
+    events = _.omitBy(events, _.isNil) // TODO(thiderman): Why are there nil items? hwat
+    events = _.sortBy(events, [(o) => { return o.time }])
+    events = _.reverse(events)
+    events = _.map(events, Event.fromObject)
+    t.events = events
 
     let root = "/api/towerfall/{/id}"
 

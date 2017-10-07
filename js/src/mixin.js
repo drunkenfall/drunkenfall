@@ -1,8 +1,44 @@
+import _ from "lodash"
+
 var DrunkenFallMixin = {
   created () {
   },
   methods: {
+    $alert (msg) {
+      console.error(msg)
+
+      this.$toast(msg, {
+        className: ['event', 'alert'],
+        horizontalPosition: 'right',
+        verticalPosition: 'bottom',
+        duration: 5000,
+        mode: 'queue',
+      })
+    },
+    $warn (msg) {
+      console.warn(msg)
+
+      this.$toast(msg, {
+        className: ['event', 'warning'],
+        horizontalPosition: 'right',
+        verticalPosition: 'bottom',
+        duration: 5000,
+        mode: 'queue',
+      })
+    },
+    $info (msg) {
+      console.log(msg)
+
+      this.$toast(msg, {
+        className: ['event'],
+        horizontalPosition: 'right',
+        verticalPosition: 'bottom',
+        duration: 5000,
+        mode: 'queue',
+      })
+    },
   },
+
   computed: {
     tournament () {
       return this.$store.getters.getTournament(
@@ -72,6 +108,31 @@ var DrunkenFallMixin = {
 
       return match
     },
+  },
+  watch: {
+    tournament (val, old) {
+      if (val === undefined || old === undefined) {
+        return
+      }
+
+      // If we're watching a stream-only route, suppress the message.
+      if (_.includes([
+        "match",
+        "scores",
+        "next",
+        "charts",
+        "credits"
+      ], this.$route.name)) {
+        return
+      }
+
+      let $vue = this
+      let n = val.events
+      let o = old.events
+      if (n.length !== o.length) {
+        $vue.$info(n[0].print)
+      }
+    }
   }
 }
 

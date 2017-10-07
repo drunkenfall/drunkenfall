@@ -47,6 +47,7 @@ export default {
           try {
             res = JSON.parse(event.data)
           } catch (e) {
+            $vue.$alert("Data could not be parsed.")
             console.error("Failed to parse message data:", e)
             return
           }
@@ -63,7 +64,7 @@ export default {
                 // we're already trying to reconnect, don't try more
               } else {
                 // the server probably died, try to connect again
-                console.warn("The server probably died, try to reconnect a few times")
+                $vue.$warn("Connection lost. Trying to reconnect a few times.")
                 this.reconnect()
               }
             }, 10000)
@@ -94,6 +95,7 @@ export default {
         }
         this.ws.onerror = (errorEvent) => { console.error("websocket error:", errorEvent) }
         this.ws.onclose = (closeEvent) => {
+          $vue.$warn("Connection closed.")
           console.debug("websocket closed", closeEvent)
           if (!closeEvent.wasClean) {
             this.reconnect()
