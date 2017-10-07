@@ -204,17 +204,21 @@ export default {
       this.match.start()
     },
     startTournament () {
+      let $vue = this
       this.api.startTournament({ id: this.tournament.id }).then((res) => {
         console.log("start response:", res)
       }, (err) => {
-        console.error(`start for ${this.tournament} failed`, err)
+        $vue.$alert("Start failed. See console.")
+        console.error(err)
       })
     },
     reshuffle () {
+      let $vue = this
       this.api.reshuffle({ id: this.tournament.id }).then((res) => {
         console.debug("reshuffle response:", res)
       }, (err) => {
-        console.error(`reshuffle for ${this.tournament} failed`, err)
+        $vue.$alert("Reshuffle failed. See console.")
+        console.error(err)
       })
     },
     next () {

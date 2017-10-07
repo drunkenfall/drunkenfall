@@ -94,11 +94,13 @@ export default {
       return _.includes(names, this.$route.name)
     },
     clear (event) {
+      let $vue = this
       event.preventDefault()
       return this.$http.get('/api/towerfall/tournament/clear/').then(function (res) {
         console.log(res)
       }, function (res) {
-        console.error('error when clearing tournaments', res)
+        $vue.$alert("Clearing failed. See console.")
+        console.error(res)
         return { tournaments: [] }
       })
     },

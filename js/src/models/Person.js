@@ -64,8 +64,8 @@ export default class Person {
       $this.userlevel = 0
       $vue.$store.commit("setUser", $this)
     }, function (res) {
-      console.error('error when logging out', res)
-      return
+      $vue.$alert("Logging out failed. See console.")
+      console.error(res)
     })
   }
 }

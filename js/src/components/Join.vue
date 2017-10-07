@@ -41,6 +41,7 @@ export default {
 
   methods: {
     join (e) {
+      let $vue = this
       e.preventDefault()
       if (!this.approve) {
         console.log("Not joining - not approved")
@@ -52,7 +53,8 @@ export default {
         var j = res.json()
         this.$route.router.push('/towerfall' + j.redirect)
       }, (err) => {
-        console.error(`joining tournament ${this.tournament} failed`, err)
+        $vue.$alert("Join failed. See console.")
+        console.error(err)
       })
     },
   },

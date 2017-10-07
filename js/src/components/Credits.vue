@@ -111,7 +111,7 @@ export default {
       let j = JSON.parse(res.data)
       $vue.$store.commit('setCredits', j)
     }, (res) => {
-      console.log('error when setting credits')
+      $vue.$alert('Could not set credits. See console.')
       console.log(res)
       $vue.$router.push(`/towerfall/${id}/`)
     })

@@ -74,8 +74,8 @@ export default {
         var j = res.json()
         $vue.$router.push('/towerfall' + j.redirect)
       }, (res) => {
-        console.log('fail')
-        console.log(res)
+        $vue.$alert('Post failed. See console.')
+        console.error(res)
       })
     }
   },

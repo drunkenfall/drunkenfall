@@ -61,16 +61,17 @@ export default {
       this.selected.pop(e.srcElement.id)
     },
     commit () {
+      let $vue = this
       let b = this.selected.join(',')
       console.log(b)
 
       this.api.backfill({id: this.tournament.id}, b).then((res) => {
         console.debug("backfill response:", res)
         let j = res.json()
-        console.log('Redirect to /towerfall' + j.redirect)
         this.$router.push('/towerfall' + j.redirect)
       }, (err) => {
-        console.error(`backfill for ${this.tournament} failed`, err)
+        $vue.$alert("Backfill failed. See console.")
+        console.error(err)
       })
     }
   },

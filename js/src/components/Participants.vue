@@ -34,13 +34,15 @@ export default {
 
   methods: {
     toggle (e) {
+      let $vue = this
       let person = e.srcElement
       this.api.toggle({ id: this.tournament.id, person: person.id }).then((res) => {
         console.log("join response:", res)
         var j = res.json()
         this.$route.router.push('/towerfall' + j.redirect)
       }, (err) => {
-        console.error(`joining tournament ${this.tournament} failed`, err)
+        $vue.$alert("Join failed. See console.")
+        console.error(err)
       })
     },
   },
@@ -61,6 +63,7 @@ export default {
   },
 
   created () {
+    let $vue = this
     this.api = this.$resource("/api/towerfall", {}, {
       toggle: { method: "GET", url: "/api/towerfall/{id}/toggle/{person}" },
       people: { method: "GET", url: "/api/towerfall/people/" },
@@ -72,8 +75,8 @@ export default {
       console.log(res)
       this.$set(this.$data, 'people', _.sortBy(JSON.parse(res.data).people, ['name']))
     }, function (res) {
-      console.log('error when getting people')
-      console.log(res)
+      $vue.$alert("Getting people failed. See console.")
+      console.error(res)
     })
   }
 }

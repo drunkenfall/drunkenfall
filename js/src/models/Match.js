@@ -41,6 +41,7 @@ export default class Match {
   }
 
   start () {
+    let $vue = this
     if (this.tournament.shouldBackfill) {
       console.log("Not starting match; backfill required.")
       return
@@ -50,26 +51,31 @@ export default class Match {
     this.api.start(this.id).then((res) => {
       console.log("Match started.", res)
     }, (res) => {
-      console.error("Match starting failed", res)
+      $vue.$alert("Starting failed. See console.")
+      console.error(res)
     })
   }
 
   end () {
+    let $vue = this
     console.log("Ending match...")
     this.api.end(this.id).then((res) => {
       console.log("Match ended.", res)
       this.$vue.$router.push(`/towerfall/${this.tournament_id}/`)
     }, (res) => {
-      console.error("Match ending failed", res)
+      $vue.$alert("Ending failed. See console.")
+      console.error(res)
     })
   }
 
   reset () {
+    let $vue = this
     console.log("Resetting match...")
     this.api.reset(this.id).then((res) => {
       console.log("Match reset.", res)
     }, (res) => {
-      console.error("Match reset failed", res)
+      $vue.$alert("Reset failed. See console.")
+      console.error(res)
     })
   }
 

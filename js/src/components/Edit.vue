@@ -25,12 +25,14 @@ export default {
 
   methods: {
     edit (e) {
+      let $vue = this
       e.preventDefault()
       this.api.edit({ id: this.tournament.id }, this.data).then((res) => {
         console.log("edit response:", res)
         this.$router.push('/towerfall' + res.json().redirect)
       }, (err) => {
-        console.error(`editing tournament ${this.tournament} failed`, err)
+        $vue.$alert(`editing tournament failed`)
+        console.error(err)
       })
     },
   },

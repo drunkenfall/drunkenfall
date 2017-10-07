@@ -28,11 +28,13 @@ export default {
 
   methods: {
     clear (event) {
+      let $vue = this
       event.preventDefault()
       return this.$http.get('/api/towerfall/tournament/clear/').then(function (res) {
         this.$set('tournaments', _.map(res.data.tournaments, Tournament.fromObject))
       }, function (res) {
-        console.error('error when clearing tournaments', res)
+        $vue.$alert("Clearing failed. See console.")
+        console.error(res)
         return { tournaments: [] }
       })
     }

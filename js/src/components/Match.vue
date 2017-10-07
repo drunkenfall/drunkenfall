@@ -91,6 +91,7 @@ export default {
 
   methods: {
     commit () {
+      let $vue = this
       let data = _.map(this.players, (controlPlayer) => {
         return _.pick(controlPlayer, ['ups', 'downs', 'shot', 'reason'])
       })
@@ -111,8 +112,8 @@ export default {
         console.log("Round committed.")
         _.each(this.players, (controlPlayer) => { controlPlayer.reset() })
       }, function (res) {
-        console.log('error when setting score')
-        console.log(res)
+        $vue.$alert("Setting score failed. See console.")
+        console.error(res)
       })
     },
     end () {

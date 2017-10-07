@@ -85,12 +85,14 @@ export default {
 
   methods: {
     setTime (x) {
+      let $vue = this
       this.api.setTime({ id: this.tournament.id, time: x }).then((res) => {
         console.debug("settime response:", res)
         console.log('Redirect to /towerfall' + res.json().redirect)
         // this.$route.router.push('/towerfall' + j.redirect)
       }, (err) => {
-        console.error(`settime for ${this.tournament} failed`, err)
+        $vue.$alert("Setting time failed. See console.")
+        console.error(err)
       })
     },
     selectRunnerup (p) {

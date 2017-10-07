@@ -50,15 +50,18 @@ export default class Tournament {
       console.debug("next response:", res)
       $vue.$router.push('/towerfall' + res.json().redirect)
     }, (err) => {
-      console.error(`next for ${this.tournament} failed`, err)
+      $vue.$alert("Next failed. See console.")
+      console.error(err)
     })
   }
 
   usurp () {
+    let $vue = this
     this.api.usurp({ id: this.id }).then((res) => {
       console.log("usurp response", res)
     }, (err) => {
-      console.error(`usurp for ${this.tournament} failed`, err)
+      $vue.$alert("Usurp failed. See console.")
+      console.error(err)
     })
   }
 

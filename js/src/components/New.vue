@@ -44,6 +44,7 @@ export default {
 
   methods: {
     create (event) {
+      let $vue = this
       event.preventDefault()
 
       var payload = {
@@ -57,7 +58,8 @@ export default {
         var j = res.json()
         this.$router.push('/towerfall' + j.redirect)
       }, (res) => {
-        console.warn("creating tournament failed", res)
+        $vue.$alert("Creating failed. See console.")
+        console.error(res)
       })
     },
   }
