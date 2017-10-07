@@ -18,10 +18,9 @@ export default class Match {
 
     // TODO(thiderman): There is this weird bug where some matches are
     // created without a length. This circumvents this in a semi-ugly
-    // way. Also, this has only been observed on tryouts, so just
-    // force it to be 10 if such is the case.
+    // way.
     if (m.endScore === 0) {
-      m.endScore = 10
+      m.endScore = m.kind === "final" ? 20 : 10
     }
 
     // This if should super not be needed...
