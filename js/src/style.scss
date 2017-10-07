@@ -263,9 +263,9 @@ form input.text {
       text-align: center;
       background-color: #405060;
 
-      &.positive {background-color: #406040;}
-      &.warning {background-color: #774e2e;}
-      &.danger {background-color: #772e2e;}
+      &.positive {background-color: $positive;}
+      &.warning {background-color: $warning;}
+      &.danger {background-color: $danger;}
 
       .fa-icon {
         filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.3));
