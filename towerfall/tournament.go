@@ -613,8 +613,8 @@ func (t *Tournament) ArchersHarmed() int {
 }
 
 // SetupFakeTournament creates a fake tournament
-func SetupFakeTournament(r *http.Request, s *Server) *Tournament {
-	title, id := faking.FakeTournamentTitle()
+func SetupFakeTournament(r *http.Request, s *Server, req *NewRequest) *Tournament {
+	title, id := req.Name, req.ID
 
 	t, err := NewTournament(title, id, time.Now().Add(time.Hour), r, s)
 	if err != nil {

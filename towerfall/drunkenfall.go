@@ -164,7 +164,7 @@ func (s *Server) NewHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if req.Fake {
-		t = SetupFakeTournament(r, s)
+		t = SetupFakeTournament(r, s, &req)
 	} else {
 		t, err = NewTournament(req.Name, req.ID, req.Scheduled, r, s)
 		if err != nil {
