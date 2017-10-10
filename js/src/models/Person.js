@@ -19,7 +19,7 @@ export default class Person {
 
   get color () {
     if (!this.color_preference) {
-      return "white"
+      return ""
     }
     return this.color_preference[0]
   }
