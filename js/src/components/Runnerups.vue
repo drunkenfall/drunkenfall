@@ -33,7 +33,7 @@
         <p>Save</p>
         <div class="clear"></div>
       </a>
-      </div>
+    </div>
   </div>
 </template>
 
