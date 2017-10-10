@@ -160,7 +160,6 @@ form {
     display: inherit;
     text-align: center;
     box-shadow: inset 5px 5px 4px rgba(0,0,0,0.1);
-    border-radius: 0.3em;
 
     &:focus {
       outline: 0;

@@ -169,16 +169,20 @@ header, footer {
 form {
   width: 80%;
   margin: 30px auto;
-}
-form input.text {
-  font-size: 2em;
-  /* border-radius: 10px; */
-  border: none;
-  padding: 10px 30px;
-  width: 100%;
-  background-color: #333339;
-  color: white;
-  box-sizing: border-box;
+
+  input.text {
+    font-size: 2em;
+    border: none;
+    padding: 10px 30px;
+    width: 100%;
+    background-color: #333339;
+    color: white;
+    box-sizing: border-box;
+    box-shadow: inset 3px 3px 4px rgba(0,0,0,0.1);
+    border: 1px solid #111119;
+    outline: none;
+    // border-radius: 0.3em;
+  }
 }
 
 #join-link, a.button, form input.submit {
@@ -208,6 +212,7 @@ form input.text {
     position: relative;
     background-color: $button-bg;
     text-shadow: 2px 2px 2px rgba(0,0,0,0.3);
+    text-align: center;
     display: block;
     margin-bottom: 0.5em;
     transition: 0.3s;

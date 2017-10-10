@@ -85,21 +85,12 @@ form {
     width: 11em;
 
     &.name {
-      width: 22em;
+      width: 28em;
     }
     &.date {
       width: 22em;
-      text-align: center;
       font-size: 1em;
     }
-  }
-
-  input.submit {
-    border: none;
-    margin: 1.5em;
-    background-color: #333333;
-    font-size: 2em;
-    width: auto;
   }
 }
 </style>
