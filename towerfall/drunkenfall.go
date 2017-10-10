@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/drunkenfall/drunkenfall/websockets"
+	"github.com/drunkenfall/faking"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
@@ -103,6 +104,11 @@ type SettingsPostRequest struct {
 	Name  string `json:"name"`
 	Nick  string `json:"nick"`
 	Color string `json:"color"`
+}
+
+type FakeNameResponse struct {
+	Name    string `json:"name"`
+	Numeral string `json:"numeral"`
 }
 
 func init() {
@@ -625,6 +631,24 @@ func (s *Server) SettingsHandler(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write(data)
 }
 
+// FakeNameHandler returns a fake name for a tournament
+func (s *Server) FakeNameHandler(w http.ResponseWriter, r *http.Request) {
+	name, numeral := faking.FakeTournamentTitle()
+	ret := FakeNameResponse{
+		Name:    name,
+		Numeral: numeral,
+	}
+
+	data, err := json.Marshal(ret)
+
+	if err != nil {
+		log.Print(err)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	_, _ = w.Write(data)
+}
+
 // BuildRouter sets up the routes
 func (s *Server) BuildRouter(ws *websockets.Server) http.Handler {
 	n := mux.NewRouter()
@@ -635,6 +659,8 @@ func (s *Server) BuildRouter(ws *websockets.Server) http.Handler {
 	r.HandleFunc("/user/", s.UserHandler)
 	r.HandleFunc("/user/logout/", s.LogoutHandler)
 	r.HandleFunc("/user/settings/", s.SettingsHandler)
+
+	r.HandleFunc("/fake/name/", s.FakeNameHandler)
 
 	r.HandleFunc("/tournament/", s.TournamentListHandler)
 	r.HandleFunc("/tournament/clear/", s.ClearTournamentHandler)

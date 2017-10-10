@@ -1,10 +1,11 @@
 <template>
   <div>
     <form v-on:submit="create">
+      <h1>Create tournament! |o/</h1>
       <label for="name">Name</label>
       <input class="text name" v-model="name" name="name" type="text" value="" placeholder="Name"/>
 
-      <label for="id">Id</label>
+      <label for="id">ID</label>
       <input class="text id" v-model="id" name="id" type="text" value="" placeholder="ID"/>
 
       <label for="scheduled">Scheduled to start at</label>
@@ -15,11 +16,17 @@
         <input type="checkbox" id="checkbox" v-model="fake">
       </div>
 
-      <input class="submit" type="submit"/>
-    </form>
+      <div class="links standalone">
 
-    <div class="button">
+      <a @click="create" :class="{ disabled: !isReady}">
+        <div class="icon positive">
+          <icon name="plus"></icon>
+        </div>
+        <p>Create</p>
+        <div class="clear"></div>
+      </a>
     </div>
+    </form>
   </div>
 </template>
 
@@ -39,11 +46,27 @@ export default {
   },
 
   created () {
+    let $vue = this
     this.scheduled = moment().hour(20).minute(0).second(0).format()
+
+    // Come on baby, fake it for me <3
+    return this.$http.get('/api/towerfall/fake/name/').then(function (res) {
+      console.log(res)
+      let j = JSON.parse(res.data)
+      this.$set(this.$data, "name", j.name)
+      this.$set(this.$data, "id", j.numeral)
+    }, function (res) {
+      $vue.$alert("Faking failed. See console.")
+      console.error(res)
+    })
   },
 
   methods: {
     create (event) {
+      if (!this.isReady) {
+        console.log("Not ready to post.")
+        return
+      }
       let $vue = this
       event.preventDefault()
 
@@ -62,11 +85,21 @@ export default {
         console.error(res)
       })
     },
-  }
+  },
+
+  computed: {
+    isReady () {
+      return this.name !== '' && this.id !== ''
+    }
+  },
 }
 </script>
 
 <style lang="scss">
+h1 {
+  font-size: 3em;
+}
+
 form {
   display: flex;
   flex-direction: column;
