@@ -42,8 +42,17 @@ var ErrEmptyDB = errors.New("drunkenfall: Empty DB")
 // been applied. If that is lower than the const TopVersion, all migrations up
 // to that point will sequentially be applied.
 func Migrate(db *bolt.DB) error {
-	err := db.View(func(tx *bolt.Tx) error {
+	err := db.Update(func(tx *bolt.Tx) error {
 		if tx.Bucket(towerfall.TournamentKey) == nil {
+			if _, err := tx.CreateBucketIfNotExists(towerfall.TournamentKey); err != nil {
+				log.Fatal(err)
+			}
+			if _, err := tx.CreateBucketIfNotExists(towerfall.PeopleKey); err != nil {
+				log.Fatal(err)
+			}
+			if _, err := tx.CreateBucketIfNotExists(towerfall.MigrationKey); err != nil {
+				log.Fatal(err)
+			}
 			return ErrEmptyDB
 		}
 		return nil
