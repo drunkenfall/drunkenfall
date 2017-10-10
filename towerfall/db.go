@@ -2,6 +2,8 @@ package towerfall
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"log"
 	"sort"
 	"strings"
@@ -153,12 +155,19 @@ func (d *Database) SavePerson(p *Person) error {
 func (d *Database) GetPerson(id string) (*Person, error) {
 	tx, err := d.DB.Begin(false)
 	if err != nil {
+		fmt.Println(err)
 		return nil, err
 	}
 	defer tx.Rollback()
 
 	b := tx.Bucket(PeopleKey)
+	if b == nil {
+		return nil, errors.New("database not initialized")
+	}
 	out := b.Get([]byte(id))
+	if out == nil {
+		return &Person{}, errors.New("user not found")
+	}
 	p := &Person{}
 	_ = json.Unmarshal(out, p)
 	return p, nil
