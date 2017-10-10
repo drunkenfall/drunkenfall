@@ -47,7 +47,7 @@
       </div>
 
       <div v-if="userLoaded && user.authenticated" class="user">
-        <div class="settings">
+        <div @click="settings" class="settings">
           <icon name="cog"></icon>
         </div>
         <img :alt="user.firstName" :src="user.avatar"/>
@@ -56,10 +56,10 @@
           <icon name="sign-out"></icon>
         </div>
 
-        <h1 :class="user.color">{{user.nick}}</h1>
+        <h1 id="sidebar-username" :class="user.color">{{user.nick}}</h1>
       </div>
 
-      <div v-if="userLoaded && !user.authenticated" class="content facebook">
+      <div v-if="!viewing(['facebook']) && userLoaded && !user.authenticated" class="content facebook">
         <div class="links">
           <a href="/api/facebook/login">
             <div class="icon">
@@ -106,6 +106,9 @@ export default {
     },
     logout () {
       this.user.logout(this)
+    },
+    settings () {
+      this.$router.push("/towerfall/settings")
     },
   },
 }
@@ -164,7 +167,8 @@ export default {
       display: block;
     }
     h1 {
-      font-size: 1rem;
+      transition: 0.5s;
+      font-size: 1.5rem;
     }
     div {
       position: absolute;

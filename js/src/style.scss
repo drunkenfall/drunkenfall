@@ -199,12 +199,12 @@ form input.text {
   font-size: 1.2em;
 
   &.standalone a  {
-    margin: 4em auto;
+    margin: 4em auto 0.2em;
     font-size: 1.5em;
     width: 10em;
   }
 
-  a {
+  a, input {
     position: relative;
     background-color: $button-bg;
     text-shadow: 2px 2px 2px rgba(0,0,0,0.3);

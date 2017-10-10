@@ -144,8 +144,7 @@ func (p *Person) PrefillNickname() {
 }
 
 // UpdatePerson updates a person from a JoinRequest
-func (p *Person) UpdatePerson(r *FacebookJoinRequest) {
-	p.ID = r.ID
+func (p *Person) UpdatePerson(r *SettingsPostRequest) {
 	p.Name = r.Name
 	p.Nick = r.Nick
 	p.ColorPreference = []string{r.Color}
@@ -188,8 +187,12 @@ func (p *Person) StoreCookies(w http.ResponseWriter, r *http.Request) error {
 	session, _ := CookieStore.Get(r, "session")
 	session.Values["user"] = p.ID
 	session.Values["userlevel"] = p.Userlevel
-	session.Save(r, w)
+	err := session.Save(r, w)
+	if err != nil {
+		log.Fatal(err)
+	}
 
+	log.Printf("Stored cookies for '%s'", p.Nick)
 	return nil
 }
 
@@ -222,7 +225,7 @@ func PersonFromSession(s *Server, r *http.Request) *Person {
 
 	p, err := s.DB.GetPerson(id)
 	if err != nil {
-		log.Printf("Nonexisting session for '%s'", id)
+		log.Printf("Nonexisting session for '%s': %s", id, err)
 		return nil
 	}
 	return p

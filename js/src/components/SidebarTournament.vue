@@ -166,7 +166,7 @@ export default {
       return "background-color: #405060;"
     },
     isVisible () {
-      if (this.$route.name === 'start') {
+      if (_.includes(['start', 'settings'], this.$route.name)) {
         return true
       }
       return this.isSelected

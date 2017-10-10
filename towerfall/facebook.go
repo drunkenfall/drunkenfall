@@ -33,14 +33,6 @@ type FacebookAuthResponse struct {
 	Token string `json:"access_token"`
 }
 
-// FacebookJoinRequest is the request to join the showdown <3
-type FacebookJoinRequest struct {
-	ID    string `json:"id"`
-	Name  string `json:"name"`
-	Nick  string `json:"nick"`
-	Color string `json:"color"`
-}
-
 func init() {
 	// You need to have these three env vars in your env for Facebook to work.
 	// If you need access to them, talk to @thiderman.
@@ -142,6 +134,10 @@ func (s *Server) handleFacebookCallback(w http.ResponseWriter, r *http.Request) 
 	}
 
 	p := CreateFromFacebook(s, req)
+	err = p.StoreCookies(w, r)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	v := url.Values{}
 	v.Add("id", p.ID)
@@ -152,40 +148,8 @@ func (s *Server) handleFacebookCallback(w http.ResponseWriter, r *http.Request) 
 	http.Redirect(w, r, lastURL, http.StatusTemporaryRedirect)
 }
 
-// handleFacebookRegister gets the POST from the user that saves the final
-// state of Facebook registration
-func (s *Server) handleFacebookRegister(w http.ResponseWriter, r *http.Request) {
-	var req FacebookJoinRequest
-
-	body, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		log.Print(err)
-		return
-	}
-
-	err = json.Unmarshal(body, &req)
-	if err != nil {
-		log.Print(err)
-		return
-	}
-	log.Print(req)
-
-	p, err := s.DB.GetPerson(req.ID)
-	if err != nil {
-		log.Fatal(err)
-	}
-	p.UpdatePerson(&req)
-	s.DB.SavePerson(p)
-	log.Printf("%s has joined DrunkenFall!", req.Name)
-
-	_ = p.StoreCookies(w, r)
-
-	s.Redirect(w, "/")
-}
-
 // FacebookRouter builds the paths for Facebook handling
 func (s *Server) FacebookRouter(r *mux.Router) {
 	r.HandleFunc("/facebook/login", s.handleFacebookLogin)
 	r.HandleFunc("/facebook/oauth2callback", s.handleFacebookCallback)
-	r.HandleFunc("/facebook/register", s.handleFacebookRegister)
 }

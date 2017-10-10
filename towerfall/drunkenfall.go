@@ -42,6 +42,12 @@ type JSONMessage struct {
 	Redirect string `json:"redirect"`
 }
 
+// SettingsUpdateResponse is a redirect response with an extra Person field
+type SettingsUpdateResponse struct {
+	Redirect string  `json:"redirect"`
+	Person   *Person `json:"person"`
+}
+
 // GeneralRedirect is an explicit permission failure
 type GeneralRedirect JSONMessage
 
@@ -90,6 +96,13 @@ type CommitPlayer struct {
 // CommitRequest is a request to commit a match state
 type CommitRequest struct {
 	State []CommitPlayer `json:"state"`
+}
+
+// SettingsPostRequest is a settings update
+type SettingsPostRequest struct {
+	Name  string `json:"name"`
+	Nick  string `json:"nick"`
+	Color string `json:"color"`
 }
 
 func init() {
@@ -571,6 +584,47 @@ func (s *Server) LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write([]byte(""))
 }
 
+// SettingsHandler gets the POST from the user with a settings update
+func (s *Server) SettingsHandler(w http.ResponseWriter, r *http.Request) {
+	var req SettingsPostRequest
+
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		log.Print(err)
+		return
+	}
+
+	err = json.Unmarshal(body, &req)
+	if err != nil {
+		log.Print(err)
+		return
+	}
+	log.Print(req)
+
+	p := PersonFromSession(s, r)
+	if p == nil {
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"message":"oh no pls"}`))
+		return
+	}
+	p.UpdatePerson(&req)
+	s.DB.SavePerson(p)
+
+	_ = p.StoreCookies(w, r)
+
+	data, err := json.Marshal(SettingsUpdateResponse{
+		Redirect: "/",
+		Person:   p,
+	})
+
+	if err != nil {
+		log.Print(err)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	_, _ = w.Write(data)
+}
+
 // BuildRouter sets up the routes
 func (s *Server) BuildRouter(ws *websockets.Server) http.Handler {
 	n := mux.NewRouter()
@@ -580,6 +634,7 @@ func (s *Server) BuildRouter(ws *websockets.Server) http.Handler {
 	r.HandleFunc("/people/", s.PeopleHandler)
 	r.HandleFunc("/user/", s.UserHandler)
 	r.HandleFunc("/user/logout/", s.LogoutHandler)
+	r.HandleFunc("/user/settings/", s.SettingsHandler)
 
 	r.HandleFunc("/tournament/", s.TournamentListHandler)
 	r.HandleFunc("/tournament/clear/", s.ClearTournamentHandler)

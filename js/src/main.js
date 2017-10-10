@@ -12,22 +12,21 @@ import App from './App'
 
 import _ from 'lodash'
 
+import Credits from './components/Credits.vue'
+import Edit from './components/Edit.vue'
+import Join from './components/Join.vue'
+import Log from './components/Log.vue'
+import Match from './components/Match.vue'
+import New from './components/New.vue'
+import NextScreen from './components/NextScreen.vue'
+import Participants from './components/Participants.vue'
+import PostMatch from './components/PostMatch.vue'
+import Runnerups from './components/Runnerups.vue'
+import ScoreScreen from './components/ScoreScreen.vue'
+import Settings from './components/Settings.vue'
+import Sidebar from './components/Sidebar.vue'
 import TournamentList from './components/TournamentList.vue'
 import TournamentView from './components/Tournament.vue'
-import New from './components/New.vue'
-import Join from './components/Join.vue'
-import Participants from './components/Participants.vue'
-import Runnerups from './components/Runnerups.vue'
-import Edit from './components/Edit.vue'
-import Match from './components/Match.vue'
-import PostMatch from './components/PostMatch.vue'
-import Log from './components/Log.vue'
-import ScoreScreen from './components/ScoreScreen.vue'
-import NextScreen from './components/NextScreen.vue'
-import Facebook from './components/Facebook.vue'
-import FacebookFinalize from './components/FacebookFinalize.vue'
-import Credits from './components/Credits.vue'
-import Sidebar from './components/Sidebar.vue'
 
 import Person from './models/Person.js'
 import {Credits as CreditsModel} from './models/Credits.js'
@@ -55,13 +54,9 @@ var router = new Router({
       redirect: '/towerfall/',
     },
     {
-      path: '/facebook/',
-      component: Facebook,
-      name: 'facebook',
-    },
-    {
       path: '/facebook/finalize',
-      component: FacebookFinalize
+      name: 'facebook',
+      component: Settings
     },
     {
       path: '/towerfall/',
@@ -72,6 +67,11 @@ var router = new Router({
       path: '/towerfall/new/',
       name: 'new',
       component: New,
+    },
+    {
+      path: '/towerfall/settings/',
+      name: 'settings',
+      component: Settings,
     },
     {
       path: '/towerfall/:tournament/',
@@ -150,7 +150,7 @@ router.beforeEach((to, from, next) => {
         // If we're not signed in, then the backend will return an
         // object with just "false" and nothing else. If this happens,
         // we should just skip this.
-        if (data.authenticated === false) {
+        if (!data || data.authenticated === false) {
           // Mark that we tried to load the user. This means that the
           // interface will show the Facebook login button.
           router.app.$store.commit("setUserLoaded", true)
