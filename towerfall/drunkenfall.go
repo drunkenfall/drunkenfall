@@ -163,14 +163,10 @@ func (s *Server) NewHandler(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
-	if req.Fake {
-		t = SetupFakeTournament(r, s, &req)
-	} else {
-		t, err = NewTournament(req.Name, req.ID, req.Scheduled, r, s)
-		if err != nil {
-			http.Error(w, err.Error(), 500)
-			return
-		}
+	t, err = NewTournament(req.Name, req.ID, req.Scheduled, r, s)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
 	}
 
 	log.Printf("Created tournament %s!", t.Name)

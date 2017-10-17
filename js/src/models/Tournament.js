@@ -70,6 +70,14 @@ export default class Tournament {
     return n.substring(0, n.length - 1) // Remove the colon
   }
 
+  get numeralColor () {
+    if (this.color) {
+      return this.color
+    }
+
+    return "default-numeral"
+  }
+
   get subtitle () {
     return this.name.replace(/.*: /, "")
   }

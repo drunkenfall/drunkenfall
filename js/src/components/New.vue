@@ -1,8 +1,21 @@
 <template>
   <div>
     <form v-on:submit="create">
-      <h1>Create tournament! |o/</h1>
-      <label for="name">Name</label>
+      <h1 v-html="name" :class="color"></h1>
+
+      <div id="colors">
+        <div class="green" @click="setColor('green')"></div>
+	      <div class="blue" @click="setColor('blue')"></div>
+	      <div class="pink" @click="setColor('pink')"></div>
+	      <div class="orange" @click="setColor('orange')"></div>
+	      <div class="white" @click="setColor('white')"></div>
+	      <div class="yellow" @click="setColor('yellow')"></div>
+	      <div class="cyan" @click="setColor('cyan')"></div>
+	      <div class="purple" @click="setColor('purple')"></div>
+	      <div class="red" @click="setColor('red')"></div>
+      </div>
+
+      <label for="name" v-model="name">Name</label>
       <input class="text name" v-model="name" name="name" type="text" value="" placeholder="Name"/>
 
       <label for="id">ID</label>
@@ -11,27 +24,22 @@
       <label for="scheduled">Scheduled to start at</label>
       <input class="text date" v-model="scheduled"/>
 
-      <div class="fake-checkbox">
-        <label for="checkbox">Fake</label>
-        <input type="checkbox" id="checkbox" v-model="fake">
-      </div>
-
       <div class="links standalone">
-
-      <a @click="create" :class="{ disabled: !isReady}">
-        <div class="icon positive">
-          <icon name="plus"></icon>
-        </div>
-        <p>Create</p>
-        <div class="clear"></div>
-      </a>
-    </div>
+        <a @click="create" :class="{ disabled: !isReady}">
+          <div class="icon positive">
+            <icon name="plus"></icon>
+          </div>
+          <p>Create</p>
+          <div class="clear"></div>
+        </a>
+      </div>
     </form>
   </div>
 </template>
 
 <script>
 import moment from "moment"
+import _ from 'lodash'
 
 export default {
   name: 'New',
@@ -40,14 +48,20 @@ export default {
     return {
       name: '',
       id: '',
+      color: '',
       scheduled: null,
-      fake: false,
     }
   },
 
   created () {
     let $vue = this
     this.scheduled = moment().hour(20).minute(0).second(0).format()
+
+    this.$set(
+      this.$data,
+      "color",
+      _.sample(["green", "blue", "pink", "orange", "white", "yellow", "cyan", "purple", "red"])
+    )
 
     // Come on baby, fake it for me <3
     return this.$http.get('/api/towerfall/fake/name/').then(function (res) {
@@ -62,6 +76,9 @@ export default {
   },
 
   methods: {
+    setColor (color) {
+      this.$set(this.$data, "color", color)
+    },
     create (event) {
       if (!this.isReady) {
         console.log("Not ready to post.")
@@ -74,7 +91,7 @@ export default {
         name: this.name,
         id: this.id,
         scheduled: moment(this.scheduled),
-        fake: this.fake,
+        color: this.color,
       }
 
       this.$http.post('/api/towerfall/new/', payload).then((res) => {
@@ -96,8 +113,33 @@ export default {
 </script>
 
 <style lang="scss">
+@import "../variables.scss";
 h1 {
   font-size: 3em;
+}
+
+#colors {
+  width: 70%;
+  height: 3em;
+
+  div {
+    width: 9%;
+    margin: 1%;
+    float: left;
+    height: 100%;
+    box-shadow: 2px 2px 3px rgba(0,0,0,0.3);
+    cursor: pointer;
+
+    &.green  {background-color: $green-bg;}
+    &.blue   {background-color: $blue-bg;}
+    &.pink   {background-color: $pink-bg;}
+    &.orange {background-color: $orange-bg;}
+    &.white  {background-color: $white-bg;}
+    &.yellow {background-color: $yellow-bg;}
+    &.cyan   {background-color: $cyan-bg;}
+    &.purple {background-color: $purple-bg;}
+    &.red    {background-color: $red-bg;}
+  }
 }
 
 form {

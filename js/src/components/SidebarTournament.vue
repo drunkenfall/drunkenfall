@@ -4,7 +4,7 @@
       :to="{ name: 'tournament', params: { tournament: tournament.id }}">
 
       <div class="title">
-        <div class="numeral" :style="numeralColor">{{tournament.numeral}}</div>
+        <div :class="'numeral ' + tournament.numeralColor">{{tournament.numeral}}</div>
         <div class="subtitle">{{tournament.subtitle}}</div>
         <div class="clear"></div>
       </div>
@@ -162,9 +162,6 @@ export default {
       let idx = this.$route.params.match
       return this.tournament.matches[idx]
     },
-    numeralColor () {
-      return "background-color: #405060;"
-    },
     isVisible () {
       if (_.includes(['start', 'settings'], this.$route.name)) {
         return true
@@ -284,6 +281,19 @@ export default {
       float: left;
       min-width: 1.2em;
       text-align: center;
+
+      &.default-numeral {
+        background-color: #405060;
+      }
+      &.green  {background-color: $green-bg;}
+      &.blue   {background-color: $blue-bg;}
+      &.pink   {background-color: $pink-bg;}
+      &.orange {background-color: $orange-bg;}
+      &.white  {background-color: $white-bg; color: #111;}
+      &.yellow {background-color: $yellow-bg;}
+      &.cyan   {background-color: $cyan-bg;}
+      &.purple {background-color: $purple-bg;}
+      &.red    {background-color: $red-bg;}
     }
     .subtitle {
       display: inline-block;
@@ -291,4 +301,4 @@ export default {
     }
   }
 }
-</style>
+  </style>
