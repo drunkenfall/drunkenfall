@@ -28,6 +28,8 @@ import Sidebar from './components/Sidebar.vue'
 import TournamentList from './components/TournamentList.vue'
 import TournamentView from './components/Tournament.vue'
 
+import DrunkenFallNew from './components/new/DrunkenFall.vue'
+
 import Person from './models/Person.js'
 import {Credits as CreditsModel} from './models/Credits.js'
 import Tournament from './models/Tournament.js'
@@ -67,6 +69,11 @@ var router = new Router({
       path: '/towerfall/new/',
       name: 'new',
       component: New,
+    },
+    {
+      path: '/towerfall/new/drunkenfall/',
+      name: 'new',
+      component: DrunkenFallNew,
     },
     {
       path: '/towerfall/settings/',
