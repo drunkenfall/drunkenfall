@@ -52,6 +52,7 @@ h1 {
 }
 
 .tournaments {
+  transition: 0.3s ease-in-out;
   margin: 5em 0;
 }
 

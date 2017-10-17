@@ -111,6 +111,18 @@ export default {
       this.$router.push("/towerfall/settings")
     },
   },
+  created () {
+    document.onkeydown = (e) => {
+      if (e.keyCode === 37) {
+        let b = document.getElementsByTagName("body")[0]
+        if (b.className === "sidebar-less") {
+          b.className = ""
+        } else {
+          b.className = "sidebar-less"
+        }
+      }
+    }
+  },
 }
 </script>
 

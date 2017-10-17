@@ -34,6 +34,10 @@ body, html {
   }
 }
 
+#app {
+  transition: 0.3s ease-in-out;
+}
+
 .fade-enter-active, .fade-leave-active {
   transition: 0.1s ease-in-out;
 }
@@ -212,7 +216,7 @@ form {
     position: relative;
     background-color: $button-bg;
     text-shadow: 2px 2px 2px rgba(0,0,0,0.3);
-    text-align: center;
+    // text-align: center;
     display: block;
     margin-bottom: 0.5em;
     transition: 0.3s;
