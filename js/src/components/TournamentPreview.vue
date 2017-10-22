@@ -5,9 +5,11 @@
     </h1>
 
     <div class="players">
-      <div v-for="player in tournament.players" class="player">
-        <img :alt="player.person.nick" :src="player.avatar"/>
-      </div>
+      <transition-group name="list" tag="div">
+        <div v-for="player in tournament.players" v-bind:key="player.person.id" class="player">
+          <img :alt="player.person.nick" :src="player.avatar"/>
+        </div>
+      </transition-group>
       <div class="clear"></div>
     </div>
 
@@ -20,6 +22,25 @@
         <strong class="ribbon-content">
           {{ countdown.time }}
         </strong>
+      </div>
+    </div>
+
+    <div id="join" v-if="userLoaded && user.authenticated">
+      <div class="links standalone">
+        <a v-if="!isJoined" @click="join">
+          <div class="icon positive">
+            <icon name="user-plus"></icon>
+          </div>
+          <p>Join the showdown</p>
+          <div class="clear"></div>
+        </a>
+        <a v-else @click="join">
+          <div class="icon warning">
+            <icon name="times"></icon>
+          </div>
+          <p>Leave tournament :(</p>
+          <div class="clear"></div>
+        </a>
       </div>
     </div>
   </div>
@@ -39,6 +60,27 @@ export default {
     }
   },
 
+  methods: {
+    join () {
+      let $vue = this
+      console.log(this.tournament.id)
+      this.api.join({id: this.tournament.id}).then((res) => {
+        console.debug("join response:", res)
+        let j = res.json()
+        this.$router.push('/towerfall' + j.redirect)
+      }, (err) => {
+        $vue.$alert("Join failed. See console.")
+        console.error(err)
+      })
+    },
+  },
+
+  computed: {
+    isJoined () {
+      return this.tournament.playerJoined(this.user)
+    }
+  },
+
   watch: {
     tournament (nt, ot) {
       if (nt) {
@@ -47,6 +89,12 @@ export default {
       }
     }
   },
+
+  created () {
+    this.api = this.$resource("/api/towerfall", {}, {
+      join: { method: "GET", url: "/api/towerfall/{id}/join/" },
+    })
+  }
 }
 </script>
 
@@ -76,7 +124,19 @@ h2 {
   font-size: 40px;
 }
 .super-ribbon {
-  margin: -3em auto 2.5em;
+  margin: -3em auto 3em;
+}
+
+.list-item {
+  display: inline-block;
+  margin-right: 10px;
+}
+.list-enter-active, .list-leave-active {
+  transition: all 1s;
+}
+.list-enter, .list-leave-to {
+  opacity: 0;
+  width: 0px;
 }
 
 .players {

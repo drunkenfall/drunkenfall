@@ -201,14 +201,7 @@ func (s *Server) JoinHandler(w http.ResponseWriter, r *http.Request) {
 
 	tm := s.getTournament(r)
 	ps := PersonFromSession(s, r)
-	p := NewPlayer(ps)
-
-	err := tm.AddPlayer(p)
-	if err != nil {
-		PermissionFailure(w, r, err.Error())
-		return
-	}
-
+	tm.TogglePlayer(ps.ID)
 	s.Redirect(w, tm.URL())
 }
 

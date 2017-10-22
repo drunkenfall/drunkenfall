@@ -65,6 +65,13 @@ export default class Tournament {
     })
   }
 
+  playerJoined (person) {
+    let p = _.find(this.players, function (p) {
+      return p.person.id === person.id
+    })
+    return p !== undefined
+  }
+
   get numeral () {
     let n = this.name.split(" ")[1]
     return n.substring(0, n.length - 1) // Remove the colon
