@@ -3,33 +3,38 @@
     <h1>New tournament</h1>
     <h3>Choose a kind</h3>
 
-    <div class="kind">
-      <div class="icon">
-        <h1>DrunkenFall</h1>
-        <p>Business as usual</p>
+    <router-link class="action" :to="{ name: 'newDrunkenfall'}">
+      <div class="kind">
+        <div class="icon">
+          <h1>DrunkenFall</h1>
+          <p>Business as usual</p>
+        </div>
+        <img alt="To The Moon" src="/static/img/moon.jpg"/>
+        <div class="clear"></div>
       </div>
-      <img alt="To The Moon" src="/static/img/moon.jpg"/>
-      <div class="clear"></div>
-    </div>
+    </router-link>
 
-    <div class="kind group">
-      <div class="icon">
-        <h1>Group</h1>
-        <p>On-the-fly tournaments for a group of people</p>
+    <router-link class="action" :to="{ name: 'newGroup'}">
+      <div class="kind group">
+        <div class="icon">
+          <h1>Group</h1>
+          <p>On-the-fly tournaments for a group of people</p>
+        </div>
+        <img alt="To The Unomaly" src="/static/img/group.jpg"/>
+        <div class="clear"></div>
       </div>
-      <img alt="To The Unomaly" src="/static/img/group.jpg"/>
-      <div class="clear"></div>
-    </div>
+    </router-link>
 
-
-    <div class="kind test">
-      <div class="icon">
-        <h1>Test</h1>
-        <p>Faky fake test tournaments for testy testing</p>
+    <router-link class="action" :to="{ name: 'newTest'}">
+      <div class="kind test">
+        <div class="icon">
+          <h1>Test</h1>
+          <p>Faky fake test tournaments for testy testing</p>
+        </div>
+        <img alt="To The Test" src="/static/img/test.jpg"/>
+        <div class="clear"></div>
       </div>
-      <img alt="To The Test" src="/static/img/test.jpg"/>
-      <div class="clear"></div>
-    </div>
+    </router-link>
 
   </div>
 </template>
@@ -79,8 +84,15 @@ h1 {
     }
 
     p {
+      font-size: 1.2em;
       margin: 1em 3em 2em 3em;
+      text-shadow: 2px 2px 2px rgba(0,0,0,0.5);
     }
+  }
+
+  &:hover img {
+    -webkit-filter: grayscale(50%);
+    filter: grayscale(50%);
   }
 
   img {
@@ -92,8 +104,12 @@ h1 {
     width: 80%;
     float: left;
     object-fit: cover;
-    -webkit-filter: grayscale(100%); /* Safari 6.0 - 9.0 */
+    transition: 0.3s;
+
+    -webkit-filter: grayscale(100%);
     filter: grayscale(100%);
+
+
   }
 }
 

@@ -29,6 +29,7 @@ import TournamentList from './components/TournamentList.vue'
 import TournamentView from './components/Tournament.vue'
 
 import DrunkenFallNew from './components/new/DrunkenFall.vue'
+import GroupNew from './components/new/Group.vue'
 
 import Person from './models/Person.js'
 import {Credits as CreditsModel} from './models/Credits.js'
@@ -72,8 +73,13 @@ var router = new Router({
     },
     {
       path: '/towerfall/new/drunkenfall/',
-      name: 'new',
+      name: 'newDrunkenfall',
       component: DrunkenFallNew,
+    },
+    {
+      path: '/towerfall/new/group/',
+      name: 'newGroup',
+      component: GroupNew,
     },
     {
       path: '/towerfall/settings/',
