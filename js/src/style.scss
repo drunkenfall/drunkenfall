@@ -1,4 +1,5 @@
 @import "./variables.scss";
+@import '../node_modules/reset-css/reset.css';
 
 body, html {
   background-color: #22222a;
@@ -82,6 +83,8 @@ p {
 }
 
 h1, h3 {
+  margin: 1em 0.5em 0.5em;
+  font-weight: bold;
   text-align: center;
   text-shadow: 2px 2px 3px rgba(0,0,0,0.7);
 }

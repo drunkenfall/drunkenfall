@@ -17,6 +17,7 @@
     "lodash": "^4.15.0",
     "moment": "^2.14.1",
     "node-sass": "^3.13.1",
+    "reset-css": "^2.2.1",
     "sass": "^0.5.0 ",
     "sass-loader": "^4.0.0",
     "string-template": "^1.0.0",
