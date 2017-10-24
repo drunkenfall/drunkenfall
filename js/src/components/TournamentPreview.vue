@@ -71,7 +71,7 @@ export default {
   methods: {
     join () {
       let $vue = this
-      console.log(this.tournament.id)
+
       this.api.join({id: this.tournament.id}).then((res) => {
         console.debug("join response:", res)
         let j = res.json()
@@ -134,6 +134,10 @@ h2 {
   }
 }
 
+.protector {
+  margin-top: 7em;
+}
+
 @media screen and (min-device-width: 770px) {
   .ribbon {
     font-size: 40px;
@@ -153,14 +157,21 @@ h2 {
 
 .list-item {
   display: inline-block;
-  margin-right: 10px;
 }
 .list-enter-active, .list-leave-active {
-  transition: all 1s;
+  transition: all 1s ease-out;
+  img {
+    transition: all 1s ease-out;
+  }
 }
 .list-enter, .list-leave-to {
   opacity: 0;
   width: 0px;
+  height: 0px;
+  img {
+    width: 0px !important;
+    height: 0px !important;
+  }
 }
 
 .players {
