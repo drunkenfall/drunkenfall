@@ -7,9 +7,8 @@
         </div>
       </div>
 
-
       <router-link
-        :to="{name: 'start'}">
+        :to="{name: 'dispatch'}">
         <img class="logo" alt="" src="/static/img/drunkenfall.png"/>
       </router-link>
 

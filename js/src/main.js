@@ -13,6 +13,7 @@ import App from './App'
 import _ from 'lodash'
 
 import Credits from './components/Credits.vue'
+import Dispatch from './components/Dispatch.vue'
 import Edit from './components/Edit.vue'
 import Join from './components/Join.vue'
 import Log from './components/Log.vue'
@@ -50,11 +51,10 @@ Vue.component('sidebar', Sidebar)
 var router = new Router({
   mode: 'history',
   routes: [
-    // As long as we only have Drunken TowerFall on drunkenfall.com, we should
-    // always redirect to the towerfall app right away.
     {
       path: '/',
-      redirect: '/towerfall/',
+      name: 'dispatch',
+      component: Dispatch
     },
     {
       path: '/facebook/finalize',
@@ -212,6 +212,9 @@ const store = new Vuex.Store({ // eslint-disable-line
   getters: {
     getTournament: (state, getters) => (id) => {
       return state.tournaments.find(t => t.id === id)
+    },
+    upcoming: state => {
+      return _.reverse(_.filter(state.tournaments, 'isUpcoming'))
     }
   }
 })

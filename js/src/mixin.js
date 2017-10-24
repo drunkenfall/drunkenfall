@@ -48,6 +48,12 @@ var DrunkenFallMixin = {
     tournaments () {
       return this.$store.state.tournaments
     },
+    upcomingTournament () {
+      let up = this.$store.getters.upcoming
+      if (up) {
+        return up[0]
+      }
+    },
     user () {
       return this.$store.state.user
     },
