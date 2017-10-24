@@ -1,8 +1,30 @@
 <template>
   <div v-if="tournament">
     <h1>
-      Starting soon
+      {{tournament.name}}
     </h1>
+    <h3>
+      {{tournament.scheduled.local().format("ddd MMMM Do HH:mm")}}
+    </h3>
+
+    <div id="join" v-if="userLoaded && user.authenticated">
+      <div class="links standalone">
+        <a v-if="!isJoined" @click="join">
+          <div class="icon positive">
+            <icon name="user-plus"></icon>
+          </div>
+          <p>Join the showdown</p>
+          <div class="clear"></div>
+        </a>
+        <a v-else @click="join">
+          <div class="icon warning">
+            <icon name="times"></icon>
+          </div>
+          <p>Leave tournament</p>
+          <div class="clear"></div>
+        </a>
+      </div>
+    </div>
 
     <div class="players">
       <transition-group name="list" tag="div">
@@ -19,30 +41,16 @@
       </div>
 
       <div class="ribbon">
-        <strong class="ribbon-content">
+        <strong v-if="tournament.isToday" class="ribbon-content">
           {{ countdown.time }}
+        </strong>
+        <strong v-else class="ribbon-content">
+          {{tournament.scheduled.local().format("ddd MMMM Do HH:mm")}}
         </strong>
       </div>
     </div>
 
-    <div id="join" v-if="userLoaded && user.authenticated">
-      <div class="links standalone">
-        <a v-if="!isJoined" @click="join">
-          <div class="icon positive">
-            <icon name="user-plus"></icon>
-          </div>
-          <p>Join the showdown</p>
-          <div class="clear"></div>
-        </a>
-        <a v-else @click="join">
-          <div class="icon warning">
-            <icon name="times"></icon>
-          </div>
-          <p>Leave tournament :(</p>
-          <div class="clear"></div>
-        </a>
-      </div>
-    </div>
+
   </div>
 </template>
 
@@ -103,11 +111,17 @@ export default {
 @import "../ribbon.scss";
 
 h1 {
-  font-size: 6em;
-  margin-top: 0;
+  @media screen and (min-device-width: 770px) {
+    font-size: 6em;
+    text-shadow: 5px 5px 10px rgba(0,0,0,0.7);
+  }
+  @media screen and (max-device-width: 769px) {
+    font-size: 2.5em;
+    text-shadow: 3px 3px 6px rgba(0,0,0,0.7);
+  }
+  margin-top: 0.5em;
   margin-bottom: 0.4em;
   padding-top: 0.2em;
-  text-shadow: 5px 5px 10px rgba(0,0,0,0.7);
 }
 
 h2 {
@@ -120,11 +134,21 @@ h2 {
   }
 }
 
-.ribbon {
-  font-size: 40px;
+@media screen and (min-device-width: 770px) {
+  .ribbon {
+    font-size: 40px;
+  }
+  .super-ribbon {
+    margin: -3em auto 3em;
+  }
 }
-.super-ribbon {
-  margin: -3em auto 3em;
+@media screen and (max-device-width: 769px) {
+  .ribbon {
+    display: none;
+  }
+  .super-ribbon {
+    display: none;
+  }
 }
 
 .list-item {
@@ -142,23 +166,47 @@ h2 {
 .players {
   text-align: center;
   width: 80%;
-  margin: 100px auto;
+  margin: 4em auto;
 
-  .player {
-    display: inline-block;
-    width: 130px;
-    margin-top: -30px;
+  @media screen and (min-device-width: 770px) {
+    .player {
+      display: inline-block;
+      width: 130px;
+      margin-top: -30px;
 
-    img {
-      object-fit: cover;
-      border-radius: 100%;
-      width:  150px;
-      height: 150px;
-      box-shadow: -1px -1px 6px rgba(0,0,0,0.5);
-      background-color: rgba(10,12,14,0.3);
+      img {
+        object-fit: cover;
+        border-radius: 100%;
+        width:  150px;
+        height: 150px;
+
+        box-shadow: -1px -1px 6px rgba(0,0,0,0.5);
+        background-color: rgba(10,12,14,0.3);
+      }
+      .ribbon {
+        width: 88%;
+      }
     }
-    .ribbon {
-      width: 88%;
+  }
+
+  @media screen and (max-device-width: 769px) {
+    .player {
+      display: inline-block;
+      width: 5em;
+      margin-top: -30px;
+
+      img {
+        object-fit: cover;
+        border-radius: 100%;
+        width:  6em;
+        height: 6em;
+
+        box-shadow: -1px -1px 6px rgba(0,0,0,0.5);
+        background-color: rgba(10,12,14,0.3);
+      }
+      .ribbon {
+        width: 88%;
+      }
     }
   }
 }

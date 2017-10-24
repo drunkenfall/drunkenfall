@@ -105,6 +105,14 @@ export default class Tournament {
     return !this.isStarted
   }
 
+  get isUpcoming () {
+    return moment().isBefore(this.scheduled) && this.canStart
+  }
+
+  get isToday () {
+    return moment().isSame(this.scheduled, 'day')
+  }
+
   get isRunning () {
     return this.isStarted && !this.isEnded
   }
