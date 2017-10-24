@@ -47,7 +47,9 @@ body, html {
 }
 
 #app > .sidebared {
-  margin-left: $sidebar-width;
+  @media screen and (min-device-width: 769px) {
+    margin-left: $sidebar-width;
+  }
   // transition: margin-left 0.5s ease-in-out;
 }
 

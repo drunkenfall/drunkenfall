@@ -1,13 +1,19 @@
 <template>
   <div>
     <div id="sidebar">
+      <div id="hamburger">
+        <div class="icon positive">
+          <icon name="bars"></icon>
+        </div>
+      </div>
+
+
       <router-link
         :to="{name: 'start'}">
         <img class="logo" alt="" src="/static/img/drunkenfall.png"/>
       </router-link>
 
-
-      <div class="content">
+      <div class="content main">
         <div class="tournaments">
           <sidebar-tournament
             class="tournament"
@@ -50,7 +56,7 @@
         <div @click="settings" class="settings">
           <icon name="cog"></icon>
         </div>
-        <img :alt="user.firstName" :src="user.avatar"/>
+        <img @click="settings" :alt="user.firstName" :src="user.avatar"/>
 
         <div @click="logout" class="logout">
           <icon name="sign-out"></icon>
@@ -65,11 +71,13 @@
             <div class="icon">
               <icon name="facebook"></icon>
             </div>
-            <p>Facebook login</p>
+            <p>Sign in</p>
             <div class="clear"></div>
           </a>
         </div>
       </div>
+
+      <div class="clear"></div>
     </div>
   </div>
 </template>
@@ -130,20 +138,62 @@ export default {
 @import "../variables.scss";
 
 #sidebar {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
+  background-color: #333339;
+  transition: 0.5s ease-in-out;
+  box-shadow: 4px 0px 4px rgba(0,0,0,0.3);
+  user-select: none;
   z-index: 100;
   font-size: 1.3em;
 
-  width: $sidebar-width;
-  background-color: #333339;
-  transition: 0.5s ease-in-out;
+  /* Real devices */
+  @media screen and (min-device-width: 770px) {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 100;
+    font-size: 1.3em;
+    width: $sidebar-width;
 
-  box-shadow: 4px 0px 4px rgba(0,0,0,0.3);
+    .logo {
+      width: 100%;
+    }
 
-  user-select: none;
+    #hamburger {
+      display: none;
+    }
+
+    >.content {
+      margin: 1.5rem;
+    }
+  }
+
+  /* Small devices */
+  @media screen and (max-device-width: 769px) {
+    position: relative;
+    width: 100%;
+    height: 5em;
+
+    .logo {
+      /* width: 40%; */
+      height: 100%;
+      float: left;
+      display: block;
+      margin: 0px auto;
+    }
+
+    >.content.main {
+      display: none;
+    }
+
+    #hamburger {
+      display: none;
+      cursor: pointer;
+      float: left;
+      font-size: 1em;
+      margin: 1em;
+    }
+  }
 
   h1 {
     font-size: 1em;
@@ -153,69 +203,101 @@ export default {
     box-shadow: none;
   }
 
-  .logo {
-    width: 100%;
-  }
-
-  >.content {
-    margin: 1.5rem;
-  }
-
-  .user {
-    height: 140px;
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-
-    img {
-      height: 75px;
-      width:  75px;
-      object-fit: cover;
-      border-radius: 100%;
-      box-shadow: 2px 2px 3px rgba(0,0,0,0.5);
-      background-color: rgba(10,12,14,0.3);
-      margin: 0 auto;
-      display: block;
-    }
-    h1 {
-      transition: 0.5s;
-      font-size: 1.5rem;
-    }
-    div {
+  @media screen and (min-device-width: 770px) {
+    .user {
+      height: 140px;
       position: absolute;
-      top: 30px;
-      height: 1.3em;
+      left: 0;
+      right: 0;
+      bottom: 0;
 
-      color: #999;
-      filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.5));
-      transition: 0.3s;
-      font-size: 1.2em;
-
-      &:hover {
-        cursor: pointer;
-        color: #dbdbdb;
+      img {
+        height: 75px;
+        width:  75px;
+        object-fit: cover;
+        border-radius: 100%;
+        box-shadow: 2px 2px 3px rgba(0,0,0,0.5);
+        background-color: rgba(10,12,14,0.3);
+        margin: 0 auto;
+        display: block;
       }
-
-      &.settings {
-        left: 40px;
+      h1 {
+        transition: 0.5s;
+        font-size: 1.5rem;
       }
-      &.logout {
-        right: 40px;
+      div {
+        position: absolute;
+        top: 30px;
+        height: 1.3em;
+
+        color: #999;
+        filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.5));
+        transition: 0.3s;
+        font-size: 1.2em;
+
+        &:hover {
+          cursor: pointer;
+          color: #dbdbdb;
+        }
+
+        &.settings {
+          left: 40px;
+        }
+        &.logout {
+          right: 40px;
+        }
+      }
+    }
+
+    .facebook {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+
+      >.links {
+        margin: 1.5em;
       }
     }
   }
 
-  .facebook {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
 
-    >.links {
-      margin: 1.5em;
+  @media screen and (max-device-width: 769px) {
+    .user {
+      float: right;
+      width: 30%;
+
+      img {
+        position: absolute;
+        right: 5%;
+        top: 50%;
+        transform: translateY(-50%);
+
+        height: 60%;
+        object-fit: cover;
+        border-radius: 100%;
+        box-shadow: 2px 2px 3px rgba(0,0,0,0.5);
+        background-color: rgba(10,12,14,0.3);
+        display: block;
+      }
+      h1 {
+        display: none;
+      }
+      div {
+        display: none;
+      }
+    }
+
+    .facebook {
+      position: absolute;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+
+      >.links {
+        margin: 1rem;
+      }
     }
   }
 }
-
 </style>
