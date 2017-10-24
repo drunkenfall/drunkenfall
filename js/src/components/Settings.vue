@@ -155,7 +155,7 @@ form {
   }
 
   input.text {
-    width: 11em;
+    width: 100%;
     margin: 0 auto;
     display: inherit;
     text-align: center;
@@ -198,13 +198,24 @@ form {
       box-shadow: 3px 3px 5px rgba(0,0,0,0.5);
     }
 
+    text-align: center;
+
     input {
       image-rendering: pixelated;
-      width: 9.5%;
-      margin: 0.3%;
+      display: inline-block;
       opacity: 0.3;
       transition: 0.3s;
       cursor: pointer;
+      outline: none;
+
+      @media screen and (min-device-width: 770px) {
+        width: 9.5%;
+        margin: 0.3%;
+      }
+      @media screen and (max-device-width: 769px) {
+        width: 14%;
+        margin: 2%;
+      }
     }
   }
 }
