@@ -24,7 +24,6 @@
       </div>
     </div>
 
-
     <div class="links standalone">
       <a @click="commit" :class="{ disabled: !canCommit}">
         <div class="icon positive">
