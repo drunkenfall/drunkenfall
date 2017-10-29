@@ -1,5 +1,5 @@
 <template>
-  <div v-if="profile">
+  <div v-if="stats">
      <div class="profile">
        <img class="avatar" :src="profile.avatar" :alt="profile.nick" />
 
@@ -10,73 +10,71 @@
        <div class="stats" :class="profile.color">
          <div class="stat">
            <div class="data">
-             <span class="main">2</span>
-             <span class="ordinal">{{getOrdinal(2)}}</span>
+             <span class="main">{{stats.rank}}</span>
+             <span class="ordinal">{{getOrdinal(stats.rank)}}</span>
            </div>
            <p>Rank</p>
          </div>
 
          <div class="stat">
            <div class="data">
-             <span class="main">6</span>
+             <span class="main">{{stats.participated}}</span>
            </div>
            <p>Tournaments</p>
          </div>
 
          <div class="stat">
            <div class="data">
-             <span class="main">97</span>
+             <span class="main">{{stats.total.matches}}</span>
            </div>
            <p>Matches</p>
          </div>
 
          <div class="stat">
            <div class="data">
-             <span class="main">841</span>
+             <span class="main">{{stats.total.rounds}}</span>
            </div>
            <p>Rounds</p>
          </div>
 
          <div class="stat">
            <div class="data">
-             <span class="main">638</span>
+             <span class="main">{{stats.total.kills}}</span>
            </div>
            <p>Kills</p>
          </div>
 
          <div class="stat">
            <div class="data">
-             <span class="main">89</span>
+             <span class="main">{{stats.total.self}}</span>
            </div>
            <p>Selfs</p>
          </div>
 
          <div class="stat">
            <div class="data">
-             <span class="main">21</span>
+             <span class="main">{{stats.total.sweeps}}</span>
            </div>
            <p>Sweeps</p>
          </div>
 
          <div class="stat">
            <div class="data">
-             <span class="main">121</span>
+             <span class="main">{{stats.total.shots}}</span>
            </div>
            <p>Shots</p>
          </div>
 
          <div class="stat">
            <div class="data">
-             <span class="main">3298</span>
+             <span class="main">{{stats.total.score}}</span>
            </div>
            <p>Score</p>
          </div>
 
          <div class="stat">
            <div class="data">
-             <span class="main">1</span>
-             <span>h</span>
-             <span class="main">37</span>
+             <span class="main">{{stats.total.playtime.minutes()}}</span>
              <span>m</span>
            </div>
            <p>Play time</p>
@@ -97,7 +95,13 @@ export default {
   computed: {
     profile () {
       return this.user
-    }
+    },
+    stats () {
+      if (!this.$store.state.stats) {
+        return undefined
+      }
+      return this.$store.state.stats[this.profile.id]
+    },
   },
   methods: {
     getOrdinal (n) {

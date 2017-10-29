@@ -422,6 +422,11 @@ func (m *Match) ArchersHarmed() int {
 	return ret
 }
 
+// Duration returns how long the match took
+func (m *Match) Duration() time.Duration {
+	return m.Ended.Sub(m.Started)
+}
+
 // NewMatchCommit makes a new MatchCommit object from a CommitRequest
 func NewMatchCommit(c CommitRequest) Round {
 	states := c.State

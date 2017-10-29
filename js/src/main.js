@@ -34,6 +34,7 @@ import DrunkenFallNew from './components/new/DrunkenFall.vue'
 import GroupNew from './components/new/Group.vue'
 
 import Person from './models/Person.js'
+import Stats from './models/Stats.js'
 import {Credits as CreditsModel} from './models/Credits.js'
 import Tournament from './models/Tournament.js'
 
@@ -88,7 +89,7 @@ var router = new Router({
       component: Settings,
     },
     {
-      path: '/towerfall/profile/',
+      path: '/towerfall/profile/:id',
       name: 'profile',
       component: Profile,
     },
@@ -184,6 +185,14 @@ router.beforeEach((to, from, next) => {
         console.log("Failed getting user data", response)
       })
     }
+    if (!router.app.$store.state.stats) {
+      router.app.$http.get('/api/towerfall/people/stats/').then(response => {
+        let data = JSON.parse(response.data)
+        router.app.$store.commit('setStats', data)
+      }, response => {
+        console.log("Failed getting stats", response)
+      })
+    }
   }, 20)
 
   // Reset any pulsating lights
@@ -196,6 +205,7 @@ const store = new Vuex.Store({ // eslint-disable-line
     tournaments: [],
     user: new Person(),
     userLoaded: false,
+    stats: undefined,
     credits: {}
   },
   mutations: {
@@ -213,6 +223,10 @@ const store = new Vuex.Store({ // eslint-disable-line
     },
     setCredits (state, credits) {
       state.credits = CreditsModel.fromObject(credits)
+    },
+    setStats (state, stats) {
+      let dec = Stats.fromObject(stats)
+      state.stats = dec
     },
   },
   getters: {

@@ -55,7 +55,7 @@
         <div @click="settings" class="settings">
           <icon name="cog"></icon>
         </div>
-        <img @click="settings" :alt="user.firstName" :src="user.avatar"/>
+        <img @click="profile" :alt="user.firstName" :src="user.avatar"/>
 
         <div @click="logout" class="logout">
           <icon name="sign-out"></icon>
@@ -116,6 +116,9 @@ export default {
     },
     settings () {
       this.$router.push("/towerfall/settings")
+    },
+    profile () {
+      this.$router.push(`/towerfall/profile/${this.user.id}`)
     },
   },
   created () {
@@ -219,6 +222,7 @@ export default {
         background-color: rgba(10,12,14,0.3);
         margin: 0 auto;
         display: block;
+        cursor: pointer;
       }
       h1 {
         transition: 0.5s;
@@ -271,6 +275,7 @@ export default {
         right: 5%;
         top: 50%;
         transform: translateY(-50%);
+        cursor: pointer;
 
         height: 60%;
         object-fit: cover;

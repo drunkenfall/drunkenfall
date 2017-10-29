@@ -551,6 +551,22 @@ func (s *Server) PeopleHandler(w http.ResponseWriter, _ *http.Request) {
 	_, _ = w.Write(data)
 }
 
+func (s *Server) StatsHandler(w http.ResponseWriter, r *http.Request) {
+	if !HasPermission(r, PermissionPlayer) {
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"authenticated":false}`))
+		return
+	}
+
+	out := NewSnapshot(s)
+	data, err := json.Marshal(out)
+	if err != nil {
+		log.Fatal(err)
+	}
+	w.Header().Set("Content-Type", "application/json")
+	_, _ = w.Write(data)
+}
+
 // UserHandler returns data about the current user
 func (s *Server) UserHandler(w http.ResponseWriter, r *http.Request) {
 	if !HasPermission(r, PermissionPlayer) {
@@ -645,6 +661,7 @@ func (s *Server) BuildRouter(ws *websockets.Server) http.Handler {
 	r := a.PathPrefix("/towerfall").Subrouter()
 
 	r.HandleFunc("/people/", s.PeopleHandler)
+	r.HandleFunc("/people/stats/", s.StatsHandler)
 	r.HandleFunc("/user/", s.UserHandler)
 	r.HandleFunc("/user/logout/", s.LogoutHandler)
 	r.HandleFunc("/user/settings/", s.SettingsHandler)
