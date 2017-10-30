@@ -10,7 +10,6 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/drunkenfall/drunkenfall/websockets"
@@ -20,8 +19,6 @@ import (
 	"github.com/gorilla/sessions"
 	"golang.org/x/net/websocket"
 )
-
-var tournamentMutex = &sync.Mutex{}
 
 // Setup variables for the cookies. Can be used outside of this file.
 var (

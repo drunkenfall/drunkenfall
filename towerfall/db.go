@@ -7,6 +7,7 @@ import (
 	"log"
 	"sort"
 	"strings"
+	"sync"
 
 	"github.com/boltdb/bolt"
 )
@@ -29,6 +30,9 @@ var (
 	MigrationKey = []byte("migration")
 )
 
+var tournamentMutex = &sync.Mutex{}
+var personMutex = &sync.Mutex{}
+
 // NewDatabase returns a new database object
 func NewDatabase(fn string) (*Database, error) {
 	// log.Printf("Opening database at '%s'", fn)
@@ -39,6 +43,7 @@ func NewDatabase(fn string) (*Database, error) {
 
 	db := &Database{DB: bolt}
 	db.tournamentRef = make(map[string]*Tournament)
+	db.LoadPeople()
 
 	return db, nil
 }
@@ -145,6 +150,7 @@ func (d *Database) SavePerson(p *Person) error {
 			log.Fatal(err)
 		}
 
+		d.LoadPeople()
 		return nil
 	})
 
@@ -194,7 +200,9 @@ func (d *Database) LoadPeople() error {
 				return err
 			}
 
+			personMutex.Lock()
 			d.People = append(d.People, p)
+			personMutex.Unlock()
 			return nil
 		})
 		return err
