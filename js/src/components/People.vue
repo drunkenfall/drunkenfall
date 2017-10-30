@@ -1,26 +1,50 @@
 <template>
-  <div v-if="people">
+  <div v-if="stats">
     <h2>Combatants</h2>
     <div class="players">
-      <router-link :to="{name: 'profile', params: {id: person.id}}" v-for="person in people" class="person">
-        <img :id="person.id" :alt="person.nick" :src="person.avatar"/>
-        <p>{{person.displayName}}</p>
-      </router-link>
+      <template v-for="c in combatants" ref="combatants">
+        <list-player :person="c.person"></list-player>
+      </template>
     </div>
+
+    <h2>Unfought</h2>
+    <div class="players unfought">
+      <template v-for="c in unfought" ref="unfought">
+        <list-player :person="c.person"></list-player>
+      </template>
+    </div>
+
   </div>
 </template>
 
 <script>
+import _ from 'lodash'
 import DrunkenFallMixin from "../mixin"
+import ListPlayer from './players/ListPlayer.vue'
 
 export default {
   name: 'People',
   mixins: [DrunkenFallMixin],
-
+  components: {
+    ListPlayer,
+  },
   computed: {
+    stats () {
+      return this.$store.state.stats
+    },
     people () {
       return this.$store.state.people
-    }
+    },
+    combatants () {
+      return _.sortBy(_.filter(this.stats, (p) => {
+        return p.total.score > 0
+      }), 'rank')
+    },
+    unfought () {
+      return _.sortBy(_.filter(this.stats, (p) => {
+        return p.total.score === 0
+      }), 'person.displayName')
+    },
   },
 }
 </script>
@@ -41,43 +65,6 @@ h2 {
   text-align: center;
   width: 80%;
   margin: 10px auto;
-
-  a {
-    box-shadow: none;
-  }
-
-  .person {
-    display: inline-block;
-    width: 100px;
-    margin-top: 0px;
-    cursor: pointer;
-
-    img {
-      object-fit: cover;
-      border-radius: 100%;
-      width:  100px;
-      height: 100px;
-      box-shadow: -1px -1px 6px rgba(0,0,0,0.5);
-      background-color: rgba(10,12,14,0.3);
-      margin-bottom: -30px;
-    }
-    p {
-      width: 80%;
-      text-align: center;
-      padding: 0.2em 0.3em;
-      margin: 0.5em auto;
-      display: inline-block;
-      box-shadow: 1px 1px 6px rgba(0,0,0,0.5);
-      font-weight: bold;
-      background-color: #333339;
-    }
-  }
-}
-.joined p {
-  background-color: #406040;
-}
-.not-joined p {
-  background-color: #604040;
 }
 
 </style>
