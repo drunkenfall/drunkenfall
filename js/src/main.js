@@ -252,6 +252,9 @@ const store = new Vuex.Store({ // eslint-disable-line
       return _.reverse(_.filter(state.tournaments, 'isUpcoming'))
     },
     getPerson: (state, getters) => (id) => {
+      if (!state.people) {
+        return undefined
+      }
       return state.people.find(p => p.id === id)
     },
   }
