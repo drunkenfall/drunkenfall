@@ -552,12 +552,6 @@ func (s *Server) PeopleHandler(w http.ResponseWriter, _ *http.Request) {
 }
 
 func (s *Server) StatsHandler(w http.ResponseWriter, r *http.Request) {
-	if !HasPermission(r, PermissionPlayer) {
-		w.Header().Set("Content-Type", "application/json")
-		_, _ = w.Write([]byte(`{"authenticated":false}`))
-		return
-	}
-
 	out := NewSnapshot(s)
 	data, err := json.Marshal(out)
 	if err != nil {
