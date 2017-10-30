@@ -19,7 +19,6 @@ type Person struct {
 	Nick            string   `json:"nick"`
 	ColorPreference []string `json:"color_preference"`
 	FacebookID      string   `json:"facebook_id"`
-	FacebookToken   string   `json:"facebook_token"`
 	AvatarURL       string   `json:"avatar_url"`
 	Userlevel       int      `json:"userlevel"`
 }
@@ -75,12 +74,11 @@ func (p *Person) Score() *ScoreSummary {
 // CreateFromFacebook adds a new player via Facebook login
 func CreateFromFacebook(s *Server, req *FacebookAuthResponse) *Person {
 	p := &Person{
-		ID:            req.ID,
-		FacebookID:    req.ID,
-		FacebookToken: req.Token,
-		Name:          req.Name,
-		Email:         req.Email,
-		Userlevel:     PermissionPlayer,
+		ID:         req.ID,
+		FacebookID: req.ID,
+		Name:       req.Name,
+		Email:      req.Email,
+		Userlevel:  PermissionPlayer,
 	}
 
 	p.PrefillNickname()
