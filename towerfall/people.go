@@ -15,7 +15,6 @@ import (
 type Person struct {
 	ID              string   `json:"id"`
 	Name            string   `json:"name"`
-	Email           string   `json:"email"`
 	Nick            string   `json:"nick"`
 	ColorPreference []string `json:"color_preference"`
 	FacebookID      string   `json:"facebook_id"`
@@ -77,7 +76,6 @@ func CreateFromFacebook(s *Server, req *FacebookAuthResponse) *Person {
 		ID:         req.ID,
 		FacebookID: req.ID,
 		Name:       req.Name,
-		Email:      req.Email,
 		Userlevel:  PermissionPlayer,
 	}
 
