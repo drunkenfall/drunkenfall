@@ -185,12 +185,22 @@ router.beforeEach((to, from, next) => {
         console.log("Failed getting user data", response)
       })
     }
+
     if (!router.app.$store.state.stats) {
       router.app.$http.get('/api/towerfall/people/stats/').then(response => {
         let data = JSON.parse(response.data)
         router.app.$store.commit('setStats', data)
       }, response => {
         console.log("Failed getting stats", response)
+      })
+    }
+
+    if (!router.app.$store.state.people) {
+      router.app.$http.get('/api/towerfall/people/').then(response => {
+        let data = JSON.parse(response.data)
+        router.app.$store.commit('setPeople', data)
+      }, response => {
+        console.log("Failed getting people", response)
       })
     }
   }, 20)
@@ -206,6 +216,7 @@ const store = new Vuex.Store({ // eslint-disable-line
     user: new Person(),
     userLoaded: false,
     stats: undefined,
+    people: undefined,
     credits: {}
   },
   mutations: {
@@ -225,8 +236,12 @@ const store = new Vuex.Store({ // eslint-disable-line
       state.credits = CreditsModel.fromObject(credits)
     },
     setStats (state, stats) {
-      let dec = Stats.fromObject(stats)
-      state.stats = dec
+      state.stats = Stats.fromObject(stats)
+    },
+    setPeople (state, data) {
+      state.people = _.map(data.people, (p) => {
+        return Person.fromObject(p)
+      })
     },
   },
   getters: {
@@ -235,7 +250,10 @@ const store = new Vuex.Store({ // eslint-disable-line
     },
     upcoming: state => {
       return _.reverse(_.filter(state.tournaments, 'isUpcoming'))
-    }
+    },
+    getPerson: (state, getters) => (id) => {
+      return state.people.find(p => p.id === id)
+    },
   }
 })
 
