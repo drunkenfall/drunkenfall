@@ -196,17 +196,13 @@ router.beforeEach((to, from, next) => {
       router.app.$http.get('/api/towerfall/people/stats/').then(response => {
         let data = JSON.parse(response.data)
         router.app.$store.commit('setStats', data)
+        // Since the stats also contain the profiles, we can use this
+        // data to populate those as well!
+        router.app.$store.commit('setPeople', _.map(data, (s) => {
+          return s.person
+        }))
       }, response => {
         console.log("Failed getting stats", response)
-      })
-    }
-
-    if (!router.app.$store.state.people) {
-      router.app.$http.get('/api/towerfall/people/').then(response => {
-        let data = JSON.parse(response.data)
-        router.app.$store.commit('setPeople', data)
-      }, response => {
-        console.log("Failed getting people", response)
       })
     }
   }, 20)
@@ -245,7 +241,7 @@ const store = new Vuex.Store({ // eslint-disable-line
       state.stats = Stats.fromObject(stats)
     },
     setPeople (state, data) {
-      state.people = _.map(data.people, (p) => {
+      state.people = _.map(data, (p) => {
         return Person.fromObject(p)
       })
     },

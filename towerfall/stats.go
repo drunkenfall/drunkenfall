@@ -8,7 +8,7 @@ import (
 type CompleteSnapshot map[string]*Snapshot
 
 type Snapshot struct {
-	Person *Person         `json:"-"`
+	Person *Person         `json:"person"`
 	Total  *PlayerSnapshot `json:"total"`
 	Rank   int             `json:"rank"`
 	// The Tournaments map contains the same data structure, but

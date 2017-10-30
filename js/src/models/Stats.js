@@ -1,4 +1,5 @@
 import moment from 'moment'
+import Person from './Person'
 import _ from 'lodash'
 
 class PlayerSnapshot {
@@ -16,6 +17,7 @@ export default class Stats {
     Object.assign(s, obj)
 
     _.each(s, (ps) => {
+      ps.person = Person.fromObject(ps.person)
       ps.total = PlayerSnapshot.fromObject(ps.total)
 
       _.each(_.keys(ps.tournaments), (key) => {
