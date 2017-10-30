@@ -149,7 +149,7 @@ export default {
 
   /* Real devices */
   @media screen and (min-device-width: 770px) {
-    position: absolute;
+    position: fixed;
     top: 0;
     bottom: 0;
     left: 0;
