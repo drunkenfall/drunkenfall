@@ -25,7 +25,7 @@ export default class Person {
   }
 
   get displayName () {
-    return this.nick
+    return this.nick || this.firstName
   }
 
   get firstName () {
