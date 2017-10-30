@@ -21,6 +21,7 @@ import Match from './components/Match.vue'
 import New from './components/New.vue'
 import NextScreen from './components/NextScreen.vue'
 import Participants from './components/Participants.vue'
+import People from './components/People.vue'
 import PostMatch from './components/PostMatch.vue'
 import Profile from './components/Profile.vue'
 import Runnerups from './components/Runnerups.vue'
@@ -87,6 +88,11 @@ var router = new Router({
       path: '/towerfall/settings/',
       name: 'settings',
       component: Settings,
+    },
+    {
+      path: '/towerfall/profile/',
+      name: 'people',
+      component: People,
     },
     {
       path: '/towerfall/profile/:id',
