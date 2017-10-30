@@ -1,10 +1,10 @@
 <template>
-  <div v-if="stats">
+  <div v-if="profile">
      <div class="profile">
        <img class="avatar" :src="profile.avatar" :alt="profile.nick" />
 
        <h1 :class="profile.color">
-         {{profile.nick}}
+         {{profile.displayName}}
        </h1>
 
        <div class="stats" :class="profile.color">
@@ -94,7 +94,9 @@ export default {
   mixins: [DrunkenFallMixin],
   computed: {
     profile () {
-      return this.user
+      return this.$store.getters.getPerson(
+        this.$route.params.id
+      )
     },
     stats () {
       if (!this.$store.state.stats) {
