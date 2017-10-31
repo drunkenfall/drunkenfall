@@ -42,8 +42,8 @@
             <div class="clear"></div>
           </router-link>
 
-          <router-link class="action"
-            :to="{ name: 'settings'}">
+          <router-link v-if="user.isProducer" class="action"
+            :to="{ name: 'admin'}">
             <div class="icon">
               <icon name="superpowers"></icon>
             </div>

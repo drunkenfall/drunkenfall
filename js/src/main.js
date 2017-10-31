@@ -12,6 +12,7 @@ import App from './App'
 
 import _ from 'lodash'
 
+import Admin from './components/Admin.vue'
 import Credits from './components/Credits.vue'
 import Dispatch from './components/Dispatch.vue'
 import Disable from './components/Disable.vue'
@@ -96,14 +97,19 @@ var router = new Router({
       component: Archers,
     },
     {
-      path: '/towerfall/archers/disable',
-      name: 'disable',
-      component: Disable,
-    },
-    {
       path: '/towerfall/archers/:id',
       name: 'profile',
       component: Profile,
+    },
+    {
+      path: '/towerfall/admin',
+      name: 'admin',
+      component: Admin,
+    },
+    {
+      path: '/towerfall/admin/disable',
+      name: 'disable',
+      component: Disable,
     },
     {
       path: '/towerfall/tournaments/:tournament/',
