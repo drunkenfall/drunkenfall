@@ -13,14 +13,46 @@
       </router-link>
 
       <div class="content main">
-        <div class="tournaments">
-          <sidebar-tournament
-            class="tournament"
-            :tournament="tournament"
-            v-for="tournament in tournaments"></sidebar-tournament>
+
+        <!-- <div class="tournaments">
+        <sidebar-tournament
+          class="tournament"
+          :tournament="tournament"
+          v-for="tournament in tournaments"></sidebar-tournament>
+        </div>
+        -->
+
+        <div class="blocks">
+          <router-link class="action"
+            :to="{ name: 'start'}">
+            <div class="icon">
+              <icon name="fire"></icon>
+            </div>
+            <p>Tournaments</p>
+            <div class="clear"></div>
+          </router-link>
+
+          <router-link class="action"
+            :to="{ name: 'people'}">
+
+            <div class="icon">
+              🏹
+            </div>
+            <p>Archers</p>
+            <div class="clear"></div>
+          </router-link>
+
+          <router-link class="action"
+            :to="{ name: 'settings'}">
+            <div class="icon">
+              <icon name="superpowers"></icon>
+            </div>
+            <p>Admin</p>
+            <div class="clear"></div>
+          </router-link>
         </div>
 
-        <div v-if="user.isProducer && viewing(['start'])">
+        <div v-if="user.isProducer && viewing(['start']) && false">
           <h1>Actions</h1>
           <div class="actions links">
             <router-link class="action"
@@ -31,14 +63,6 @@
               <p>New tournament</p>
               <div class="clear"></div>
             </router-link>
-
-            <a href="/api/facebook/login">
-              <div class="icon warning">
-                <icon name="facebook"></icon>
-              </div>
-              <p>Re-facebook</p>
-              <div class="clear"></div>
-            </a>
 
             <a @click="clear">
               <div class="icon danger">
@@ -147,6 +171,36 @@ export default {
   z-index: 100;
   font-size: 1.3em;
 
+  .blocks .action {
+    transition: 0.2s;
+    text-shadow: 2px 2px 3px rgba(0,0,0,0.3);
+    color: #888;
+    display: block;
+    width: 100%;
+    text-align: center;
+    /* background-color: rgba(0,0,0,0.2); */
+    /* border-bottom: 1px solid rgba(0,0,0,0.1); */
+    /* border-top: 1px solid rgba(255,255,255,0.1); */
+    padding: 1.3rem 0;
+    box-shadow: none;
+
+    &.router-link-active {
+      background-color: rgba(0,0,0,0.2);
+      color: #dbdbdb;
+    }
+
+    .icon {
+      font-size: 3em;
+      text-shadow: 3px 3px 5px rgba(0,0,0,0.5);
+    }
+    p {
+      margin-top: 1em;
+      font-weight: 100;
+      font-size: 0.8em;
+      text-transform: uppercase;
+    }
+  }
+
   /* Real devices */
   @media screen and (min-device-width: 770px) {
     position: fixed;
@@ -166,7 +220,7 @@ export default {
     }
 
     >.content {
-      margin: 1.5rem;
+      /* margin: 1.5rem; */
     }
   }
 
@@ -244,10 +298,10 @@ export default {
         }
 
         &.settings {
-          left: 40px;
+          left: 30px;
         }
         &.logout {
-          right: 40px;
+          right: 30px;
         }
       }
     }
