@@ -500,6 +500,8 @@ func (s *Server) ToggleHandler(w http.ResponseWriter, r *http.Request) {
 	t := s.getTournament(r)
 
 	t.TogglePlayer(id)
+	w.Header().Set("Content-Type", "application/json")
+	_, _ = w.Write([]byte("{}"))
 }
 
 // SetTimeHandler sets the pause time for the next match
