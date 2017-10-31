@@ -33,7 +33,7 @@
           </router-link>
 
           <router-link class="action"
-            :to="{ name: 'people'}">
+            :to="{ name: 'archers'}">
 
             <div class="icon">
               🏹

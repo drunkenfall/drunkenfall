@@ -22,7 +22,7 @@ import Match from './components/Match.vue'
 import New from './components/New.vue'
 import NextScreen from './components/NextScreen.vue'
 import Participants from './components/Participants.vue'
-import People from './components/People.vue'
+import Archers from './components/Archers.vue'
 import PostMatch from './components/PostMatch.vue'
 import Profile from './components/Profile.vue'
 import Runnerups from './components/Runnerups.vue'
@@ -91,17 +91,17 @@ var router = new Router({
       component: Settings,
     },
     {
-      path: '/towerfall/users/',
-      name: 'people',
-      component: People,
+      path: '/towerfall/archers/',
+      name: 'archers',
+      component: Archers,
     },
     {
-      path: '/towerfall/users/disable',
+      path: '/towerfall/archers/disable',
       name: 'disable',
       component: Disable,
     },
     {
-      path: '/towerfall/users/:id',
+      path: '/towerfall/archers/:id',
       name: 'profile',
       component: Profile,
     },

@@ -23,7 +23,7 @@ import DrunkenFallMixin from "../mixin"
 import ListPlayer from './players/ListPlayer.vue'
 
 export default {
-  name: 'People',
+  name: 'Archers',
   mixins: [DrunkenFallMixin],
   components: {
     ListPlayer,
