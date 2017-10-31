@@ -193,6 +193,9 @@ func (d *Database) LoadPeople() error {
 	d.People = make([]*Person, 0)
 	err := d.DB.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket(PeopleKey)
+		if b == nil {
+			return nil // Test setup - no profiles
+		}
 
 		err := b.ForEach(func(k []byte, v []byte) error {
 			p, err := LoadPerson(v)

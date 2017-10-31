@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/drunkenfall/drunkenfall/websockets"
 	"github.com/stretchr/testify/assert"
@@ -17,8 +18,8 @@ func testServer() *httptest.Server {
 	// Server tests use the fake production data.
 	s := MockServer("production_data.db")
 
-	SetupFakeTournament(nil, s)
-	SetupFakeTournament(nil, s)
+	SetupFakeTournament(nil, s, &NewRequest{"a", "a", time.Now(), true})
+	SetupFakeTournament(nil, s, &NewRequest{"b", "b", time.Now(), true})
 	s.DB.LoadTournaments()
 
 	ws := websockets.NewServer()
