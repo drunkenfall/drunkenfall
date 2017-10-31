@@ -14,6 +14,7 @@ import _ from 'lodash'
 
 import Credits from './components/Credits.vue'
 import Dispatch from './components/Dispatch.vue'
+import Disable from './components/Disable.vue'
 import Edit from './components/Edit.vue'
 import Join from './components/Join.vue'
 import Log from './components/Log.vue'
@@ -93,6 +94,11 @@ var router = new Router({
       path: '/towerfall/users/',
       name: 'people',
       component: People,
+    },
+    {
+      path: '/towerfall/users/disable',
+      name: 'disable',
+      component: Disable,
     },
     {
       path: '/towerfall/users/:id',

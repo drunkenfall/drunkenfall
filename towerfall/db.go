@@ -138,7 +138,7 @@ func (d *Database) OverwriteTournament(t *Tournament) error {
 
 // SavePerson stores a person into the DB
 func (d *Database) SavePerson(p *Person) error {
-	ret := d.DB.Update(func(tx *bolt.Tx) error {
+	err := d.DB.Update(func(tx *bolt.Tx) error {
 		b, err := tx.CreateBucketIfNotExists(PeopleKey)
 		if err != nil {
 			return err
@@ -150,11 +150,14 @@ func (d *Database) SavePerson(p *Person) error {
 			log.Fatal(err)
 		}
 
-		d.LoadPeople()
 		return nil
 	})
 
-	return ret
+	if err == nil {
+		d.LoadPeople()
+	}
+
+	return err
 }
 
 // GetPerson gets a Person{} from the DB
@@ -186,6 +189,19 @@ func (d *Database) GetPerson(id string) (*Person, error) {
 func (d *Database) GetSafePerson(id string) *Person {
 	p, _ := d.GetPerson(id)
 	return p
+}
+
+// DisablePerson disables or re-enables a person
+func (d *Database) DisablePerson(id string) error {
+	p, err := d.GetPerson(id)
+	if err != nil {
+		return err
+	}
+
+	p.Disabled = !p.Disabled
+	d.SavePerson(p)
+
+	return nil
 }
 
 // LoadPeople loads the people from the database and into memory

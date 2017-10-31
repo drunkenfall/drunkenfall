@@ -578,6 +578,25 @@ func (s *Server) UserHandler(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write(data)
 }
 
+// DisableHandler disables or enables players
+func (s *Server) DisableHandler(w http.ResponseWriter, r *http.Request) {
+	if !HasPermission(r, PermissionProducer) {
+		PermissionFailure(w, r, "You need to be a producer to toggle")
+		return
+	}
+
+	vars := mux.Vars(r)
+	s.DB.DisablePerson(vars["person"])
+
+	data, err := json.Marshal(s.DB.People)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	_, _ = w.Write(data)
+}
+
 // LogoutHandler logs out the user
 func (s *Server) LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	p := PersonFromSession(s, r)
@@ -658,6 +677,7 @@ func (s *Server) BuildRouter(ws *websockets.Server) http.Handler {
 	r.HandleFunc("/user/", s.UserHandler)
 	r.HandleFunc("/user/logout/", s.LogoutHandler)
 	r.HandleFunc("/user/settings/", s.SettingsHandler)
+	r.HandleFunc("/user/{person}/disable", s.DisableHandler)
 
 	r.HandleFunc("/fake/name/", s.FakeNameHandler)
 
