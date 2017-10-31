@@ -303,19 +303,11 @@ func TestCommitStoredOnMatch(t *testing.T) {
 
 	c := Round{
 		Kills: [][]int{
-			{0, 0},
-			{1, 0},
-			{1, 0},
-			{1, 0},
+			{0, 0}, {1, 0}, {1, 0}, {1, 0},
 		},
 		// For the frontend it makes sense that a sweep marks a shot, therefore we
 		// need to make sure that we don't add another shot.
-		Shots: []bool{
-			true,
-			false,
-			false,
-			false,
-		},
+		Shots: []bool{true, false, false, false},
 	}
 
 	assert.Equal(0, len(m.Rounds))
@@ -325,6 +317,28 @@ func TestCommitStoredOnMatch(t *testing.T) {
 	assert.Equal(1, m.Rounds[0].Kills[2][0])
 	assert.Equal(1, m.Rounds[0].Kills[3][0])
 	assert.Equal(true, m.Rounds[0].Shots[0])
+}
+
+func TestCommitWithOnlyShotsNotStoredOnMatch(t *testing.T) {
+	assert := assert.New(t)
+
+	m := MockMatch(0, "tryout")
+	_ = m.AddPlayer(testPlayer())
+	_ = m.AddPlayer(testPlayer())
+	_ = m.AddPlayer(testPlayer())
+	_ = m.AddPlayer(testPlayer())
+
+	c := Round{
+		Kills: [][]int{
+			{0, 0}, {0, 0}, {0, 0}, {0, 0},
+		},
+		Shots: []bool{true, false, false, false},
+	}
+
+	assert.Equal(0, len(m.Rounds))
+	m.Commit(c)
+	assert.Equal(0, len(m.Rounds))
+	assert.Equal(1, m.Players[0].Shots)
 }
 
 func TestCorrectColorConflictsNoScores(t *testing.T) {
@@ -551,4 +565,37 @@ func TestMakeKillOrder(t *testing.T) {
 	assert.Equal(ko[1], 2)
 	assert.Equal(ko[2], 1)
 	assert.Equal(ko[3], 0)
+}
+
+func TestRoundIsShotUpdate(t *testing.T) {
+	t.Run("Has shots", func(t *testing.T) {
+		r := Round{
+			Kills: [][]int{
+				{0, 0}, {0, 0}, {0, 0}, {0, 0},
+			},
+			Shots: []bool{true, false, false, false},
+		}
+		assert.Equal(t, true, r.IsShotUpdate())
+	})
+
+	t.Run("Has kills", func(t *testing.T) {
+		r := Round{
+			Kills: [][]int{
+				{0, 0}, {1, 0}, {1, 0}, {0, 0},
+			},
+			Shots: []bool{true, false, false, false},
+		}
+		assert.Equal(t, false, r.IsShotUpdate())
+	})
+
+	t.Run("Is completely empty", func(t *testing.T) {
+		r := Round{
+			Kills: [][]int{
+				{0, 0}, {0, 0}, {0, 0}, {0, 0},
+			},
+			Shots: []bool{false, false, false, false},
+		}
+		assert.Equal(t, false, r.IsShotUpdate())
+	})
+
 }

@@ -237,21 +237,31 @@ func (m *Match) CorrectFuckingColorConflicts() error {
 // Commit applies the round actions to the state of the players
 // TODO(thiderman): It should not be possible to commit to a non-started match
 func (m *Match) Commit(round Round) {
-	for i, score := range round.Kills {
-		kills := score[0]
-		self := score[1]
+	if round.IsShotUpdate() {
+		// The only thing submitted was shots, just update the players
+		for i, s := range round.Shots {
+			if s {
+				m.Players[i].AddShot()
+			}
+		}
+	} else {
+		// Apply normally
+		for i, score := range round.Kills {
+			kills := score[0]
+			self := score[1]
 
-		m.Players[i].AddKills(kills)
-		if self == -1 {
-			m.Players[i].AddSelf()
+			m.Players[i].AddKills(kills)
+			if self == -1 {
+				m.Players[i].AddSelf()
+			}
+			if self == -1 || kills == 3 || round.Shots[i] {
+				m.Players[i].AddShot()
+			}
 		}
-		if self == -1 || kills == 3 || round.Shots[i] {
-			m.Players[i].AddShot()
-		}
+		m.Rounds = append(m.Rounds, round)
+		m.KillOrder = m.MakeKillOrder()
 	}
 
-	m.KillOrder = m.MakeKillOrder()
-	m.Rounds = append(m.Rounds, round)
 	_ = m.Tournament.Persist()
 }
 
@@ -448,4 +458,23 @@ func NewMatchCommit(c CommitRequest) Round {
 	}
 
 	return m
+}
+
+// IsShotUpdate returns true if the only thing that happened was shots
+func (r *Round) IsShotUpdate() bool {
+	for _, y := range r.Kills {
+		for _, z := range y {
+			if z != 0 {
+				return false
+			}
+		}
+	}
+
+	for _, s := range r.Shots {
+		if s {
+			return true
+		}
+	}
+
+	return false
 }
