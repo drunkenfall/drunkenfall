@@ -16,7 +16,7 @@ export default class Tournament {
     t.started = moment(t.started)
     t.ended = moment(t.ended)
 
-    t.matches = _.map(t.matches, (m) => { return Match.fromObject(m, $vue) })
+    t.matches = _.map(t.matches, (m) => { return Match.fromObject(m, $vue, t) })
 
     t.players = _.map(t.players, Player.fromObject)
     t.runnerups = _.map(t.runnerups, Person.fromObject)

@@ -4,7 +4,7 @@ import _ from 'lodash'
 import Player from './Player.js'
 
 export default class Match {
-  static fromObject (obj, $vue) {
+  static fromObject (obj, $vue, t) {
     let m = new Match()
     Object.assign(m, obj)
     m.$vue = $vue
@@ -23,18 +23,16 @@ export default class Match {
       m.endScore = m.kind === "final" ? 20 : 10
     }
 
-    // This if should super not be needed...
-    if ($vue) {
-      let root = "/api/towerfall/tournament{/id}{/index}"
+    let root = "/api/towerfall/tournament{/id}{/index}"
+    m.api = $vue.$resource("/api/towerfall", {}, {
+      start: { method: "GET", url: `${root}/start/` },
+      commit: { method: "POST", url: `${root}/commit/` },
+      end: { method: "GET", url: `${root}/end/` },
+      reset: { method: "GET", url: `${root}/reset/` },
+    })
 
-      m.api = $vue.$resource("/api/towerfall", {}, {
-        start: { method: "GET", url: `${root}/start/` },
-        commit: { method: "POST", url: `${root}/commit/` },
-        end: { method: "GET", url: `${root}/end/` },
-        reset: { method: "GET", url: `${root}/reset/` },
-      })
-
-      m.tournament_id = $vue.$route.params.tournament
+    if (t !== undefined) {
+      m.tournament_id = t.id
     }
 
     return m
