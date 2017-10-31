@@ -25,7 +25,7 @@ a {
 
 .person {
   display: inline-block;
-  width: 125px;
+  width: 135px;
   margin-top: 0px;
   cursor: pointer;
 
