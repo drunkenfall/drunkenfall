@@ -1,35 +1,23 @@
 <template>
   <div v-if="tournament">
-    <h2>Not joined ({{notJoined.length}})</h2>
-    <div class="players not-joined">
-      <div v-for="person in notJoined" class="player">
-        <img @click="toggle" :id="person.id" :alt="person.nick" :src="'https://graph.facebook.com/'+person.facebook_id+'/picture?width=9999'"/>
-        <p>{{person.name.split(" ")[0]}}</p>
-      </div>
-    </div>
-
-    <h2>Joined ({{tournament.players.length}}/32)</h2>
-    <div class="players joined">
-      <div v-for="player in joined" class="player">
-        <img @click="toggle" :id="player.person.id" :alt="player.person.nick" :src="player.avatar"/>
-        <p>{{player.person.name.split(" ")[0]}}</p>
-      </div>
-    </div>
+    <player-toggle
+      :on="joined" :onLabel="'In for the showdown! |o/'"
+      :off="notJoined" :offLabel="'Booooooo 😧'"
+      :toggle="toggle">
+    </player-toggle>
   </div>
 </template>
 
 <script>
 import _ from 'lodash'
 import DrunkenFallMixin from "../mixin"
+import PlayerToggle from "./players/PlayerToggle.vue"
 
 export default {
   name: 'Participants',
   mixins: [DrunkenFallMixin],
-
-  data () {
-    return {
-      people: [],
-    }
+  components: {
+    PlayerToggle
   },
 
   methods: {
@@ -38,8 +26,6 @@ export default {
       let person = e.srcElement
       this.api.toggle({ id: this.tournament.id, person: person.id }).then((res) => {
         console.log("join response:", res)
-        var j = res.json()
-        this.$route.router.push('/towerfall' + j.redirect)
       }, (err) => {
         $vue.$alert("Join failed. See console.")
         console.error(err)
@@ -49,85 +35,24 @@ export default {
 
   computed: {
     joined () {
-      return _.sortBy(this.tournament.players, ['person.name'])
+      console.log(this.tournament)
+      return _.sortBy(_.map(this.tournament.players, (p) => p.person), ['name'])
     },
     notJoined () {
       let $vue = this
-      return _.filter(this.people, function (o) {
+      return _.sortBy(_.filter(this.people, function (o) {
         let p = _.find($vue.tournament.players, function (p) {
           return p.person.id === o.id
         })
         return p === undefined
-      })
+      }), "name")
     },
   },
 
   created () {
-    let $vue = this
     this.api = this.$resource("/api/towerfall", {}, {
       toggle: { method: "GET", url: "/api/towerfall/{id}/toggle/{person}" },
-      people: { method: "GET", url: "/api/towerfall/people/" },
-    })
-
-    // TODO: It could be that this makes more sense to have as
-    // something in the Vuex storage.
-    this.api.people().then(function (res) {
-      console.log(res)
-      this.$set(this.$data, 'people', _.sortBy(JSON.parse(res.data).people, ['name']))
-    }, function (res) {
-      $vue.$alert("Getting people failed. See console.")
-      console.error(res)
     })
   }
 }
 </script>
-
-<style lang="scss" scoped>
-
-.sidebared-content {
-  text-align: center;
-}
-
-h2 {
-  text-align: center;
-}
-
-.players {
-  text-align: center;
-  width: 80%;
-  margin: 10px auto;
-
-  .player {
-    display: inline-block;
-    width: 100px;
-    margin-top: 0px;
-    cursor: pointer;
-
-    img {
-      object-fit: cover;
-      border-radius: 100%;
-      width:  100px;
-      height: 100px;
-      box-shadow: -1px -1px 6px rgba(0,0,0,0.5);
-      background-color: rgba(10,12,14,0.3);
-      margin-bottom: -30px;
-    }
-    p {
-      width: 80%;
-      text-align: center;
-      padding: 0.2em 0.3em;
-      margin: 0.5em auto;
-      display: inline-block;
-      box-shadow: 1px 1px 6px rgba(0,0,0,0.5);
-      font-weight: bold;
-    }
-  }
-}
-.joined p {
-  background-color: #406040;
-}
-.not-joined p {
-  background-color: #604040;
-}
-
-</style>

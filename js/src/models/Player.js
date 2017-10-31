@@ -1,7 +1,10 @@
+import Person from './Person.js'
+
 export default class Player {
   static fromObject (obj) {
     let p = new Player()
     Object.assign(p, obj)
+    p.person = Person.fromObject(p.person)
     return p
   }
 
