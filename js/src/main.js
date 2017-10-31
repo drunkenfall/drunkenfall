@@ -65,22 +65,22 @@ var router = new Router({
       component: Settings
     },
     {
-      path: '/towerfall/',
+      path: '/towerfall/tournaments/',
       name: 'start',
       component: TournamentList
     },
     {
-      path: '/towerfall/new/',
+      path: '/towerfall/tournaments/new/',
       name: 'new',
       component: New,
     },
     {
-      path: '/towerfall/new/drunkenfall/',
+      path: '/towerfall/tournaments/new/drunkenfall/',
       name: 'newDrunkenfall',
       component: DrunkenFallNew,
     },
     {
-      path: '/towerfall/new/group/',
+      path: '/towerfall/tournaments/new/group/',
       name: 'newGroup',
       component: GroupNew,
     },
@@ -90,73 +90,73 @@ var router = new Router({
       component: Settings,
     },
     {
-      path: '/towerfall/profile/',
+      path: '/towerfall/users/',
       name: 'people',
       component: People,
     },
     {
-      path: '/towerfall/profile/:id',
+      path: '/towerfall/users/:id',
       name: 'profile',
       component: Profile,
     },
     {
-      path: '/towerfall/:tournament/',
+      path: '/towerfall/tournaments/:tournament/',
       name: 'tournament',
       component: TournamentView
     },
     {
-      path: '/towerfall/:tournament/join/',
+      path: '/towerfall/tournaments/:tournament/join/',
       name: 'join',
       component: Join
     },
     {
-      path: '/towerfall/:tournament/participants/',
+      path: '/towerfall/tournaments/:tournament/participants/',
       name: 'participants',
       component: Participants
     },
     {
-      path: '/towerfall/:tournament/runnerups/',
+      path: '/towerfall/tournaments/:tournament/runnerups/',
       name: 'runnerups',
       component: Runnerups
     },
     {
-      path: '/towerfall/:tournament/edit/',
+      path: '/towerfall/tournaments/:tournament/edit/',
       name: 'edit',
       component: Edit
     },
     {
-      path: '/towerfall/:tournament/scores/',
+      path: '/towerfall/tournaments/:tournament/scores/',
       name: 'scores',
       component: ScoreScreen
     },
     {
-      path: '/towerfall/:tournament/next/',
+      path: '/towerfall/tournaments/:tournament/next/',
       name: 'next',
       component: NextScreen
     },
     {
-      path: '/towerfall/:tournament/charts/',
+      path: '/towerfall/tournaments/:tournament/charts/',
       name: 'charts',
       component: PostMatch
     },
     {
-      path: '/towerfall/:tournament/log/',
+      path: '/towerfall/tournaments/:tournament/log/',
       name: 'log',
       component: Log
     },
     {
-      path: '/towerfall/:tournament/credits/',
+      path: '/towerfall/tournaments/:tournament/credits/',
       name: 'credits',
       component: Credits
     },
     {
-      path: '/towerfall/:tournament/:match/',
+      path: '/towerfall/tournaments/:tournament/:match/',
       name: 'match',
       component: Match
     },
     {
-      path: '/towerfall/:tournament/*',
-      redirect: '/towerfall/:tournament/',
+      path: '/towerfall/tournaments/:tournament/*',
+      redirect: '/towerfall/tournaments/:tournament/',
     },
   ],
 })

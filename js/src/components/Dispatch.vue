@@ -13,9 +13,9 @@ export default {
   methods: {
     dispatch () {
       if (this.upcomingTournament !== undefined) {
-        this.$router.push(`/towerfall/${this.upcomingTournament.id}/`)
+        this.$router.push(`/towerfall/tournaments/${this.upcomingTournament.id}/`)
       } else {
-        this.$router.push(`/towerfall/`)
+        this.$router.push(`/towerfall/tournaments/`)
       }
     },
   },
