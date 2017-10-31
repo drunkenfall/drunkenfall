@@ -108,7 +108,7 @@ export default class Match {
 
   get relativeIndex () {
     if (this.kind === "semi") {
-      return this.index - this.tournament.tryouts.length + 1
+      return this.index - this.tournament.playoffs.length + 1
     }
     return this.index + 1
   }

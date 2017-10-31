@@ -23,10 +23,10 @@
       </div>
     </div>
 
-    <div class="category tryouts">
-      <h3>Tryouts</h3>
+    <div class="category playoffs">
+      <h3>Playoffs</h3>
       <div class="matches">
-        <template v-for="m in tournament.tryouts">
+        <template v-for="m in tournament.playoffs">
           <match-overview :match="m" :class="'match ' + m.kind"></match-overview>
         </template>
       </div>
@@ -66,7 +66,7 @@ export default {
 
   computed: {
     canParticipants () {
-      return this.tournament.currentMatch.kind === 'tryout'
+      return this.tournament.currentMatch.kind === 'playoff'
     },
     runnerups () {
       let t = this.tournament
@@ -128,7 +128,7 @@ export default {
   position: relative;
 }
 
-.tryouts, .semis, .final {
+.playoffs, .semis, .final {
   width: 29%;
   float: left;
   margin-left: 3%;

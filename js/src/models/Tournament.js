@@ -147,7 +147,7 @@ export default class Tournament {
     return this.matches[this.current]
   }
 
-  get tryouts () {
+  get playoffs () {
     return _.slice(this.matches, 0, this.matches.length - 3)
   }
 

@@ -119,8 +119,8 @@ func (p *Player) Classes() string {
 			// Always gold for the winner
 			return "gold"
 		} else if ps[1].Name() == p.Name() {
-			// Silver for the second, unless there is a short amount of tryouts
-			if p.Match.Kind != tryout || len(p.Match.Tournament.Matches)-3 <= 4 {
+			// Silver for the second, unless there is a short amount of playoffs
+			if p.Match.Kind != playoff || len(p.Match.Tournament.Matches)-3 <= 4 {
 				return "silver"
 			}
 		} else if ps[2].Name() == p.Name() && p.Match.Kind == final {

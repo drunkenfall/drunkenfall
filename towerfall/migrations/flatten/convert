@@ -16,7 +16,7 @@ for root, dirs, files in os.walk("in"):
 
             # Flatten all the matches into the same space.
             t["matches"] = []
-            for m in t["tryouts"]:
+            for m in t["playoffs"]:
                 t["matches"].append(m)
             t["matches"].append(t["semis"][0])
             t["matches"].append(t["semis"][1])
@@ -30,7 +30,7 @@ for root, dirs, files in os.walk("in"):
             t["current"] = len(t["matches"]) - 1
 
             # Remove the old match containers
-            del t["tryouts"]
+            del t["playoffs"]
             del t["semis"]
             del t["final"]
 

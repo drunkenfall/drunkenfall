@@ -23,12 +23,12 @@ func MockMatch(idx int, cat string) (m *Match) {
 	offset := 0
 
 	switch cat {
-	case "tryout":
+	case playoff:
 		m = tm.Matches[offset+idx]
-	case "semi":
+	case semi:
 		offset = len(tm.Matches) - 3
 		m = tm.Matches[offset+idx]
-	case "final":
+	case final:
 		m = tm.Matches[len(tm.Matches)-1]
 	default:
 		log.Fatalf("Unknown match type: %s", cat)
@@ -55,7 +55,7 @@ func testPerson(i int) *Person {
 
 func TestAddPlayer(t *testing.T) {
 	assert := assert.New(t)
-	m := MockMatch(0, "tryout")
+	m := MockMatch(0, "playoff")
 	m.Players = []Player{}
 	p := testPlayer()
 
@@ -67,7 +67,7 @@ func TestAddPlayer(t *testing.T) {
 
 func TestAddFifthPlayer(t *testing.T) {
 	assert := assert.New(t)
-	m := MockMatch(1, "tryout")
+	m := MockMatch(1, "playoff")
 
 	p := testPlayer()
 
@@ -78,7 +78,7 @@ func TestAddFifthPlayer(t *testing.T) {
 
 func TestStartAlreadyStartedMatch(t *testing.T) {
 	assert := assert.New(t)
-	m := MockMatch(1, "tryout")
+	m := MockMatch(1, "playoff")
 	m.Started = time.Now()
 
 	err := m.Start(nil)
@@ -87,7 +87,7 @@ func TestStartAlreadyStartedMatch(t *testing.T) {
 
 func TestStart(t *testing.T) {
 	assert := assert.New(t)
-	m := MockMatch(1, "tryout")
+	m := MockMatch(1, "playoff")
 
 	err := m.Start(nil)
 	assert.Nil(err)
@@ -96,7 +96,7 @@ func TestStart(t *testing.T) {
 
 func TestEndGivesShotToWinner(t *testing.T) {
 	assert := assert.New(t)
-	m := MockMatch(1, "tryout")
+	m := MockMatch(1, "playoff")
 
 	err := m.Start(nil)
 	assert.Nil(err)
@@ -110,7 +110,7 @@ func TestEndGivesShotToWinner(t *testing.T) {
 
 func TestEndAlreadyEndedMatch(t *testing.T) {
 	assert := assert.New(t)
-	m := MockMatch(1, "tryout")
+	m := MockMatch(1, "playoff")
 	m.Ended = time.Now()
 
 	err := m.End(nil)
@@ -120,7 +120,7 @@ func TestEndAlreadyEndedMatch(t *testing.T) {
 func TestCommitSweepPlayer1(t *testing.T) {
 	assert := assert.New(t)
 
-	m := MockMatch(0, "tryout")
+	m := MockMatch(0, "playoff")
 	_ = m.AddPlayer(testPlayer())
 	_ = m.AddPlayer(testPlayer())
 	_ = m.AddPlayer(testPlayer())
@@ -148,7 +148,7 @@ func TestCommitSweepPlayer1(t *testing.T) {
 func TestCommitDoubleKillPlayer2(t *testing.T) {
 	assert := assert.New(t)
 
-	m := MockMatch(0, "tryout")
+	m := MockMatch(0, "playoff")
 	_ = m.AddPlayer(testPlayer())
 	_ = m.AddPlayer(testPlayer())
 	_ = m.AddPlayer(testPlayer())
@@ -176,7 +176,7 @@ func TestCommitDoubleKillPlayer2(t *testing.T) {
 func TestCommitSweepAndSuicidePlayer3(t *testing.T) {
 	assert := assert.New(t)
 
-	m := MockMatch(0, "tryout")
+	m := MockMatch(0, "playoff")
 	_ = m.AddPlayer(testPlayer())
 	_ = m.AddPlayer(testPlayer())
 	_ = m.AddPlayer(testPlayer())
@@ -206,7 +206,7 @@ func TestCommitSweepAndSuicidePlayer3(t *testing.T) {
 func TestCommitSuicidePlayer4(t *testing.T) {
 	assert := assert.New(t)
 
-	m := MockMatch(0, "tryout")
+	m := MockMatch(0, "playoff")
 	_ = m.AddPlayer(testPlayer())
 	_ = m.AddPlayer(testPlayer())
 	_ = m.AddPlayer(testPlayer())
@@ -235,7 +235,7 @@ func TestCommitSuicidePlayer4(t *testing.T) {
 func TestCommitShotsForPlayer2and3(t *testing.T) {
 	assert := assert.New(t)
 
-	m := MockMatch(0, "tryout")
+	m := MockMatch(0, "playoff")
 	_ = m.AddPlayer(testPlayer())
 	_ = m.AddPlayer(testPlayer())
 	_ = m.AddPlayer(testPlayer())
@@ -264,7 +264,7 @@ func TestCommitShotsForPlayer2and3(t *testing.T) {
 func TestCommitSweepForPlayer1(t *testing.T) {
 	assert := assert.New(t)
 
-	m := MockMatch(0, "tryout")
+	m := MockMatch(0, "playoff")
 	_ = m.AddPlayer(testPlayer())
 	_ = m.AddPlayer(testPlayer())
 	_ = m.AddPlayer(testPlayer())
@@ -295,7 +295,7 @@ func TestCommitSweepForPlayer1(t *testing.T) {
 func TestCommitStoredOnMatch(t *testing.T) {
 	assert := assert.New(t)
 
-	m := MockMatch(0, "tryout")
+	m := MockMatch(0, "playoff")
 	_ = m.AddPlayer(testPlayer())
 	_ = m.AddPlayer(testPlayer())
 	_ = m.AddPlayer(testPlayer())
@@ -322,7 +322,7 @@ func TestCommitStoredOnMatch(t *testing.T) {
 func TestCommitWithOnlyShotsNotStoredOnMatch(t *testing.T) {
 	assert := assert.New(t)
 
-	m := MockMatch(0, "tryout")
+	m := MockMatch(0, "playoff")
 	_ = m.AddPlayer(testPlayer())
 	_ = m.AddPlayer(testPlayer())
 	_ = m.AddPlayer(testPlayer())
@@ -550,7 +550,7 @@ func TestCorrectColorConflictsWithScoresTripleConflict(t *testing.T) {
 
 func TestMakeKillOrder(t *testing.T) {
 	assert := assert.New(t)
-	m := MockMatch(0, "tryout")
+	m := MockMatch(0, "playoff")
 
 	m.Players[0].AddKills(1)
 	m.Players[1].AddKills(4)

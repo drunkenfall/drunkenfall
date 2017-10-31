@@ -12,9 +12,9 @@ import (
 )
 
 const (
-	semi   = "semi"
-	final  = "final"
-	tryout = "tryout"
+	playoff = "playoff"
+	semi    = "semi"
+	final   = "final"
 )
 
 // Match represents a game being played
@@ -106,7 +106,7 @@ func (m *Match) Title() string {
 	l := 2
 	if m.Kind == final {
 		return "Final"
-	} else if m.Kind == tryout {
+	} else if m.Kind == playoff {
 		l = len(m.Tournament.Matches) - 3
 	}
 

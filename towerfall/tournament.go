@@ -200,7 +200,7 @@ func (t *Tournament) ShufflePlayers() {
 	}
 
 	// Loop the players and set them into the matches. This exhausts the
-	// list before it leaves the tryouts.
+	// list before it leaves the playoffs.
 	for i, p := range slice {
 		m := t.Matches[i/4]
 		m.AddPlayer(p)
@@ -214,14 +214,14 @@ func (t *Tournament) StartTournament(r *http.Request) error {
 		return fmt.Errorf("Tournament needs %d or more players and %d or less, got %d", minPlayers, maxPlayers, ps)
 	}
 
-	// If there are only eight players, we should skip doing tryouts and
+	// If there are only eight players, we should skip doing playoffs and
 	// just do the semi and the finals. Everything above that needs
-	// tryout matches.
+	// playoff matches.
 	if ps != minPlayers {
-		// If there are more than eight then we add more tryouts until
-		// every player gets to play in the tryouts once.
+		// If there are more than eight then we add more playoffs until
+		// every player gets to play in the playoffs once.
 		for i := 0; i < ps; i += 4 {
-			match := NewMatch(t, tryout)
+			match := NewMatch(t, playoff)
 			t.Matches = append(t.Matches, match)
 		}
 	}
@@ -352,19 +352,19 @@ func (t *Tournament) UpdatePlayers() error {
 // MovePlayers moves the winner(s) of a Match into the next bracket of matches
 // or into the Runnerup bracket.
 func (t *Tournament) MovePlayers(m *Match) error {
-	if m.Kind == tryout {
-		err := t.moveTryoutPlayers(m)
+	if m.Kind == playoff {
+		err := t.movePlayoffPlayers(m)
 		if err != nil {
 			return err
 		}
 
-		// If the next match is also a tryout and does not have enough players,
+		// If the next match is also a playoff and does not have enough players,
 		// fill it up with runnerups.
 		nm, err := t.NextMatch()
 		if err != nil {
 			return err
 		}
-		if nm.Kind == tryout && len(nm.Players) < 4 {
+		if nm.Kind == playoff && len(nm.Players) < 4 {
 			log.Printf("Setting runnerups for %s", nm)
 			err := t.PopulateRunnerups(nm)
 			if err != nil {
@@ -385,11 +385,11 @@ func (t *Tournament) MovePlayers(m *Match) error {
 	return nil
 }
 
-func (t *Tournament) moveTryoutPlayers(m *Match) error {
+func (t *Tournament) movePlayoffPlayers(m *Match) error {
 	ps := SortByKills(m.Players)
 	for i := 0; i < len(ps); i++ {
 		p := ps[i]
-		// If we are in a four-match tryout, both the winner and the second-place
+		// If we are in a four-match playoff, both the winner and the second-place
 		// are to be sent to the semis.
 		// If there are more than four matches, just send the winner
 		if len(t.Matches)-3 <= 4 && i < 2 || i == 0 {
@@ -443,7 +443,7 @@ func (t *Tournament) UpdateRunnerups() error {
 // BackfillSemis takes a few Person IDs and shuffles those into the remaining slots
 // of the semi matches
 func (t *Tournament) BackfillSemis(r *http.Request, ids []string) error {
-	// If we're on the last tryout, we should backfill the semis with runnerups
+	// If we're on the last playoff, we should backfill the semis with runnerups
 	// until they have have full seats.
 	// The amount of players needed; 8 minus the current amount
 	offset := len(t.Matches) - 3
