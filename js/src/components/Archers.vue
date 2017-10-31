@@ -30,7 +30,9 @@ export default {
   },
   computed: {
     stats () {
-      return this.$store.state.stats
+      return _.filter(this.$store.state.stats, (p) => {
+        return !p.person.disabled
+      })
     },
     people () {
       return this.$store.state.people

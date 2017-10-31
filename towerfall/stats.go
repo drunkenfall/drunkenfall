@@ -116,9 +116,15 @@ func (b ByRank) Swap(i, j int) {
 }
 
 func (b ByRank) Less(i, j int) bool {
+	// If a person is not actively playing, they are definitely less.
+	if b[i].Person.Disabled != b[j].Person.Disabled {
+		return b[j].Person.Disabled
+	}
+
 	if b[i].Total.Wins == b[j].Total.Wins {
 		return b[i].Total.Score > b[j].Total.Score
 	}
+
 	return b[i].Total.Wins > b[j].Total.Wins
 }
 
