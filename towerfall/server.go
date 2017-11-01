@@ -20,7 +20,7 @@ import (
 	"golang.org/x/net/websocket"
 )
 
-// Setup variables for the cookies. Can be used outside of this file.
+// Setup variables for the cookies.
 var (
 	CookieStoreKey = []byte("dtf")
 	CookieStore    = sessions.NewCookieStore(CookieStoreKey)
