@@ -9,6 +9,7 @@ import _ from 'lodash'
 export default class Tournament {
   static fromObject (obj, $vue) {
     let t = new Tournament()
+    t.raw = obj
     Object.assign(t, obj)
 
     t.opened = moment(t.opened)

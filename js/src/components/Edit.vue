@@ -43,11 +43,11 @@ export default {
     })
   },
   mounted () {
-    this.$set(this.$data, 'data', JSON.stringify(this.tournament, null, 2))
+    this.$set(this.$data, 'data', JSON.stringify(this.tournament.raw, null, 2))
   },
   watch: {
     tournament (val) {
-      this.$set(this.$data, 'data', JSON.stringify(val, null, 2))
+      this.$set(this.$data, 'data', JSON.stringify(val.raw, null, 2))
     }
   },
 }
