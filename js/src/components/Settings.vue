@@ -87,7 +87,7 @@ export default {
         color: this.color
       }
 
-      this.$http.post('/api/towerfall/user/settings/', payload).then((res) => {
+      this.$http.post('/api/user/settings/', payload).then((res) => {
         var j = res.json()
         $vue.$store.commit('setUser', Person.fromObject(j.person, $vue.$cookie))
         $vue.$router.push('/towerfall' + j.redirect)

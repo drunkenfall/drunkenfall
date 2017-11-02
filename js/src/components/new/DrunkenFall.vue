@@ -64,7 +64,7 @@ export default {
     )
 
     // Come on baby, fake it for me <3
-    return this.$http.get('/api/towerfall/fake/name/').then(function (res) {
+    return this.$http.get('/api/fake/name/').then(function (res) {
       console.log(res)
       let j = JSON.parse(res.data)
       this.$set(this.$data, "name", j.name)
@@ -94,7 +94,7 @@ export default {
         color: this.color,
       }
 
-      this.$http.post('/api/towerfall/new/', payload).then((res) => {
+      this.$http.post('/api/new/', payload).then((res) => {
         var j = res.json()
         this.$router.push('/towerfall' + j.redirect)
       }, (res) => {

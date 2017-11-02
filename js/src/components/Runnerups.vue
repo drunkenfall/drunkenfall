@@ -113,8 +113,8 @@ export default {
 
   created () {
     this.api = this.$resource("/api/towerfall", {}, {
-      toggle: { method: "GET", url: "/api/towerfall/{id}/toggle/{person}" },
-      people: { method: "GET", url: "/api/towerfall/people/" },
+      toggle: { method: "GET", url: "/api/{id}/toggle/{person}" },
+      people: { method: "GET", url: "/api/people/" },
       backfill: { method: "POST", url: "/api/towerfall{/id}/backfill/" },
     })
   }

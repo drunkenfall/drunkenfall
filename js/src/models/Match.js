@@ -23,7 +23,7 @@ export default class Match {
       m.endScore = m.kind === "final" ? 20 : 10
     }
 
-    let root = "/api/towerfall/tournament{/id}{/index}"
+    let root = "/api/tournament{/id}{/index}"
     m.api = $vue.$resource("/api/towerfall", {}, {
       start: { method: "GET", url: `${root}/start/` },
       commit: { method: "POST", url: `${root}/commit/` },
@@ -59,7 +59,12 @@ export default class Match {
     console.log("Ending match...")
     this.api.end(this.id).then((res) => {
       console.log("Match ended.", res)
-      this.$vue.$router.push(`/towerfall/${this.tournament_id}/`)
+      this.$vue.$router.push({
+        name: "tournament",
+        params: {
+          tournament: this.tournament_id,
+        }
+      })
     }, (res) => {
       $vue.$alert("Ending failed. See console.")
       console.error(res)

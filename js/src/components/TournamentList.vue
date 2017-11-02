@@ -30,7 +30,7 @@ export default {
     clear (event) {
       let $vue = this
       event.preventDefault()
-      return this.$http.get('/api/towerfall/tournament/clear/').then(function (res) {
+      return this.$http.get('/api/tournament/clear/').then(function (res) {
         this.$set('tournaments', _.map(res.data.tournaments, Tournament.fromObject))
       }, function (res) {
         $vue.$alert("Clearing failed. See console.")

@@ -59,7 +59,7 @@ export default class Person {
     console.log("Logging out...")
     let $this = this
 
-    $vue.$http.get('/api/towerfall/user/logout/').then(function (res) {
+    $vue.$http.get('/api/user/logout/').then(function (res) {
       console.log("Logged out: ", res)
       $this.userlevel = 0
       $vue.$store.commit("setUser", $this)

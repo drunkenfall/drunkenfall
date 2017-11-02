@@ -163,7 +163,7 @@ export default {
       return this.tournament.matches[idx]
     },
     isVisible () {
-      if (_.includes(['start', 'settings'], this.$route.name)) {
+      if (_.includes(['tournaments', 'settings'], this.$route.name)) {
         return true
       }
       return this.isSelected

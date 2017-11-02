@@ -13,9 +13,14 @@ export default {
   methods: {
     dispatch () {
       if (this.upcomingTournament !== undefined) {
-        this.$router.push(`/towerfall/tournaments/${this.upcomingTournament.id}/`)
+        this.$router.push({
+          name: 'tournament',
+          params: {
+            tournament: this.upcomingTournament.id
+          },
+        })
       } else {
-        this.$router.push(`/towerfall/tournaments/`)
+        this.$router.push({name: "tournaments"})
       }
     },
   },

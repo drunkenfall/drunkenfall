@@ -39,7 +39,7 @@ export default {
 
   created () {
     this.api = this.$resource("/", {}, {
-      edit: { method: "POST", url: "/api/towerfall/{id}/edit/" },
+      edit: { method: "POST", url: "/api/{id}/edit/" },
     })
   },
   mounted () {

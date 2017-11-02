@@ -53,7 +53,7 @@
           <p>
             For the many hundreds of hours of arrows, fun, anger, screaming,
             joy, pain, brambles, regret, lasers, bombs, and love.<br/>
-            We couldn't have done this without you. Thank you. &lt;3
+            We could not have done this without you. Thank you. &lt;3
           </p>
         </div>
       </div>
@@ -113,7 +113,12 @@ export default {
     }, (res) => {
       $vue.$alert('Could not set credits. See console.')
       console.log(res)
-      $vue.$router.push(`/towerfall/${id}/`)
+      $vue.$router.push({
+        name: 'tournament',
+        params: {
+          tournament: id
+        },
+      })
     })
 
     document.getElementsByTagName("body")[0].className = "scroll-less"
@@ -167,7 +172,6 @@ export default {
     }
   },
 }
-
 </script>
 
 <style lang="scss" scoped>

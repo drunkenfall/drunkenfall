@@ -37,7 +37,7 @@ export default {
         this.$set(
           this.$data,
           'ws',
-          new WebSocket('ws://' + window.location.host + '/api/towerfall/auto-updater'),
+          new WebSocket('ws://' + window.location.host + '/api/auto-updater'),
         )
 
         let timeoutId

@@ -24,7 +24,7 @@
 
         <div class="blocks">
           <router-link class="action"
-            :to="{ name: 'start'}">
+            :to="{ name: 'tournaments'}">
             <div class="icon">
               <icon name="fire"></icon>
             </div>
@@ -52,7 +52,7 @@
           </router-link>
         </div>
 
-        <div v-if="user.isProducer && viewing(['start']) && false">
+        <div v-if="user.isProducer && viewing(['tournaments']) && false">
           <h1>Actions</h1>
           <div class="actions links">
             <router-link class="action"
@@ -127,7 +127,7 @@ export default {
     clear (event) {
       let $vue = this
       event.preventDefault()
-      return this.$http.get('/api/towerfall/tournament/clear/').then(function (res) {
+      return this.$http.get('/api/tournament/clear/').then(function (res) {
         console.log(res)
       }, function (res) {
         $vue.$alert("Clearing failed. See console.")
@@ -139,10 +139,10 @@ export default {
       this.user.logout(this)
     },
     settings () {
-      this.$router.push("/towerfall/settings")
+      this.$router.push({name: "settings"})
     },
     profile () {
-      this.$router.push(`/towerfall/profile/${this.user.id}`)
+      this.$router.push(`/profile/${this.user.id}`)
     },
   },
   created () {

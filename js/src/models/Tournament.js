@@ -32,9 +32,9 @@ export default class Tournament {
     events = _.map(events, Event.fromObject)
     t.events = events
 
-    let root = "/api/towerfall/{/id}"
+    let root = "/api/{/id}"
 
-    t.api = $vue.$resource("/api/towerfall/", {}, {
+    t.api = $vue.$resource("/api/", {}, {
       startTournament: { method: "GET", url: `${root}/start/` },
       next: { method: "GET", url: `${root}/next/` },
       reshuffle: { method: "GET", url: `${root}/reshuffle/` },

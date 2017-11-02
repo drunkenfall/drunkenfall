@@ -669,8 +669,7 @@ func (s *Server) FakeNameHandler(w http.ResponseWriter, r *http.Request) {
 // BuildRouter sets up the routes
 func (s *Server) BuildRouter(ws *websockets.Server) http.Handler {
 	n := mux.NewRouter()
-	a := n.PathPrefix("/api").Subrouter()
-	r := a.PathPrefix("/towerfall").Subrouter()
+	r := n.PathPrefix("/api").Subrouter()
 
 	r.HandleFunc("/people/", s.PeopleHandler)
 	r.HandleFunc("/people/stats/", s.StatsHandler)
@@ -702,7 +701,7 @@ func (s *Server) BuildRouter(ws *websockets.Server) http.Handler {
 	r.Handle("/auto-updater", websocket.Handler(ws.OnConnected))
 
 	// Handle Facebook
-	s.FacebookRouter(a)
+	s.FacebookRouter(r)
 
 	m := r.PathPrefix("/tournament/{id}/{index:[0-9]+}").Subrouter()
 

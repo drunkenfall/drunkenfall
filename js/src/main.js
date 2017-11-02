@@ -67,108 +67,108 @@ var router = new Router({
       component: Settings
     },
     {
-      path: '/towerfall/tournaments/',
-      name: 'start',
+      path: '/tournaments/',
+      name: 'tournaments',
       component: TournamentList
     },
     {
-      path: '/towerfall/tournaments/new/',
+      path: '/tournaments/new/',
       name: 'new',
       component: New,
     },
     {
-      path: '/towerfall/tournaments/new/drunkenfall/',
+      path: '/tournaments/new/drunkenfall/',
       name: 'newDrunkenfall',
       component: DrunkenFallNew,
     },
     {
-      path: '/towerfall/tournaments/new/group/',
+      path: '/tournaments/new/group/',
       name: 'newGroup',
       component: GroupNew,
     },
     {
-      path: '/towerfall/settings/',
+      path: '/settings/',
       name: 'settings',
       component: Settings,
     },
     {
-      path: '/towerfall/archers/',
+      path: '/archers/',
       name: 'archers',
       component: Archers,
     },
     {
-      path: '/towerfall/archers/:id',
-      name: 'profile',
+      path: '/archers/:id',
+      name: 'archer',
       component: Profile,
     },
     {
-      path: '/towerfall/admin',
+      path: '/admin',
       name: 'admin',
       component: Admin,
     },
     {
-      path: '/towerfall/admin/disable',
+      path: '/admin/disable',
       name: 'disable',
       component: Disable,
     },
     {
-      path: '/towerfall/tournaments/:tournament/',
+      path: '/tournaments/:tournament/',
       name: 'tournament',
       component: TournamentView
     },
     {
-      path: '/towerfall/tournaments/:tournament/join/',
+      path: '/tournaments/:tournament/join/',
       name: 'join',
       component: Join
     },
     {
-      path: '/towerfall/tournaments/:tournament/participants/',
+      path: '/tournaments/:tournament/participants/',
       name: 'participants',
       component: Participants
     },
     {
-      path: '/towerfall/tournaments/:tournament/runnerups/',
+      path: '/tournaments/:tournament/runnerups/',
       name: 'runnerups',
       component: Runnerups
     },
     {
-      path: '/towerfall/tournaments/:tournament/edit/',
+      path: '/tournaments/:tournament/edit/',
       name: 'edit',
       component: Edit
     },
     {
-      path: '/towerfall/tournaments/:tournament/scores/',
+      path: '/tournaments/:tournament/scores/',
       name: 'scores',
       component: ScoreScreen
     },
     {
-      path: '/towerfall/tournaments/:tournament/next/',
+      path: '/tournaments/:tournament/next/',
       name: 'next',
       component: NextScreen
     },
     {
-      path: '/towerfall/tournaments/:tournament/charts/',
+      path: '/tournaments/:tournament/charts/',
       name: 'charts',
       component: PostMatch
     },
     {
-      path: '/towerfall/tournaments/:tournament/log/',
+      path: '/tournaments/:tournament/log/',
       name: 'log',
       component: Log
     },
     {
-      path: '/towerfall/tournaments/:tournament/credits/',
+      path: '/tournaments/:tournament/credits/',
       name: 'credits',
       component: Credits
     },
     {
-      path: '/towerfall/tournaments/:tournament/:match/',
+      path: '/tournaments/:tournament/:match/',
       name: 'match',
       component: Match
     },
     {
-      path: '/towerfall/tournaments/:tournament/*',
-      redirect: '/towerfall/tournaments/:tournament/',
+      path: '/tournaments/:tournament/*',
+      redirect: '/tournaments/:tournament/',
     },
   ],
 })
@@ -182,7 +182,7 @@ router.beforeEach((to, from, next) => {
     router.app.connect()
 
     if (!router.app.$store.state.user.authenticated) {
-      router.app.$http.get('/api/towerfall/user/').then(response => {
+      router.app.$http.get('/api/user/').then(response => {
         let data = JSON.parse(response.data)
 
         // If we're not signed in, then the backend will return an
@@ -205,7 +205,7 @@ router.beforeEach((to, from, next) => {
     }
 
     if (!router.app.$store.state.stats) {
-      router.app.$http.get('/api/towerfall/people/stats/').then(response => {
+      router.app.$http.get('/api/people/stats/').then(response => {
         let data = JSON.parse(response.data)
         router.app.$store.commit('setStats', data)
         // Since the stats also contain the profiles, we can use this

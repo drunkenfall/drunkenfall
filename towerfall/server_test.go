@@ -32,7 +32,7 @@ func TestServeTournaments(t *testing.T) {
 	s := testServer()
 	defer s.Close()
 
-	res, err := http.Get(s.URL + "/api/towerfall/tournament/")
+	res, err := http.Get(s.URL + "/api/tournament/")
 	assert.Nil(err)
 	assert.Equal(res.StatusCode, http.StatusOK)
 
@@ -52,7 +52,7 @@ func TestPermissionsDenied(t *testing.T) {
 	s := testServer()
 	defer s.Close()
 
-	base := "/api/towerfall/"
+	base := "/api/"
 	urls := []string{
 		"/new/",
 		"/%s/start/",

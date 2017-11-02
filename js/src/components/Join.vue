@@ -61,7 +61,7 @@ export default {
 
   created () {
     this.api = this.$resource("/api/towerfall", {}, {
-      join: { method: "GET", url: "/api/towerfall/{id}/join/" },
+      join: { method: "GET", url: "/api/{id}/join/" },
     })
   },
 }
