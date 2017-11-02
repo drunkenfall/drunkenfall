@@ -317,9 +317,9 @@ form {
     background-color: $bg-default;
     box-shadow: 2px 2px 3px rgba(0,0,0,0.3);
 
-    a {
+    > div {
       font-size: 1.5em;
-      &:last-child {
+      &:last-child a {
         margin-bottom: 0;
       }
 

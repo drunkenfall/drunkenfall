@@ -1,5 +1,15 @@
 <template>
   <div>
+    <div class="sidebar-buttons" v-if="user && user.isProducer">
+      <div class="links">
+        <button-link :to="{ name: 'new'}"
+          :icon="'plus'" :iconClass="'positive'" :label="'New tournament'" />
+
+        <button-link :func="clear" :cls="{ disabled: !canClear}"
+          :icon="'trash'" :iconClass="'danger'" :label="'Clear test tournaments'" />
+      </div>
+    </div>
+
     <div class="tournaments" :class="{ loading: !tournaments }">
       <div v-for="tournament in tournaments"
         :tournament="tournament.id" track-by="id">
@@ -19,26 +29,38 @@
 
 <script>
 import _ from "lodash"
-import Tournament from "../models/Tournament.js"
 import DrunkenFallMixin from "../mixin"
+import ButtonLink from "./buttons/ButtonLink"
 
 export default {
   name: 'TournamentList',
   mixins: [DrunkenFallMixin],
+  components: {
+    ButtonLink,
+  },
 
   methods: {
     clear (event) {
+      if (!this.canClear) {
+        return
+      }
+
       let $vue = this
       event.preventDefault()
       return this.$http.get('/api/tournament/clear/').then(function (res) {
-        this.$set('tournaments', _.map(res.data.tournaments, Tournament.fromObject))
+        console.log(res)
       }, function (res) {
         $vue.$alert("Clearing failed. See console.")
         console.error(res)
         return { tournaments: [] }
       })
-    }
-  }
+    },
+  },
+  computed: {
+    canClear () {
+      return _.some(this.tournaments, 'isTest')
+    },
+  },
 }
 </script>
 
