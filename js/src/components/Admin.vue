@@ -5,23 +5,18 @@
   <div class="section">
     <h2>Tournaments</h2>
     <div class="links">
-      <router-link class="action"
-        :to="{ name: 'new'}">
-        <div class="icon positive">
-          <icon name="plus"></icon>
-        </div>
-        <p>New tournament</p>
-        <div class="clear"></div>
-      </router-link>
+      <button-link
+        :to="{ name: 'new'}"
+        :icon="'plus'"
+        :iconClass="'positive'"
+        :label="'New tournament'" />
 
-      <a @click="clear"
-        :class="{ disabled: !canClear}">
-        <div class="icon danger">
-          <icon name="trash"></icon>
-        </div>
-        <p>Clear test tournaments</p>
-        <div class="clear"></div>
-      </a>
+      <button-link
+        :to="{ name: 'new'}"
+        :cls="{ disabled: !canClear}"
+        :icon="'trash'"
+        :iconClass="'danger'"
+        :label="'Clear test tournaments'" />
 
     </div>
   </div>
@@ -29,13 +24,25 @@
   <div class="section">
     <h2>Users</h2>
     <div class="links">
-      <router-link class="action" v-if="user.isJudge" :to="{ name: 'disable'}">
-        <div class="icon">
-          <icon name="ban"></icon>
-        </div>
-        <p>Disable users</p>
-        <div class="clear"></div>
-      </router-link>
+      <button-link
+        :to="{ name: 'disable'}"
+        :icon="'ban'"
+        :label="'Disable users'" />
+    </div>
+  </div>
+
+  <div class="clear"></div>
+
+  <div class="section">
+    <h2>Matches</h2>
+    <div class="links">
+      <button-link
+        :func="reset"
+        :cls="{ disabled: !canReset}"
+        :iconClass="'danger'"
+        :icon="'recycle'"
+        :label="matchLabel" />
+
     </div>
   </div>
 
@@ -45,10 +52,14 @@
 <script>
 import _ from "lodash"
 import DrunkenFallMixin from "../mixin"
+import ButtonLink from "./buttons/ButtonLink"
 
 export default {
   name: 'Admin',
   mixins: [DrunkenFallMixin],
+  components: {
+    ButtonLink,
+  },
   methods: {
     clear (event) {
       if (!this.canClear) {
@@ -65,16 +76,42 @@ export default {
         return { tournaments: [] }
       })
     },
+    reset () {
+      return this.runningMatch.reset()
+    },
   },
   computed: {
     canClear () {
       return _.some(this.tournaments, 'isTest')
     },
+    canReset () {
+      if (!this.runningMatch) {
+        return false
+      }
+      return this.runningMatch.canReset
+    },
+    runningMatch () {
+      if (!this.runningTournament) {
+        return
+      }
+      let m = this.runningTournament.currentMatch
+      if (m.isEnded) {
+        return
+      }
+      return m
+    },
+    matchLabel () {
+      if (!this.runningMatch) {
+        return "Reset match"
+      }
+
+      return `Reset ${this.runningMatch.title}`
+    },
   }
 }
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
 @import "../variables.scss";
 
 .section {
@@ -93,9 +130,10 @@ export default {
     background-color: $bg-default;
     box-shadow: 2px 2px 3px rgba(0,0,0,0.3);
 
-    a {
+    > div {
       font-size: 1.5em;
-      &:last-child {
+
+      &:last-child a {
         margin-bottom: 0;
       }
     }
