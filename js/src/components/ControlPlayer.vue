@@ -114,7 +114,7 @@ export default {
   },
 
   mounted () {
-    fitText(this.$refs.name, this.$refs.name.innerText, "'Yanone Kaffeesatz', sans-serif", 1)
+    fitText(this.$refs.name, this.$refs.name.innerText, "'Roboto Condensed', sans-serif", 0.8)
   }
 }
 </script>
