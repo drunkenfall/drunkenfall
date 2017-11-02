@@ -23,6 +23,7 @@
 <script>
 export default {
   name: "ButtonLink",
-  props: ['icon', 'iconClass', 'label', 'to', 'cls', 'func'],
+  // TODO(thiderman): Implement tooltip
+  props: ['icon', 'iconClass', 'label', 'to', 'cls', 'func', 'tooltip'],
 }
 </script>
