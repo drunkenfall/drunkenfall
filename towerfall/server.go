@@ -331,25 +331,6 @@ func (s *Server) UsurpTournamentHandler(w http.ResponseWriter, r *http.Request) 
 	s.Redirect(w, tm.URL())
 }
 
-// NextHandler sets the tournament up to play the next match
-func (s *Server) NextHandler(w http.ResponseWriter, r *http.Request) {
-	if !HasPermission(r, PermissionCommentator) {
-		PermissionFailure(w, r, "Cannot goto next match unless commentator or above")
-		return
-	}
-
-	tm := s.getTournament(r)
-	m, err := tm.NextMatch()
-
-	tm.Persist() // TODO(thiderman): Move into NextMatch, probably. Should not be here.
-	if err != nil {
-		http.Error(w, err.Error(), 500)
-		return
-	}
-
-	s.Redirect(w, m.URL())
-}
-
 // MatchFunctor is a common function for usage in MatchHandler
 type MatchFunctor func(w http.ResponseWriter, r *http.Request, match *Match) error
 
@@ -694,7 +675,6 @@ func (s *Server) BuildRouter(ws *websockets.Server) http.Handler {
 	r.HandleFunc("/{id}/backfill/", s.BackfillSemisHandler)
 	r.HandleFunc("/{id}/toggle/{person}", s.ToggleHandler)
 	r.HandleFunc("/{id}/time/{time}", s.SetTimeHandler)
-	r.HandleFunc("/{id}/next/", s.NextHandler)
 	r.HandleFunc("/{id}/credits/", s.CreditsHandler)
 
 	// Install the websockets
