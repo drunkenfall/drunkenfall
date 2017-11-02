@@ -1,14 +1,15 @@
 <template>
-  <div>
-     <div class="event">
-       <img alt="" v-bind:src="event.player.avatar" v-if="event.hasPlayer"/>
-       <div class="content" v-html="event.print">
-       </div>
-       <p class="time">
-         {{event.time.fromNow()}}
-       </p>
-     </div>
+<div>
+  <div class="event">
+    <img alt="" v-bind:src="event.player.avatar" v-if="event.hasPlayer"/>
+    <div class="content" v-html="event.print">
+    </div>
+    <p class="time">
+      {{event.time.fromNow()}}
+    </p>
+    <div class="clear"></div>
   </div>
+</div>
 </template>
 
 
@@ -31,6 +32,11 @@ export default {
 @import "../../variables.scss";
 
 .event {
+  &.alert {
+    position: absolute !important;
+  }
+  float: left;
+  position: relative;
   font-size: 1.4em;
   margin: 1% 0.7%;
   border-radius: 0;
