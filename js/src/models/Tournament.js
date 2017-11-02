@@ -10,6 +10,7 @@ export default class Tournament {
   static fromObject (obj, $vue) {
     let t = new Tournament()
     t.raw = obj
+    t.$vue = $vue
     Object.assign(t, obj)
 
     t.opened = moment(t.opened)
@@ -45,19 +46,33 @@ export default class Tournament {
     return t
   }
 
-  next ($vue) {
-    console.log("Going to next match...")
-    this.api.next({ id: this.id }).then((res) => {
-      console.debug("next response:", res)
-      $vue.$router.push('/towerfall' + res.json().redirect)
+  start () {
+    let $vue = this.$vue
+    this.api.startTournament({ id: this.id }).then((res) => {
+      console.debug("start response:", res)
+      $vue.$router.push({'name': 'tournament', params: {'tournament': this.id}})
     }, (err) => {
-      $vue.$alert("Next failed. See console.")
+      $vue.$alert("Start failed. See console.")
+      console.error(err)
+    })
+  }
+
+  next () {
+    return this.currentMatch.index
+  }
+
+  reshuffle ($vue) {
+    this.api.reshuffle({ id: this.tournament.id }).then((res) => {
+      console.debug("reshuffle response:", res)
+    }, (err) => {
+      $vue.$alert("Reshuffle failed. See console.")
       console.error(err)
     })
   }
 
   usurp () {
-    let $vue = this
+    let $vue = this.$vue
+    console.log(this)
     this.api.usurp({ id: this.id }).then((res) => {
       console.log("usurp response", res)
     }, (err) => {
@@ -122,7 +137,7 @@ export default class Tournament {
     // We can only shuffle after the tournament has started (otherwise
     // technically no matches exists, so nothing can be shuffled
     // into), and before the first match has been started.
-    let match = Match.fromObject(this.matches[0])
+    let match = Match.fromObject(this.matches[0], this.$vue)
     return this.isStarted && !match.isStarted
   }
 

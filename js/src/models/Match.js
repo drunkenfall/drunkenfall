@@ -146,6 +146,10 @@ export default class Match {
     return _.some(this.players, (player) => { return player.kills >= this.endScore })
   }
 
+  get canReset () {
+    return this.isRunning && this.commits.length > 0
+  }
+
   get isRunning () {
     return this.isStarted && !this.isEnded
   }

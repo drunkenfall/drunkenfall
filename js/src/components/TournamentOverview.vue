@@ -1,9 +1,11 @@
 <template>
-  <div>
-    <div class="subheader" v-if="user.isCommentator && nextMatch && !tournament.isEnded">
-      <div v-if="!nextMatch.isScheduled">
-        <p>
-          Pause until
+<div v-if="tournament">
+  <tournament-controls />
+
+  <div class="subheader" v-if="user.isCommentator && nextMatch && !tournament.isEnded">
+    <div v-if="!nextMatch.isScheduled">
+      <p>
+        Pause until
           <span>{{tournament.currentMatch.title}}</span>:
         </p>
         <div class="links">
@@ -54,6 +56,7 @@
 <script>
 import MatchOverview from './MatchOverview'
 import DrunkenFallMixin from "../mixin"
+import TournamentControls from "./buttons/TournamentControls"
 import _ from 'lodash'
 
 export default {
@@ -62,6 +65,7 @@ export default {
 
   components: {
     MatchOverview,
+    TournamentControls,
   },
 
   computed: {
@@ -110,6 +114,10 @@ export default {
     },
     isSelected (p) {
       return _.find(this.selected, p) !== undefined
+    },
+
+    usurp () {
+      this.tournament.usurp()
     },
   },
 

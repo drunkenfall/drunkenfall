@@ -54,6 +54,9 @@ var DrunkenFallMixin = {
         return up[0]
       }
     },
+    runningTournament () {
+      return this.$store.getters.running
+    },
     user () {
       return this.$store.state.user
     },

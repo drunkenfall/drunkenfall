@@ -7,6 +7,8 @@
       {{tournament.scheduled.local().format("ddd MMMM Do HH:mm")}}
     </h3>
 
+    <tournament-controls />
+
     <div id="join" v-if="userLoaded && user.authenticated">
       <div class="links standalone">
         <a v-if="!isJoined" @click="join">
@@ -57,10 +59,14 @@
 <script>
 import {Countdown} from '../models/Timer.js'
 import DrunkenFallMixin from "../mixin"
+import TournamentControls from "./buttons/TournamentControls"
 
 export default {
   name: 'TournamentPreview',
   mixins: [DrunkenFallMixin],
+  components: {
+    TournamentControls,
+  },
 
   data () {
     return {
