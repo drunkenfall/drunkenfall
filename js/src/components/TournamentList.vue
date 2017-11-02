@@ -43,13 +43,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-
-h1 {
-  text-align: center;
-  text-shadow: 3px 3px 3px rgba(0,0,0,0.7);
-  margin: 2em;
-  font-size: 3em;
-}
+@import "../variables.scss";
 
 .tournaments {
   transition: 0.3s ease-in-out;
@@ -57,17 +51,23 @@ h1 {
 }
 
 .tournaments a {
-  text-shadow: 2px 2px 1px rgba(0,0,0,0.7);
-  background-color: #454545;
-  color: #dbdbdb;
+  text-shadow: $shadow-default;
+  background-color: $bg-disabled;
+  color: $fg-default;
   display: block;
   font-size: 2.5em;
   font-weight: bold;
   padding: 1% 3%;
   text-align: center;
   text-decoration: none;
-  width: 40%;
+  width: 50%;
   margin: 0.2em auto;
+  border-left: 5px solid $accent;
+  transition: 0.3s;
+
+  &:hover {
+    background-color: $bg-default-hover;
+  }
 
   &.test {
     background-color: #353535;

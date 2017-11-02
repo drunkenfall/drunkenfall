@@ -18,6 +18,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+@import "../../variables.scss";
 
 a {
   box-shadow: none;
@@ -47,7 +48,7 @@ a {
     box-shadow: 1px 1px 6px rgba(0,0,0,0.5);
     font-weight: bold;
     font-size: 1.2em;
-    background-color: #333339;
+    background-color: $bg-default;
     z-index: 100;
   }
 }

@@ -52,6 +52,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+@import "../variables.scss";
 
 .sidebared-content {
   text-align: center;

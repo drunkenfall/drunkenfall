@@ -75,6 +75,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+@import "../variables.scss";
 
 .section {
   width: 45%;
@@ -89,7 +90,7 @@ export default {
   .links {
     padding: 2.5%;
 
-    background-color: #333339;
+    background-color: $bg-default;
     box-shadow: 2px 2px 3px rgba(0,0,0,0.3);
 
     a {

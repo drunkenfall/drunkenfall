@@ -2,10 +2,11 @@
 @import '../node_modules/reset-css/reset.css';
 
 body, html {
-  background-color: #22222a;
-  color: #dbdbdb;
+  background-color: $bg-bottom;
+  color: $fg-default;
   // font-family: 'Archer', sans-serif;
-  font-family: 'Yanone Kaffeesatz', sans-serif;
+  // font-family: 'Yanone Kaffeesatz', sans-serif;
+  font-family: 'Roboto Condensed', sans-serif;
   margin: 0;
 
   position: absolute;
@@ -62,13 +63,13 @@ body.red-pulse {
 
 @keyframes red-pulse {
   0% {
-    background-color: #22222a;
+    background-color: $bg-bottom;
   }
   50% {
     background-color: #9a1111;
   }
   100% {
-    background-color: #22222a;
+    background-color: $bg-bottom;
   }
 }
 
@@ -128,7 +129,7 @@ footer {
 }
 
 header, footer {
-  background-color: #333339;
+  background-color: $bg-default;
   left: 0px;
   right: 0px;
   text-shadow: 2px 2px 3px rgba(0,0,0,0.5);
@@ -168,7 +169,7 @@ header, footer {
 
       &.danger {
         background-color: #604040;
-        color: #dbdbdb;
+        color: $fg-default;
         margin-right: 200px !important;
       }
     }
@@ -190,7 +191,7 @@ form {
     border: none;
     padding: 10px 30px;
     width: 100%;
-    background-color: #333339;
+    background-color: $bg-default;
     color: white;
     box-sizing: border-box;
     box-shadow: inset 3px 3px 4px rgba(0,0,0,0.1);
@@ -202,7 +203,7 @@ form {
 
 #join-link, a.button, form input.submit {
   background-color: #405060;
-  color: #dbdbdb;
+  color: $fg-default;
   display: block;
   font-size: 100%;
   font-weight: bold;
@@ -246,7 +247,7 @@ form {
 
       transition: opacity .15s, visibility .15s;
 
-      color: #dbdbdb;
+      color: $fg-default;
       background-color: #504040;
       box-shadow: 2px 2px 3px rgba(0,0,0,0.3);
 
@@ -260,11 +261,11 @@ form {
 
     &.disabled {
       color: #555;
-      background-color: #373739;
+      background-color: $bg-disabled;
       cursor: default;
 
       .icon {
-        background-color: #404040 !important;
+        background-color: $bg-disabled-icon !important;
       }
 
       &:hover .tooltip {
@@ -295,6 +296,36 @@ form {
     p {
       display: inline-block;
 
+    }
+  }
+}
+
+.sidebar-less .sidebar-buttons {
+  left: 0;
+
+}
+
+.sidebar-buttons {
+  position: absolute;
+  left: $sidebar-width;
+  top: 10em;
+  transition: 0.3s, left 0.5s ease-in-out;
+
+  .links {
+    margin-left: 0;
+    padding: 0.75rem;
+    background-color: $bg-default;
+    box-shadow: 2px 2px 3px rgba(0,0,0,0.3);
+
+    a {
+      font-size: 1.5em;
+      &:last-child {
+        margin-bottom: 0;
+      }
+
+      p {
+        display: none;
+      }
     }
   }
 }

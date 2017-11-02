@@ -204,7 +204,7 @@ export default {
 .subheader {
   width: 80%;
   margin: 30px auto;
-  background-color: #333339;
+  background-color: $bg-default;
   box-shadow: 2px 2px 3px rgba(0,0,0,0.3);
   text-shadow: 2px 2px 3px rgba(0,0,0,0.5);
 
@@ -225,7 +225,7 @@ export default {
       font-size: 24px;
       float: right;
       background-color: #405060;
-      color: #dbdbdb;
+      color: $fg-default;
       display: block;
       font-weight: bold;
       padding: 7px 30px;

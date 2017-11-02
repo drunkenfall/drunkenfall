@@ -164,7 +164,7 @@ export default {
 @import "../variables.scss";
 
 #sidebar {
-  background-color: #333339;
+  background-color: $bg-default;
   transition: 0.5s ease-in-out;
   box-shadow: 4px 0px 4px rgba(0,0,0,0.3);
   user-select: none;
@@ -186,7 +186,10 @@ export default {
 
     &.router-link-active {
       background-color: rgba(0,0,0,0.2);
-      color: #dbdbdb;
+      color: $fg-default;
+      .icon {
+        color: $accent;
+      }
     }
 
     .icon {
@@ -294,7 +297,7 @@ export default {
 
         &:hover {
           cursor: pointer;
-          color: #dbdbdb;
+          color: $fg-default;
         }
 
         &.settings {
@@ -334,7 +337,7 @@ export default {
         height: 60%;
         object-fit: cover;
         border-radius: 100%;
-        box-shadow: 2px 2px 3px rgba(0,0,0,0.5);
+        box-shadow: $shadow-default;
         background-color: rgba(10,12,14,0.3);
         display: block;
       }

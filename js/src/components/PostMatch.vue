@@ -142,7 +142,7 @@ export default {
 }
 
 .axis {
-  stroke: #dbdbdb;
+  stroke: $fg-default;
   stroke-width: 3px;
 
   text {
@@ -150,7 +150,7 @@ export default {
   }
 
   line, path {
-    stroke: #dbdbdb;
+    stroke: $fg-default;
     stroke-width: 3px;
   }
 }
@@ -172,7 +172,7 @@ export default {
 
 .player {
   text {
-    fill: #dbdbdb;
+    fill: $fg-default;
     font-size: 32px;
   }
 

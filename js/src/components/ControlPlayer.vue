@@ -140,7 +140,7 @@ export default {
       box-shadow: 2px 2px 3px rgba(0,0,0,0.3);
       width: 80%;
       height: 50%;
-      background-color: #333339;
+      background-color: $bg-default;
       cursor: pointer;
       text-align: center;
       vertical-align: middle;
@@ -233,7 +233,7 @@ export default {
     width: 55%;
     text-align: justify;
     text-justify: distribute;
-    // background-color: #333339;
+    // background-color: $bg-default;
 
     &.final {
       div {
@@ -252,7 +252,7 @@ export default {
       display: inline-block;
       zoom: 1;
 
-      background-color: #333339;
+      background-color: $bg-default;
       border-radius: 10000px;
       box-shadow: 2px 2px 3px rgba(0,0,0,0.3);
 
@@ -273,7 +273,7 @@ export default {
       transition: 0.2s;
 
       &.kill {
-        background-color: #dbdbdb;
+        background-color: $fg-default;
         p {color: #151515;}
       }
       &.up {

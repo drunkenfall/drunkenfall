@@ -54,7 +54,7 @@ h1 {
 .kind {
   width: 80%;
   margin: 3em auto;
-  background-color: #333339;
+  background-color: $bg-default;
   box-shadow: 2px 2px 3px rgba(0,0,0,0.3);
   cursor: pointer;
   overflow: hidden;

@@ -1,3 +1,26 @@
+// Backgrounds
+$bg-bottom: #202020;
+$bg-default: #272727;
+$bg-default-hover: #393939;
+$bg-disabled: #333;
+$bg-disabled-icon: #3a3a3a;
+
+$accent: #2874DD;
+
+$positive: #406040;
+$warning: #774e2e;
+$danger: #772e2e;
+
+// Foregrounds
+$fg-default: #cacaca;
+$fg-disabled: #444;
+
+// Shadows
+$shadow-dark: rgba(0,0,0,0.7);
+
+$shadow-default: 2px 2px 3px $shadow-dark;
+
+// Player colors
 $green: #4e9110;
 $green-bg: #4c7723;
 $green-bg-darker: #395d18;
@@ -18,7 +41,7 @@ $orange-bg: #8c4813;
 $orange-bg-darker: #6f380c;
 $orange-bg-darkest: #482102;
 
-$white: #dbdbdb;
+$white: $fg-default;
 $white-bg: #ababab;
 $white-bg-darker: #8c8c8c;
 $white-bg-darkest: #4a4a4a;
@@ -46,10 +69,6 @@ $red-bg-darkest: #380d09;
 $sidebar-width: 220px;
 $button-bg: #404049;
 $button-hover-bg: #434350;
-
-$positive: #406040;
-$warning: #774e2e;
-$danger: #772e2e;
 
 @mixin ribbon-colorizer($bg, $darker, $darkest) {
   background-color: $bg;

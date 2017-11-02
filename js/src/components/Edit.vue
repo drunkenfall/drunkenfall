@@ -54,6 +54,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+@import "../variables.scss";
 
 .sidebared-content {
   text-align: center;
@@ -79,15 +80,15 @@ label {
   border: none;
   font-size: 2em;
   transition: 1.0s;
-  color: #dbdbdb;
+  color: $fg-default;
   background-color: #405060;
   padding: 0.4em 0.8em;
 }
 
 textarea {
   text-align: left;
-  color: #dbdbdb;
-  background-color: #333339;
+  color: $fg-default;
+  background-color: $bg-default;
   width: 90%;
   height: 90%;
   box-shadow: inset 2px 2px 2px 0px rgba(0,0,0,0.5);

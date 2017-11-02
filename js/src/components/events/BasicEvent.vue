@@ -35,7 +35,7 @@ export default {
   margin: 1% 0.7%;
   border-radius: 0;
   width: 30%;
-  background-color: #333339;
+  background-color: $bg-default;
   box-shadow: 2px 2px 3px rgba(0,0,0,0.3);
 
   &.alert {

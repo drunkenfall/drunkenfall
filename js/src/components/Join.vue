@@ -68,6 +68,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+@import "../variables.scss";
 
 * {
   text-align: center;
@@ -93,7 +94,7 @@ label {
   border: none;
   font-size: 2em;
   transition: 1.0s;
-  color: #dbdbdb;
+  color: $fg-default;
   background-color: #333333;
   padding: 0.4em 0.8em;
 
