@@ -5,6 +5,9 @@ $bg-default-hover: #393939;
 $bg-disabled: #333;
 $bg-disabled-icon: #3a3a3a;
 
+$button-bg: #373737;
+$button-hover-bg: #434343;
+
 $accent: #2874DD;
 
 $positive: #406040;
@@ -67,8 +70,7 @@ $red-bg-darker: hsla(5,65%,19%,1);
 $red-bg-darkest: #380d09;
 
 $sidebar-width: 220px;
-$button-bg: #404049;
-$button-hover-bg: #434350;
+
 
 @mixin ribbon-colorizer($bg, $darker, $darkest) {
   background-color: $bg;
