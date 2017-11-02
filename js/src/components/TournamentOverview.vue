@@ -202,7 +202,7 @@ export default {
     width: 50px;
     margin: 10px auto;
     padding: 0.3em 0.5em;
-    background-color: #405060;
+
     cursor: pointer;
     text-shadow: 1px 1px 1px rgba(0,0,0,0.4);
     text-align: center;
@@ -232,7 +232,8 @@ export default {
       margin: 15px  !important;
       font-size: 24px;
       float: right;
-      background-color: #405060;
+      background-color: $button-bg;
+      border-left: 3px solid $accent;
       color: $fg-default;
       display: block;
       font-weight: bold;
