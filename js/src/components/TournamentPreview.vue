@@ -117,11 +117,11 @@ export default {
 @import "../ribbon.scss";
 
 h1 {
-  @media screen and (min-device-width: 770px) {
+  @media screen and ($desktop: $desktop-width) {
     font-size: 6em;
     text-shadow: 5px 5px 10px rgba(0,0,0,0.7);
   }
-  @media screen and (max-device-width: 769px) {
+  @media screen and ($device: $device-width) {
     font-size: 2.5em;
     text-shadow: 3px 3px 6px rgba(0,0,0,0.7);
   }
@@ -144,7 +144,7 @@ h2 {
   margin-top: 7em;
 }
 
-@media screen and (min-device-width: 770px) {
+@media screen and ($desktop: $desktop-width) {
   .ribbon {
     font-size: 40px;
   }
@@ -152,7 +152,7 @@ h2 {
     margin: -3em auto 3em;
   }
 }
-@media screen and (max-device-width: 769px) {
+@media screen and ($device: $device-width) {
   .ribbon {
     display: none;
   }
@@ -185,7 +185,7 @@ h2 {
   width: 80%;
   margin: 4em auto;
 
-  @media screen and (min-device-width: 770px) {
+  @media screen and ($desktop: $desktop-width) {
     .player {
       display: inline-block;
       width: 130px;
@@ -206,7 +206,7 @@ h2 {
     }
   }
 
-  @media screen and (max-device-width: 769px) {
+  @media screen and ($device: $device-width) {
     .player {
       display: inline-block;
       width: 5em;

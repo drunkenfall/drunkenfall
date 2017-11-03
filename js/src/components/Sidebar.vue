@@ -206,7 +206,7 @@ export default {
   }
 
   /* Real devices */
-  @media screen and (min-device-width: 770px) {
+  @media screen and ($desktop: $desktop-width) {
     position: fixed;
     top: 0;
     bottom: 0;
@@ -229,7 +229,7 @@ export default {
   }
 
   /* Small devices */
-  @media screen and (max-device-width: 769px) {
+  @media screen and ($device: $device-width) {
     position: relative;
     width: 100%;
     height: 5em;
@@ -263,7 +263,7 @@ export default {
     box-shadow: none;
   }
 
-  @media screen and (min-device-width: 770px) {
+  @media screen and ($desktop: $desktop-width) {
     .user {
       height: 140px;
       position: absolute;
@@ -323,7 +323,7 @@ export default {
   }
 
 
-  @media screen and (max-device-width: 769px) {
+  @media screen and ($device: $device-width) {
     .user {
       float: right;
       width: 30%;

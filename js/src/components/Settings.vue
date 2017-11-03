@@ -141,6 +141,8 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+@import "../variables.scss";
+
 form {
   .section {
     width: 80%;
@@ -208,11 +210,11 @@ form {
       cursor: pointer;
       outline: none;
 
-      @media screen and (min-device-width: 770px) {
+      @media screen and ($desktop: $desktop-width) {
         width: 9.5%;
         margin: 0.3%;
       }
-      @media screen and (max-device-width: 769px) {
+      @media screen and ($device: $device-width) {
         width: 14%;
         margin: 2%;
       }
