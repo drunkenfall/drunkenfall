@@ -1,39 +1,45 @@
 <template>
-  <div :class="'player ' + player.preferred_color">
-    <div class="button" @click="score(index, -1)">
-      <div><p>-</p></div>
+
+<div :class="'player ' + player.preferred_color">
+  <div class="button" @click="score(index, -1)">
+    <div>
+      <icon name="minus"></icon>
     </div>
+  </div>
 
-    <div class="shots">
-       <div @click="manual_shot" v-bind:class="{'give': shot}">
-         <div v-if="shot" class="mark">{{player.shots + 1}}</div>
-         <div v-if="!shot" class="mark">{{player.shots}}</div>
-         <div v-if="reason !== ''" class="reason">{{reason}}</div>
-       </div>
-     </div>
+  <div class="shots">
+    <div @click="manual_shot" v-bind:class="{'give': shot}">
+      <div v-if="shot" class="mark">{{player.shots + 1}}</div>
+      <div v-if="!shot" class="mark">{{player.shots}}</div>
+      <p v-if="reason !== ''" class="reason">{{reason}}</p>
+    </div>
+  </div>
 
-     <div :class="'slider ' + player.color" @click="reset">
-       <div ref="name">{{player.displayName}}</div>
-     </div>
+  <div :class="'slider ' + player.color" @click="reset">
+    <div ref="name">{{player.displayName}}</div>
+  </div>
 
-     <div v-if="match.endScore == 10" class="scores">
-       <div v-for="n in 10"
-         :class="bulletClass(player, index, n)">
-         <p>{{n}}</p>
-       </div>
-     </div>
+  <div v-if="match.endScore == 10" class="scores">
+    <div v-for="n in 10"
+      :class="bulletClass(player, index, n)">
+      <p>{{bulletDisplay(player, index, n)}}</p>
+    </div>
+  </div>
 
-     <div v-if="match.endScore == 20" class="scores final">
-       <div v-for="n in 20"
-         :class="bulletClass(player, index, n)">
-         <p>{{n}}</p>
-       </div>
-     </div>
+  <div v-if="match.endScore == 20" class="scores final">
+    <div v-for="n in 20"
+      :class="bulletClass(player, index, n)">
+      <p>{{bulletDisplay(player, index, n)}}</p>
+    </div>
+  </div>
 
-     <div class="button" @click="score(index, 1)">
-       <div><p>+</p></div>
-     </div>
-   </div>
+  <div class="button" @click="score(index, 1)">
+    <div>
+      <icon name="plus"></icon>
+    </div>
+  </div>
+</div>
+
 </template>
 
 <script>
@@ -65,7 +71,9 @@ export default {
 
   methods: {
     bulletClass (player, playerIndex, n) {
-      if (n > player.kills && n <= (player.kills + this.ups)) {
+      if (n === this.match.endScore && (player.kills + this.ups) > this.match.endScore) {
+        return 'overkill'
+      } else if (n > player.kills && n <= (player.kills + this.ups)) {
         return 'up'
       } else if (n === player.kills && this.downs === -1) {
         return 'down'
@@ -73,6 +81,15 @@ export default {
         return 'kill'
       }
       return ''
+    },
+
+    bulletDisplay (player, playerIndex, n) {
+      // Change the display to +1 for every overkill the player makes
+      // at the end of the match.
+      if (n === this.match.endScore && (player.kills + this.ups) > this.match.endScore) {
+        return "+" + (player.kills + this.ups - this.match.endScore)
+      }
+      return n
     },
 
     score (playerIndex, score) {
@@ -114,7 +131,7 @@ export default {
   },
 
   mounted () {
-    fitText(this.$refs.name, this.$refs.name.innerText, "'Roboto Condensed', sans-serif", 0.8)
+    fitText(this.$refs.name, this.$refs.name.innerText, "'Teko', sans-serif", 0.8)
   }
 }
 </script>
@@ -134,10 +151,15 @@ export default {
   .button, .shots {
     width: 10%;
     position: relative;
-    text-shadow: 2px 2px 2px rgba(0,0,0,0.8);
+    text-shadow: 3px 3px 5px rgba(0,0,0,0.8);
+
+    svg {
+      filter: drop-shadow(3px 3px 3px rgba(0,0,0,0.5));
+    }
 
     >div {
       box-shadow: 2px 2px 3px rgba(0,0,0,0.3);
+
       width: 80%;
       height: 50%;
       background-color: $bg-default;
@@ -154,8 +176,11 @@ export default {
     }
   }
   .button {
+    transition: 0.2s;
     div {
-      font-size: 10vh;
+      background-color: $button-bg;
+      border-left: 3px solid $accent;
+      font-size: 5vh;
       user-select: none;
       -ms-user-select: none;
       -moz-user-select: none;
@@ -167,9 +192,14 @@ export default {
    }
 
   .shots {
+    transition: 0.2s;
 
+    >div {
+      border-left: 3px solid $accent;
+    }
     div {
-
+      transition: 0.2s;
+      background-color: $button-bg;
       width: 80%;
       display: block;
       margin: 0 auto 1%;
@@ -178,9 +208,16 @@ export default {
       -moz-user-select: none;
       -webkit-user-select: none;
 
+      >div {
+        transition: 0.2s;
+      }
+
       &.give {
-        background-color: #508850;
+        background-color: $accent;
         p {color: #fff;}
+        >div {
+          background-color: $accent;
+        }
       }
 
       &.mark {
@@ -274,7 +311,12 @@ export default {
 
       &.kill {
         background-color: $fg-default;
-        p {color: #151515;}
+        p {color: $bg-bottom;}
+      }
+      &.overkill {
+        background-color: #daa520;
+        text-shadow: 2px 2px 2px rgba(0,0,0,0.5);
+        p {color: #fff;}
       }
       &.up {
         background-color: #508850;
