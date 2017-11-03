@@ -1,12 +1,6 @@
 <template>
   <div>
     <div id="sidebar">
-      <div id="hamburger">
-        <div class="icon positive">
-          <icon name="bars"></icon>
-        </div>
-      </div>
-
       <router-link
         :to="{name: 'dispatch'}">
         <img class="logo" alt="" src="/static/img/drunkenfall.png"/>
@@ -219,10 +213,6 @@ export default {
       width: 100%;
     }
 
-    #hamburger {
-      display: none;
-    }
-
     >.content {
       /* margin: 1.5rem; */
     }
@@ -246,13 +236,6 @@ export default {
       display: none;
     }
 
-    #hamburger {
-      display: none;
-      cursor: pointer;
-      float: left;
-      font-size: 1em;
-      margin: 1em;
-    }
   }
 
   h1 {
