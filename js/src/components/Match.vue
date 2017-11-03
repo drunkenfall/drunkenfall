@@ -2,9 +2,9 @@
   <div v-if="tournament">
     <header>
       <div class="content">
-        <div class="title">
+        <h2>
           {{match.title}} / Round {{round}}
-        </div>
+        </h2>
       </div>
       <div class="clear"></div>
     </header>
@@ -17,9 +17,9 @@
 
     <footer v-if="user.isJudge">
       <div class="content">
-        <div class="title">
+        <h2>
           Actions
-        </div>
+        </h2>
       </div>
       <div class="links" v-if="user.isJudge">
         <a v-if="match.canStart && user.isCommentator" @click="start"
@@ -138,13 +138,15 @@ export default {
 </script>
 
 <style lang="scss" >
+@import "../variables.scss";
 
 .control {
-  height: 85vh;
+  height: 80vh;
   padding: 0.8%;
 }
 
 .player {
+  @include display1();
   height: 25%;
   display: block;
 }
