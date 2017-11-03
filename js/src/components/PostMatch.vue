@@ -122,11 +122,6 @@ export default {
 
 @import "../variables.scss";
 
-.control {
-  height: 85vh;
-  padding: 0.8%;
-}
-
 .player {
   height: 25%;
   display: block;
