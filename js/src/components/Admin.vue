@@ -31,8 +31,6 @@
     </div>
   </div>
 
-  <div class="clear"></div>
-
   <div class="section">
     <h2>Matches</h2>
     <div class="links">
@@ -115,7 +113,7 @@ export default {
 @import "../variables.scss";
 
 .section {
-  width: 45%;
+  width: 28%;
   float: left;
   margin: 2.5%;
 
@@ -131,8 +129,6 @@ export default {
     box-shadow: 2px 2px 3px rgba(0,0,0,0.3);
 
     > div {
-      font-size: 1.5em;
-
       &:last-child a {
         margin-bottom: 0;
       }
