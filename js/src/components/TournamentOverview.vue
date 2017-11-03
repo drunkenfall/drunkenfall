@@ -26,7 +26,7 @@
     </div>
 
     <div class="category playoffs">
-      <h3>Playoffs</h3>
+      <h2>Playoffs</h2>
       <div class="matches">
         <template v-for="m in tournament.playoffs">
           <match-overview :match="m" :class="'match ' + m.kind"></match-overview>
@@ -36,7 +36,7 @@
     </div>
 
     <div class="category semis">
-      <h3>Semi-finals</h3>
+      <h2>Semi-finals</h2>
       <div class="matches">
         <template v-for="m in tournament.semis">
           <match-overview :match="m" :class="'match ' + m.kind"></match-overview>
@@ -45,7 +45,7 @@
       <div class="clear"></div>
     </div>
     <div class="category final">
-      <h3>Final</h3>
+      <h2>Final</h2>
       <div class="matches">
         <match-overview :match="tournament.final" class="match final"></match-overview>
       </div>
@@ -210,6 +210,7 @@ export default {
 }
 
 .subheader {
+  @include subheading();
   width: 80%;
   margin: 30px auto;
   background-color: $bg-default;
@@ -229,8 +230,8 @@ export default {
   .links {
     float: right;
     a, .action {
+      @include button();
       margin: 15px  !important;
-      font-size: 24px;
       float: right;
       background-color: $button-bg;
       border-left: 3px solid $accent;

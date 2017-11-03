@@ -1,0 +1,93 @@
+// This is to make media queries a bit more readable at the first
+// glance. Technically these are close to pointless, but at least they
+// are human friendly.
+$desktop: min-device-width;
+$desktop-width: 770px;
+$device: max-device-width;
+$device-width: 769px;
+
+$regular: 400;
+
+@mixin display4() {
+  font-family: "Teko";
+  font-weight: light;
+  font-size: 112px;
+}
+
+@mixin display3() {
+  font-family: "Teko";
+  font-weight: $regular;
+  font-size: 56px;
+}
+
+@mixin display2() {
+  font-family: "Teko";
+  font-weight: $regular;
+  font-size: 45px;
+}
+
+@mixin display1() {
+  font-family: "Teko";
+  font-weight: $regular;
+  font-size: 34px;
+}
+
+@mixin headline() {
+  font-family: "Teko";
+  font-weight: $regular;
+  font-size: 24px;
+}
+
+@mixin title() {
+  font-family: "Teko";
+  font-weight: medium;
+  font-size: 20px;
+}
+
+@mixin subheading() {
+  font-family: "Teko";
+  font-weight: $regular;
+
+  @media screen and ($desktop: $desktop-width) {
+    font-size: 15px;
+  }
+  @media screen and ($device: $device-width) {
+    font-size: 16px;
+  }
+}
+
+@mixin body2() {
+  font-family: "Lato";
+  font-weight: bold;
+
+  @media screen and ($desktop: $desktop-width) {
+    font-size: 13px;
+  }
+  @media screen and ($device: $device-width) {
+    font-size: 14px;
+  }
+}
+
+@mixin body1() {
+  font-family: "Lato";
+  font-weight: $regular;
+
+  @media screen and ($desktop: $desktop-width) {
+    font-size: 13px;
+  }
+  @media screen and ($device: $device-width) {
+    font-size: 14px;
+  }
+}
+
+@mixin caption() {
+  font-family: "Lato";
+  font-size: 12px;
+}
+
+@mixin button() {
+  font-family: "Lato Semibold";
+  // font-size: 14px;
+  font-size: 20px;
+  text-transform: uppercase;
+}

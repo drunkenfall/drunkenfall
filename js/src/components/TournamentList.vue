@@ -73,13 +73,13 @@ export default {
 }
 
 .tournaments a {
+  @include display3();
+
   text-shadow: $shadow-default;
   background-color: $bg-disabled;
   color: $fg-default;
   display: block;
-  font-size: 2.5em;
-  font-weight: bold;
-  padding: 1% 3%;
+  padding: 1.3% 3.4% 1.1%;
   text-align: center;
   text-decoration: none;
   width: 50%;
@@ -92,8 +92,8 @@ export default {
   }
 
   &.test {
-    background-color: #353535;
-    font-size: 1.2em;
+    @include display1();
+    background-color: #292939;
     width: 30%;
   }
 

@@ -172,6 +172,7 @@ export default {
   font-size: 1.3em;
 
   .blocks .action {
+    @include headline();
     transition: 0.2s;
     text-shadow: 2px 2px 3px rgba(0,0,0,0.3);
     color: #888;

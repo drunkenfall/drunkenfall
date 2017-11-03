@@ -49,9 +49,13 @@ export default {
 <style lang="scss" scoped>
 @import "../variables.scss";
 
-.gold, .silver, .bronze {
-  p {
-    color: #fff !important;
+.player {
+  @include display1();
+  &.gold, &.silver, &.bronze {
+    p {
+      color: #fff !important;
+    }
   }
 }
+
 </style>
