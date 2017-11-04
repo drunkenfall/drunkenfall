@@ -52,6 +52,7 @@
         :label="'Add testing players'"
         :tooltip="'Tournament is full.'" />
 
+      <div class="maybe-clear"></div>
     </div>
   </div>
 </template>

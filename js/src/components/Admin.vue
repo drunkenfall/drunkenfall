@@ -113,8 +113,11 @@ export default {
 @import "../variables.scss";
 
 .section {
-  width: 28%;
-  float: left;
+  @media screen and ($desktop: $desktop-width) {
+    width: 28%;
+    float: left;
+  }
+
   margin: 2.5%;
 
   h2 {

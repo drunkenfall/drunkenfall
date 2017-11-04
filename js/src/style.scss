@@ -141,6 +141,10 @@ footer {
 }
 
 header, footer {
+  @media screen and ($device: $device-width) {
+    background-color: $bg-default-dark;
+  }
+
   background-color: $bg-default;
   left: 0px;
   right: 0px;
@@ -315,31 +319,67 @@ form {
 
 }
 
-.sidebar-buttons {
-  z-index: 5;
-  position: absolute;
-  left: $sidebar-width;
-  top: 10em;
-  transition: 0.3s, left 0.5s ease-in-out;
+@media screen and ($desktop: $desktop-width) {
+  .sidebar-buttons {
+    z-index: 5;
+    position: absolute;
+    left: $sidebar-width;
+    top: 10em;
+    transition: 0.3s, left 0.5s ease-in-out;
 
-  .links {
-    margin-left: 0;
-    padding: 0.75rem;
-    background-color: $bg-default;
-    box-shadow: 2px 2px 3px rgba(0,0,0,0.3);
+    .links {
+      margin-left: 0;
+      padding: 0.75rem;
+      background-color: $bg-default;
+      box-shadow: 2px 2px 3px rgba(0,0,0,0.3);
 
-    > div {
-      font-size: 2em;
-      &:last-child a {
-        margin-bottom: 0;
-      }
+      > div {
+        font-size: 2em;
+        &:last-child a {
+          margin-bottom: 0;
+        }
 
-      p {
-        display: none;
+        p {
+          display: none;
+        }
       }
     }
   }
 }
+@media screen and ($device: $device-width) {
+  .sidebar-buttons {
+    z-index: 5;
+    transition: 0.3s, left 0.5s ease-in-out;
+
+    .links {
+      margin: 0px auto;
+      background-color: $bg-default-dark;
+      height: 4.5rem;
+      padding: 0.75rem;
+      box-shadow: 2px 2px 3px rgba(0,0,0,0.3);
+
+      > div {
+        float: left;
+        margin-left: 0.2em;
+        font-size: 1.5em;
+        &:last-child a {
+          margin-bottom: 0;
+        }
+
+        p {
+          display: none;
+        }
+      }
+
+      .maybe-clear {
+        clear: both;
+      }
+
+    }
+  }
+}
+
+
 
 .toast {
   font-size: 2em;

@@ -29,7 +29,14 @@ export default {
 
 .match {
   float: left;
-  margin: 10px;
+
+  @media screen and ($desktop: $desktop-width) {
+    margin: 10px;
+  }
+  @media screen and ($device: $device-width) {
+    margin: 0.3rem 0;
+  }
+
   cursor: pointer;
   text-align: center;
   box-shadow: 2px 2px 3px rgba(0,0,0,0.3);

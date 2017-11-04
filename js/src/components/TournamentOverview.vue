@@ -6,7 +6,7 @@
     <div v-if="!nextMatch.isScheduled">
       <p>
         Pause until
-          <span>{{tournament.currentMatch.title}}</span>:
+          <span>{{tournament.currentMatch.title}}</span>
         </p>
         <div class="links">
           <a @click="setTime(10)">10 min</a>
@@ -122,8 +122,8 @@ export default {
   },
 
   created () {
-    this.api = this.$resource("/api/towerfall", {}, {
-      setTime: { method: "GET", url: "/api/towerfall{/id}/time{/time}" },
+    this.api = this.$resource("/api", {}, {
+      setTime: { method: "GET", url: "/api/{/id}/time{/time}" },
     })
   },
 }
@@ -136,11 +136,20 @@ export default {
   position: relative;
 }
 
-.playoffs, .semis, .final {
-  width: 29%;
-  float: left;
-  margin-left: 3%;
-  position: relative;
+@media screen and ($desktop: $desktop-width) {
+  .playoffs, .semis, .final {
+    width: 29%;
+    float: left;
+    margin-left: 3%;
+    position: relative;
+  }
+}
+
+@media screen and ($device: $device-width) {
+  .playoffs, .semis, .final {
+    /* width: 90%; */
+    margin: 0 auto;
+  }
 }
 
 .category h3 {
@@ -212,6 +221,30 @@ export default {
 .subheader {
   @include subheading();
   width: 80%;
+
+  @media screen and ($desktop: $desktop-width) {
+    p {
+      float: left;
+    }
+    .links {
+      float: right;
+      a {
+        float: right;
+      }
+    }
+  }
+  @media screen and ($device: $device-width) {
+    & {
+      text-align: center;
+      padding: 0.5em;
+    }
+    .links {
+      a:last-child {
+        margin-bottom: 1em;
+      }
+    }
+  }
+
   margin: 30px auto;
   background-color: $bg-default;
   box-shadow: 2px 2px 3px rgba(0,0,0,0.3);
@@ -220,7 +253,6 @@ export default {
   p {
     font-size: 2em;
     padding: 0.3em 0.5em;
-    float: left;
 
     span {
       text-transform: capitalize;
@@ -228,11 +260,9 @@ export default {
   }
 
   .links {
-    float: right;
     a, .action {
       @include button();
       margin: 15px  !important;
-      float: right;
       background-color: $button-bg;
       border-left: 3px solid $accent;
       color: $fg-default;
@@ -243,6 +273,8 @@ export default {
       text-decoration: none;
       margin: 10px auto;
       min-width: 60px;
+
+      padding: 0.5em 0.7em 0.5em;
     }
   }
 }
