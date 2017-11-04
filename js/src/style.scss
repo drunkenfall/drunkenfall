@@ -335,7 +335,7 @@ form {
 
       > div {
         font-size: 2em;
-        &:last-child a {
+        &:nth-last-child(2) a {
           margin-bottom: 0;
         }
 
