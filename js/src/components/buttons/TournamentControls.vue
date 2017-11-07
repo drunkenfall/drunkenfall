@@ -20,7 +20,7 @@
       <button-link v-if="user.isProducer"
         :cls="{disabled: tournament.isEnded}"
         :to="{ name: 'participants', params: { tournament: tournament.id }}"
-        :icon="'users'" :iconClass="{ warning: tournament.isStarted }" :label="'Participants'" />
+        :icon="'users'" :iconClass="{ warning: tournament.isStarted }" :label="'Players'" />
 
       <button-link v-if="user.isProducer"
         :to="{ name: 'edit', params: { tournament: tournament.id }}"

@@ -318,68 +318,59 @@ form {
 
 }
 
-@media screen and ($desktop: $desktop-width) {
-  .sidebar-buttons {
-    z-index: 5;
-    position: absolute;
-    left: $sidebar-width;
-    top: 10em;
-    transition: 0.3s, left 0.5s ease-in-out;
+.sidebar-buttons {
+  z-index: 5;
+  transition: 0.3s, left 0.5s ease-in-out;
 
-    .links {
-      margin-left: 0;
-      padding: 0.75rem;
-      background-color: $bg-default;
-      box-shadow: 2px 2px 3px rgba(0,0,0,0.3);
+  .links {
+    margin: 0px auto;
+    background-color: $bg-default-dark;
+    height: 4.5rem;
+    padding: 0.75rem;
+    box-shadow: 2px 2px 3px rgba(0,0,0,0.3);
 
-      > div {
-        font-size: 2em;
-        margin-bottom: 0.25em;
-        &:last-child, &:last-child a, &:nth-last-child(2) a {
-          margin-bottom: 0;
-        }
+    .icon {
+      opacity: 1;
+      transition: 0.2s;
+    }
 
-        p {
-          display: none;
-        }
+    > div {
+      float: left;
+      margin-left: 0.2em;
+      font-size: 1.5em;
+
+      &:hover .icon {
+        opacity: 0.15;
+      }
+
+      // This is a hoverable version of the button - instead of having
+      // the label to the side it has it as a much smaller hover only.
+      p {
+        opacity: 0;
+        transition: 0.2s;
+
+        font-size: 0.5rem;
+        text-transform: uppercase;
+        text-align: center;
+        padding-top: 1.7em;
+
+        position: absolute;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        right: 0;
+      }
+      &:hover p {
+        opacity: 1;
       }
     }
-  }
-}
-@media screen and ($device: $device-width) {
-  .sidebar-buttons {
-    z-index: 5;
-    transition: 0.3s, left 0.5s ease-in-out;
 
-    .links {
-      margin: 0px auto;
-      background-color: $bg-default-dark;
-      height: 4.5rem;
-      padding: 0.75rem;
-      box-shadow: 2px 2px 3px rgba(0,0,0,0.3);
-
-      > div {
-        float: left;
-        margin-left: 0.2em;
-        font-size: 1.5em;
-        &:last-child a {
-          margin-bottom: 0;
-        }
-
-        p {
-          display: none;
-        }
-      }
-
-      .maybe-clear {
-        clear: both;
-      }
-
+    .maybe-clear {
+      clear: both;
     }
+
   }
 }
-
-
 
 .toast {
   font-size: 2em;
