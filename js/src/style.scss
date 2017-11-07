@@ -228,7 +228,6 @@ form {
 
 .links {
   margin-left: 1em;
-  font-size: 1.2em;
   @include button();
 
   &.standalone a  {
@@ -335,7 +334,8 @@ form {
 
       > div {
         font-size: 2em;
-        &:nth-last-child(2) a {
+        margin-bottom: 0.25em;
+        &:last-child, &:last-child a, &:nth-last-child(2) a {
           margin-bottom: 0;
         }
 
