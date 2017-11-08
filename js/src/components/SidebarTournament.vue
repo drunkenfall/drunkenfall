@@ -233,11 +233,11 @@ export default {
   },
 
   created () {
-    this.api = this.$resource("/api/towerfall", {}, {
-      usurp: { method: "GET", url: "/api/towerfall{/id}/usurp/" },
-      next: { method: "GET", url: "/api/towerfall{/id}/next/" },
-      reshuffle: { method: "GET", url: "/api/towerfall{/id}/reshuffle/" },
-      startTournament: { method: "GET", url: "/api/towerfall{/id}/start/" },
+    this.api = this.$resource("/api", {}, {
+      usurp: { method: "GET", url: "/api{/id}/usurp/" },
+      next: { method: "GET", url: "/api{/id}/next/" },
+      reshuffle: { method: "GET", url: "/api{/id}/reshuffle/" },
+      startTournament: { method: "GET", url: "/api{/id}/start/" },
     })
   },
 }

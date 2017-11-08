@@ -24,7 +24,7 @@ export default class Match {
     }
 
     let root = "/api/tournament{/id}{/index}"
-    m.api = $vue.$resource("/api/towerfall", {}, {
+    m.api = $vue.$resource("/api", {}, {
       start: { method: "GET", url: `${root}/start/` },
       commit: { method: "POST", url: `${root}/commit/` },
       end: { method: "GET", url: `${root}/end/` },

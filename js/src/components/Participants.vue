@@ -50,7 +50,7 @@ export default {
   },
 
   created () {
-    this.api = this.$resource("/api/towerfall", {}, {
+    this.api = this.$resource("/api", {}, {
       toggle: { method: "GET", url: "/api/{id}/toggle/{person}" },
     })
   }

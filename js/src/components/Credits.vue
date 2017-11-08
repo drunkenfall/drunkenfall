@@ -103,8 +103,8 @@ export default {
     let $vue = this
     let id = this.$route.params.tournament
 
-    this.api = this.$resource("/api/towerfall", {}, {
-      getCredits: { method: "GET", url: "/api/towerfall{/id}/credits/" }
+    this.api = this.$resource("/api", {}, {
+      getCredits: { method: "GET", url: "/api{/id}/credits/" }
     })
 
     this.api.getCredits({id: id}).then((res) => {
