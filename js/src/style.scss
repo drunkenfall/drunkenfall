@@ -233,7 +233,7 @@ form {
   &.standalone a  {
     margin: 1em auto 0.2em;
     font-size: 1.5em;
-    width: 12em;
+    width: 15em;
   }
 
   a, input {
@@ -353,6 +353,7 @@ form {
         text-transform: uppercase;
         text-align: center;
         padding-top: 1.7em;
+        overflow-x: hidden;
 
         position: absolute;
         top: 0;
