@@ -1,5 +1,7 @@
 <template>
   <div v-if="tournament">
+    <tournament-controls />
+
     <h1>
       {{tournament.name}}
     </h1>
@@ -7,7 +9,6 @@
       {{tournament.scheduled.local().format("ddd MMMM Do HH:mm")}}
     </h3>
 
-    <tournament-controls />
 
     <div id="join" v-if="userLoaded && user.authenticated">
       <div class="links standalone">
