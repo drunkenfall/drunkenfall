@@ -3,10 +3,10 @@
     <div class="sidebar-buttons" v-if="user && user.isProducer">
       <div class="links">
         <button-link :to="{ name: 'new'}"
-          :icon="'plus'" :iconClass="'positive'" :label="'New tournament'" />
+          :icon="'plus'" :iconClass="'positive'" :label="'New'" />
 
         <button-link :func="clear" :cls="{ disabled: !canClear}"
-          :icon="'trash'" :iconClass="'danger'" :label="'Clear test tournaments'" />
+          :icon="'trash'" :iconClass="'danger'" :label="'Clear tests'" />
       </div>
     </div>
 
