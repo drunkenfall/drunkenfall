@@ -26,6 +26,12 @@ var (
 	CookieStore    = sessions.NewCookieStore(CookieStoreKey)
 )
 
+// Determines whether websocket updates should be sent or not.
+// This is set to false by the Autoplay functions since they spam with
+// hundreds of updates that are pointless. It is also reset to true
+// once the Autoplay is over.
+var broadcasting = true
+
 // Server is an abstraction that runs via a web interface
 type Server struct {
 	DB     *Database
@@ -328,6 +334,18 @@ func (s *Server) UsurpTournamentHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	s.Redirect(w, tm.URL())
+}
+
+// AutoplayTournamentHandler usurps tournaments
+func (s *Server) AutoplayTournamentHandler(w http.ResponseWriter, r *http.Request) {
+	if !HasPermission(r, PermissionProducer) {
+		PermissionFailure(w, r, "Cannot autoplay tournament unless producer or above")
+		return
+	}
+
+	tm := s.getTournament(r)
+	tm.AutoplaySection()
 	s.Redirect(w, tm.URL())
 }
 
@@ -669,6 +687,7 @@ func (s *Server) BuildRouter(ws *websockets.Server) http.Handler {
 	r.HandleFunc("/new/", s.NewHandler)
 	r.HandleFunc("/{id}/start/", s.StartTournamentHandler)
 	r.HandleFunc("/{id}/usurp/", s.UsurpTournamentHandler)
+	r.HandleFunc("/{id}/autoplay/", s.AutoplayTournamentHandler)
 	r.HandleFunc("/{id}/join/", s.JoinHandler)
 	r.HandleFunc("/{id}/edit/", s.EditHandler)
 	r.HandleFunc("/{id}/reshuffle/", s.ReshuffleHandler)
@@ -701,6 +720,10 @@ func (s *Server) Serve() error {
 
 // SendWebsocketUpdate sends an update to all listening sockets
 func (s *Server) SendWebsocketUpdate() {
+	if !broadcasting {
+		return
+	}
+
 	tournamentMutex.Lock()
 	msg := websockets.Message{
 		Data: UpdateStateMessage{
@@ -710,6 +733,16 @@ func (s *Server) SendWebsocketUpdate() {
 	tournamentMutex.Unlock()
 
 	s.ws.SendAll(&msg)
+}
+
+// DisableWebsocketUpdates... disables websocket updates.
+func (s *Server) DisableWebsocketUpdates() {
+	broadcasting = false
+}
+
+// EnableWebsocketUpdates... enables websocket updates.
+func (s *Server) EnableWebsocketUpdates() {
+	broadcasting = true
 }
 
 // TODO(thiderman): Should definitely return an error

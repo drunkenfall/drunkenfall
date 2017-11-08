@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"math/rand"
 	"net/http"
 	"strings"
 	"time"
@@ -348,6 +349,17 @@ func (m *Match) Reset() error {
 	return nil
 }
 
+// Autoplay runs through the entire match simulating real play
+func (m *Match) Autoplay() {
+	if !m.IsStarted() {
+		m.Start(nil)
+	}
+	for !m.CanEnd() {
+		m.Commit(NewAutoplayRound())
+	}
+	m.End(nil)
+}
+
 // SetTime sets the scheduled time based on the Pause attribute
 func (m *Match) SetTime(r *http.Request, minutes int) {
 	m.Scheduled = time.Now().Add(time.Minute * time.Duration(minutes))
@@ -477,4 +489,46 @@ func (r *Round) IsShotUpdate() bool {
 	}
 
 	return false
+}
+
+// NewAutoplayRound fakes player activity in a round
+//
+// It randomizes how many kills the players get, and it randomizes
+// shots every now and again. This does not fully represent actual
+// gameplay, since technically all four players could get a sweep in
+// the same match. However, since this is for testing purposes it is
+// acceptable that such is the case.
+func NewAutoplayRound() Round {
+	r := Round{
+		[][]int{{0, 0}, {0, 0}, {0, 0}, {0, 0}},
+		[]bool{false, false, false, false},
+		time.Now().UTC().Format(time.RFC3339),
+	}
+
+	rand.Seed(time.Now().UnixNano())
+	for x := 0; x < 4; x++ {
+		y := rand.Intn(100)
+		// 5% of the times - sweep
+		// 20% of the times - 2 kills
+		// 70% of the times - 1 kill
+		if y <= 5 {
+			r.Kills[x][0] = 3
+		} else if y <= 20 {
+			r.Kills[x][0] = 2
+		} else if y <= 70 {
+			r.Kills[x][0] = 1
+		}
+
+		// 10% of the time - accidental self
+		if rand.Intn(10)%10 == 0 {
+			r.Kills[x][1] = -1
+		}
+
+		// 10% of the time - shot from the judges
+		if rand.Intn(10)%10 == 0 {
+			r.Shots[x] = true
+		}
+	}
+
+	return r
 }

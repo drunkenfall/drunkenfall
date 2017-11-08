@@ -52,6 +52,12 @@
         :label="'Add testing players'"
         :tooltip="'Tournament is full.'" />
 
+      <button-link v-if="user.isProducer && tournament.isTest && tournament.isRunning"
+        :func="autoplay"
+        :iconClass="'warning'"
+        :icon="'forward'"
+        :label="autoplayLabel" />
+
       <div class="maybe-clear"></div>
     </div>
   </div>
@@ -71,6 +77,9 @@ export default {
     usurp () {
       return this.tournament.usurp()
     },
+    autoplay () {
+      return this.tournament.autoplay()
+    },
     start () {
       return this.tournament.start()
     },
@@ -79,6 +88,11 @@ export default {
         "match": this.tournament.next()
       }})
     },
-  }
+  },
+  computed: {
+    autoplayLabel () {
+      return `Autoplay ${this.nextMatch.kind}s`
+    }
+  },
 }
 </script>

@@ -41,6 +41,7 @@ export default class Tournament {
       next: { method: "GET", url: `${root}/next/` },
       reshuffle: { method: "GET", url: `${root}/reshuffle/` },
       usurp: { method: "GET", url: `${root}/usurp/` },
+      autoplay: { method: "GET", url: `${root}/autoplay/` },
     })
 
     return t
@@ -77,6 +78,17 @@ export default class Tournament {
       console.log("usurp response", res)
     }, (err) => {
       $vue.$alert("Usurp failed. See console.")
+      console.error(err)
+    })
+  }
+
+  autoplay () {
+    let $vue = this.$vue
+    console.log(this)
+    this.api.autoplay({ id: this.id }).then((res) => {
+      console.log("autoplay response", res)
+    }, (err) => {
+      $vue.$alert("Autoplay failed. See console.")
       console.error(err)
     })
   }

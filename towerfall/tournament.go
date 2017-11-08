@@ -275,6 +275,47 @@ func (t *Tournament) UsurpTournament() error {
 	return nil
 }
 
+// AutoplaySection runs through all the matches in the current section
+// of matches
+//
+// E.g. if we're in the playoffs, they will all be finished and we're
+// left at semi 1.
+func (t *Tournament) AutoplaySection() {
+	t.server.DisableWebsocketUpdates()
+
+	if !t.IsRunning() {
+		t.StartTournament(nil)
+	}
+
+	m := t.Matches[t.Current]
+	kind := m.Kind
+
+	for kind == m.Kind {
+		m.Autoplay()
+
+		if int(t.Current) == len(t.Matches) {
+			// If we just finished the finals, then we should just exit
+			break
+		}
+
+		m = t.Matches[t.Current]
+	}
+
+	if kind == playoff {
+		needed := t.BackfillsNeeded()
+		if needed > 0 {
+			ids := make([]string, needed)
+			for x := 0; x < needed; x++ {
+				ids[x] = t.Runnerups[x].ID
+			}
+			t.BackfillSemis(nil, ids)
+		}
+	}
+
+	t.server.EnableWebsocketUpdates()
+	t.server.SendWebsocketUpdate()
+}
+
 // MatchIndex returns the index of the match
 func (t *Tournament) MatchIndex(m *Match) int {
 	var x int
@@ -447,7 +488,7 @@ func (t *Tournament) BackfillSemis(r *http.Request, ids []string) error {
 	// until they have have full seats.
 	// The amount of players needed; 8 minus the current amount
 	offset := len(t.Matches) - 3
-	semiPlayers := 8 - (len(t.Matches[offset].Players) + len(t.Matches[offset+1].Players))
+	semiPlayers := t.BackfillsNeeded()
 	if len(ids) != semiPlayers {
 		return fmt.Errorf("Need %d players, got %d", semiPlayers, len(ids))
 	}
@@ -478,6 +519,13 @@ func (t *Tournament) BackfillSemis(r *http.Request, ids []string) error {
 
 	t.Persist()
 	return nil
+}
+
+// BackfillsNeeded returns the number of players needed to be backfilled
+func (t *Tournament) BackfillsNeeded() int {
+	offset := len(t.Matches) - 3
+	semiPlayers := 8 - (len(t.Matches[offset].Players) + len(t.Matches[offset+1].Players))
+	return semiPlayers
 }
 
 // NextMatch returns the next match
