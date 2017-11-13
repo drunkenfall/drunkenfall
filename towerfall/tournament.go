@@ -268,12 +268,15 @@ func (t *Tournament) Reshuffle(r *http.Request) error {
 
 // UsurpTournament starts a fake tournament with all registered players
 func (t *Tournament) UsurpTournament() error {
+	t.server.DisableWebsocketUpdates()
 	t.db.LoadPeople()
 	for x := 0; x < 32; x++ {
 		p := NewPlayer(t.db.People[rand.Intn(len(t.db.People))])
 		t.AddPlayer(p)
 	}
 
+	t.server.EnableWebsocketUpdates()
+	t.server.SendWebsocketUpdate()
 	return nil
 }
 
