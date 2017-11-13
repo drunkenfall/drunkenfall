@@ -29,6 +29,7 @@ type Tournament struct {
 	Ended       time.Time    `json:"ended"`
 	Events      []*Event     `json:"events"`
 	Color       string       `json:"color"`
+	Levels      Levels       `json:"levels"`
 	db          *Database
 	server      *Server
 	length      int
@@ -50,6 +51,7 @@ func NewTournament(name, id string, scheduledStart time.Time, r *http.Request, s
 		ID:          id,
 		Opened:      time.Now(),
 		Scheduled:   scheduledStart,
+		Levels:      NewLevels(),
 		db:          server.DB,
 		server:      server,
 		length:      matchLength,

@@ -40,6 +40,7 @@ type Match struct {
 	Tournament    *Tournament   `json:"-"`
 	KillOrder     []int         `json:"kill_order"`
 	Rounds        []Round       `json:"commits"`
+	Level         string        `json:"level"`
 	presentColors mapset.Set
 	tournament    *Tournament
 }
@@ -67,6 +68,8 @@ func NewMatch(t *Tournament, kind string) *Match {
 	if kind == final {
 		m.Length = t.finalLength
 	}
+
+	m.Level = m.getRandomLevel()
 
 	return &m
 }
@@ -447,6 +450,11 @@ func (m *Match) ArchersHarmed() int {
 // Duration returns how long the match took
 func (m *Match) Duration() time.Duration {
 	return m.Ended.Sub(m.Started)
+}
+
+func (m *Match) getRandomLevel() string {
+	l := m.Tournament.Levels[m.Kind]
+	return l[m.Index%len(l)]
 }
 
 // NewMatchCommit makes a new MatchCommit object from a CommitRequest
