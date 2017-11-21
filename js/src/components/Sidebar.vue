@@ -3,7 +3,11 @@
     <div id="sidebar">
       <router-link
         :to="{name: 'dispatch'}">
-        <img class="logo" alt="" src="/static/img/drunkenfall.png"/>
+
+        <div class="logo">
+          <img alt="" src="/static/img/oem.svg"/>
+        </div>
+
       </router-link>
 
       <div class="content main">
@@ -210,7 +214,10 @@ export default {
     width: $sidebar-width;
 
     .logo {
-      width: 100%;
+      padding: 1em;
+      width: 50%;
+      margin: 0px auto;
+      outline: none;
     }
 
     >.content {
