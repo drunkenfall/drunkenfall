@@ -1,13 +1,10 @@
 <template>
   <div>
     <div id="sidebar">
-      <router-link
-        :to="{name: 'dispatch'}">
-
+      <router-link :to="dispatchLink">
         <div class="logo">
           <img alt="" src="/static/img/oem.svg"/>
         </div>
-
       </router-link>
 
       <div class="content main">
@@ -142,6 +139,21 @@ export default {
     profile () {
       this.$router.push(`/profile/${this.user.id}`)
     },
+  },
+  computed: {
+    dispatchLink () {
+      console.log(this.upcomingTournament)
+      if (this.upcomingTournament !== undefined) {
+        return {
+          name: 'tournament',
+          params: {
+            tournament: this.upcomingTournament.id
+          },
+        }
+      } else {
+        return {name: "tournaments"}
+      }
+    }
   },
   created () {
     document.onkeydown = (e) => {
