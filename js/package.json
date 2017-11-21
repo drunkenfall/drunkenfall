@@ -27,6 +27,7 @@
     "vue-easy-toast": "^1.0.3",
     "vue-resource": "^0.9.3",
     "vue-router": "^2.8.1",
+    "vue-template-compiler": "^2.5.8",
     "vue2-filters": "^0.2.2",
     "vuex": "^2.5.0"
   },

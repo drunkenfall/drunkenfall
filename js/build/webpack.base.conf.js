@@ -25,6 +25,13 @@ module.exports = {
   resolveLoader: {
     fallback: [path.join(__dirname, '../node_modules')]
   },
+  // Fucking what
+  // https://github.com/webpack/webpack-dev-server/issues/66
+  externals: [
+    {
+      xmlhttprequest: '{XMLHttpRequest:XMLHttpRequest}'
+    },
+  ],
   module: {
     preLoaders: [
       {
