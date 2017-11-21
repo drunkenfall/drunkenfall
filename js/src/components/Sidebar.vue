@@ -229,7 +229,6 @@ export default {
       padding: 1em;
       width: 50%;
       margin: 0px auto;
-      outline: none;
     }
 
     >.content {
