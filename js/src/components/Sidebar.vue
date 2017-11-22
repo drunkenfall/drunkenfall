@@ -131,7 +131,6 @@ export default {
   },
   computed: {
     dispatchLink () {
-      console.log(this.upcomingTournament)
       if (this.upcomingTournament !== undefined) {
         return {
           name: 'tournament',
