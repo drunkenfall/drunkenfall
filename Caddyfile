@@ -1,12 +1,21 @@
 https://dev.drunkenfall.com
 
 push
-gzip
+gzip {
+  not /__webpack_hmr
+}
 ext    .html
 log    /var/log/access.log
 proxy  /api 127.0.0.1:42001
 proxy  /api/auto-updater 127.0.0.1:42001 {
 	websocket
+}
+proxy /__webpack_hmr localhost:42002 {
+  transparent
+  header_upstream X-Real-IP {remote}
+  header_upstream X-Forwarded-Server {host}
+  header_upstream X-Forwarded-Host {host}
+  keepalive 1000
 }
 header /api Access-Control-Allow-Origin *
 
