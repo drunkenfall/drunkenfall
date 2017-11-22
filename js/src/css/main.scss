@@ -211,7 +211,7 @@ form {
 }
 
 #join-link, a.button, form input.submit {
-  background-color: #405060;
+  background-color: $secondary;
   color: $fg-default;
   display: block;
   font-size: 100%;
@@ -292,7 +292,7 @@ form {
       float: left;
       width: 1em;
       text-align: center;
-      background-color: #405060;
+      background-color: $secondary;
 
       &.positive {background-color: $positive;}
       &.warning {background-color: $warning;}

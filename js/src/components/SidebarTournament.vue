@@ -283,7 +283,7 @@ export default {
       text-align: center;
 
       &.default-numeral {
-        background-color: #405060;
+        background-color: $secondary;
       }
       &.green  {background-color: $green-bg;}
       &.blue   {background-color: $blue-bg;}

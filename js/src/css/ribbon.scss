@@ -20,7 +20,7 @@
 }
 // https://css-tricks.com/snippets/css/ribbon/
 .ribbon {
-  font-family: $font-secondary;
+  font-family: $font-primary;
   font-size: 1.4em !important;
   /* This ribbon is based on a 16px font side and a 24px vertical rhythm. I've
   used em's to position each element for scalability. If you want to use a
@@ -95,12 +95,11 @@
 
 /* Special kind of ribbon extra, on top of the ribbon itself */
 .super-ribbon {
-  font-family: $font-secondary;
+  font-family: $font-primary;
   font-size: 1em;
-  font-weight: bold;
   text-align: center;
   position: relative;
-  background: #404550;
+  background: $bg-default;
   width: 10%;
   text-align: center;
   padding: 0.3em 0.4em;

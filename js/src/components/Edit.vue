@@ -81,7 +81,7 @@ label {
   font-size: 2em;
   transition: 1.0s;
   color: $fg-default;
-  background-color: #405060;
+  background-color: $secondary;
   padding: 0.4em 0.8em;
 }
 

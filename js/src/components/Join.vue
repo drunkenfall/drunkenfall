@@ -99,7 +99,7 @@ label {
   padding: 0.4em 0.8em;
 
   &.ready {
-    background-color: #405060;
+    background-color: $secondary;
   }
 }
 

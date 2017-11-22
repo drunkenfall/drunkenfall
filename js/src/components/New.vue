@@ -74,7 +74,7 @@ h1 {
 
   .icon {
     text-align: center;
-    background-color: #405060;
+    background-color: $secondary;
     width: 20%;
     float: left;
     height: 100%;

@@ -98,7 +98,7 @@ export default {
   }
 
   &.current {
-    background-color: #405060;
+    background-color: $secondary;
     width: 60%;
     font-size: 3.5em;
   }
