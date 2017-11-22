@@ -76,7 +76,7 @@ export default {
   @include display3();
 
   text-shadow: $shadow-default;
-  background-color: $bg-disabled;
+  background-color: $bg-default;
   color: $fg-default;
   display: block;
   padding: 1.3% 3.4% 1.1%;
@@ -93,7 +93,7 @@ export default {
 
   &.test {
     @include display1();
-    background-color: #292939;
+    background-color: $bg-disabled-secondary;
     width: 30%;
   }
 
