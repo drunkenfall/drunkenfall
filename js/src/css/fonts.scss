@@ -6,49 +6,49 @@ $desktop-width: 770px;
 $device: max-device-width;
 $device-width: 769px;
 
-$font-main: "Teko";
+$font-primary: "Teko";
 $font-secondary: "Lato";
 
 $regular: 400;
 
 @mixin display4() {
-  font-family: $font-main;
+  font-family: $font-primary;
   font-weight: light;
   font-size: 112px;
 }
 
 @mixin display3() {
-  font-family: $font-main;
+  font-family: $font-primary;
   font-weight: $regular;
   font-size: 56px;
 }
 
 @mixin display2() {
-  font-family: $font-main;
+  font-family: $font-primary;
   font-weight: $regular;
   font-size: 45px;
 }
 
 @mixin display1() {
-  font-family: $font-main;
+  font-family: $font-primary;
   font-weight: $regular;
   font-size: 34px;
 }
 
 @mixin headline() {
-  font-family: $font-main;
+  font-family: $font-primary;
   font-weight: $regular;
   font-size: 24px;
 }
 
 @mixin title() {
-  font-family: $font-main;
+  font-family: $font-primary;
   font-weight: medium;
   font-size: 20px;
 }
 
 @mixin subheading() {
-  font-family: $font-main;
+  font-family: $font-primary;
   font-weight: $regular;
 
   @media screen and ($desktop: $desktop-width) {
