@@ -1,7 +1,7 @@
 <template>
   <router-link :to="{name: 'archer', params: {id: person.id}}" class="person">
     <img :id="person.id" :alt="person.nick" :src="person.avatar"/>
-    <p>{{person.displayName}}</p>
+    <p :class="person.color">{{person.displayName}}</p>
   </router-link>
 </template>
 
@@ -42,11 +42,12 @@ a {
   p {
     width: 80%;
     text-align: center;
-    padding: 0.2em 0.3em;
+    padding: 0.3em 0.3em 0.2em;
     margin: 0.5em auto;
     display: inline-block;
     box-shadow: 1px 1px 6px rgba(0,0,0,0.5);
-    font-weight: bold;
+    text-shadow: 1px 1px 1px rgba(0,0,0,0.7);
+
     font-size: 1.2em;
     background-color: $bg-default;
     z-index: 100;
