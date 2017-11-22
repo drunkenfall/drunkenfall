@@ -12,7 +12,7 @@
           <router-link class="action"
             :to="{ name: 'tournaments'}">
             <div class="icon">
-              <icon name="fire"></icon>
+              🔥
             </div>
             <p>Tournaments</p>
             <div class="clear"></div>
@@ -31,7 +31,7 @@
           <router-link v-if="user.isProducer" class="action"
             :to="{ name: 'admin'}">
             <div class="icon">
-              <icon name="superpowers"></icon>
+              💪
             </div>
             <p>Admin</p>
             <div class="clear"></div>
