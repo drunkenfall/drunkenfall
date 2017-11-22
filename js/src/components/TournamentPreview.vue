@@ -114,8 +114,8 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "../variables.scss";
-@import "../ribbon.scss";
+@import "../css/colors.scss";
+@import "../css/ribbon.scss";
 
 h1 {
   @media screen and ($desktop: $desktop-width) {

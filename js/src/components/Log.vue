@@ -20,6 +20,6 @@ export default {
 </script>
 
 <style lang="scss">
-@import "../variables.scss";
+@import "../css/colors.scss";
 
 </style>

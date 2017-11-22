@@ -171,7 +171,7 @@ export default {
 </script>
 
 <style lang="scss">
-@import "../variables.scss";
+@import "../css/colors.scss";
 
 #sidebar {
   background-color: $bg-default;

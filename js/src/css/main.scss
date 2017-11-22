@@ -1,13 +1,10 @@
-@import "./variables.scss";
+@import "./colors.scss";
 @import "./fonts.scss";
 @import '../node_modules/reset-css/reset.css';
 
 body, html {
   background-color: $bg-bottom;
   color: $fg-default;
-  // font-family: 'Archer', sans-serif;
-  // font-family: 'Yanone Kaffeesatz', sans-serif;
-  // font-family: 'Roboto Condensed', sans-serif;
   font-family: 'Lato', sans-serif;
   font-family: 'Teko', sans-serif;
   margin: 0;
@@ -324,7 +321,7 @@ form {
 
   .links {
     margin: 0px auto;
-    background-color: $bg-default-dark;
+    background-color: $bg-default-alt;
     height: 4.5rem;
     padding: 0.75rem;
     box-shadow: 2px 2px 3px rgba(0,0,0,0.3);

@@ -130,7 +130,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "../variables.scss";
+@import "../css/colors.scss";
 
 .tournament {
   position: relative;
@@ -192,7 +192,7 @@ export default {
   }
 
   .runnerup:nth-child(odd) {
-    background-color: #333;
+    background-color: $bg-default;
   }
   .runnerup:nth-child(even) {
     background-color: #272727;
@@ -201,7 +201,7 @@ export default {
 
 .selected-runnerups {
   .runnerup:nth-child(odd) {
-    background-color: #405040;
+    background-color: $bg-default;
   }
   .runnerup:nth-child(even) {
     background-color: #394939;

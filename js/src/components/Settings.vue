@@ -141,7 +141,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "../variables.scss";
+@import "../css/colors.scss";
 
 form {
   .section {

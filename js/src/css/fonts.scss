@@ -6,46 +6,49 @@ $desktop-width: 770px;
 $device: max-device-width;
 $device-width: 769px;
 
+$font-main: "Teko";
+$font-secondary: "Lato";
+
 $regular: 400;
 
 @mixin display4() {
-  font-family: "Teko";
+  font-family: $font-main;
   font-weight: light;
   font-size: 112px;
 }
 
 @mixin display3() {
-  font-family: "Teko";
+  font-family: $font-main;
   font-weight: $regular;
   font-size: 56px;
 }
 
 @mixin display2() {
-  font-family: "Teko";
+  font-family: $font-main;
   font-weight: $regular;
   font-size: 45px;
 }
 
 @mixin display1() {
-  font-family: "Teko";
+  font-family: $font-main;
   font-weight: $regular;
   font-size: 34px;
 }
 
 @mixin headline() {
-  font-family: "Teko";
+  font-family: $font-main;
   font-weight: $regular;
   font-size: 24px;
 }
 
 @mixin title() {
-  font-family: "Teko";
+  font-family: $font-main;
   font-weight: medium;
   font-size: 20px;
 }
 
 @mixin subheading() {
-  font-family: "Teko";
+  font-family: $font-main;
   font-weight: $regular;
 
   @media screen and ($desktop: $desktop-width) {
@@ -57,7 +60,7 @@ $regular: 400;
 }
 
 @mixin body2() {
-  font-family: "Lato";
+  font-family: $fond-secondary;
   font-weight: bold;
 
   @media screen and ($desktop: $desktop-width) {
@@ -69,7 +72,7 @@ $regular: 400;
 }
 
 @mixin body1() {
-  font-family: "Lato";
+  font-family: $fond-secondary;
   font-weight: $regular;
 
   @media screen and ($desktop: $desktop-width) {
@@ -81,7 +84,7 @@ $regular: 400;
 }
 
 @mixin caption() {
-  font-family: "Lato";
+  font-family: $fond-secondary;
   font-size: 12px;
 }
 

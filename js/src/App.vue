@@ -112,8 +112,5 @@ export default {
 </script>
 
 <style lang="scss">
-@import "./style.scss";
-
-@font-face { font-family: Archer; src: url('/static/Archer.ttf'); }
-
+@import "./css/main.scss";
 </style>

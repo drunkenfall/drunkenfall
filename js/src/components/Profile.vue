@@ -117,7 +117,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "../variables.scss";
+@import "../css/colors.scss";
 
 .profile {
   width: 80%;

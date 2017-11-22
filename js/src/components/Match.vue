@@ -138,7 +138,7 @@ export default {
 </script>
 
 <style lang="scss" >
-@import "../variables.scss";
+@import "../css/colors.scss";
 
 .control {
   height: 80vh;

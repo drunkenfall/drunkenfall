@@ -175,7 +175,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "../variables.scss";
+@import "../css/colors.scss";
 
 .green  {color: $green;}
 .blue   {color: $blue;}

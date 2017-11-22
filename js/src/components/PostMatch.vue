@@ -120,7 +120,7 @@ export default {
 
 <style lang="scss" >
 
-@import "../variables.scss";
+@import "../css/colors.scss";
 
 .player {
   height: 25%;

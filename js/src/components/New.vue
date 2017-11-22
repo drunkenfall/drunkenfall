@@ -46,7 +46,7 @@ export default {
 </script>
 
 <style lang="scss">
-@import "../variables.scss";
+@import "../css/colors.scss";
 h1 {
   font-size: 3em;
 }

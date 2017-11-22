@@ -1,10 +1,27 @@
+@import "./colors.scss";
+@import "./fonts.scss";
+
+@mixin ribbon-colorizer($bg, $darker, $darkest) {
+  color: $fg-default !important;
+  background-color: $bg;
+  &:before, &:after {
+    border-color: $darker;
+  }
+  .ribbon-content {
+    &:before, &:after {
+      border-color: $darkest transparent transparent transparent;
+    }
+  }
+}
+
 .protector {
   position: relative;
   z-index: 1;
 }
 // https://css-tricks.com/snippets/css/ribbon/
 .ribbon {
-  font-size: 20px;
+  font-family: $font-secondary;
+  font-size: 1.4em !important;
   /* This ribbon is based on a 16px font side and a 24px vertical rhythm. I've
   used em's to position each element for scalability. If you want to use a
   different font size you may have to play with the position of the ribbon
@@ -13,14 +30,14 @@
   width: 33%;
 
   position: relative;
-  background: #393939;
+  background: $bg-default;
   text-align: center;
   padding: 0.4em 0.4em; /* Adjust to suit */
   margin: -1.5em auto 0.4em;
   /* Based on 24px vertical rhythm. 48px bottom margin - normally 24 but the
   ribbon 'graphics' take up 24px themselves so we double it. */
 
-  text-shadow: 1px 1px 1px rgba(0,0,0,0.7);
+  text-shadow: 1px 1px 1px $shadow-dark;
   box-shadow: 0px -2px 3px rgba(0,0,0,0.3);
 
   &.green { @include ribbon-colorizer($green-bg, $green-bg-darker, $green-bg-darkest);}
@@ -78,7 +95,8 @@
 
 /* Special kind of ribbon extra, on top of the ribbon itself */
 .super-ribbon {
-  font-size: 1.2em;
+  font-family: $font-secondary;
+  font-size: 1em;
   font-weight: bold;
   text-align: center;
   position: relative;
@@ -86,6 +104,6 @@
   width: 10%;
   text-align: center;
   padding: 0.3em 0.4em;
-  margin: -1em auto 3em;
+  margin: -0.5em auto 3em;
   z-index: -1;
 }

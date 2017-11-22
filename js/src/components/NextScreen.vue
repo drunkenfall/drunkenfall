@@ -72,8 +72,8 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "../variables.scss";
-@import "../ribbon.scss";
+@import "../css/colors.scss";
+@import "../css/ribbon.scss";
 
 .players {
   width: 100%;
@@ -91,7 +91,7 @@ h1 {
 }
 
 .timer {
-  margin: 0 auto 0.25em;
+  margin: 0.5em auto 0.25em;
   width: 3em;
   font-size: 12em;
   text-align: center;

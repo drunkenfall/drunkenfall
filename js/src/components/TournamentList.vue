@@ -65,7 +65,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "../variables.scss";
+@import "../css/colors.scss";
 
 .tournaments {
   transition: 0.3s ease-in-out;

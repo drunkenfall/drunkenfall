@@ -25,7 +25,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "../variables.scss";
+@import "../css/colors.scss";
 
 .match {
   float: left;
@@ -53,13 +53,13 @@ export default {
     text-shadow: 1px 1px 1px rgba(0,0,0,0.7);
 
     &:nth-child(1), &:nth-child(4) {
-      background-color: #252525;
+      background-color: $bg-default;
       img {
         left: -20px;
       }
     }
     &:nth-child(2), &:nth-child(3) {
-      background-color: #292929;
+      background-color: $bg-default-alt;
       img {
         right: -20px;
       }

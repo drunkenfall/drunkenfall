@@ -29,7 +29,7 @@ export default {
 // This cannot be scoped because the span elements that colorize the
 // templates are not created by vue and therefore are not given the scope.
 
-@import "../../variables.scss";
+@import "../../css/colors.scss";
 
 .event {
   &.alert {
