@@ -5,7 +5,7 @@
 body, html {
   background-color: $bg-bottom;
   color: $fg-default;
-  font-family: 'Lato', sans-serif;
+  // font-family: 'Lato', sans-serif;
   font-family: 'Teko', sans-serif;
   margin: 0;
 
@@ -352,10 +352,10 @@ form {
         opacity: 0;
         transition: 0.2s;
 
-        font-size: 0.5rem;
+        font-size: 1rem;
         text-transform: uppercase;
         text-align: center;
-        padding-top: 1.7em;
+        padding-top: 0.7em;
         overflow-x: hidden;
 
         position: absolute;
