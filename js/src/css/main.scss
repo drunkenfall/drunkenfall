@@ -148,7 +148,13 @@ header, footer {
   text-shadow: 2px 2px 3px rgba(0,0,0,0.5);
 
   .content {
+    float: left;
     margin: 0 2rem;
+
+    .title {
+      @include display2();
+      padding: 0.3em;
+    }
   }
 
   h2 {
