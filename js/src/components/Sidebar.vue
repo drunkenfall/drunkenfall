@@ -160,6 +160,7 @@ export default {
 
 <style lang="scss">
 @import "../css/colors.scss";
+@import "../css/main.scss";
 
 #sidebar {
   background-color: $bg-default;
