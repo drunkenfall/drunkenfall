@@ -2,6 +2,8 @@
 @import "./fonts.scss";
 @import '../node_modules/reset-css/reset.css';
 
+$sidebar-width: 220px;
+
 body, html {
   background-color: $bg-bottom;
   color: $fg-default;
