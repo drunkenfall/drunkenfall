@@ -181,7 +181,7 @@ export default {
     /* background-color: rgba(0,0,0,0.2); */
     /* border-bottom: 1px solid rgba(0,0,0,0.1); */
     /* border-top: 1px solid rgba(255,255,255,0.1); */
-    padding: 1.3rem 0;
+    padding: 3rem 0;
     box-shadow: none;
 
     &.router-link-active {
