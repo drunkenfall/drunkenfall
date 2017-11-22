@@ -8,15 +8,6 @@
       </router-link>
 
       <div class="content main">
-
-        <!-- <div class="tournaments">
-        <sidebar-tournament
-          class="tournament"
-          :tournament="tournament"
-          v-for="tournament in tournaments"></sidebar-tournament>
-        </div>
-        -->
-
         <div class="blocks">
           <router-link class="action"
             :to="{ name: 'tournaments'}">
@@ -103,7 +94,6 @@
 <script>
 import _ from "lodash"
 import Person from '../models/Person.js'
-import SidebarTournament from './SidebarTournament'
 import DrunkenFallMixin from "../mixin"
 
 export default {
@@ -111,7 +101,6 @@ export default {
   mixins: [DrunkenFallMixin],
   components: {
     Person,
-    SidebarTournament,
   },
 
   methods: {
