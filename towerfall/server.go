@@ -668,6 +668,9 @@ func (s *Server) FakeNameHandler(w http.ResponseWriter, r *http.Request) {
 // BuildRouter sets up the routes
 func (s *Server) BuildRouter(ws *websockets.Server) http.Handler {
 	n := mux.NewRouter()
+	n.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "js/index.html")
+	})
 	r := n.PathPrefix("/api").Subrouter()
 
 	r.HandleFunc("/people/", s.PeopleHandler)
