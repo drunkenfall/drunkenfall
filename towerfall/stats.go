@@ -46,7 +46,10 @@ func NewSnapshot(s *Server) CompleteSnapshot {
 		tid := t.ID
 		for _, m := range t.Matches {
 			for _, p := range m.Players {
-				pid := p.Person.ID
+				if p.Person == nil {
+					continue
+				}
+
 				if _, ok := ss[pid]; !ok {
 					fmt.Println("Snapshot not set for player", p.Person)
 					ss[p.Person.ID] = &Snapshot{
