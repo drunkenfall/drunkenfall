@@ -1,6 +1,7 @@
 package towerfall
 
 import (
+	"fmt"
 	"sort"
 	"time"
 )
@@ -46,6 +47,13 @@ func NewSnapshot(s *Server) CompleteSnapshot {
 		for _, m := range t.Matches {
 			for _, p := range m.Players {
 				pid := p.Person.ID
+				if _, ok := ss[pid]; !ok {
+					fmt.Println("Snapshot not set for player", p.Person)
+					ss[p.Person.ID] = &Snapshot{
+						Person:      p.Person,
+						Tournaments: make(map[string]*PlayerSnapshot),
+					}
+				}
 				if _, ok := ss[pid].Tournaments[tid]; !ok {
 					ss[pid].Tournaments[tid] = &PlayerSnapshot{}
 				}
