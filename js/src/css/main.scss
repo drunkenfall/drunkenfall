@@ -186,8 +186,8 @@ header, footer {
       }
 
       &.disabled {
-        background-color: #444444;
-        color: #666;
+        background-color: $bg-disabled;
+        color: $fg-disabled;
         cursor: default;
       }
 
@@ -279,7 +279,7 @@ form {
     }
 
     &.disabled {
-      color: #555;
+      color: $fg-disabled;
       background-color: $bg-disabled;
       cursor: default;
 
