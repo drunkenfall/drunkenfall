@@ -37,11 +37,15 @@ clean:
 clobber: clean
 	rm -rf js/node_modules
 
-$(BINARY): download $(SOURCES)
+$(BINARY): $(SOURCES)
 	go build -v ${LDFLAGS} -o ${BINARY}
 
-download:
-	go get -t -d -v ./...
+.PHONY: dist
+dist: $(BINARY)
+	cd js; npm run build
+
+# download:
+# go get -t -d -v ./...
 
 install:
 	go install -v ${LDFLAGS} ./...
@@ -77,3 +81,11 @@ $(BINARY)-start: $(BINARY)
 nginx-start:
 	mkdir -p logs
 	sudo nginx -p . -c conf/nginx.conf
+
+.PHONY: vendor
+vendor:
+	govendor sync
+
+.PHONY: docker
+docker:
+	docker build .
