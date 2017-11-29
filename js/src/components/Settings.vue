@@ -66,7 +66,7 @@ export default {
     },
     character (event) {
       event.preventDefault()
-      let color = event.srcElement.id
+      let color = event.target.id
       this.$data.color = color
       let name = document.getElementById("sidebar-username")
       if (name) {
