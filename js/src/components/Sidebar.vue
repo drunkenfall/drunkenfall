@@ -54,7 +54,7 @@
               <div class="icon danger">
                 <icon name="trash"></icon>
               </div>
-              <p>Clear test tournaments</p>
+              <p>Clear test</p>
               <div class="clear"></div>
             </a>
           </div>
