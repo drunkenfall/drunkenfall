@@ -81,8 +81,7 @@ export default {
 
       this.api.join({id: this.tournament.id}).then((res) => {
         console.debug("join response:", res)
-        let j = res.json()
-        this.$router.push('/towerfall' + j.redirect)
+        this.$router.push({name: "tournament", params: {id: this.tournament.id}})
       }, (err) => {
         $vue.$alert("Join failed. See console.")
         console.error(err)

@@ -95,8 +95,6 @@ export default {
       }
 
       this.$http.post('/api/new/', payload).then((res) => {
-        var j = res.json()
-        this.$router.push('/towerfall' + j.redirect)
       }, (res) => {
         $vue.$alert("Creating failed. See console.")
         console.error(res)

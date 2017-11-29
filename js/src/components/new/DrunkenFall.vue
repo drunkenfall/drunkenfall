@@ -95,8 +95,7 @@ export default {
       }
 
       this.$http.post('/api/new/', payload).then((res) => {
-        var j = res.json()
-        this.$router.push('/towerfall' + j.redirect)
+        this.$router.push({name: "tournament", params: {tournament: $vue.id}})
       }, (res) => {
         $vue.$alert("Creating failed. See console.")
         console.error(res)

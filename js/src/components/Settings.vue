@@ -90,7 +90,7 @@ export default {
       this.$http.post('/api/user/settings/', payload).then((res) => {
         var j = res.json()
         $vue.$store.commit('setUser', Person.fromObject(j.person, $vue.$cookie))
-        $vue.$router.push('/towerfall' + j.redirect)
+        this.$router.push({name: "tournaments"})
       }, (res) => {
         $vue.$alert('Post failed. See console.')
         console.error(res)
