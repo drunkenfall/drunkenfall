@@ -12,11 +12,11 @@
         :label="'New tournament'" />
 
       <button-link
-        :to="{ name: 'new'}"
+        :func="clear"
         :cls="{ disabled: !canClear}"
         :icon="'trash'"
         :iconClass="'danger'"
-        :label="'Clear test tournaments'" />
+        :label="'Clear tests'" />
 
     </div>
   </div>
