@@ -3,7 +3,7 @@ SOURCES := $(shell find $(SOURCEDIR) -name '*.go')
 
 BINARY = drunkenfall
 
-VERSION = $(shell git describe --dirty --always --tags)
+VERSION = $(shell git describe --always --tags)
 BUILDTIME = `date +%FT%T%z` # ISO-8601
 
 LDFLAGS = -ldflags "-X main.version=${VERSION} -X main.buildtime=${BUILDTIME}"
