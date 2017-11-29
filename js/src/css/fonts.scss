@@ -60,7 +60,7 @@ $regular: 400;
 }
 
 @mixin body2() {
-  font-family: $fond-secondary;
+  font-family: $font-secondary;
   font-weight: bold;
 
   @media screen and ($desktop: $desktop-width) {
@@ -72,7 +72,7 @@ $regular: 400;
 }
 
 @mixin body1() {
-  font-family: $fond-secondary;
+  font-family: $font-secondary;
   font-weight: $regular;
 
   @media screen and ($desktop: $desktop-width) {
@@ -84,12 +84,12 @@ $regular: 400;
 }
 
 @mixin caption() {
-  font-family: $fond-secondary;
+  font-family: $font-secondary;
   font-size: 12px;
 }
 
 @mixin button() {
-  font-family: "Lato Semibold";
+  font-family: $font-secondary;
   // font-size: 14px;
   font-size: 20px;
   text-transform: uppercase;
