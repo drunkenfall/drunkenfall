@@ -85,7 +85,7 @@ h1 {
 
     p {
       font-size: 1.2em;
-      margin: 1em 3em 2em 3em;
+      margin: 2em 3em;
       text-shadow: 2px 2px 2px rgba(0,0,0,0.5);
     }
   }

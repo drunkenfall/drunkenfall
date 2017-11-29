@@ -42,7 +42,7 @@ a {
   p {
     width: 80%;
     text-align: center;
-    padding: 0.3em 0.3em 0.2em;
+    padding: 0.3em 0.3em;
     margin: 0.5em auto;
     display: inline-block;
     box-shadow: 1px 1px 6px rgba(0,0,0,0.5);

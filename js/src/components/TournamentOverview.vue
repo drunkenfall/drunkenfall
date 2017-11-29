@@ -274,7 +274,7 @@ export default {
       margin: 10px auto;
       min-width: 60px;
 
-      padding: 0.5em 0.7em 0.5em;
+      padding: 0.5em 0.7em;
     }
   }
 }
