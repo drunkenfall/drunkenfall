@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/drunkenfall/faking"
+	"github.com/drunkenfall/drunkenfall/faking"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/deckarep/golang-set"
-	"github.com/drunkenfall/faking"
+	"github.com/drunkenfall/drunkenfall/faking"
 )
 
 // Tournament is the main container of data for this app.

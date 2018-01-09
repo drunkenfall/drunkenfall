@@ -12,8 +12,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/drunkenfall/drunkenfall/faking"
 	"github.com/drunkenfall/drunkenfall/websockets"
-	"github.com/drunkenfall/faking"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
