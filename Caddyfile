@@ -5,7 +5,7 @@ gzip {
   not /__webpack_hmr
 }
 ext    .html
-log    /var/log/access.log
+log    logs/caddy-access.log
 proxy  /api 127.0.0.1:42001
 proxy  /api/auto-updater 127.0.0.1:42001 {
 	websocket
@@ -22,5 +22,4 @@ header /api Access-Control-Allow-Origin *
 # The except part makes sure that we simply serve the static files
 # rather than asking vue about them.
 proxy  / 127.0.0.1:42002 {
-  except /static
 }
