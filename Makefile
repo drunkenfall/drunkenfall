@@ -88,4 +88,4 @@ vendor:
 
 .PHONY: docker
 docker:
-	docker build .
+	docker-compose build

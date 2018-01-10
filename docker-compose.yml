@@ -1,0 +1,14 @@
+version: '3'
+services:
+  drunkenfall:
+    build: .
+    ports:
+     - "42001:42001"
+    environment:
+      DF_DB_PATH: /drunkenfall/production.db
+      DF_PORT: 42001
+      DF_FB_ID: 668534419991204
+      DF_FB_SECRET: e74696c890216108c69d55d0e1b7866f
+      DF_FB_CALLBACK: http://dev.drunkenfall.com/api/facebook/oauth2callback
+    volumes:
+      - ./data/:/drunkenfall/:rw
