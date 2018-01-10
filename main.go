@@ -3,6 +3,8 @@ package main
 import (
 	"log"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/drunkenfall/drunkenfall/towerfall"
 	"github.com/drunkenfall/drunkenfall/towerfall/migrations"
@@ -35,6 +37,16 @@ func main() {
 	// Set up the paths and the websocket listeners
 	s.RegisterHandlersAndListeners()
 
+	// Catch termination signals so we can close the databas properly
+	c := make(chan os.Signal, 2)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		<-c
+		log.Print("Catching SIGTERM, closing database...")
+		db.DB.Close()
+		log.Print("Done. Exiting uncleanly.")
+		os.Exit(1)
+	}()
 
 	// Actually start serving
 	if err := s.Serve(); err != nil {
