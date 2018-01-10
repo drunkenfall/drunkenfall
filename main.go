@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 
 	"github.com/drunkenfall/drunkenfall/towerfall"
 	"github.com/drunkenfall/drunkenfall/towerfall/migrations"
@@ -9,7 +10,7 @@ import (
 
 func main() {
 	// Instantiate the database
-	db, err := towerfall.NewDatabase("production.db")
+	db, err := towerfall.NewDatabase(os.Getenv("DF_DB_PATH"))
 	if err != nil {
 		log.Fatal(err)
 	}
