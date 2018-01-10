@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/boltdb/bolt"
 )
@@ -36,7 +37,7 @@ var personMutex = &sync.Mutex{}
 // NewDatabase returns a new database object
 func NewDatabase(fn string) (*Database, error) {
 	// log.Printf("Opening database at '%s'", fn)
-	bolt, err := bolt.Open(fn, 0600, nil)
+	bolt, err := bolt.Open(fn, 0600, &bolt.Options{Timeout: 1 * time.Second})
 	if err != nil {
 		log.Fatal(err)
 	}
