@@ -50,6 +50,7 @@ func NewSnapshot(s *Server) CompleteSnapshot {
 					continue
 				}
 
+				pid := p.Person.ID
 				if _, ok := ss[pid]; !ok {
 					fmt.Println("Snapshot not set for player", p.Person)
 					ss[p.Person.ID] = &Snapshot{
