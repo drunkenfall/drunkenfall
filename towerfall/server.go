@@ -669,6 +669,11 @@ func (s *Server) FakeNameHandler(w http.ResponseWriter, r *http.Request) {
 func (s *Server) BuildRouter(ws *websockets.Server) http.Handler {
 	n := mux.NewRouter()
 	n.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if _, err := os.Stat("js/dist/index.html"); !os.IsNotExist(err) {
+			http.ServeFile(w, r, "js/dist/index.html")
+			return
+		}
+
 		http.ServeFile(w, r, "js/index.html")
 	})
 	r := n.PathPrefix("/api").Subrouter()
@@ -698,6 +703,11 @@ func (s *Server) BuildRouter(ws *websockets.Server) http.Handler {
 	r.HandleFunc("/{id}/toggle/{person}", s.ToggleHandler)
 	r.HandleFunc("/{id}/time/{time}", s.SetTimeHandler)
 	r.HandleFunc("/{id}/credits/", s.CreditsHandler)
+
+	// Add the fallback static serving
+	n.PathPrefix("/static/js").Handler(http.StripPrefix("/static/js", http.FileServer(http.Dir("./js/dist/static/js"))))
+	n.PathPrefix("/static/css").Handler(http.StripPrefix("/static/css", http.FileServer(http.Dir("./js/dist/static/css"))))
+	n.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./js/static/"))))
 
 	// Install the websockets
 	r.Handle("/auto-updater", websocket.Handler(ws.OnConnected))
