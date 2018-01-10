@@ -717,8 +717,19 @@ func (s *Server) BuildRouter(ws *websockets.Server) http.Handler {
 
 // Serve serves forever
 func (s *Server) Serve() error {
-	log.Print("Listening on :42001")
-	return http.ListenAndServe(":42001", s.logger)
+	port := 42001
+	e := os.Getenv("DF_PORT")
+	if e != "" {
+		var err error
+		port, err = strconv.Atoi(e)
+
+		if err != nil {
+			log.Fatalf("Port '%s' is not an integer", e)
+		}
+	}
+
+	log.Printf("Listening on port %d", port)
+	return http.ListenAndServe(fmt.Sprintf(":%d", port), s.logger)
 }
 
 // SendWebsocketUpdate sends an update to all listening sockets
