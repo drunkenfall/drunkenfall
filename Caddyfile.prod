@@ -1,0 +1,16 @@
+https://drunkenfall.com
+
+root js/dist/
+push
+gzip
+ext    .html
+log    logs/caddy-access.log
+proxy  /api 127.0.0.1:42001
+proxy  /api/auto-updater 127.0.0.1:42001 {
+	websocket
+}
+header /api Access-Control-Allow-Origin *
+
+proxy  / 127.0.0.1:42001 {
+  except /static
+}
