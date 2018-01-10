@@ -4,6 +4,8 @@ FROM golang:latest
 ENV DF_ROOT=/go/src/github.com/drunkenfall/drunkenfall/
 WORKDIR $DF_ROOT
 
+RUN mkdir ./logs
+
 # I hate everything.
 RUN curl -sL https://deb.nodesource.com/setup_6.x | bash -
 RUN apt-get install nodejs
@@ -24,10 +26,10 @@ COPY js/.babelrc ./js/.babelrc
 COPY js/static/ ./js/static/
 COPY js/index.html ./js/
 
-COPY Caddyfile .
-COPY Makefile .
+COPY Makefile ./
 
 COPY websockets/ ./websockets/
+COPY faking/ ./faking/
 COPY towerfall/ ./towerfall/
 COPY js/src ./js/src/
 COPY *.go ./
@@ -35,3 +37,5 @@ COPY .git ./.git
 
 RUN make drunkenfall
 RUN make npm-dist
+
+CMD "./drunkenfall"
