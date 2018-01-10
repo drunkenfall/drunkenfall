@@ -9,6 +9,8 @@ import (
 )
 
 func main() {
+	Kekkonen() // Kekkonen
+
 	// Instantiate the database
 	db, err := towerfall.NewDatabase(os.Getenv("DF_DB_PATH"))
 	if err != nil {
@@ -33,7 +35,6 @@ func main() {
 	// Set up the paths and the websocket listeners
 	s.RegisterHandlersAndListeners()
 
-	Kekkonen() // Kekkonen
 
 	// Actually start serving
 	if err := s.Serve(); err != nil {
