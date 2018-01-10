@@ -33,11 +33,12 @@ export default {
     connect: function () {
       let $vue = this
       if (!this.ws) {
-        console.log('Setting up new websocket')
+        let proto = window.location.protocol === "https:" ? 'wss://' : "ws://"
+        console.log(`Setting up new ${proto} websocket`)
         this.$set(
           this.$data,
           'ws',
-          new WebSocket('wss://' + window.location.host + '/api/auto-updater'),
+          new WebSocket(proto + window.location.host + '/api/auto-updater'),
         )
 
         let timeoutId
