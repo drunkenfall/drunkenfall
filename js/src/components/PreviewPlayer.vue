@@ -3,9 +3,9 @@
     <img :alt="player.displayName" :src="player.avatar"/>
 
     <div class="protector">
-      <div v-if="showName" class="super-ribbon">
-      {{player.firstName}}
-      </div>
+      <!-- <div v-if="showName" class="super-ribbon">
+           {{player.firstName}}
+           </div> -->
 
       <div :class="'ribbon ' + player.color">
         <strong class="ribbon-content">
@@ -47,7 +47,7 @@ export default {
   float: left;
   height: 50%;
   width: 50%;
-  margin-top: 4em;
+  margin-top: 2em;
 
   img {
     display: block;
