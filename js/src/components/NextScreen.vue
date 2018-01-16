@@ -8,7 +8,7 @@
       </div>
       <div class="links">
         <p class="time">
-          Local time: {{clock.time}}
+          {{clock.time}}
         </p>
       </div>
       <div class="clear"></div>
@@ -74,6 +74,11 @@ export default {
 <style lang="scss" scoped>
 @import "../css/colors.scss";
 @import "../css/ribbon.scss";
+
+header {
+  background-color: transparent;
+  box-shadow: none;
+}
 
 .players {
   width: 100%;
