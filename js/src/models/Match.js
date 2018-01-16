@@ -59,12 +59,12 @@ export default class Match {
     console.log("Ending match...")
     this.api.end(this.id).then((res) => {
       console.log("Match ended.", res)
-      this.$vue.$router.push({
-        name: "tournament",
-        params: {
-          tournament: this.tournament_id,
-        }
-      })
+      // this.$vue.$router.push({
+      //   name: "tournament",
+      //   params: {
+      //     tournament: this.tournament_id,
+      //   }
+      // })
     }, (res) => {
       $vue.$alert("Ending failed. See console.")
       console.error(res)

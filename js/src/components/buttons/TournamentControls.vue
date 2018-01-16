@@ -58,6 +58,11 @@
         :icon="'forward'"
         :label="autoplayLabel" />
 
+      <button-link v-if="user.isJudge && !tournament.isEnded"
+        :to="{ name: 'judge', params: { tournament: tournament.id }, query: {fullscreen: 'youhavelostthegame'}}"
+        :iconClass="'positive'"
+        :icon="'beer'" :label="'Judge'" />
+
       <div class="maybe-clear"></div>
     </div>
   </div>
