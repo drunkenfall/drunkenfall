@@ -53,11 +53,11 @@ export default {
   methods: {
     add (e) {
       if (this.selected.length < this.needed) {
-        this.selected.push(e.srcElement.id)
+        this.selected.push(e.target.id)
       }
     },
     remove (e) {
-      this.selected.pop(e.srcElement.id)
+      this.selected.pop(e.target.id)
     },
     commit () {
       let $vue = this
