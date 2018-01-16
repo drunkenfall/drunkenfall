@@ -67,6 +67,11 @@ export default {
     player () {
       return this.match.players[this.index]
     },
+    match () {
+      // This is solely so that all of the already written code works
+      // straight off the bat.
+      return this.nextMatch
+    }
   },
 
   methods: {
@@ -189,7 +194,7 @@ export default {
         margin-top: -13%;
       }
     }
-   }
+  }
 
   .shots {
     transition: 0.2s;
@@ -214,19 +219,23 @@ export default {
 
       &.give {
         background-color: $accent;
-        p {color: #fff;}
+        p {
+          color: #fff;
+          font-size: 0.3em;
+          margin-top: -0.3em;
+        }
         >div {
           background-color: $accent;
         }
       }
 
       &.mark {
-        padding-top: 2%;
+        padding-top: 10%;
         font-size: 6vh;
       }
       &.reason {
         margin-top: -4%;
-        font-size: 2vh;
+        font-size: 0.5em;
       }
     }
   }
@@ -303,7 +312,7 @@ export default {
         position: relative;
         top: 50%;
         transform: translateX(0) translateY(-50%);
-        font-size: 1.5em;
+        font-size: 0.5em;
         color: #666672;
       }
 
