@@ -120,6 +120,11 @@ var DrunkenFallMixin = {
 
       return match
     },
+    showSidebar () {
+      // If the fullscreen GET parameter is set, we should _not_ show
+      // the sidebar at all.
+      return this.$route.query.fullscreen === undefined
+    }
   },
   watch: {
     tournament (val, old) {

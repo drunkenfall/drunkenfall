@@ -1,5 +1,5 @@
 <template>
-  <div class="sidebar-buttons" v-if="user && user.isJudge">
+  <div class="sidebar-buttons" v-if="user && user.isJudge && showSidebar">
     <div class="links">
       <button-link v-if="tournament.canStart && user.isCommentator"
         :func="start"

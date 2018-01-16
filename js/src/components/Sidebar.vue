@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div v-if="showSidebar">
     <div id="sidebar">
       <router-link :to="dispatchLink">
         <div class="logo">
@@ -155,6 +155,11 @@ export default {
       }
     }
   },
+  mounted () {
+    if (!this.showSidebar) {
+      document.getElementsByTagName("body")[0].className += " sidebar-less"
+    }
+  }
 }
 </script>
 

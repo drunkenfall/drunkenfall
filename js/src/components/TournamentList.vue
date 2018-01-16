@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="sidebar-buttons" v-if="user && user.isProducer">
+    <div class="sidebar-buttons" v-if="user && user.isProducer && showSidebar">
       <div class="links">
         <button-link :to="{ name: 'new'}"
           :icon="'plus'" :iconClass="'positive'" :label="'New'" />
