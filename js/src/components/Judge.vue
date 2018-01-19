@@ -9,7 +9,7 @@
   <div class="bottom">
     <div class="content">
       <p class="title">
-        {{match.title}} / Round {{round}}
+        {{match.title}} / Round {{round}} @ {{match.level}}
       </p>
       </div>
 
