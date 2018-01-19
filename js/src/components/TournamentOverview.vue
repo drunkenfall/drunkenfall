@@ -158,7 +158,6 @@ export default {
 
 .match {
   width: 100%;
-  font-size: 150%;
   display: block;
   position: relative;
 

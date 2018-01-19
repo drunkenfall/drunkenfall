@@ -50,7 +50,7 @@ export default {
 @import "../css/colors.scss";
 
 .player {
-  @include display1();
+  font-size: 30px;
   &.gold, &.silver, &.bronze {
     p {
       color: #fff !important;

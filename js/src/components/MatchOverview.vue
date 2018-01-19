@@ -1,4 +1,10 @@
 <template>
+<div>
+  <div class="level">
+    {{match.level | levelTitle}}
+  </div>
+  <div class="clear"></div>
+
   <router-link :to="{ name: 'match', params: { match: match.index }}">
     <template v-for="x in 4">
       <player v-if="match.players.length >= x" :player="match.players[x-1]" :match="match" :index="x-1"></player>
@@ -7,7 +13,12 @@
         <p>???</p>
       </div>
     </template>
+
   </router-link>
+  <div class="clear"></div>
+
+
+</div>
 </template>
 
 <script>
@@ -20,7 +31,23 @@ export default {
   },
   props: {
     match: {}
-  }
+  },
+  filters: {
+    levelTitle (title) {
+      if (title === "twilight") {
+        return "Twilight Spire"
+      } else if (title === "kingscourt") {
+        return "King's Court"
+      } else if (title === "frostfang") {
+        return "Frostfang Keep"
+      } else if (title === "sunken") {
+        return "Sunken City"
+      } else if (title === "amaranth") {
+        return "The Amaranth"
+      }
+      return title.charAt(0).toUpperCase() + title.slice(1)
+    },
+  },
 }
 </script>
 
@@ -39,9 +66,9 @@ export default {
 
   cursor: pointer;
   text-align: center;
-  box-shadow: 2px 2px 3px rgba(0,0,0,0.3);
 
   .player {
+    z-index: 100;
     float: left;
     width: 50%;
     height: 40%;
@@ -114,6 +141,16 @@ export default {
 
   img {
     width: 100%;
+  }
+
+  .level {
+    background-color: $bg-default-hover;
+    padding: 0.3em 0.5em;
+    text-align: center;
+    margin: 0 auto;
+    font-size: 0.9em;
+    height: 1em;
+    width: 60%;
   }
 }
 </style>
