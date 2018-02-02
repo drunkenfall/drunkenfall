@@ -56,7 +56,6 @@ func TestPermissionsDenied(t *testing.T) {
 	urls := []string{
 		"/new/",
 		"/%s/start/",
-		"/%s/next/",
 		"/%s/join/",
 		"/tournament/%s/0/start/",
 		"/tournament/%s/0/end/",
