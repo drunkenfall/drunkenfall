@@ -1,52 +1,48 @@
 <template>
-  <div v-if="stats">
-    <h2>Combatants</h2>
+  <div v-if="stats" class="archers">
     <div class="players">
-      <template v-for="c in combatants" ref="combatants">
-        <list-player :person="c.person"></list-player>
+      <template v-for="(c, i) in combatants" ref="combatants">
+        <league-player :person="c.person" :index="i" :ref="c.person.id"></league-player>
       </template>
     </div>
 
-    <h2>Unfought</h2>
-    <div class="players unfought">
-      <template v-for="c in unfought" ref="unfought">
-        <list-player :person="c.person"></list-player>
-      </template>
-    </div>
-
+    <profile :profile="active" class="selected"></profile>
   </div>
 </template>
 
 <script>
-import _ from 'lodash'
 import DrunkenFallMixin from "../mixin"
-import ListPlayer from './players/ListPlayer.vue'
+import Profile from './Profile.vue'
+import LeaguePlayer from './players/LeaguePlayer.vue'
 
 export default {
   name: 'Archers',
   mixins: [DrunkenFallMixin],
   components: {
-    ListPlayer,
+    LeaguePlayer,
+    Profile,
   },
   computed: {
-    stats () {
-      return _.filter(this.$store.state.stats, (p) => {
-        return !p.person.disabled
-      })
+    active () {
+      if (this.$route.params.id === undefined) {
+        return this.combatants[0].person
+      }
+
+      return this.$store.getters.getPerson(
+        this.$route.params.id
+      )
     },
     people () {
       return this.$store.state.people
     },
-    combatants () {
-      return _.sortBy(_.filter(this.stats, (p) => {
-        return p.total.score > 0
-      }), 'rank')
-    },
-    unfought () {
-      return _.sortBy(_.filter(this.stats, (p) => {
-        return p.total.score === 0
-      }), 'person.displayName')
-    },
+  },
+  beforeRouteUpdate (to, from, next) {
+    this.$refs[to.params.id][0].$el.scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+      inline: "nearest",
+    })
+    next()
   },
 }
 </script>
@@ -64,10 +60,21 @@ h2 {
   text-align: center;
 }
 
+.archers {
+  display: flex;
+  align-content: flex-end;
+  flex-direction: row-reverse;
+}
+
+.selected {
+  width: 71%;
+}
+
 .players {
-  text-align: center;
-  width: 80%;
-  margin: 10px auto;
+  float: right;
+  width: 25%;
+  background-color: $bg-default;
+  box-shadow: -4px 0px 4px rgba(0, 0, 0, 0.3);
 }
 
 </style>

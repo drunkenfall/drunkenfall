@@ -26,7 +26,6 @@ import NextScreen from './components/NextScreen.vue'
 import Participants from './components/Participants.vue'
 import Archers from './components/Archers.vue'
 import PostMatch from './components/PostMatch.vue'
-import Profile from './components/Profile.vue'
 import Runnerups from './components/Runnerups.vue'
 import ScoreScreen from './components/ScoreScreen.vue'
 import Settings from './components/Settings.vue'
@@ -100,7 +99,7 @@ var router = new Router({
     {
       path: '/archers/:id',
       name: 'archer',
-      component: Profile,
+      component: Archers,
     },
     {
       path: '/admin',

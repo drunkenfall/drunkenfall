@@ -1,5 +1,5 @@
 <template>
-  <div v-if="profile">
+  <div v-if="profile && stats">
      <div class="profile">
        <img class="avatar" :src="profile.avatar" :alt="profile.nick" />
 
@@ -87,17 +87,17 @@
 </template>
 
 <script>
+import Person from '../models/Person.js'
 import DrunkenFallMixin from "../mixin"
 
 export default {
   name: "Profile",
   mixins: [DrunkenFallMixin],
+  props: {
+    profile: new Person(),
+    index: Number,
+  },
   computed: {
-    profile () {
-      return this.$store.getters.getPerson(
-        this.$route.params.id
-      )
-    },
     stats () {
       if (!this.$store.state.stats) {
         return undefined
@@ -120,9 +120,11 @@ export default {
 @import "../css/colors.scss";
 
 .profile {
-  width: 80%;
+  width: 60%;
   margin: 3em auto;
   text-align: center;
+  position: fixed;
+  top: 0;
 
   img.avatar {
     display: inline-block;
@@ -130,6 +132,7 @@ export default {
     border-radius: 100%;
     margin: 0 auto;
     width:  25%;
+    height: 25%;
     box-shadow: -1px -1px 6px rgba(0,0,0,0.5);
     background-color: rgba(10,12,14,0.3);
     margin-bottom: -30px;
