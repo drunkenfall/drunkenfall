@@ -34,7 +34,7 @@ func TestServeTournaments(t *testing.T) {
 
 	res, err := http.Get(s.URL + "/api/tournament/")
 	assert.Nil(err)
-	assert.Equal(res.StatusCode, http.StatusOK)
+	assert.Equal(http.StatusOK, res.StatusCode)
 
 	j, err := ioutil.ReadAll(res.Body)
 	assert.Nil(err)
@@ -69,6 +69,6 @@ func TestPermissionsDenied(t *testing.T) {
 		}
 		res, err := http.Get(s.URL + base + url)
 		assert.Nil(err)
-		assert.Equal(res.StatusCode, http.StatusUnauthorized)
+		assert.Equal(http.StatusUnauthorized, res.StatusCode)
 	}
 }
