@@ -37,6 +37,14 @@ var DrunkenFallMixin = {
         mode: 'queue',
       })
     },
+    getOrdinal (n) {
+      var s = ["th", "st", "nd", "rd"]
+      var v = n % 100
+      return s[(v - 20) % 10] || s[v] || s[0]
+    },
+    ordinal (n) {
+      return `${n}${this.getOrdinal(n)}`
+    },
   },
 
   computed: {
@@ -65,6 +73,21 @@ var DrunkenFallMixin = {
     },
     people () {
       return this.$store.state.people
+    },
+    combatants () {
+      return _.sortBy(_.filter(this.stats, (p) => {
+        return p.total.score > 0
+      }), 'rank')
+    },
+    unfought () {
+      return _.sortBy(_.filter(this.stats, (p) => {
+        return p.total.score === 0
+      }), 'person.displayName')
+    },
+    stats () {
+      return _.filter(this.$store.state.stats, (p) => {
+        return !p.person.disabled
+      })
     },
     match () {
       if (this.$route.params.match === undefined) {
