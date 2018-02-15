@@ -98,6 +98,7 @@ func NewSnapshot(s *Server) CompleteSnapshot {
 			ss[pid].Total.Self += t.Self
 			ss[pid].Total.Score += t.Score
 			ss[pid].Total.Playtime += t.Playtime
+			ss[pid].Total.Wins += t.Wins
 		}
 	}
 
