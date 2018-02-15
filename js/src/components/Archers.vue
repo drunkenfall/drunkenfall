@@ -24,7 +24,7 @@ export default {
   },
   computed: {
     active () {
-      if (this.$route.params.id === undefined) {
+      if (this.combatants.length !== 0 && this.$route.params.id === undefined) {
         return this.combatants[0].person
       }
 
