@@ -3,6 +3,7 @@ package towerfall
 import (
 	"fmt"
 	"sort"
+	"strings"
 	"time"
 )
 
@@ -43,6 +44,9 @@ func NewSnapshot(s *Server) CompleteSnapshot {
 
 	// Calculate the per-tournament data points
 	for _, t := range s.DB.Tournaments {
+		if !strings.HasPrefix(t.Name, "DrunkenFall 2018") {
+			continue
+		}
 		tid := t.ID
 		for _, m := range t.Matches {
 			for _, p := range m.Players {
