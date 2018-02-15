@@ -167,6 +167,9 @@ export default {
         font-size: 5em;
         margin-top: 0.25em;
       }
+      span {
+        font-size: 0.7em;
+      }
     }
 
     .header {
