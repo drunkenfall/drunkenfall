@@ -62,8 +62,10 @@ export default class Tournament {
     return this.currentMatch.index
   }
 
-  reshuffle ($vue) {
-    this.api.reshuffle({ id: this.tournament.id }).then((res) => {
+  reshuffle () {
+    let $vue = this.$vue
+    console.log(this)
+    this.api.reshuffle({ id: this.id }).then((res) => {
       console.debug("reshuffle response:", res)
     }, (err) => {
       $vue.$alert("Reshuffle failed. See console.")
