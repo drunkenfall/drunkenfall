@@ -31,6 +31,7 @@
 import PreviewPlayer from './PreviewPlayer.vue'
 import {Countdown, Clock} from '../models/Timer'
 import _ from 'lodash'
+import moment from 'moment'
 import DrunkenFallMixin from "../mixin"
 
 export default {
@@ -47,6 +48,24 @@ export default {
     }
   },
 
+  methods: {
+    setTime (x) {
+      // We need an extra two seconds because 1) one interval has to
+      // pass 2) by the time it renders the clock a few milliseconds
+      // has passed and there is actually less time left.
+      this.countdown.start(moment().add(x, 'minutes').add(2, 'seconds'))
+    },
+    keyPress (e) {
+      let code = e.keyCode
+      if (code >= 48 && code <= 57) {
+        // https://www.cambiaresearch.com/articles/15/javascript-char-codes-key-codes
+        this.setTime(code - 48)
+      } else {
+        console.log(code)
+      }
+    },
+  },
+
   computed: {
     playersReversed () {
       // Work on a clone, not the original data object.
@@ -56,6 +75,8 @@ export default {
 
   mounted () {
     document.getElementsByTagName("body")[0].className = "sidebar-less"
+
+    document.addEventListener("keydown", this.keyPress, false)
   },
 
   watch: {

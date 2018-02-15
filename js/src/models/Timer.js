@@ -2,11 +2,12 @@ import moment from 'moment'
 import _ from 'lodash'
 
 export const INTERVAL = 1000
+const PLACEHOLDER = 'Soon™'
 
 export class Countdown {
   constructor () {
     this.intervalID = 0
-    this.time = "00:00"
+    this.time = PLACEHOLDER
   }
 
   pad (n, width) {
@@ -34,6 +35,7 @@ export class Countdown {
       if (_.some([d.hours(), d.minutes(), d.seconds()], (n) => n < 0)) {
         console.log("Closing interval.")
         clearInterval(this.intervalID)
+        this.time = PLACEHOLDER
         return
       }
 
@@ -43,7 +45,11 @@ export class Countdown {
         hours = this.pad(d.hours(), 2) + ":"
       }
 
-      this.time = hours + this.pad(d.minutes(), 2) + ":" + this.pad(d.seconds(), 2)
+      if (d.hours() === 0 && d.minutes() === 0 && d.seconds() === 0) {
+        this.time = PLACEHOLDER
+      } else {
+        this.time = hours + this.pad(d.minutes(), 2) + ":" + this.pad(d.seconds(), 2)
+      }
     }, INTERVAL)
   }
 }
