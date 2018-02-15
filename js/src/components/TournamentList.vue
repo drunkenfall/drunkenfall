@@ -23,7 +23,7 @@
     </div>
 
     <h1 v-if="tournaments.length === 0">
-      Loading... &lt;3
+      Loading... 💜
     </h1>
   </div>
 </template>
