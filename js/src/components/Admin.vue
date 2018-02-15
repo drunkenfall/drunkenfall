@@ -1,5 +1,6 @@
 <template>
 <div v-if="userLoaded && user.isProducer">
+  <headful title="Superpowers - DrunkenFall"></headful>
   <h1>Superpowers</h1>
 
   <div class="section">

@@ -1,5 +1,6 @@
 <template>
   <div v-if="tournament">
+    <headful :title="tournament.name"></headful>
     <header>
       <div class="content">
         <div class="title">

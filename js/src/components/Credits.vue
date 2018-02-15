@@ -1,5 +1,6 @@
 <template>
   <div v-if="tournament">
+    <headful :title="tournament.subtitle + ' / Credits - DrunkenFall'"></headful>
     <div id="executive">
       <img :alt="credits.executive.nick" :src="credits.executive.avatar"/>
       <h2>Executive Producer</h2>

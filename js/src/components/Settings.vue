@@ -1,5 +1,6 @@
 <template>
   <div>
+    <headful title="Settings - DrunkenFall"></headful>
     <form @submit="submit">
       <div class="section">
         <label for="nick">Display name</label>

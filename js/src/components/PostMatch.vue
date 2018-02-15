@@ -1,5 +1,6 @@
 <template>
   <div v-if="tournament">
+    <headful :title="tournament.subtitle + ' / Charts - DrunkenFall'"></headful>
     <div class="chart"></div>
     <div class="clear"></div>
   </div>

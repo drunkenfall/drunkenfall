@@ -1,5 +1,6 @@
 <template>
 <div v-if="tournament">
+  <headful :title="tournament.subtitle + ' - DrunkenFall'"></headful>
   <tournament-controls />
 
   <div class="subheader" v-if="user.isCommentator && nextMatch && !tournament.isEnded">

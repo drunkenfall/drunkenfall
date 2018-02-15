@@ -1,5 +1,6 @@
 <template>
-  <div>
+  <div v-if="tournament">
+    <headful :title="tournament.subtitle + ' - DrunkenFall'"></headful>
     <tournament-preview v-if="tournament && !tournament.isStarted"></tournament-preview>
     <tournament-overview v-if="tournament && tournament.isStarted"></tournament-overview>
   </div>

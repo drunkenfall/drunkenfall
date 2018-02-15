@@ -1,5 +1,6 @@
 <template>
   <div>
+    <headful title="New - DrunkenFall"></headful>
     <h1>New tournament</h1>
     <h3>Choose a kind</h3>
 

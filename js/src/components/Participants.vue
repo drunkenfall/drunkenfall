@@ -1,5 +1,6 @@
 <template>
   <div v-if="tournament">
+    <headful :title="tournament.subtitle + ' / Players - DrunkenFall'"></headful>
     <player-toggle
       :on="joined" :onLabel="'In for the showdown! |o/'"
       :off="notJoined" :offLabel="'Booooooo 😧'"

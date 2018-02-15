@@ -1,5 +1,6 @@
 <template>
   <div v-if="stats" class="archers">
+    <headful :title="active.nick + ' - DrunkenFall'"></headful>
     <div class="players">
       <template v-for="(c, i) in combatants" ref="combatants">
         <league-player :person="c.person" :index="i" :ref="c.person.id"></league-player>

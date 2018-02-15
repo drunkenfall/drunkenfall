@@ -1,5 +1,6 @@
 <template>
 <div v-if="tournament && match && user && user.isJudge">
+  <headful :title="match.title + ' / Round ' + round"></headful>
   <div class="control">
     <template v-for="(player, index) in match.players" ref="players">
       <control-player :index="index"></control-player>

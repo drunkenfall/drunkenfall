@@ -1,5 +1,6 @@
 <template>
   <div v-if="people">
+    <headful title="Disable - DrunkenFall"></headful>
     <player-toggle
       :on="enabled" :onLabel="'Still fightin\'!'"
       :off="disabled" :offLabel="'...their deeds of valor will be remembered.'"

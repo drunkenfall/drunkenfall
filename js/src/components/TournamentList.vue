@@ -1,5 +1,6 @@
 <template>
   <div>
+    <headful title="Tournaments - DrunkenFall"></headful>
     <div class="sidebar-buttons" v-if="user && user.isProducer && showSidebar">
       <div class="links">
         <button-link :to="{ name: 'new'}"

@@ -33,7 +33,7 @@
             <div class="icon">
               💪
             </div>
-            <p>Admin</p>
+            <p>Superpowers</p>
             <div class="clear"></div>
           </router-link>
         </div>

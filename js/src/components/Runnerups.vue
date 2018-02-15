@@ -1,6 +1,7 @@
 <template>
   <div v-if="tournament">
-    <h2>Already the semi</h2>
+    <headful :title="tournament.subtitle + ' / Semis - DrunkenFall'"></headful>
+    <h2>Already in the semi</h2>
     <div class="players joined">
       <div v-for="player in inSemi" class="player">
         <img :alt="player.person.nick" :src="player.avatar"/>

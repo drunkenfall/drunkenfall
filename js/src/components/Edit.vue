@@ -1,5 +1,6 @@
 <template>
   <div v-if="tournament">
+    <headful :title="tournament.subtitle + ' / Edit - DrunkenFall'"></headful>
     <form v-on:submit="edit">
       <textarea v-model="data"
         autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
