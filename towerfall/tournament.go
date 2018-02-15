@@ -255,6 +255,10 @@ func (t *Tournament) StartTournament(r *http.Request) error {
 
 // Reshuffle shuffles the players of an already started tournament
 func (t *Tournament) Reshuffle(r *http.Request) error {
+	if !t.IsRunning() || t.Matches[0].IsStarted() {
+		return errors.New("cannot reshuffle")
+	}
+
 	// First we need to clear the player slots in the matches.
 	for x := 0; x < len(t.Matches)-3; x++ {
 		t.Matches[x].Players = nil
