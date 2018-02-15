@@ -77,6 +77,7 @@ export default {
     overflow: hidden;
     white-space: nowrap;
     padding: 0.2em 0;
+    font-size: 30px;
     text-shadow: 1px 1px 1px rgba(0,0,0,0.7);
 
     &:nth-child(1), &:nth-child(4) {
