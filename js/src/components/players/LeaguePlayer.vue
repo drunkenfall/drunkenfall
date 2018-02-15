@@ -2,8 +2,11 @@
 <router-link :to="{name: 'archer', params: {id: person.id}}" :class="cls">
   <img :id="person.id" :alt="person.nick" :src="person.avatar"/>
   <div class="data">
-    <div class="count">
-      {{ordinal(index+1)}}
+    <div class="position">
+      <div class="ordinal">{{ordinal(index+1)}}</div>
+      <div class="trophies" v-if="stats.total.wins > 0">
+        <span v-for="n in stats.total.wins">🏆</span>
+      </div>
     </div>
     <p class="name" :class="person.color">{{person.displayName}}</p>
   </div>
@@ -36,7 +39,13 @@ export default {
       }
 
       return "person"
-    }
+    },
+    stats () {
+      if (!this.$store.state.stats) {
+        return undefined
+      }
+      return this.$store.state.stats[this.person.id]
+    },
   },
 }
 
@@ -63,14 +72,16 @@ export default {
     background-color: $bg-default-hover;
   }
 
-  .count {
-    vertical-align: middle;
+  .position {
+    display: flex;
+    justify-content: space-between;
     font-size: 1.5em;
     color: $fg-disabled;
   }
 
   .data {
     margin-left: 1em;
+    flex-grow: 1;
   }
 
   img {
