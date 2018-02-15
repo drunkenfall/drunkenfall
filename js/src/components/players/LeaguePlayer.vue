@@ -4,8 +4,8 @@
   <div class="data">
     <div class="position">
       <div class="ordinal">{{ordinal(index+1)}}</div>
-      <div class="trophies" v-if="stats.total.wins > 0">
-        <span v-for="n in stats.total.wins">🏆</span>
+      <div class="trophies" v-if="playerStats.total.wins > 0">
+        <span v-for="n in playerStats.total.wins">🏆</span>
       </div>
     </div>
     <p class="name" :class="person.color">{{person.displayName}}</p>
@@ -40,7 +40,7 @@ export default {
 
       return "person"
     },
-    stats () {
+    playerStats () {
       if (!this.$store.state.stats) {
         return undefined
       }
