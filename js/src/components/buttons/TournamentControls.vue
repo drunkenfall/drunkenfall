@@ -39,7 +39,7 @@
         :label="'Backfill semis'" />
 
       <button-link v-if="user.isProducer && tournament.canShuffle"
-        :func="tournament.reshuffle"
+        :func="reshuffle"
         :iconClass="'warning'"
         :icon="'random'"
         :label="'Reshuffle'" />
@@ -87,6 +87,9 @@ export default {
     },
     start () {
       return this.tournament.start()
+    },
+    reshuffle () {
+      return this.tournament.reshuffle()
     },
     next () {
       this.$router.push({name: "match", params: {
