@@ -40,9 +40,9 @@
     </div>
 
     <div class="protector">
-      <div class="super-ribbon">
+      <!-- <div class="super-ribbon">
         drunkenfall.com
-      </div>
+      </div> -->
 
       <div class="ribbon">
         <strong v-if="tournament.isToday" class="ribbon-content">
@@ -203,6 +203,12 @@ h2 {
       }
       .ribbon {
         width: 88%;
+      }
+    }
+
+    .protector {
+      font-size: 3em !important;
+      .ribbon {
       }
     }
   }
