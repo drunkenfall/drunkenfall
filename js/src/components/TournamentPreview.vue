@@ -109,6 +109,11 @@ export default {
     this.api = this.$resource("/api", {}, {
       join: { method: "GET", url: "/api/{id}/join/" },
     })
+
+    if (this.tournament.isToday) {
+      console.log("starting clock")
+      this.countdown.start(this.tournament.scheduled)
+    }
   }
 }
 </script>
