@@ -65,7 +65,7 @@
         <div @click="settings" class="settings">
           <icon name="cog"></icon>
         </div>
-        <img @click="profile" :alt="user.firstName" :src="user.avatar"/>
+        <img @click="settings" :alt="user.firstName" :src="user.avatar"/>
 
         <div @click="logout" class="logout">
           <icon name="sign-out"></icon>

@@ -30,6 +30,7 @@ type Tournament struct {
 	Events      []*Event     `json:"events"`
 	Color       string       `json:"color"`
 	Levels      Levels       `json:"levels"`
+	Cover       string       `json:"cover"`
 	db          *Database
 	server      *Server
 	length      int
@@ -45,13 +46,14 @@ const matchLength = 10
 const finalLength = 20
 
 // NewTournament returns a completely new Tournament
-func NewTournament(name, id string, scheduledStart time.Time, r *http.Request, server *Server) (*Tournament, error) {
+func NewTournament(name, id, cover string, scheduledStart time.Time, r *http.Request, server *Server) (*Tournament, error) {
 	t := Tournament{
 		Name:        name,
 		ID:          id,
 		Opened:      time.Now(),
 		Scheduled:   scheduledStart,
 		Levels:      NewLevels(),
+		Cover:       cover,
 		db:          server.DB,
 		server:      server,
 		length:      matchLength,
@@ -216,7 +218,7 @@ func (t *Tournament) StartTournament(r *http.Request) error {
 		return fmt.Errorf("tournament needs %d or more players and %d or less, got %d", minPlayers, maxPlayers, ps)
 	}
 
-	if (t.IsRunning()) {
+	if t.IsRunning() {
 		return errors.New("tournament is already running")
 	}
 
@@ -678,7 +680,7 @@ func (t *Tournament) ArchersHarmed() int {
 func SetupFakeTournament(r *http.Request, s *Server, req *NewRequest) *Tournament {
 	title, id := req.Name, req.ID
 
-	t, err := NewTournament(title, id, time.Now().Add(time.Hour), r, s)
+	t, err := NewTournament(title, id, "", time.Now().Add(time.Hour), r, s)
 	if err != nil {
 		// TODO this is the least we can do
 		log.Printf("error creating tournament: %v", err)

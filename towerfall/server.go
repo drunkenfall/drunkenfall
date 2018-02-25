@@ -85,6 +85,7 @@ type PeopleList struct {
 type NewRequest struct {
 	Name      string    `json:"name"`
 	ID        string    `json:"id"`
+	Cover     string    `json:"cover"`
 	Scheduled time.Time `json:"scheduled"`
 	Fake      bool      `json:"fake"`
 }
@@ -166,7 +167,7 @@ func (s *Server) NewHandler(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
-	t, err = NewTournament(req.Name, req.ID, req.Scheduled, r, s)
+	t, err = NewTournament(req.Name, req.ID, req.Cover, req.Scheduled, r, s)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return

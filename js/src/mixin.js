@@ -53,6 +53,16 @@ var DrunkenFallMixin = {
         this.$route.params.tournament
       )
     },
+    nextTournament () {
+      console.log(this.$store.state.tournaments)
+      let upcoming = _.filter(
+        this.$store.state.tournaments, (t) => {
+          return t.scheduled.isAfter()
+        }
+      )
+      console.log(upcoming)
+      return _.head(upcoming)
+    },
     tournaments () {
       return this.$store.state.tournaments
     },

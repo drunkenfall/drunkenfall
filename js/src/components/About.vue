@@ -30,24 +30,25 @@
         <p>
           It is awesome fun! We've been at it for years; starting at
           Christmas Day 2013 and escalating ever since! We started out
-          with just pen and paper, and now we have a streaming platform
-          with an app that helps us keep track of who fights who!
+          with just holding a semblance of a tournament with pen and
+          paper, and now we have a streaming platform with an app that
+          helps us keep track of who fights who!
         </p>
 
         <h1>Can I join?</h1>
         <p>
-          Oh, I thought you'd never ask! Our motto has always been '<i>the more the
+          Oh, we thought you'd never ask! Our motto has always been '<i>the more the
           merrier</i>', and that will always stay true!
         </p>
       </div>
     </div>
-    <div class="schedule">
-      <div class="next">
+    <div class="schedule" v-if="nextTournament">
+      <router-link :to="{ name: 'tournament', params: {'tournament': nextTournament.id}}" class="next">
         <div class="title">Next event</div>
-        <div class="tournament"></div>
-        <div class="subtitle">Fifty Shades of Arrows</div>
-        <div class="date">February 17th</div>
-      </div>
+        <img class="tournament" :src="nextTournament.cover" />
+        <div class="subtitle">{{nextTournament.subtitle}}</div>
+        <div class="date">{{nextTournament.scheduled.format("MMMM Do")}}</div>
+      </router-link>
       <!-- <div class="upcoming">
       <h2>Future events</h2>
       </div> -->
@@ -70,20 +71,15 @@ export default {
 
 #start {
   display: flex;
+  @media screen and ($device: $device-width) {
+    flex-direction: column;
+  }
 
   .main {
-    width: 66.6%;
-
-    >div {
-      margin: 2em 5em;
-    }
-
+    padding: 3% 5%;
     .logo {
       display: flex;
 
-      img {
-        height: 17em;
-      }
       .name {
         font-size: 9em;
         display: flex;
@@ -103,7 +99,7 @@ export default {
         margin: 1em 0;
         font-family: "Lato";
         line-height: 1.5em;
-        font-size: 1.4em;
+        /* font-size: 1.4em; */
         a {
           box-shadow: none;
           font-weight: bold;
@@ -114,15 +110,18 @@ export default {
   }
 
   .schedule {
-    width: 33.3%;
+    padding: 3% 5%;
     text-align: center;
+    @media screen and ($desktop: $desktop-width) {
+      width: 40%;
+    }
 
     .next {
       .tournament {
-        margin: 1em auto;
+        margin: 0 auto;
         background-color: rgba(10,0,0,0.3);
-        width: 14em;
-        height: 20em;
+        width: 100%;
+        box-shadow: 2px 2px 3px rgba(0,0,0,0.7);
       }
 
       .title {

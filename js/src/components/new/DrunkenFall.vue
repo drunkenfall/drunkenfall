@@ -21,6 +21,9 @@
       <label for="id">ID</label>
       <input class="text id" v-model="id" name="id" type="text" value="" placeholder="ID"/>
 
+      <label for="cover">Cover</label>
+      <input class="text cover" v-model="cover" name="cover" type="text" value="" placeholder="Cover URL..."/>
+
       <label for="scheduled">Scheduled to start at</label>
       <input class="text date" v-model="scheduled"/>
 
@@ -157,13 +160,16 @@ form {
   }
 
   input.text {
-    width: 11em;
+    width: 100% !important;
 
     &.name {
       width: 28em;
     }
     &.date {
       width: 22em;
+      font-size: 1em;
+    }
+    &.cover {
       font-size: 1em;
     }
   }
