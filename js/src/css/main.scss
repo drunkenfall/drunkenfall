@@ -91,7 +91,6 @@ p {
 h1, h2, h3 {
   margin: 0.5em 0;
   text-align: center;
-  text-shadow: 2px 2px 3px rgba(0,0,0,0.7);
 }
 
 h1 {
@@ -107,7 +106,7 @@ a, a:visited, .action, .action:visited {
   color: inherit;
   text-decoration: none;
   cursor: pointer;
-  box-shadow: 2px 2px 3px rgba(0,0,0,0.3);
+  // box-shadow: 2px 2px 3px rgba(0,0,0,0.3);
 }
 
 span, h1 {

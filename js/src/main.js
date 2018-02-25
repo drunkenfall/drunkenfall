@@ -13,9 +13,10 @@ import App from './App'
 
 import _ from 'lodash'
 
+import About from './components/About.vue'
 import Admin from './components/Admin.vue'
 import Credits from './components/Credits.vue'
-import Dispatch from './components/Dispatch.vue'
+// import Dispatch from './components/Dispatch.vue'
 import Disable from './components/Disable.vue'
 import Edit from './components/Edit.vue'
 import Join from './components/Join.vue'
@@ -60,8 +61,8 @@ var router = new Router({
   routes: [
     {
       path: '/',
-      name: 'dispatch',
-      component: Dispatch
+      name: 'about',
+      component: About
     },
     {
       path: '/facebook/finalize',

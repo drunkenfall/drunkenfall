@@ -131,16 +131,7 @@ export default {
   },
   computed: {
     dispatchLink () {
-      if (this.upcomingTournament !== undefined) {
-        return {
-          name: 'tournament',
-          params: {
-            tournament: this.upcomingTournament.id
-          },
-        }
-      } else {
-        return {name: "tournaments"}
-      }
+      return {name: "about"}
     }
   },
   created () {
