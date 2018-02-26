@@ -30,19 +30,26 @@
  -->
 
   <div class="tournaments" :class="{ loading: !tournaments }">
-    <router-link
-      v-for="t in currentLeague"
+    <div
+      v-for="(t, i) in currentLeague"
       :tournament="t.id"
       track-by="id"
-      :to="{ name: 'tournament', params: { tournament: t.id }}"
-      class="tournament">
-      <img class="cover" v-if="t.cover" :src="t.cover" />
-      <div class="cover" v-else />
+      @click="gotoTournament(t)"
+      :class="{clickable: t.isEnded || t.isNext}">
+      <img class="cover" :src="t.cover" />
       <div class="text">
-        <div class="title">{{t.subtitle}}</div>
+        <div v-if="t.isEnded || t.isNext" class="title">
+          {{t.subtitle}}
+        </div>
+        <div v-else-if="t.isUpcoming && i < 8" class="title dark">
+          DrunkenFall 2018: {{i+1}}
+        </div>
+        <div v-else class="title">
+          2018 Grand Finale
+        </div>
         <div class="date">{{t.scheduled.format("MMMM Do")}}</div>
       </div>
-    </router-link>
+    </div>
   </div>
 
   <h1 v-if="tournaments.length === 0">
@@ -64,6 +71,11 @@ export default {
   },
 
   methods: {
+    gotoTournament (t) {
+      if (t.isEnded || t.isNext) {
+        return this.$router.push({name: "tournament", params: {tournament: t.id}})
+      }
+    },
     clear (event) {
       if (!this.canClear) {
         return
@@ -129,7 +141,7 @@ p {
     align-content: space-around;
   }
 
-  .tournament {
+  >div {
     background-color: $bg-default;
     display: block;
     text-align: center;
@@ -137,6 +149,10 @@ p {
 
     @media screen and ($desktop: $desktop-width) {
       width: 30%;
+    }
+
+    &.clickable {
+      cursor: pointer;
     }
 
     .cover {
@@ -148,6 +164,9 @@ p {
       padding: 0.75em;
       .title {
         @include display2();
+        &.dark {
+          color: $fg-disabled;
+        }
       }
       .date {
         @include title();

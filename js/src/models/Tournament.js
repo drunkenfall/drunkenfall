@@ -139,6 +139,10 @@ export default class Tournament {
     return moment().isBefore(this.scheduled) && this.canStart
   }
 
+  get isNext () {
+    return this.$vue.$store.getters.upcoming[0].id === this.id
+  }
+
   get isToday () {
     return moment().isSame(this.scheduled, 'day')
   }
