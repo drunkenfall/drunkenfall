@@ -1,31 +1,54 @@
 <template>
-  <div>
-    <headful title="Tournaments - DrunkenFall"></headful>
-    <div class="sidebar-buttons" v-if="user && user.isProducer && showSidebar">
-      <div class="links">
-        <button-link :to="{ name: 'new'}"
-          :icon="'plus'" :iconClass="'positive'" :label="'New'" />
+<div class="flexmaster">
+  <headful title="Tournaments - DrunkenFall"></headful>
 
-        <button-link :func="clear" :cls="{ disabled: !canClear}"
-          :icon="'trash'" :iconClass="'danger'" :label="'Clear tests'" />
-      </div>
+  <div class="sidebar-buttons" v-if="user && user.isProducer && showSidebar">
+    <div class="links">
+      <button-link :to="{ name: 'new'}"
+        :icon="'plus'" :iconClass="'positive'" :label="'New'" />
+
+      <button-link :func="clear" :cls="{ disabled: !canClear}"
+        :icon="'trash'" :iconClass="'danger'" :label="'Clear tests'" />
     </div>
-
-    <div class="tournaments" :class="{ loading: !tournaments }">
-      <div v-for="tournament in tournaments"
-        :tournament="tournament.id" track-by="id">
-
-        <router-link :to="{ name: 'tournament', params: { tournament: tournament.id }}"
-          :class="{ test: tournament.isTest, current: !tournament.isStest && !tournament.isStarted}">
-          {{tournament.name}}
-        </router-link>
-      </div>
-    </div>
-
-    <h1 v-if="tournaments.length === 0">
-      Loading... 💜
-    </h1>
   </div>
+
+  <h1>DrunkenFall 2018</h1>
+
+  <!--
+  <p>Pellentesque dapibus suscipit ligula.  Donec posuere augue in
+  quam.  Etiam vel tortor sodales tellus ultricies commodo.
+  Suspendisse potenti.  Aenean in sem ac leo mollis blandit.  Donec
+  neque quam, dignissim in, mollis nec, sagittis eu, wisi.  Phasellus
+  lacus.  Etiam laoreet quam sed arcu.  Phasellus at dui in ligula
+  mollis ultricies.  Integer placerat tristique nisl.  Praesent augue.
+  Fusce commodo.  Vestibulum convallis, lorem a tempus semper, dui dui
+  euismod elit, vitae placerat urna tortor vitae lacus.  Nullam libero
+  mauris, consequat quis, varius et, dictum id, arcu.  Mauris mollis
+  tincidunt felis.  Aliquam feugiat tellus ut neque.  Nulla facilisis,
+  risus a rhoncus fermentum, tellus tellus lacinia purus, et dictum
+  nunc justo sit amet elit. </p>
+ -->
+
+  <div class="tournaments" :class="{ loading: !tournaments }">
+    <router-link
+      v-for="t in currentLeague"
+      :tournament="t.id"
+      track-by="id"
+      :to="{ name: 'tournament', params: { tournament: t.id }}"
+      class="tournament">
+      <img class="cover" v-if="t.cover" :src="t.cover" />
+      <div class="cover" v-else />
+      <div class="text">
+        <div class="title">{{t.subtitle}}</div>
+        <div class="date">{{t.scheduled.format("MMMM Do")}}</div>
+      </div>
+    </router-link>
+  </div>
+
+  <h1 v-if="tournaments.length === 0">
+    Loading... 💜
+  </h1>
+</div>
 </template>
 
 <script>
@@ -67,41 +90,71 @@ export default {
 
 <style lang="scss" scoped>
 @import "../css/colors.scss";
+@import "../css/fonts.scss";
+
+h1 {
+  @media screen and ($desktop: $desktop-width) {
+    @include display4();
+  }
+  @media screen and ($device: $device-width) {
+    @include display2();
+  }
+  margin: 0.3em;
+}
+
+p {
+  @include body2();
+  width: 50%;
+  margin: 1em auto;
+}
+
+.flexmaster {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
 
 .tournaments {
+  margin: 3% 0%;
+  padding: 0% 5%;
   transition: 0.3s ease-in-out;
-  margin: 5em 0;
+  flex-grow: 1;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  @media screen and ($device: $device-width) {
+    height: 100%;
+  }
+  @media screen and ($desktop: $desktop-width) {
+    align-content: space-around;
+  }
+
+  .tournament {
+    background-color: $bg-default;
+    display: block;
+    text-align: center;
+    margin: 1%;
+
+    @media screen and ($desktop: $desktop-width) {
+      width: 30%;
+    }
+
+    .cover {
+      width: 100%;
+      background-color: rgba(0,0,0,0.5);
+    }
+
+    .text {
+      padding: 0.75em;
+      .title {
+        @include display2();
+      }
+      .date {
+        @include title();
+        color: $fg-secondary;
+      }
+    }
+  }
 }
 
-.tournaments a {
-  @include display3();
-
-  text-shadow: $shadow-default;
-  background-color: $bg-default;
-  color: $fg-default;
-  display: block;
-  padding: 1.3% 3.4% 1.1%;
-  text-align: center;
-  text-decoration: none;
-  width: 50%;
-  margin: 0.2em auto;
-  border-left: 5px solid $accent;
-  transition: 0.3s;
-
-  &:hover {
-    background-color: $bg-default-hover;
-  }
-
-  &.test {
-    @include display1();
-    background-color: $bg-disabled-secondary;
-    width: 30%;
-  }
-
-  &.current {
-    background-color: $secondary;
-    width: 60%;
-    font-size: 3.5em;
-  }
-}
 </style>

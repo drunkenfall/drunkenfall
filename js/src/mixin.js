@@ -1,4 +1,5 @@
 import _ from "lodash"
+import moment from "moment"
 
 var DrunkenFallMixin = {
   created () {
@@ -74,6 +75,13 @@ var DrunkenFallMixin = {
     },
     runningTournament () {
       return this.$store.getters.running
+    },
+    currentLeague () {
+      // Since the original list of tournaments is reversed, we need
+      // to un-reverse it here.
+      return _.reverse(_.filter(this.tournaments, (t) => {
+        return t.scheduled.year() === moment().year()
+      }))
     },
     user () {
       return this.$store.state.user
