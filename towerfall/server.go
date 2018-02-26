@@ -233,7 +233,10 @@ func (s *Server) EditHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Printf("%s has edited %s!", ps.Nick, t.ID)
-	t.Persist()
+	err = t.Persist()
+	if err != nil {
+		log.Fatal(err)
+	}
 	s.Redirect(w, t.URL())
 }
 
