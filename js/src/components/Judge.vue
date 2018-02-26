@@ -33,7 +33,7 @@
           <div class="clear"></div>
         </a>
 
-        <a v-if="match.isRunning && !match.canEnd" @click="commit">
+        <a v-if="match.isRunning && !match.canEnd" @click="commit"  :class="{sending: sending}">
           <div class="icon warning">
             <icon name="gavel"></icon>
           </div>
@@ -60,6 +60,12 @@ export default {
     ControlPlayer,
   },
 
+  data () {
+    return {
+      sending: false,
+    }
+  },
+
   computed: {
     players () {
       return _.filter(this.$children, (o) => {
@@ -76,6 +82,14 @@ export default {
   methods: {
     commit () {
       let $vue = this
+
+      if ($vue.sending) {
+        console.log("Avoiding sending...")
+        return
+      }
+
+      $vue.sending = true
+
       let data = _.map(this.players, (controlPlayer) => {
         return _.pick(controlPlayer, ['ups', 'downs', 'shot', 'reason'])
       })
@@ -95,9 +109,11 @@ export default {
       this.api.commit(this.match_id, payload).then(function (res) {
         console.log("Round committed.")
         _.each(this.players, (controlPlayer) => { controlPlayer.reset() })
+        $vue.sending = false
       }, function (res) {
         $vue.$alert("Setting score failed. See console.")
         console.error(res)
+        $vue.sending = false
       })
     },
     end () {
@@ -175,6 +191,10 @@ export default {
         background-color: #604040;
         color: $fg-default;
         margin-right: 200px !important;
+      }
+
+      &.sending p {
+        color: $fg-disabled !important;
       }
     }
     .tooltip {
