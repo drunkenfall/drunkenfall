@@ -56,12 +56,11 @@ var DrunkenFallMixin = {
     },
     nextTournament () {
       console.log(this.$store.state.tournaments)
-      let upcoming = _.filter(
+      let upcoming = _.reverse(_.filter(
         this.$store.state.tournaments, (t) => {
           return t.scheduled.isAfter()
         }
-      )
-      console.log(upcoming)
+      ))
       return _.head(upcoming)
     },
     tournaments () {
