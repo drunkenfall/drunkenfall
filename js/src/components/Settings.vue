@@ -28,7 +28,7 @@
         </div>
       </div>
 
-      <div class="links standalone">
+      <div class="links">
         <a @click="submit" :class="{ disabled: !canSave}">
           <div class="icon positive">
             <icon name="floppy-o"></icon>
