@@ -37,6 +37,13 @@ func main() {
 	// Set up the paths and the websocket listeners
 	s.RegisterHandlersAndListeners()
 
+	// Start the live updater
+	listener, err := towerfall.NewListener(db, 42005)
+	if err != nil {
+		log.Fatal(err)
+	}
+	go listener.Serve()
+
 	// Catch termination signals so we can close the databas properly
 	c := make(chan os.Signal, 2)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
