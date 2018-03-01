@@ -22,8 +22,7 @@ func TestMain(m *testing.M) {
 func testTournament(count int) (t *Tournament) {
 	s := strconv.Itoa(count)
 	server := MockServer()
-	t, err := NewTournament("Tournament "+s, s,
-		time.Now().Add(time.Hour), nil, server)
+	t, err := NewTournament("Tournament "+s, s, "cover", time.Now().Add(time.Hour), nil, server)
 	if err != nil {
 		log.Fatal("tournament creation failed")
 	}
