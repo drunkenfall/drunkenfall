@@ -9,7 +9,7 @@ BUILDTIME = `date +%FT%T%z` # ISO-8601
 LDFLAGS = -ldflags "-X main.version=${VERSION} -X main.buildtime=${BUILDTIME}"
 
 export GOPATH := $(shell go env GOPATH)
-export PATH := $(GOPATH)/bin:$(PATH)
+# export PATH := $(GOPATH)/bin:$(PATH)
 # gotype is disabled since it seems pointless and also produces 250 errors
 # about not finding dependencies that definitely exists.
 LINTER_ARGS = -j 4 \
@@ -25,7 +25,7 @@ LINTER_ARGS = -j 4 \
 
 .DEFAULT_GOAL: all
 
-.PHONY: clean clobber download install install-linter test cover race lint npm npm-dist
+.PHONY: clean clobber download install install-linter test cover race lint npm npm-dist caddy
 
 all: clean download npm test race lint $(BINARY)
 
@@ -85,3 +85,7 @@ vendor:
 .PHONY: docker
 docker:
 	docker-compose build
+
+caddy:
+	@which caddy
+	xcaddy -conf Caddyfile.local
