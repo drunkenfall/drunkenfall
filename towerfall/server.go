@@ -742,7 +742,7 @@ func (s *Server) Serve() error {
 		}
 	}
 
-	log.Printf("Listening on port %d", port)
+	log.Printf("Listening HTTP on :%d", port)
 	return http.ListenAndServe(fmt.Sprintf(":%d", port), s.logger)
 }
 

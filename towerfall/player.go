@@ -2,6 +2,7 @@ package towerfall
 
 import (
 	"fmt"
+	"log"
 	"math/rand"
 	"sort"
 
@@ -30,6 +31,10 @@ type ScoreData struct {
 	Value  int
 	Player *Player
 }
+
+// type Arrows map[string]int {
+
+// }
 
 // Player is a Participant that is actively participating in battles.
 type Player struct {
@@ -146,25 +151,31 @@ func (p *Player) Index() int {
 
 // AddShot increases the shot count
 func (p *Player) AddShot() {
+	log.Printf("Adding shot to %s", p.Name())
 	p.Shots++
 }
 
 // RemoveShot decreases the shot count
 // Fails silently if shots are zero.
 func (p *Player) RemoveShot() {
+
 	if p.Shots == 0 {
+		log.Printf("Not removing shot from %s; already at zero", p.Name())
 		return
 	}
+	log.Printf("Removing shot from %s", p.Name())
 	p.Shots--
 }
 
 // AddSweep increases the sweep count
 func (p *Player) AddSweep() {
+	log.Printf("Adding sweep to %s", p.Name())
 	p.Sweeps++
 }
 
 // AddKills increases the kill count and adds a sweep if necessary
 func (p *Player) AddKills(kills int) {
+	log.Printf("Adding %d kills to %s", kills, p.Name())
 	p.Kills += kills
 	if kills == 3 {
 		p.AddSweep()
@@ -175,13 +186,16 @@ func (p *Player) AddKills(kills int) {
 // Fails silently if kills are zero.
 func (p *Player) RemoveKill() {
 	if p.Kills == 0 {
+		log.Printf("Not removing kill from %s; already at zero", p.Name())
 		return
 	}
+	log.Printf("Removing kill from %s", p.Name())
 	p.Kills--
 }
 
 // AddSelf increases the self count and decreases the kill
 func (p *Player) AddSelf() {
+	log.Printf("Adding self to %s", p.Name())
 	p.Self++
 	p.RemoveKill()
 }

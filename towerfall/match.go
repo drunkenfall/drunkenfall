@@ -16,6 +16,8 @@ const (
 	playoff = "playoff"
 	semi    = "semi"
 	final   = "final"
+
+	EnvironmentKill = -1
 )
 
 // Match represents a game being played
@@ -40,7 +42,9 @@ type Match struct {
 	Tournament    *Tournament   `json:"-"`
 	KillOrder     []int         `json:"kill_order"`
 	Rounds        []Round       `json:"commits"`
+	KillEvents    []KillMessage `json:"kill_events"`
 	Level         string        `json:"level"`
+	currentRound  Round         `json:"-"`
 	presentColors mapset.Set
 	tournament    *Tournament
 }
@@ -61,6 +65,11 @@ func NewMatch(t *Tournament, kind string) *Match {
 		Tournament: t,
 		Length:     t.length,
 		Pause:      time.Minute * 5,
+		Rounds:     make([]Round, 0),
+		currentRound: Round{
+			Kills: [][]int{{0, 0}, {0, 0}, {0, 0}, {0, 0}},
+			Shots: []bool{false, false, false, false},
+		},
 	}
 	m.presentColors = mapset.NewSet()
 
@@ -267,6 +276,78 @@ func (m *Match) Commit(round Round) {
 	}
 
 	_ = m.Tournament.Persist()
+}
+
+// EndRound is similar to Commit, but does not alter the score other
+// than to manage shots
+func (m *Match) EndRound() error {
+	for i, score := range m.currentRound.Kills {
+		kills := score[0]
+		self := score[1]
+
+		if self == -1 || kills == 3 || m.currentRound.Shots[i] {
+			m.Players[i].AddShot()
+		}
+	}
+
+	m.currentRound.Committed = time.Now().UTC().Format(time.RFC3339)
+	m.Rounds = append(m.Rounds, m.currentRound)
+	m.KillOrder = m.MakeKillOrder()
+
+	// Reset the Round object
+	m.currentRound = Round{
+		Kills: [][]int{{0, 0}, {0, 0}, {0, 0}, {0, 0}},
+		Shots: []bool{false, false, false, false},
+	}
+	return m.Tournament.Persist()
+}
+
+// KillMessage records a KillMessage
+func (m *Match) KillMessage(km KillMessage) error {
+	m.KillEvents = append(m.KillEvents, km)
+
+	if km.Killer == EnvironmentKill {
+		m.Players[km.Player].AddSelf()
+		m.currentRound.AddSelf(km.Player)
+
+		m.LogEvent(
+			"kill", "{player} was killed by the environment",
+			"player", m.Players[km.Player].Name(),
+			"person", m.Players[km.Player].Person,
+			"cause", km.Cause,
+		)
+	} else {
+		if km.Killer == km.Player {
+			m.Players[km.Player].AddSelf()
+			m.currentRound.AddSelf(km.Player)
+		} else {
+			m.Players[km.Killer].AddKills(1)
+			m.currentRound.AddKill(km.Killer)
+		}
+
+		m.LogEvent(
+			"kill", "{killer} killed {player} with {cause}",
+			"killer", m.Players[km.Killer].Name(),
+			"player", m.Players[km.Player].Name(),
+			"person", m.Players[km.Killer].Person,
+			"cause", km.Cause,
+		)
+	}
+
+	m.Tournament.Persist()
+	return nil
+}
+
+func (m *Match) ArrowPickup(pm PickupMessage) error {
+	return nil
+}
+
+func (m *Match) RoundStartMessage() error {
+	return nil
+}
+
+func (m *Match) RoundEndMessage() error {
+	return nil
 }
 
 // Start starts the match
@@ -539,4 +620,27 @@ func NewAutoplayRound() Round {
 	}
 
 	return r
+}
+
+// AddKill adds one kill to the specified player
+func (r *Round) AddKill(p int) {
+	if len(r.Kills) == 0 {
+		r.Reset()
+	}
+
+	r.Kills[p][0] += 1
+}
+
+// AddSelf adds one self to the specified player
+func (r *Round) AddSelf(p int) {
+	if len(r.Kills) == 0 {
+		r.Reset()
+	}
+
+	r.Kills[p][1] -= 1
+}
+
+func (r *Round) Reset() {
+	r.Kills = [][]int{{0, 0}, {0, 0}, {0, 0}, {0, 0}}
+	r.Shots = []bool{false, false, false, false}
 }
