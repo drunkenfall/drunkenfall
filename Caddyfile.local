@@ -7,11 +7,11 @@ gzip {
 gzip
 ext    .html
 log    logs/caddy-access.log
-proxy  /api 127.0.0.1:42001
-proxy  /api/auto-updater 127.0.0.1:42001 {
+proxy  /api localhost:42001
+proxy  /api/auto-updater localhost:42001 {
 	websocket
 }
-proxy /__webpack_hmr 127.0.0.1:42002 {
+proxy /__webpack_hmr localhost:42002 {
   transparent
   header_upstream X-Real-IP {remote}
   header_upstream X-Forwarded-Server {host}
@@ -22,5 +22,5 @@ header /api Access-Control-Allow-Origin *
 
 # The except part makes sure that we simply serve the static files
 # rather than asking vue about them.
-proxy  / 127.0.0.1:42002 {
+proxy  / localhost:42002 {
 }
