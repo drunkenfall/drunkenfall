@@ -70,7 +70,7 @@ npm: js/package.json
 	cd js; npm install
 
 npm-start: npm
-	cd js; npm run dev
+	cd js; PORT=42002 npm run dev
 
 npm-dist: npm
 	cd js; npm run build
@@ -88,4 +88,4 @@ docker:
 
 caddy:
 	@which caddy
-	xcaddy -conf Caddyfile.local
+	sudo /home/thiderman/bin/caddy -conf Caddyfile.local
