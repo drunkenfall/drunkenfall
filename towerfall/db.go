@@ -231,6 +231,20 @@ func (d *Database) LoadPeople() error {
 	return err
 }
 
+// GetCurrentTournament gets the currently running tournament.
+//
+// Returns the first matching one, so if there are multiple they will
+// be shadowed.
+func (d *Database) GetCurrentTournament() (*Tournament, error) {
+	for _, t := range d.Tournaments {
+		if t.IsRunning() {
+			return t, nil
+		}
+	}
+
+	return &Tournament{}, errors.New("no tournament is running")
+}
+
 // ClearTestTournaments deletes any tournament that doesn't begin with "DrunkenFall"
 func (d *Database) ClearTestTournaments() error {
 	err := d.DB.Update(func(tx *bolt.Tx) error {

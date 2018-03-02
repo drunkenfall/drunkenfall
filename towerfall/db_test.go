@@ -72,3 +72,29 @@ func TestSaveTournament(t *testing.T) {
 	assert.Equal(ct.Name, tm.Name)
 	assert.Equal(ct.ID, tm.ID)
 }
+
+func TestGetCurrentTournament(t *testing.T) {
+	s := MockServer()
+	db := s.DB
+
+	_, err := NewTournament("not started", "not", "", time.Now().Add(time.Hour), nil, s)
+	tm2, err := NewTournament("started", "go", "", time.Now().Add(time.Hour), nil, s)
+
+	for i := 1; i <= 8; i++ {
+		p := testPerson(i)
+		err := tm2.AddPlayer(NewPlayer(p))
+		if err != nil {
+			log.Fatal(err)
+		}
+		tm2.db.SavePerson(p)
+	}
+
+	err = tm2.StartTournament(nil)
+	assert.NoError(t, err)
+
+	t.Run("Get", func(t *testing.T) {
+		tm3, err := db.GetCurrentTournament()
+		assert.NoError(t, err)
+		assert.Equal(t, tm3.ID, tm2.ID)
+	})
+}
