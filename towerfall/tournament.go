@@ -162,7 +162,7 @@ func (t *Tournament) AddPlayer(p *Player) error {
 func (t *Tournament) removePlayer(p Player) error {
 	for i := 0; i < len(t.Players); i++ {
 		r := t.Players[i]
-		if r == p {
+		if r.Person.ID == p.Person.ID {
 			t.Players = append(t.Players[:i], t.Players[i+1:]...)
 			break
 		}
@@ -251,8 +251,7 @@ func (t *Tournament) StartTournament(r *http.Request) error {
 	t.LogEvent(
 		"start", "Tournament started",
 		"person", PersonFromSession(t.server, r))
-	t.Persist()
-	return nil
+	return t.Persist()
 }
 
 // Reshuffle shuffles the players of an already started tournament

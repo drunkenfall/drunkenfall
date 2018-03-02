@@ -44,7 +44,7 @@ type Match struct {
 	Rounds        []Round       `json:"commits"`
 	KillEvents    []KillMessage `json:"kill_events"`
 	Level         string        `json:"level"`
-	currentRound  Round         `json:"-"`
+	currentRound  Round
 	presentColors mapset.Set
 	tournament    *Tournament
 }
@@ -285,6 +285,10 @@ func (m *Match) EndRound() error {
 		kills := score[0]
 		self := score[1]
 
+		if kills == 3 {
+			m.Players[i].AddSweep()
+		}
+
 		if self == -1 || kills == 3 || m.currentRound.Shots[i] {
 			m.Players[i].AddShot()
 		}
@@ -300,6 +304,35 @@ func (m *Match) EndRound() error {
 		Shots: []bool{false, false, false, false},
 	}
 	return m.Tournament.Persist()
+}
+
+// StartRound sets the initial state of player arrows.
+func (m *Match) StartRound(sr StartRoundMessage) error {
+	for i, as := range sr.Arrows {
+		m.Players[i].State.Arrows = as
+	}
+	return nil
+}
+
+// ArrowUpdate updates the arrow state for a player
+func (m *Match) ArrowUpdate(am ArrowMessage) error {
+	m.Players[am.Player].State.Arrows = am.Arrows
+	log.Printf("<send arrow update: %d>", am.Player)
+	return nil
+}
+
+// ShieldUpdate updates the arrow state for a player
+func (m *Match) ShieldUpdate(sm ShieldMessage) error {
+	m.Players[sm.Player].State.Shield = sm.State
+	log.Printf("<send shield update: %d>", sm.Player)
+	return nil
+}
+
+// WingsUpdate updates the arrow state for a player
+func (m *Match) WingsUpdate(wm WingsMessage) error {
+	m.Players[wm.Player].State.Wings = wm.State
+	log.Printf("<send wing update: %d>", wm.Player)
+	return nil
 }
 
 // KillMessage records a KillMessage
@@ -330,23 +363,11 @@ func (m *Match) KillMessage(km KillMessage) error {
 			"killer", m.Players[km.Killer].Name(),
 			"player", m.Players[km.Player].Name(),
 			"person", m.Players[km.Killer].Person,
-			"cause", km.Cause,
+			"cause", km.Cause, // TODO(thiderman) Make human readable
 		)
 	}
 
 	m.Tournament.Persist()
-	return nil
-}
-
-func (m *Match) ArrowPickup(pm PickupMessage) error {
-	return nil
-}
-
-func (m *Match) RoundStartMessage() error {
-	return nil
-}
-
-func (m *Match) RoundEndMessage() error {
 	return nil
 }
 

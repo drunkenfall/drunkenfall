@@ -17,3 +17,19 @@ func TestKillMessage(t *testing.T) {
 		l.handle(msg)
 	})
 }
+
+func TestStartRound(t *testing.T) {
+	s := MockServer()
+	db := s.DB
+	l, err := NewListener(db, 12345)
+	assert.NoError(t, err)
+	tm := testTournament(12, s)
+	err = tm.StartTournament(nil)
+	assert.NoError(t, err)
+
+	t.Run("Normal handling", func(t *testing.T) {
+		msg := `{"type":"round_start","data":{"arrows":[[0,0,0],[0,0,0]]}}`
+		err := l.handle(msg)
+		assert.NoError(t, err)
+	})
+}

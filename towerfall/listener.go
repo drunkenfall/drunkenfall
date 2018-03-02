@@ -59,6 +59,13 @@ const (
 	inMatchEnd   = "match_end"
 	inPickup     = "arrows_collected"
 	inFire       = "arrow_shot"
+	inShot       = "arrow_shot"
+	inShield     = "shield_state"
+	inWings      = "wings_state"
+	inOrbSlow    = "slow_orb_state"
+	inOrbDark    = "dark_orb_state"
+	inOrbLava    = "lava_orb_state"
+	inOrbScroll  = "scroll_orb_state"
 )
 
 type KillMessage struct {
@@ -67,9 +74,44 @@ type KillMessage struct {
 	Cause  int `json:"cause"`
 }
 
-type PickupMessage struct {
-	Player int            `json:"player"`
-	Arrows map[string]int `json:"arrows"`
+type ArrowMessage struct {
+	Player int    `json:"player"`
+	Arrows Arrows `json:"arrows"`
+}
+
+type ShieldMessage struct {
+	Player int  `json:"player"`
+	State  bool `json:"state"`
+}
+
+type WingsMessage struct {
+	Player int  `json:"player"`
+	State  bool `json:"state"`
+}
+
+type SlowOrbMessage struct {
+	State bool `json:"state"`
+}
+
+type DarkOrbMessage struct {
+	State bool `json:"state"`
+}
+
+type ScrollOrbMessage struct {
+	State bool `json:"state"`
+}
+
+type LavaOrbMessage struct {
+	Player int  `json:"player"`
+	State  bool `json:"state"`
+}
+
+// List of integers where one item is an arrow type as described in
+// the arrow types above.
+type Arrows []int
+
+type StartRoundMessage struct {
+	Arrows []Arrows `json:"arrows"`
 }
 
 type Listener struct {
@@ -86,7 +128,6 @@ func NewListener(db *Database, port int) (*Listener, error) {
 		port: port,
 	}
 
-	// l.listener, err = net.Listen("udp", fmt.Sprintf(":%d", port))
 	addr, err := net.ResolveUDPAddr("udp", fmt.Sprintf(":%d", port))
 	if err != nil {
 		log.Fatal(err)
@@ -98,9 +139,7 @@ func NewListener(db *Database, port int) (*Listener, error) {
 func (l *Listener) Serve() {
 	log.Printf("Listening for messages on :%d...", l.port)
 
-	// run loop forever (or until ctrl-c)
 	for {
-
 		// conn, err := l.listener.Accept()
 		// if err != nil {
 		// 	log.Printf("Error when accepting connection: %s", err.Error())
@@ -144,6 +183,11 @@ func (l *Listener) handle(msg string) error {
 		return err
 	}
 
+	t, err := l.DB.GetCurrentTournament()
+	if err != nil {
+		return err
+	}
+
 	switch in.Type {
 	case inKill:
 		km := KillMessage{}
@@ -151,77 +195,54 @@ func (l *Listener) handle(msg string) error {
 		if err != nil {
 			fmt.Println("Error: Could not decode mapstructure", err.Error())
 		}
-		return l.KillMessage(km)
+
+		return t.Matches[t.Current].KillMessage(km)
 
 	case inRoundStart:
-		return nil
-		// return l.StartRound()
-
-	case inRoundEnd:
-		return l.EndRound()
-
-	case inMatchStart:
-		return l.StartMatch()
-
-	case inMatchEnd:
-		return l.EndMatch()
-
-	case inPickup:
-		pm := PickupMessage{}
-		err := mapstructure.Decode(in.Data, &pm)
+		sr := StartRoundMessage{}
+		err := mapstructure.Decode(in.Data, &sr)
 		if err != nil {
 			fmt.Println("Error: Could not decode mapstructure", err.Error())
 		}
-		return l.ArrowPickup(pm)
+		return t.Matches[t.Current].StartRound(sr)
+
+	case inRoundEnd:
+		return t.Matches[t.Current].EndRound()
+
+	case inMatchStart:
+		return t.Matches[t.Current].Start(nil)
+
+	case inMatchEnd:
+		return t.Matches[t.Current].End(nil)
+
+	case inPickup:
+	case inShot:
+		am := ArrowMessage{}
+		err := mapstructure.Decode(in.Data, &am)
+		if err != nil {
+			fmt.Println("Error: Could not decode mapstructure", err.Error())
+		}
+		return t.Matches[t.Current].ArrowUpdate(am)
+
+	case inShield:
+		sm := ShieldMessage{}
+		err := mapstructure.Decode(in.Data, &sm)
+		if err != nil {
+			fmt.Println("Error: Could not decode mapstructure", err.Error())
+		}
+		return t.Matches[t.Current].ShieldUpdate(sm)
+
+	case inWings:
+		wm := WingsMessage{}
+		err := mapstructure.Decode(in.Data, &wm)
+		if err != nil {
+			fmt.Println("Error: Could not decode mapstructure", err.Error())
+		}
+		return t.Matches[t.Current].WingsUpdate(wm)
 
 	default:
 		log.Printf("Warning: Unknown message type '%s'", in.Type)
 	}
 
 	return nil
-}
-
-func (l *Listener) KillMessage(km KillMessage) error {
-	t, err := l.DB.GetCurrentTournament()
-	if err != nil {
-		return err
-	}
-
-	return t.Matches[t.Current].KillMessage(km)
-}
-
-func (l *Listener) StartMatch() error {
-	t, err := l.DB.GetCurrentTournament()
-	if err != nil {
-		return err
-	}
-
-	return t.Matches[t.Current].Start(nil)
-}
-
-func (l *Listener) EndMatch() error {
-	t, err := l.DB.GetCurrentTournament()
-	if err != nil {
-		return err
-	}
-
-	return t.Matches[t.Current].End(nil)
-}
-
-func (l *Listener) EndRound() error {
-	t, err := l.DB.GetCurrentTournament()
-	if err != nil {
-		return err
-	}
-
-	return t.Matches[t.Current].EndRound()
-}
-
-func (l *Listener) ArrowPickup(pm PickupMessage) error {
-	t, err := l.DB.GetCurrentTournament()
-	if err != nil {
-		return err
-	}
-
-	return t.Matches[t.Current].ArrowPickup(pm)
 }

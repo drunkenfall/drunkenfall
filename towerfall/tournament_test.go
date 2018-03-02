@@ -19,9 +19,15 @@ func TestMain(m *testing.M) {
 }
 
 // testTournament makes a test tournament with `count` players.
-func testTournament(count int) (t *Tournament) {
+func testTournament(count int, servers ...*Server) (t *Tournament) {
+	var server *Server
 	s := strconv.Itoa(count)
-	server := MockServer()
+	if len(servers) == 1 {
+		server = servers[0]
+	} else {
+		server = MockServer()
+	}
+
 	t, err := NewTournament("Tournament "+s, s, "cover", time.Now().Add(time.Hour), nil, server)
 	if err != nil {
 		log.Fatal("tournament creation failed")

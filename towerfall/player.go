@@ -32,27 +32,38 @@ type ScoreData struct {
 	Player *Player
 }
 
-// type Arrows map[string]int {
-
-// }
-
 // Player is a Participant that is actively participating in battles.
 type Player struct {
-	Person         *Person `json:"person"`
-	Color          string  `json:"color"`
-	PreferredColor string  `json:"preferred_color"`
-	Shots          int     `json:"shots"`
-	Sweeps         int     `json:"sweeps"`
-	Kills          int     `json:"kills"`
-	Self           int     `json:"self"`
-	Matches        int     `json:"matches"`
-	TotalScore     int     `json:"score"`
-	Match          *Match  `json:"-"`
+	Person         *Person     `json:"person"`
+	Color          string      `json:"color"`
+	PreferredColor string      `json:"preferred_color"`
+	Shots          int         `json:"shots"`
+	Sweeps         int         `json:"sweeps"`
+	Kills          int         `json:"kills"`
+	Self           int         `json:"self"`
+	Matches        int         `json:"matches"`
+	TotalScore     int         `json:"score"`
+	State          PlayerState `json:"-"`
+	Match          *Match      `json:"-"`
+}
+
+type PlayerState struct {
+	Arrows    Arrows `json:"arrows"`
+	Shield    bool   `json:"shield"`
+	Wings     bool   `json:"wings"`
+	Hat       bool   `json:"hat"`
+	Invisible bool   `json:"invisible"`
+	Speed     bool   `json:"speed"`
+	Alive     bool   `json:"alive"`
+	Killer    int    `json:"killer"`
 }
 
 // NewPlayer returns a new instance of a player
 func NewPlayer(ps *Person) *Player {
-	p := &Player{Person: ps}
+	p := &Player{
+		Person: ps,
+		State:  NewPlayerState(),
+	}
 	if len(ps.ColorPreference) > 0 {
 		p.PreferredColor = ps.ColorPreference[0]
 	} else {
@@ -60,6 +71,13 @@ func NewPlayer(ps *Person) *Player {
 	}
 
 	return p
+}
+
+func NewPlayerState() PlayerState {
+	ps := PlayerState{
+		Arrows: make(Arrows, 10),
+	}
+	return ps
 }
 
 func (p *Player) String() string {
@@ -209,6 +227,7 @@ func (p *Player) Reset() {
 	p.Kills = 0
 	p.Self = 0
 	p.Matches = 0
+	p.State = NewPlayerState()
 }
 
 // Update updates a player with the scores of another
