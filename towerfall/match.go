@@ -514,6 +514,28 @@ func (m *Match) WingsUpdate(wm WingsMessage) error {
 	return nil
 }
 
+// LavaOrb sets or unsets the lava for a player
+func (m *Match) LavaOrb(lm LavaOrbMessage) error {
+	m.Players[lm.Player].State.Lava = lm.State
+
+	if lm.State {
+		m.LogEvent(
+			"lava", "{player} set the map on fire",
+			"player", m.Players[lm.Player].Name(),
+			"person", m.Players[lm.Player].Person,
+		)
+	} else {
+		m.LogEvent(
+			"lava_off", "{player}'s fire sizzles away",
+			"player", m.Players[lm.Player].Name(),
+			"person", m.Players[lm.Player].Person,
+		)
+	}
+
+	log.Printf("<send lava update: %d>", lm.Player)
+	return nil
+}
+
 // Kill records a Kill
 func (m *Match) Kill(km KillMessage) error {
 	if km.Killer == EnvironmentKill {

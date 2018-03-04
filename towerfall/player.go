@@ -55,6 +55,7 @@ type PlayerState struct {
 	Invisible bool   `json:"invisible"`
 	Speed     bool   `json:"speed"`
 	Alive     bool   `json:"alive"`
+	Lava      bool   `json:"lava"`
 	Killer    int    `json:"killer"`
 }
 

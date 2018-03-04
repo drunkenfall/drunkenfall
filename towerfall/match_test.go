@@ -637,7 +637,32 @@ func TestKill(t *testing.T) {
 		assert.Equal(t, "suicide", m.Events[ev].Kind)
 		assert.Equal(t, rCurse, m.Events[ev].Items["cause"])
 	})
+}
 
+func TestLavaOrb(t *testing.T) {
+	t.Run("Enable", func(t *testing.T) {
+		m := MockMatch(0, playoff)
+		ev := len(m.Events)
+
+		lm := LavaOrbMessage{0, true}
+		err := m.LavaOrb(lm)
+		assert.NoError(t, err)
+		assert.Equal(t, true, m.Players[0].State.Lava)
+		assert.Equal(t, ev+1, len(m.Events))
+		assert.Equal(t, "lava", m.Events[ev].Kind)
+	})
+
+	t.Run("Disable", func(t *testing.T) {
+		m := MockMatch(0, playoff)
+		ev := len(m.Events)
+
+		lm := LavaOrbMessage{0, false}
+		err := m.LavaOrb(lm)
+		assert.NoError(t, err)
+		assert.Equal(t, false, m.Players[0].State.Lava)
+		assert.Equal(t, ev+1, len(m.Events))
+		assert.Equal(t, "lava_off", m.Events[ev].Kind)
+	})
 }
 
 func TestStartRound(t *testing.T) {
