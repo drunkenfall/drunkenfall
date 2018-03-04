@@ -665,6 +665,60 @@ func TestLavaOrb(t *testing.T) {
 	})
 }
 
+func TestShield(t *testing.T) {
+	t.Run("Gain", func(t *testing.T) {
+		m := MockMatch(0, playoff)
+		ev := len(m.Events)
+
+		sm := ShieldMessage{0, true}
+		err := m.ShieldUpdate(sm)
+		assert.NoError(t, err)
+		assert.Equal(t, true, m.Players[0].State.Shield)
+		assert.Equal(t, ev+1, len(m.Events))
+		assert.Equal(t, "shield", m.Events[ev].Kind)
+	})
+
+	t.Run("Break", func(t *testing.T) {
+		m := MockMatch(0, playoff)
+		ev := len(m.Events)
+		m.Players[0].State.Shield = true
+
+		sm := ShieldMessage{0, false}
+		err := m.ShieldUpdate(sm)
+		assert.NoError(t, err)
+		assert.Equal(t, false, m.Players[0].State.Shield)
+		assert.Equal(t, ev+1, len(m.Events))
+		assert.Equal(t, "shield_off", m.Events[ev].Kind)
+	})
+}
+
+func TestWings(t *testing.T) {
+	t.Run("Grow", func(t *testing.T) {
+		m := MockMatch(0, playoff)
+		ev := len(m.Events)
+
+		wm := WingsMessage{0, true}
+		err := m.WingsUpdate(wm)
+		assert.NoError(t, err)
+		assert.Equal(t, true, m.Players[0].State.Wings)
+		assert.Equal(t, ev+1, len(m.Events))
+		assert.Equal(t, "wings", m.Events[ev].Kind)
+	})
+
+	t.Run("Lose", func(t *testing.T) {
+		m := MockMatch(0, playoff)
+		ev := len(m.Events)
+		m.Players[0].State.Wings = true
+
+		wm := WingsMessage{0, false}
+		err := m.WingsUpdate(wm)
+		assert.NoError(t, err)
+		assert.Equal(t, false, m.Players[0].State.Wings)
+		assert.Equal(t, ev+1, len(m.Events))
+		assert.Equal(t, "wings_off", m.Events[ev].Kind)
+	})
+}
+
 func TestStartRound(t *testing.T) {
 	tm := testTournament(12)
 	err := tm.StartTournament(nil)

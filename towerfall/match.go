@@ -500,16 +500,42 @@ func (m *Match) ArrowUpdate(am ArrowMessage) error {
 	return nil
 }
 
-// ShieldUpdate updates the arrow state for a player
+// ShieldUpdate updates the shield state for a player
 func (m *Match) ShieldUpdate(sm ShieldMessage) error {
 	m.Players[sm.Player].State.Shield = sm.State
+	if sm.State {
+		m.LogEvent(
+			"shield", "{player} gets a shield",
+			"player", m.Players[sm.Player].Name(),
+			"person", m.Players[sm.Player].Person,
+		)
+	} else {
+		m.LogEvent(
+			"shield_off", "{player}'s shield breaks",
+			"player", m.Players[sm.Player].Name(),
+			"person", m.Players[sm.Player].Person,
+		)
+	}
 	log.Printf("<send shield update: %d>", sm.Player)
 	return nil
 }
 
-// WingsUpdate updates the arrow state for a player
+// WingsUpdate updates the wings state for a player
 func (m *Match) WingsUpdate(wm WingsMessage) error {
 	m.Players[wm.Player].State.Wings = wm.State
+	if wm.State {
+		m.LogEvent(
+			"wings", "{player} grows wings",
+			"player", m.Players[wm.Player].Name(),
+			"person", m.Players[wm.Player].Person,
+		)
+	} else {
+		m.LogEvent(
+			"wings_off", "{player} flies no more",
+			"player", m.Players[wm.Player].Name(),
+			"person", m.Players[wm.Player].Person,
+		)
+	}
 	log.Printf("<send wing update: %d>", wm.Player)
 	return nil
 }
