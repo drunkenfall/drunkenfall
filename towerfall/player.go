@@ -75,7 +75,9 @@ func NewPlayer(ps *Person) *Player {
 
 func NewPlayerState() PlayerState {
 	ps := PlayerState{
-		Arrows: make(Arrows, 10),
+		Arrows: make(Arrows, 0),
+		Alive:  true,
+		Hat:    true,
 	}
 	return ps
 }
