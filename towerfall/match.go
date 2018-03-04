@@ -70,10 +70,11 @@ const (
 	inShot       = "arrow_shot"
 	inShield     = "shield_state"
 	inWings      = "wings_state"
-	inOrbSlow    = "slow_orb_state"
-	inOrbDark    = "dark_orb_state"
 	inOrbLava    = "lava_orb_state"
-	inOrbScroll  = "scroll_orb_state"
+	// TODO(thiderman): Non-player orbs are not implemented
+	inOrbSlow   = "slow_orb_state"
+	inOrbDark   = "dark_orb_state"
+	inOrbScroll = "scroll_orb_state"
 )
 
 type KillMessage struct {
@@ -495,7 +496,6 @@ func (m *Match) StartRound(sr StartRoundMessage) error {
 // ArrowUpdate updates the arrow state for a player
 func (m *Match) ArrowUpdate(am ArrowMessage) error {
 	m.Players[am.Player].State.Arrows = am.Arrows
-	fmt.Println(m.Players[am.Player].State.Arrows)
 	log.Printf("<send arrow update: %d>", am.Player)
 	return nil
 }

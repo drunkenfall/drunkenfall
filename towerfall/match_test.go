@@ -719,6 +719,17 @@ func TestWings(t *testing.T) {
 	})
 }
 
+func TestArrow(t *testing.T) {
+	t.Run("Set", func(t *testing.T) {
+		m := MockMatch(0, playoff)
+
+		wm := ArrowMessage{3, Arrows{aNormal, aPrism, aPrism}}
+		err := m.ArrowUpdate(wm)
+		assert.NoError(t, err)
+		assert.Equal(t, Arrows{aNormal, aPrism, aPrism}, m.Players[3].State.Arrows)
+	})
+}
+
 func TestStartRound(t *testing.T) {
 	tm := testTournament(12)
 	err := tm.StartTournament(nil)
