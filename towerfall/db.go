@@ -34,6 +34,10 @@ var (
 var tournamentMutex = &sync.Mutex{}
 var personMutex = &sync.Mutex{}
 
+// Used to signal that a current tournament was found and that the
+// scanner should stop iterating.
+var ErrTournamentFound = errors.New("found")
+
 // NewDatabase returns a new database object
 func NewDatabase(fn string) (*Database, error) {
 	// log.Printf("Opening database at '%s'", fn)
@@ -236,10 +240,28 @@ func (d *Database) LoadPeople() error {
 // Returns the first matching one, so if there are multiple they will
 // be shadowed.
 func (d *Database) GetCurrentTournament() (*Tournament, error) {
-	for _, t := range d.Tournaments {
-		if t.IsRunning() {
-			return t, nil
-		}
+	var ret *Tournament
+	err := d.DB.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket(TournamentKey)
+		err := b.ForEach(func(k []byte, v []byte) error {
+			t, err := LoadTournament(v, d)
+			if err != nil {
+				return err
+			}
+
+			if t.IsRunning() {
+				ret = t
+				return ErrTournamentFound
+			}
+
+			return nil
+		})
+
+		return err
+	})
+
+	if err == ErrTournamentFound {
+		return ret, nil
 	}
 
 	return &Tournament{}, errors.New("no tournament is running")

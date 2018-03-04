@@ -42,8 +42,13 @@ func testTournament(count int, servers ...*Server) (t *Tournament) {
 
 		// XXX: If we don't add the person to the database anything that tries to
 		// grab from it will fail. Backfilling from the semis is one of those
-		// cases. This should be refactored away and this should be removed.
+		// cases. That should be refactored away and this should be removed.
 		t.db.SavePerson(p)
+	}
+
+	err = t.db.LoadTournaments()
+	if err != nil {
+		log.Fatal(err)
 	}
 	return
 }
