@@ -58,7 +58,6 @@ const (
 	inMatchStart = "match_start"
 	inMatchEnd   = "match_end"
 	inPickup     = "arrows_collected"
-	inFire       = "arrow_shot"
 	inShot       = "arrow_shot"
 	inShield     = "shield_state"
 	inWings      = "wings_state"
