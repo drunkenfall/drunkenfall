@@ -8,114 +8,12 @@ import (
 	"log"
 	"net"
 	"time"
-
-	"github.com/mitchellh/mapstructure"
 )
-
-type Message struct {
-	Type      string      `json:"type"`
-	Data      interface{} `json:"data"`
-	Timestamp time.Time   `json:"timestamp"`
-}
-
-// Kill reasons
-const (
-	rArrow = iota
-	rExplosion
-	rBrambles
-	rJumpedOn
-	rLava
-	rShock
-	rSpikeBall
-	rFallingObject
-	rSquish
-	rCurse
-	rMiasma
-	rEnemy
-	rChalice
-)
-
-// Arrows
-const (
-	aNormal = iota
-	aBomb
-	aSuperBomb
-	aLaser
-	aBramble
-	aDrill
-	aBolt
-	aToy
-	aFeather
-	aTrigger
-	aPrism
-)
-
-// Message types
-const (
-	inKill       = "kill"
-	inRoundStart = "round_start"
-	inRoundEnd   = "round_end"
-	inMatchStart = "match_start"
-	inMatchEnd   = "match_end"
-	inPickup     = "arrows_collected"
-	inShot       = "arrow_shot"
-	inShield     = "shield_state"
-	inWings      = "wings_state"
-	inOrbSlow    = "slow_orb_state"
-	inOrbDark    = "dark_orb_state"
-	inOrbLava    = "lava_orb_state"
-	inOrbScroll  = "scroll_orb_state"
-)
-
-type KillMessage struct {
-	Player int `json:"player"`
-	Killer int `json:"killer"`
-	Cause  int `json:"cause"`
-}
-
-type ArrowMessage struct {
-	Player int    `json:"player"`
-	Arrows Arrows `json:"arrows"`
-}
-
-type ShieldMessage struct {
-	Player int  `json:"player"`
-	State  bool `json:"state"`
-}
-
-type WingsMessage struct {
-	Player int  `json:"player"`
-	State  bool `json:"state"`
-}
-
-type SlowOrbMessage struct {
-	State bool `json:"state"`
-}
-
-type DarkOrbMessage struct {
-	State bool `json:"state"`
-}
-
-type ScrollOrbMessage struct {
-	State bool `json:"state"`
-}
-
-type LavaOrbMessage struct {
-	Player int  `json:"player"`
-	State  bool `json:"state"`
-}
-
-// List of integers where one item is an arrow type as described in
-// the arrow types above.
-type Arrows []int
-
-type StartRoundMessage struct {
-	Arrows []Arrows `json:"arrows"`
-}
 
 type Listener struct {
 	DB       *Database
 	listener net.Conn
+	addr     *net.UDPAddr
 	port     int
 }
 
@@ -127,16 +25,21 @@ func NewListener(db *Database, port int) (*Listener, error) {
 		port: port,
 	}
 
-	addr, err := net.ResolveUDPAddr("udp", fmt.Sprintf(":%d", port))
+	l.addr, err = net.ResolveUDPAddr("udp", fmt.Sprintf(":%d", port))
 	if err != nil {
 		log.Fatal(err)
 	}
-	l.listener, err = net.ListenUDP("udp", addr)
 	return &l, err
 }
 
 func (l *Listener) Serve() {
+	var err error
 	log.Printf("Listening for messages on :%d...", l.port)
+	l.listener, err = net.ListenUDP("udp", l.addr)
+	if err != nil {
+		log.Print("Could not bind UDP")
+		log.Fatal(err)
+	}
 
 	for {
 		// conn, err := l.listener.Accept()
@@ -161,8 +64,14 @@ func (l *Listener) Serve() {
 		// 	log.Printf("Couldn't close: %s", err.Error())
 		// }
 
+		t, err := l.DB.GetCurrentTournament()
+		if err != nil {
+			log.Printf("Could not get current tournament, skipping message: %s", err.Error())
+			continue
+		}
+
 		go func() {
-			err := l.handle(message)
+			err := l.handle(t, message)
 			if err != nil {
 				log.Printf("Handling failed: %s", err.Error())
 			}
@@ -170,78 +79,17 @@ func (l *Listener) Serve() {
 	}
 }
 
-func (l *Listener) handle(msg string) error {
-	log.Println("Incoming message:", string(msg))
-
-	in := Message{
+func (l *Listener) handle(t *Tournament, body string) error {
+	log.Println("Incoming message:", string(body))
+	msg := Message{
 		Timestamp: time.Now(),
 	}
-	err := json.Unmarshal([]byte(msg), &in)
 
+	err := json.Unmarshal([]byte(body), &msg)
 	if err != nil {
 		return err
 	}
 
-	t, err := l.DB.GetCurrentTournament()
-	if err != nil {
-		return err
-	}
-
-	switch in.Type {
-	case inKill:
-		km := KillMessage{}
-		err := mapstructure.Decode(in.Data, &km)
-		if err != nil {
-			fmt.Println("Error: Could not decode mapstructure", err.Error())
-		}
-
-		return t.Matches[t.Current].KillMessage(km)
-
-	case inRoundStart:
-		sr := StartRoundMessage{}
-		err := mapstructure.Decode(in.Data, &sr)
-		if err != nil {
-			fmt.Println("Error: Could not decode mapstructure", err.Error())
-		}
-		return t.Matches[t.Current].StartRound(sr)
-
-	case inRoundEnd:
-		return t.Matches[t.Current].EndRound()
-
-	case inMatchStart:
-		return t.Matches[t.Current].Start(nil)
-
-	case inMatchEnd:
-		return t.Matches[t.Current].End(nil)
-
-	case inPickup:
-	case inShot:
-		am := ArrowMessage{}
-		err := mapstructure.Decode(in.Data, &am)
-		if err != nil {
-			fmt.Println("Error: Could not decode mapstructure", err.Error())
-		}
-		return t.Matches[t.Current].ArrowUpdate(am)
-
-	case inShield:
-		sm := ShieldMessage{}
-		err := mapstructure.Decode(in.Data, &sm)
-		if err != nil {
-			fmt.Println("Error: Could not decode mapstructure", err.Error())
-		}
-		return t.Matches[t.Current].ShieldUpdate(sm)
-
-	case inWings:
-		wm := WingsMessage{}
-		err := mapstructure.Decode(in.Data, &wm)
-		if err != nil {
-			fmt.Println("Error: Could not decode mapstructure", err.Error())
-		}
-		return t.Matches[t.Current].WingsUpdate(wm)
-
-	default:
-		log.Printf("Warning: Unknown message type '%s'", in.Type)
-	}
-
-	return nil
+	//
+	return t.Matches[t.Current].handleMessage(msg)
 }

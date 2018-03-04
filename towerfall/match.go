@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/deckarep/golang-set"
+	"github.com/mitchellh/mapstructure"
 )
 
 const (
@@ -19,6 +20,107 @@ const (
 
 	EnvironmentKill = -1
 )
+
+type Message struct {
+	Type      string      `json:"type"`
+	Data      interface{} `json:"data"`
+	Timestamp time.Time   `json:"timestamp"`
+}
+
+// Kill reasons
+const (
+	rArrow = iota
+	rExplosion
+	rBrambles
+	rJumpedOn
+	rLava
+	rShock
+	rSpikeBall
+	rFallingObject
+	rSquish
+	rCurse
+	rMiasma
+	rEnemy
+	rChalice
+)
+
+// Arrows
+const (
+	aNormal = iota
+	aBomb
+	aSuperBomb
+	aLaser
+	aBramble
+	aDrill
+	aBolt
+	aToy
+	aFeather
+	aTrigger
+	aPrism
+)
+
+// Message types
+const (
+	inKill       = "kill"
+	inRoundStart = "round_start"
+	inRoundEnd   = "round_end"
+	inMatchStart = "match_start"
+	inMatchEnd   = "match_end"
+	inPickup     = "arrows_collected"
+	inShot       = "arrow_shot"
+	inShield     = "shield_state"
+	inWings      = "wings_state"
+	inOrbSlow    = "slow_orb_state"
+	inOrbDark    = "dark_orb_state"
+	inOrbLava    = "lava_orb_state"
+	inOrbScroll  = "scroll_orb_state"
+)
+
+type KillMessage struct {
+	Player int `json:"player"`
+	Killer int `json:"killer"`
+	Cause  int `json:"cause"`
+}
+
+type ArrowMessage struct {
+	Player int    `json:"player"`
+	Arrows Arrows `json:"arrows"`
+}
+
+type ShieldMessage struct {
+	Player int  `json:"player"`
+	State  bool `json:"state"`
+}
+
+type WingsMessage struct {
+	Player int  `json:"player"`
+	State  bool `json:"state"`
+}
+
+type SlowOrbMessage struct {
+	State bool `json:"state"`
+}
+
+type DarkOrbMessage struct {
+	State bool `json:"state"`
+}
+
+type ScrollOrbMessage struct {
+	State bool `json:"state"`
+}
+
+type LavaOrbMessage struct {
+	Player int  `json:"player"`
+	State  bool `json:"state"`
+}
+
+// List of integers where one item is an arrow type as described in
+// the arrow types above.
+type Arrows []int
+
+type StartRoundMessage struct {
+	Arrows []Arrows `json:"arrows"`
+}
 
 // Match represents a game being played
 //
@@ -42,7 +144,7 @@ type Match struct {
 	Tournament    *Tournament   `json:"-"`
 	KillOrder     []int         `json:"kill_order"`
 	Rounds        []Round       `json:"commits"`
-	KillEvents    []KillMessage `json:"kill_events"`
+	Messages      []Message     `json:""`
 	Level         string        `json:"level"`
 	currentRound  Round
 	presentColors mapset.Set
@@ -278,6 +380,81 @@ func (m *Match) Commit(round Round) {
 	_ = m.Tournament.Persist()
 }
 
+// storeMessage stores a message on the match
+func (m *Match) storeMessage(msg Message) error {
+	m.Messages = append(m.Messages, msg)
+	// TODO(thiderman): Persist here
+	return nil
+}
+
+// handleMessage decides what to do with an incoming message
+func (m *Match) handleMessage(msg Message) error {
+	// Store the message. Do this before figuring out the type and even
+	// if it would not be parsed.
+	err := m.storeMessage(msg)
+	if err != nil {
+		return nil
+	}
+
+	switch msg.Type {
+	case inKill:
+		km := KillMessage{}
+		err := mapstructure.Decode(msg.Data, &km)
+		if err != nil {
+			fmt.Println("Error: Could not decode mapstructure", err.Error())
+		}
+
+		return m.Kill(km)
+
+	case inRoundStart:
+		sr := StartRoundMessage{}
+		err := mapstructure.Decode(msg.Data, &sr)
+		if err != nil {
+			fmt.Println("Error: Could not decode mapstructure", err.Error())
+		}
+		return m.StartRound(sr)
+
+	case inRoundEnd:
+		return m.EndRound()
+
+	case inMatchStart:
+		return m.Start(nil)
+
+	case inMatchEnd:
+		return m.End(nil)
+
+	case inPickup:
+	case inShot:
+		am := ArrowMessage{}
+		err := mapstructure.Decode(msg.Data, &am)
+		if err != nil {
+			fmt.Println("Error: Could not decode mapstructure", err.Error())
+		}
+		return m.ArrowUpdate(am)
+
+	case inShield:
+		sm := ShieldMessage{}
+		err := mapstructure.Decode(msg.Data, &sm)
+		if err != nil {
+			fmt.Println("Error: Could not decode mapstructure", err.Error())
+		}
+		return m.ShieldUpdate(sm)
+
+	case inWings:
+		wm := WingsMessage{}
+		err := mapstructure.Decode(msg.Data, &wm)
+		if err != nil {
+			fmt.Println("Error: Could not decode mapstructure", err.Error())
+		}
+		return m.WingsUpdate(wm)
+
+	default:
+		log.Printf("Warning: Unknown message type '%s'", msg.Type)
+	}
+
+	return nil
+}
+
 // EndRound is similar to Commit, but does not alter the score other
 // than to manage shots
 func (m *Match) EndRound() error {
@@ -309,14 +486,16 @@ func (m *Match) EndRound() error {
 // StartRound sets the initial state of player arrows.
 func (m *Match) StartRound(sr StartRoundMessage) error {
 	for i, as := range sr.Arrows {
+		m.Players[i].State = NewPlayerState()
 		m.Players[i].State.Arrows = as
 	}
-	return nil
+	return m.Tournament.Persist()
 }
 
 // ArrowUpdate updates the arrow state for a player
 func (m *Match) ArrowUpdate(am ArrowMessage) error {
 	m.Players[am.Player].State.Arrows = am.Arrows
+	fmt.Println(m.Players[am.Player].State.Arrows)
 	log.Printf("<send arrow update: %d>", am.Player)
 	return nil
 }
@@ -335,40 +514,40 @@ func (m *Match) WingsUpdate(wm WingsMessage) error {
 	return nil
 }
 
-// KillMessage records a KillMessage
-func (m *Match) KillMessage(km KillMessage) error {
-	m.KillEvents = append(m.KillEvents, km)
-
+// Kill records a Kill
+func (m *Match) Kill(km KillMessage) error {
 	if km.Killer == EnvironmentKill {
 		m.Players[km.Player].AddSelf()
 		m.currentRound.AddSelf(km.Player)
 
 		m.LogEvent(
-			"kill", "{player} was killed by the environment",
+			"kill_environ", "{player} was killed by the environment via {cause}",
+			"player", m.Players[km.Player].Name(),
+			"person", m.Players[km.Player].Person,
+			"cause", km.Cause,
+		)
+	} else if km.Killer == km.Player {
+		m.Players[km.Player].AddSelf()
+		m.currentRound.AddSelf(km.Player)
+
+		m.LogEvent(
+			"suicide", "{player} committed suicide via {cause}",
 			"player", m.Players[km.Player].Name(),
 			"person", m.Players[km.Player].Person,
 			"cause", km.Cause,
 		)
 	} else {
-		if km.Killer == km.Player {
-			m.Players[km.Player].AddSelf()
-			m.currentRound.AddSelf(km.Player)
-		} else {
-			m.Players[km.Killer].AddKills(1)
-			m.currentRound.AddKill(km.Killer)
-		}
-
+		m.Players[km.Killer].AddKills(1)
+		m.currentRound.AddKill(km.Killer)
 		m.LogEvent(
 			"kill", "{killer} killed {player} with {cause}",
 			"killer", m.Players[km.Killer].Name(),
 			"player", m.Players[km.Player].Name(),
 			"person", m.Players[km.Killer].Person,
-			"cause", km.Cause, // TODO(thiderman) Make human readable
+			"cause", km.Cause,
 		)
 	}
-
-	m.Tournament.Persist()
-	return nil
+	return m.Tournament.Persist()
 }
 
 // Start starts the match

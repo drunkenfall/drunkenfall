@@ -597,5 +597,84 @@ func TestRoundIsShotUpdate(t *testing.T) {
 		}
 		assert.Equal(t, false, r.IsShotUpdate())
 	})
+}
 
+func TestKill(t *testing.T) {
+	t.Run("Kill by other player", func(t *testing.T) {
+		m := MockMatch(0, playoff)
+		ev := len(m.Events)
+
+		km := KillMessage{1, 2, rArrow}
+		err := m.Kill(km)
+		assert.NoError(t, err)
+		assert.Equal(t, ev+1, len(m.Events))
+		assert.Equal(t, "kill", m.Events[ev].Kind)
+		assert.Equal(t, rArrow, m.Events[ev].Items["cause"])
+	})
+
+	t.Run("Environment kill", func(t *testing.T) {
+		m := MockMatch(0, playoff)
+		ev := len(m.Events)
+
+		km := KillMessage{1, EnvironmentKill, rExplosion}
+		err := m.Kill(km)
+		assert.NoError(t, err)
+		assert.Equal(t, 1, m.Players[1].Self)
+		assert.Equal(t, ev+1, len(m.Events))
+		assert.Equal(t, "kill_environ", m.Events[ev].Kind)
+		assert.Equal(t, rExplosion, m.Events[ev].Items["cause"])
+	})
+
+	t.Run("Suicide", func(t *testing.T) {
+		m := MockMatch(0, playoff)
+		ev := len(m.Events)
+
+		km := KillMessage{1, 1, rCurse}
+		err := m.Kill(km)
+		assert.NoError(t, err)
+		assert.Equal(t, 1, m.Players[1].Self)
+		assert.Equal(t, ev+1, len(m.Events))
+		assert.Equal(t, "suicide", m.Events[ev].Kind)
+		assert.Equal(t, rCurse, m.Events[ev].Items["cause"])
+	})
+
+}
+
+func TestStartRound(t *testing.T) {
+	tm := testTournament(12)
+	err := tm.StartTournament(nil)
+	assert.NoError(t, err)
+	m := tm.Matches[0]
+
+	// These are absurd, of course...
+	sr := StartRoundMessage{[]Arrows{
+		[]int{aNormal, aBomb, aNormal},
+		[]int{aSuperBomb, aBolt, aPrism},
+		[]int{aNormal, aNormal, aNormal},
+		[]int{aBomb, aBomb, aBomb},
+	}}
+	t.Run("Arrows are set", func(t *testing.T) {
+		err := m.StartRound(sr)
+		assert.NoError(t, err)
+
+		assert.Equal(t, Arrows{aNormal, aBomb, aNormal}, m.Players[0].State.Arrows)
+		assert.Equal(t, Arrows{aSuperBomb, aBolt, aPrism}, m.Players[1].State.Arrows)
+		assert.Equal(t, Arrows{aNormal, aNormal, aNormal}, m.Players[2].State.Arrows)
+		assert.Equal(t, Arrows{aBomb, aBomb, aBomb}, m.Players[3].State.Arrows)
+	})
+
+	t.Run("Player states are reset", func(t *testing.T) {
+		m.Players[0].State.Alive = false
+		m.Players[1].State.Alive = false
+		m.Players[2].State.Alive = false
+		m.Players[3].State.Alive = false
+
+		err := m.StartRound(sr)
+		assert.NoError(t, err)
+
+		assert.Equal(t, true, m.Players[0].State.Alive)
+		assert.Equal(t, true, m.Players[1].State.Alive)
+		assert.Equal(t, true, m.Players[2].State.Alive)
+		assert.Equal(t, true, m.Players[3].State.Alive)
+	})
 }
