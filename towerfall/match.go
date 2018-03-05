@@ -456,6 +456,20 @@ func (m *Match) handleMessage(msg Message) error {
 	return nil
 }
 
+// sendPlayerUpdate sends a status update for a single player
+func (m *Match) sendPlayerUpdate(idx int) error {
+	log.Print("Sending update")
+	return m.Tournament.server.SendWebsocketUpdate(
+		"player",
+		PlayerStateUpdateMessage{
+			m.Tournament.ID,
+			m.Index,
+			idx,
+			m.Players[idx].State,
+		},
+	)
+}
+
 // EndRound is similar to Commit, but does not alter the score other
 // than to manage shots
 func (m *Match) EndRound() error {
@@ -496,8 +510,7 @@ func (m *Match) StartRound(sr StartRoundMessage) error {
 // ArrowUpdate updates the arrow state for a player
 func (m *Match) ArrowUpdate(am ArrowMessage) error {
 	m.Players[am.Player].State.Arrows = am.Arrows
-	log.Printf("<send arrow update: %d>", am.Player)
-	return nil
+	return m.sendPlayerUpdate(am.Player)
 }
 
 // ShieldUpdate updates the shield state for a player
@@ -516,8 +529,7 @@ func (m *Match) ShieldUpdate(sm ShieldMessage) error {
 			"person", m.Players[sm.Player].Person,
 		)
 	}
-	log.Printf("<send shield update: %d>", sm.Player)
-	return nil
+	return m.sendPlayerUpdate(sm.Player)
 }
 
 // WingsUpdate updates the wings state for a player
@@ -536,8 +548,7 @@ func (m *Match) WingsUpdate(wm WingsMessage) error {
 			"person", m.Players[wm.Player].Person,
 		)
 	}
-	log.Printf("<send wing update: %d>", wm.Player)
-	return nil
+	return m.sendPlayerUpdate(wm.Player)
 }
 
 // LavaOrb sets or unsets the lava for a player
@@ -558,8 +569,7 @@ func (m *Match) LavaOrb(lm LavaOrbMessage) error {
 		)
 	}
 
-	log.Printf("<send lava update: %d>", lm.Player)
-	return nil
+	return m.sendPlayerUpdate(lm.Player)
 }
 
 // Kill records a Kill

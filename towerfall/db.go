@@ -100,7 +100,7 @@ func (d *Database) SaveTournament(t *Tournament) error {
 		return nil
 	})
 
-	go d.Server.SendWebsocketUpdate()
+	go d.Server.SendWebsocketUpdate("tournament", t)
 	return ret
 }
 
@@ -300,7 +300,9 @@ func (d *Database) ClearTestTournaments() error {
 		return err
 	})
 
-	go d.Server.SendWebsocketUpdate()
+	// tournamentMutex.Lock()
+	d.Server.SendWebsocketUpdate("all", d.Tournaments)
+	// tournamentMutex.Unlock()
 
 	return err
 }

@@ -143,7 +143,7 @@ func (s *Server) RegisterHandlersAndListeners() {
 	// Send an initial complete update. Without this, the clients will
 	// not receieve anything when they connect, leaving them stranded
 	// and sad.
-	s.SendWebsocketUpdate()
+	// s.SendWebsocketUpdate()
 }
 
 // NewHandler shows the page to create a new tournament
@@ -747,29 +747,31 @@ func (s *Server) Serve() error {
 }
 
 // SendWebsocketUpdate sends an update to all listening sockets
-func (s *Server) SendWebsocketUpdate() {
+func (s *Server) SendWebsocketUpdate(kind string, data interface{}) error {
 	if !broadcasting {
-		return
+		return nil
 	}
 
-	tournamentMutex.Lock()
-	msg := websockets.Message{
-		Data: UpdateStateMessage{
-			Tournaments: s.DB.Tournaments,
-		},
-	}
-	tournamentMutex.Unlock()
-
-	s.ws.SendAll(&msg)
+	// TODO(thiderman): Is it safe to just off this as a goroutine?
+	// There is a situation where a certain test (TestLavaOrb) makes the
+	// tests hang repeatedly if this is not a goroutine. This is extra
+	// weird since hundreds of other messages have been sent before that.
+	go s.ws.SendAll(&websockets.Message{
+		Type: kind,
+		Data: data,
+	})
+	return nil
 }
 
 // DisableWebsocketUpdates... disables websocket updates.
 func (s *Server) DisableWebsocketUpdates() {
+	log.Print("Disabling websocket broadcast")
 	broadcasting = false
 }
 
 // EnableWebsocketUpdates... enables websocket updates.
 func (s *Server) EnableWebsocketUpdates() {
+	log.Print("Enabling websocket broadcast")
 	broadcasting = true
 }
 

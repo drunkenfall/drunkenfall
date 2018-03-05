@@ -285,7 +285,7 @@ func (t *Tournament) UsurpTournament() error {
 	}
 
 	t.server.EnableWebsocketUpdates()
-	t.server.SendWebsocketUpdate()
+	t.server.SendWebsocketUpdate("tournament", t)
 	return nil
 }
 
@@ -327,7 +327,7 @@ func (t *Tournament) AutoplaySection() {
 	}
 
 	t.server.EnableWebsocketUpdates()
-	t.server.SendWebsocketUpdate()
+	t.server.SendWebsocketUpdate("tournament", t)
 }
 
 // MatchIndex returns the index of the match
