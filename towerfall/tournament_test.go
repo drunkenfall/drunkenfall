@@ -11,6 +11,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func init() {
+	// This disables websocket pushing during the tests
+	broadcasting = false
+}
+
 func TestMain(m *testing.M) {
 	// This makes sure that the test output just has the filenames, making it
 	// easier for tools that parses it to find where the log output happened.
