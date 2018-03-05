@@ -28,7 +28,7 @@ type UpdateMatchMessage struct {
 
 // TournamentList returns a list with tournaments
 type TournamentList struct {
-	Tournaments []*Tournament `json:"tournaments"`
+	Tournaments map[string]*Tournament `json:"tournaments"`
 }
 
 // UpdateStateMessage returns an update to the current match

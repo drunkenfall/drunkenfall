@@ -300,11 +300,19 @@ func (d *Database) ClearTestTournaments() error {
 		return err
 	})
 
-	// tournamentMutex.Lock()
-	d.Server.SendWebsocketUpdate("all", d.Tournaments)
-	// tournamentMutex.Unlock()
+	d.Server.SendWebsocketUpdate("all", d.asMap())
 
 	return err
+}
+
+func (d *Database) asMap() map[string]*Tournament {
+	tournamentMutex.Lock()
+	out := make(map[string]*Tournament)
+	for _, t := range d.Tournaments {
+		out[t.ID] = t
+	}
+	tournamentMutex.Unlock()
+	return out
 }
 
 // Close closes the database
@@ -312,7 +320,7 @@ func (d *Database) Close() error {
 	return d.DB.Close()
 }
 
-// ByScheduleDate is a sort.Interface that sorts tournaments accoring
+// ByScheduleDate is a sort.Interface that sorts tournaments according
 // to when they were scheduled.
 type ByScheduleDate []*Tournament
 

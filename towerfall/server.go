@@ -432,7 +432,7 @@ func (s *Server) MatchCommitHandler(w http.ResponseWriter, r *http.Request) {
 // TournamentListHandler returns a list of all tournaments
 func (s *Server) TournamentListHandler(w http.ResponseWriter, _ *http.Request) {
 	data, err := json.Marshal(&TournamentList{
-		Tournaments: s.DB.Tournaments,
+		Tournaments: s.DB.asMap(),
 	})
 	if err != nil {
 		log.Fatal(err)

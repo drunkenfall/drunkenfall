@@ -73,21 +73,20 @@ export default {
             return
           }
 
-          if (res.data) {
-            if (res.data.tournaments) {
-              // The main bulk update. This contains the latest state.
-              $vue.$store.commit('updateAll', {
-                '$vue': $vue,
-                'tournaments': res.data.tournaments,
-              })
-              return
-            }
-
-            console.log('no tournaments received, did not update anything')
-            return
+          console.log(`ws ${res.type} message`, res.data)
+          if (res.type === 'all') {
+            $vue.$store.commit('updateAll', {
+              '$vue': $vue,
+              'tournaments': res.data.tournaments,
+            })
+          } else if (res.type === 'tournament') {
+            $vue.$store.commit('updateTournament', {
+              '$vue': $vue,
+              'tournament': res.data,
+            })
+          } else {
+            console.log('Unknown websocket update:', res)
           }
-
-          console.log('Unknown websocket update:', res)
         }
 
         this.ws.onopen = () => {

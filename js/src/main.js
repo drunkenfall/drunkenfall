@@ -189,9 +189,23 @@ router.beforeEach((to, from, next) => {
   setTimeout(function () {
     router.app.connect()
 
+    if (_.isEmpty(router.app.$store.state.tournaments)) {
+      router.app.$http.get('/api/tournament/').then(response => {
+        let data = JSON.parse(response.data)
+        console.debug("tournament state", data)
+        router.app.$store.commit('updateAll', {
+          "tournaments": data.tournaments,
+          "$vue": router.app,
+        })
+      }, response => {
+        console.log("Failed getting tournaments", response)
+      })
+    }
+
     if (!router.app.$store.state.user.authenticated) {
       router.app.$http.get('/api/user/').then(response => {
         let data = JSON.parse(response.data)
+        console.debug("user state", data)
 
         // If we're not signed in, then the backend will return an
         // object with just "false" and nothing else. If this happens,
@@ -215,6 +229,7 @@ router.beforeEach((to, from, next) => {
     if (!router.app.$store.state.stats) {
       router.app.$http.get('/api/people/stats/').then(response => {
         let data = JSON.parse(response.data)
+        console.debug("stats state", data)
         router.app.$store.commit('setStats', data)
         // Since the stats also contain the profiles, we can use this
         // data to populate those as well!
@@ -234,7 +249,7 @@ router.beforeEach((to, from, next) => {
 
 const store = new Vuex.Store({ // eslint-disable-line
   state: {
-    tournaments: [],
+    tournaments: {},
     user: new Person(),
     userLoaded: false,
     stats: undefined,
@@ -243,9 +258,15 @@ const store = new Vuex.Store({ // eslint-disable-line
   },
   mutations: {
     updateAll (state, data) {
-      state.tournaments = _.reverse(_.map(data.tournaments, (t) => {
-        return Tournament.fromObject(t, data.$vue)
-      }))
+      let ts = {}
+      _.forEach(data.tournaments, (t) => {
+        ts[t.id] = Tournament.fromObject(t, data.$vue)
+      })
+      state.tournaments = ts
+    },
+    updateTournament (state, data) {
+      let t = Tournament.fromObject(data.tournament, data.$vue)
+      Vue.set(state.tournaments, t.id, t)
     },
     setUser (state, user) {
       state.user = user
@@ -268,13 +289,13 @@ const store = new Vuex.Store({ // eslint-disable-line
   },
   getters: {
     getTournament: (state, getters) => (id) => {
-      return state.tournaments.find(t => t.id === id)
+      return state.tournaments[id]
     },
     upcoming: state => {
-      return _.reverse(_.filter(state.tournaments, 'isUpcoming'))
+      return _.filter(_.sortBy(state.tournaments, 'scheduled'), 'isUpcoming')
     },
     running: state => {
-      return _.reverse(_.filter(state.tournaments, 'isRunning'))[0]
+      return _.filter(_.sortBy(state.tournaments, 'scheduled'), 'isRunning')[0]
     },
     getPerson: (state, getters) => (id) => {
       if (!state.people) {

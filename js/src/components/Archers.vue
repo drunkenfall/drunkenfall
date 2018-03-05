@@ -29,9 +29,10 @@ export default {
         return this.combatants[0].person
       }
 
-      return this.$store.getters.getPerson(
-        this.$route.params.id
-      )
+      // The {} is for when reloading the page. As soon as data comes
+      // in it will resolve, but without it there is a blotch of error
+      // that it cannot access attributes on it.
+      return this.$store.getters.getPerson(this.$route.params.id) || {}
     },
     people () {
       return this.$store.state.people

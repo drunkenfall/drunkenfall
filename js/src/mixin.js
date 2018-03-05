@@ -50,18 +50,10 @@ var DrunkenFallMixin = {
 
   computed: {
     tournament () {
-      return this.$store.getters.getTournament(
-        this.$route.params.tournament
-      )
+      return this.tournaments[this.$route.params.tournament]
     },
     nextTournament () {
-      console.log(this.$store.state.tournaments)
-      let upcoming = _.reverse(_.filter(
-        this.$store.state.tournaments, (t) => {
-          return t.scheduled.isAfter()
-        }
-      ))
-      return _.head(upcoming)
+      return _.head(this.$store.getters.upcoming)
     },
     tournaments () {
       return this.$store.state.tournaments
@@ -76,11 +68,10 @@ var DrunkenFallMixin = {
       return this.$store.getters.running
     },
     currentLeague () {
-      // Since the original list of tournaments is reversed, we need
-      // to un-reverse it here.
-      return _.reverse(_.filter(this.tournaments, (t) => {
-        return t.scheduled.year() === moment().year()
-      }))
+      let ts = _.filter(this.tournaments, (t) => {
+        return t.scheduled.year() === moment().year() && !t.isTest
+      })
+      return _.sortBy(ts, 'scheduled')
     },
     user () {
       return this.$store.state.user
