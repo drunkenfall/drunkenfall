@@ -1,8 +1,7 @@
 <template>
 <div>
   <headful title="DrunkenFall"></headful>
-  <div id="start">
-
+  <div id="start" :class="{loaded: !loading}">
     <div class="main">
       <div class="logo">
         <img alt="DrunkenFall" src="/static/img/oem-text.svg"/>
@@ -13,7 +12,7 @@
         <p>
           DrunkenFall is a monthly video game tournament showdown of
           archery skills. We play
-          <a href="http://towerfall-game.com" target="_blank">TowerFall</a>
+          <a href="http://www.towerfall-game.com" target="_blank">TowerFall</a>
           with hardcore tournament rules, and we top that off with
           punishments whenever you lose a point or otherwise embarrass
           yourself.
@@ -58,11 +57,17 @@
 </template>
 
 <script>
+import _ from 'lodash'
 import DrunkenFallMixin from "../mixin"
 
 export default {
   name: 'About',
   mixins: [DrunkenFallMixin],
+  computed: {
+    loading () {
+      return _.isEmpty(this.tournaments)
+    },
+  }
 }
 </script>
 
@@ -73,6 +78,13 @@ export default {
   display: flex;
   @media screen and ($device: $device-width) {
     flex-direction: column;
+  }
+
+  transition: 1.5s;
+  opacity: 0;
+
+  &.loaded {
+    opacity: 1;
   }
 
   .main {
