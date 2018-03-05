@@ -55,7 +55,7 @@ install-linter:
 	gometalinter --install
 
 test:
-	go test -v ./...
+	cd towerfall; go test -v
 
 cover:
 	go test -coverprofile=cover.out ./...
