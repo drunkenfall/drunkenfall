@@ -40,47 +40,6 @@ type Server struct {
 	ws     *websockets.Server
 }
 
-// JSONMessage defines a message to be returned to the frontend
-type JSONMessage struct {
-	Message  string `json:"message"`
-	Redirect string `json:"redirect"`
-}
-
-// SettingsUpdateResponse is a redirect response with an extra Person field
-type SettingsUpdateResponse struct {
-	Redirect string  `json:"redirect"`
-	Person   *Person `json:"person"`
-}
-
-// GeneralRedirect is an explicit permission failure
-type GeneralRedirect JSONMessage
-
-// TournamentMessage returns a single tournament
-type TournamentMessage struct {
-	Tournament *Tournament `json:"tournament"`
-}
-
-// UpdateMessage returns an update to the current tournament
-type UpdateMessage TournamentMessage
-
-// UpdateMatchMessage returns an update to the current match
-type UpdateMatchMessage struct {
-	Match *Match `json:"match"`
-}
-
-// TournamentList returns a list with tournaments
-type TournamentList struct {
-	Tournaments []*Tournament `json:"tournaments"`
-}
-
-// UpdateStateMessage returns an update to the current match
-type UpdateStateMessage TournamentList
-
-// PeopleList returns a list with users
-type PeopleList struct {
-	People []*Person `json:"people"`
-}
-
 // NewRequest is the request to make a new tournament
 type NewRequest struct {
 	Name      string    `json:"name"`
