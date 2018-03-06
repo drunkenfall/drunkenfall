@@ -274,6 +274,13 @@ const store = new Vuex.Store({ // eslint-disable-line
       let t = Tournament.fromObject(data.tournament, data.$vue)
       Vue.set(state.tournaments, t.id, t)
     },
+    updatePlayer (state, data) {
+      console.log(data)
+      data = data.player
+      let t = state.tournaments[data.tournament]
+      t.matches[data.match].players[data.player].state = data.state
+      Vue.set(state.tournaments, t.id, t)
+    },
     setUser (state, user) {
       state.user = user
       state.userLoaded = true

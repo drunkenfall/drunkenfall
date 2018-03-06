@@ -84,6 +84,10 @@ export default {
               '$vue': $vue,
               'tournament': res.data,
             })
+          } else if (res.type === 'player') {
+            $vue.$store.commit('updatePlayer', {
+              'player': res.data,
+            })
           } else {
             console.log('Unknown websocket update:', res)
           }
