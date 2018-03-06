@@ -100,6 +100,19 @@ func (d *Database) SaveTournament(t *Tournament) error {
 		return nil
 	})
 
+	// If the tournament isn't already in the cache, we should add it
+	found := false
+	for _, ct := range d.Tournaments {
+		if ct.ID == t.ID {
+			found = true
+			break
+		}
+	}
+	if !found {
+		log.Printf("Adding new tournament %s into the memory cache", t.ID)
+		d.Tournaments = append(d.Tournaments, t)
+	}
+
 	go d.Server.SendWebsocketUpdate("tournament", t)
 	return ret
 }
@@ -240,30 +253,11 @@ func (d *Database) LoadPeople() error {
 // Returns the first matching one, so if there are multiple they will
 // be shadowed.
 func (d *Database) GetCurrentTournament() (*Tournament, error) {
-	var ret *Tournament
-	err := d.DB.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket(TournamentKey)
-		err := b.ForEach(func(k []byte, v []byte) error {
-			t, err := LoadTournament(v, d)
-			if err != nil {
-				return err
-			}
-
-			if t.IsRunning() {
-				ret = t
-				return ErrTournamentFound
-			}
-
-			return nil
-		})
-
-		return err
-	})
-
-	if err == ErrTournamentFound {
-		return ret, nil
+	for _, t := range d.Tournaments {
+		if t.IsRunning() {
+			return t, nil
+		}
 	}
-
 	return &Tournament{}, errors.New("no tournament is running")
 }
 
