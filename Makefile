@@ -44,8 +44,8 @@ $(BINARY): $(SOURCES)
 dist: $(BINARY)
 	cd js; npm run build
 
-# download:
-# go get -t -d -v ./...
+download:
+	go get -t -d -v ./...
 
 install:
 	go install -v ${LDFLAGS} ./...
