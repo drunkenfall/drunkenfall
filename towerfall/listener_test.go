@@ -10,7 +10,7 @@ func testListener(t *testing.T) (*Listener, *Tournament) {
 	s := MockServer()
 	db := s.DB
 
-	l, err := NewListener(db, 12345)
+	l, err := NewListener(db)
 	assert.NoError(t, err)
 
 	tm := testTournament(12, s)
@@ -26,7 +26,7 @@ func TestMessagesAreAddedToMatch(t *testing.T) {
 		assert.Equal(t, 0, len(tm.Matches[tm.Current].Messages))
 
 		msg := `{"type":"round_start","data":{"arrows":[[1,0,0],[0,2,0],[0,0,3],[1,1,1]]}}`
-		err := l.handle(tm, msg)
+		err := l.handle(tm, []byte(msg))
 		assert.NoError(t, err)
 		assert.Equal(t, 1, len(tm.Matches[tm.Current].Messages))
 	})
@@ -37,7 +37,7 @@ func TestMessagesAreAddedToMatch(t *testing.T) {
 
 		// https://open.spotify.com/track/4Uepu89yTm3wGtYFZz04Vf
 		msg := `{"type":"black_queen_style","data":{}}`
-		err := l.handle(tm, msg)
+		err := l.handle(tm, []byte(msg))
 		assert.NoError(t, err)
 		assert.Equal(t, 1, len(tm.Matches[tm.Current].Messages))
 	})

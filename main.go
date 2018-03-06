@@ -38,12 +38,12 @@ func main() {
 	s.RegisterHandlersAndListeners()
 
 	// Start the live updater
-	listener, err := towerfall.NewListener(db, 42005)
+	listener, err := towerfall.NewListener(db)
 	if err != nil {
 		log.Fatal(err)
+	} else {
+		go listener.Serve()
 	}
-	go listener.Serve()
-
 	// Catch termination signals so we can close the databas properly
 	c := make(chan os.Signal, 2)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)

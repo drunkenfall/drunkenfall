@@ -1,77 +1,80 @@
 package towerfall
 
 import (
-	"bytes"
 	"encoding/json"
-	"fmt"
-	"io"
 	"log"
-	"net"
 	"time"
+
+	"github.com/streadway/amqp"
 )
 
+func failOnError(err error, msg string) {
+	if err != nil {
+		log.Fatalf("%s: %s", msg, err)
+	}
+}
+
 type Listener struct {
-	DB       *Database
-	listener net.Conn
-	addr     *net.UDPAddr
-	port     int
+	DB    *Database
+	conn  *amqp.Connection
+	queue amqp.Queue
+	ch    *amqp.Channel
+	msgs  <-chan amqp.Delivery
 }
 
 // NewListener sets up a new listener
-func NewListener(db *Database, port int) (*Listener, error) {
+func NewListener(db *Database) (*Listener, error) {
 	var err error
 	l := Listener{
-		DB:   db,
-		port: port,
+		DB: db,
 	}
 
-	l.addr, err = net.ResolveUDPAddr("udp", fmt.Sprintf(":%d", port))
+	l.conn, err = amqp.Dial("amqp://rabbitmq:thiderman@drunkenfall.com:5672/")
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	l.ch, err = l.conn.Channel()
+	failOnError(err, "Failed to open a channel")
+
+	l.queue, err = l.ch.QueueDeclare(
+		"drunkenfall-events", // name
+		false,                // durable
+		false,                // delete when unused
+		false,                // exclusive
+		false,                // no-wait
+		nil,                  // arguments
+	)
+	failOnError(err, "Failed to declare a queue")
+
+	l.msgs, err = l.ch.Consume(
+		l.queue.Name, // queue
+		"",           // consumer
+		true,         // auto-ack
+		false,        // exclusive
+		false,        // no-local
+		false,        // no-wait
+		nil,          // args
+	)
+	failOnError(err, "Failed to register a consumer")
+
 	return &l, err
 }
 
 func (l *Listener) Serve() {
-	var err error
-	log.Printf("Listening for messages on :%d...", l.port)
-	l.listener, err = net.ListenUDP("udp", l.addr)
-	if err != nil {
-		log.Print("Could not bind UDP")
-		log.Fatal(err)
-	}
+	log.Println("Listening for AMQP messages...")
+	defer l.ch.Close()
 
-	for {
-		// conn, err := l.listener.Accept()
-		// if err != nil {
-		// 	log.Printf("Error when accepting connection: %s", err.Error())
-		// }
-
-		b := make([]byte, 1024)
-		_, err := l.listener.Read(b)
-
-		message := string(bytes.Trim(b, "\x00"))
-		// message, err := bufio.NewReader(conn).ReadString('\n')
-		// EOF is returned every time because the message sending code on
-		// the TowerFall end will always close the connection as soon as
-		// the message is sent.
-		if err != nil && err != io.EOF {
-			log.Printf("Error when receiving message: %s", err.Error())
-		}
-
-		// err = conn.Close()
-		// if err != nil {
-		// 	log.Printf("Couldn't close: %s", err.Error())
-		// }
-
+	for d := range l.msgs {
 		t, err := l.DB.GetCurrentTournament()
 		if err != nil {
 			log.Printf("Could not get current tournament, skipping message: %s", err.Error())
 			continue
 		}
 
+		msg := d.Body
 		go func() {
-			err := l.handle(t, message)
+			err := l.handle(t, msg)
 			if err != nil {
 				log.Printf("Handling failed: %s", err.Error())
 			}
@@ -79,13 +82,13 @@ func (l *Listener) Serve() {
 	}
 }
 
-func (l *Listener) handle(t *Tournament, body string) error {
-	log.Println("Incoming message:", string(body))
+func (l *Listener) handle(t *Tournament, body []byte) error {
+	log.Printf("Incoming message: %s", body)
 	msg := Message{
 		Timestamp: time.Now(),
 	}
 
-	err := json.Unmarshal([]byte(body), &msg)
+	err := json.Unmarshal(body, &msg)
 	if err != nil {
 		return err
 	}
