@@ -458,7 +458,6 @@ func (m *Match) handleMessage(msg Message) error {
 
 // sendPlayerUpdate sends a status update for a single player
 func (m *Match) sendPlayerUpdate(idx int) error {
-	log.Print("Sending update")
 	return m.Tournament.server.SendWebsocketUpdate(
 		"player",
 		PlayerStateUpdateMessage{
@@ -495,13 +494,18 @@ func (m *Match) EndRound() error {
 		Kills: [][]int{{0, 0}, {0, 0}, {0, 0}, {0, 0}},
 		Shots: []bool{false, false, false, false},
 	}
+
+	// Reset the player states
+	for i := range m.Players {
+		m.Players[i].State = NewPlayerState()
+	}
+
 	return m.Tournament.Persist()
 }
 
 // StartRound sets the initial state of player arrows.
 func (m *Match) StartRound(sr StartRoundMessage) error {
 	for i, as := range sr.Arrows {
-		m.Players[i].State = NewPlayerState()
 		m.Players[i].State.Arrows = as
 	}
 	return m.Tournament.Persist()
@@ -574,6 +578,9 @@ func (m *Match) LavaOrb(lm LavaOrbMessage) error {
 
 // Kill records a Kill
 func (m *Match) Kill(km KillMessage) error {
+	m.Players[km.Player].State.Alive = false
+	m.Players[km.Player].State.Killer = km.Killer
+
 	if km.Killer == EnvironmentKill {
 		m.Players[km.Player].AddSelf()
 		m.currentRound.AddSelf(km.Player)

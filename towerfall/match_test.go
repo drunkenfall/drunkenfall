@@ -752,19 +752,4 @@ func TestStartRound(t *testing.T) {
 		assert.Equal(t, Arrows{aNormal, aNormal, aNormal}, m.Players[2].State.Arrows)
 		assert.Equal(t, Arrows{aBomb, aBomb, aBomb}, m.Players[3].State.Arrows)
 	})
-
-	t.Run("Player states are reset", func(t *testing.T) {
-		m.Players[0].State.Alive = false
-		m.Players[1].State.Alive = false
-		m.Players[2].State.Alive = false
-		m.Players[3].State.Alive = false
-
-		err := m.StartRound(sr)
-		assert.NoError(t, err)
-
-		assert.Equal(t, true, m.Players[0].State.Alive)
-		assert.Equal(t, true, m.Players[1].State.Alive)
-		assert.Equal(t, true, m.Players[2].State.Alive)
-		assert.Equal(t, true, m.Players[3].State.Alive)
-	})
 }
