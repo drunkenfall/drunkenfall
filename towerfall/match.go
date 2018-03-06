@@ -145,7 +145,7 @@ type Match struct {
 	Tournament    *Tournament   `json:"-"`
 	KillOrder     []int         `json:"kill_order"`
 	Rounds        []Round       `json:"commits"`
-	Messages      []Message     `json:""`
+	Messages      []Message     `json:"messages"`
 	Level         string        `json:"level"`
 	currentRound  Round
 	presentColors mapset.Set
@@ -424,8 +424,7 @@ func (m *Match) handleMessage(msg Message) error {
 	case inMatchEnd:
 		return m.End(nil)
 
-	case inPickup:
-	case inShot:
+	case inShot, inPickup:
 		am := ArrowMessage{}
 		err := mapstructure.Decode(msg.Data, &am)
 		if err != nil {
