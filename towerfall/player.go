@@ -43,7 +43,7 @@ type Player struct {
 	Self           int         `json:"self"`
 	Matches        int         `json:"matches"`
 	TotalScore     int         `json:"score"`
-	State          PlayerState `json:"-"`
+	State          PlayerState `json:"state"`
 	Match          *Match      `json:"-"`
 }
 

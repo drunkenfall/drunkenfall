@@ -1,10 +1,12 @@
 import Person from './Person.js'
+import PlayerState from './PlayerState'
 
 export default class Player {
   static fromObject (obj) {
     let p = new Player()
     Object.assign(p, obj)
     p.person = Person.fromObject(p.person)
+    p.state = PlayerState.fromObject(p.state)
     return p
   }
 

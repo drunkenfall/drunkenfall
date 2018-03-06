@@ -46,6 +46,29 @@ var DrunkenFallMixin = {
     ordinal (n) {
       return `${n}${this.getOrdinal(n)}`
     },
+    arrowImage (n) {
+      let arrows = [
+        "singleArrow",
+        "bombArrows",
+        "superBombArrows",
+        "laserArrows",
+        "brambleArrows",
+        "drillArrows",
+        "boltArrows",
+        "toyArrows",
+        "featherArrows",
+        "triggerArrows",
+        "prismArrows",
+      ]
+
+      return `/static/img/arrows/${arrows[n]}.png`
+    },
+    shieldImage () {
+      return `/static/img/arrows/shield.png`
+    },
+    lavaOrbImage () {
+      return `/static/img/arrows/lavaOrb.png`
+    },
   },
 
   computed: {
@@ -108,7 +131,7 @@ var DrunkenFallMixin = {
       // TODO(thiderman): This needs to be written as the kind that
       // does not change until the next match is started, as per to be
       // used by ScoreScreen and such
-      return
+      return this.tournament.matches[this.tournament.current]
     },
     nextMatch () {
       if (this.tournament.current === undefined) {

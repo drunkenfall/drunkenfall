@@ -32,6 +32,7 @@ import Runnerups from './components/Runnerups.vue'
 import ScoreScreen from './components/ScoreScreen.vue'
 import Settings from './components/Settings.vue'
 import Sidebar from './components/Sidebar.vue'
+import Stream from './components/Stream'
 import TournamentList from './components/TournamentList.vue'
 import TournamentView from './components/Tournament.vue'
 
@@ -163,6 +164,11 @@ var router = new Router({
       path: '/tournaments/:tournament/log/',
       name: 'log',
       component: Log
+    },
+    {
+      path: '/live/',
+      name: 'live',
+      component: Stream
     },
     {
       path: '/tournaments/:tournament/credits/',
