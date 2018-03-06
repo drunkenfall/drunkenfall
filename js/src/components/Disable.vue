@@ -24,7 +24,7 @@ export default {
   methods: {
     toggle (e) {
       let $vue = this
-      let person = e.srcElement
+      let person = e.target
       this.api.toggle({ person: person.id }).then((res) => {
         $vue.$store.commit('setPeople', JSON.parse(res.data))
       }, (err) => {

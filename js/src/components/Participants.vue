@@ -24,7 +24,7 @@ export default {
   methods: {
     toggle (e) {
       let $vue = this
-      let person = e.srcElement
+      let person = e.target
       this.api.toggle({ id: this.tournament.id, person: person.id }).then((res) => {
         console.log("join response:", res)
       }, (err) => {
