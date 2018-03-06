@@ -32,22 +32,6 @@ export default {
   props: {
     match: {}
   },
-  filters: {
-    levelTitle (title) {
-      if (title === "twilight") {
-        return "Twilight Spire"
-      } else if (title === "kingscourt") {
-        return "King's Court"
-      } else if (title === "frostfang") {
-        return "Frostfang Keep"
-      } else if (title === "sunken") {
-        return "Sunken City"
-      } else if (title === "amaranth") {
-        return "The Amaranth"
-      }
-      return title.charAt(0).toUpperCase() + title.slice(1)
-    },
-  },
 }
 </script>
 
