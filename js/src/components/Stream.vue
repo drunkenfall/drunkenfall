@@ -53,7 +53,18 @@
               <img v-for="a in p.state.arrows" alt="" :src="arrowImage(a)"/>
             </div>
             <div class="reason" v-else>
-              <p>💀 by thiderman</p>
+              <p>
+                💀 by
+                <span v-if="p.state.killer === -1">
+                  the level, lol
+                </span>
+                <span v-else-if="p.state.killer !== idx" :color="match.players[p.state.killer].color">
+                  {{match.players[p.state.killer].displayName}}
+                </span>
+                <span v-else>
+                  suicide :'(
+                </span>
+              </p>
             </div>
           </div>
           <div class="person">
