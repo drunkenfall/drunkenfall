@@ -494,11 +494,6 @@ func (m *Match) EndRound() error {
 		Shots: []bool{false, false, false, false},
 	}
 
-	// Reset the player states
-	for i := range m.Players {
-		m.Players[i].State = NewPlayerState()
-	}
-
 	return m.Tournament.Persist()
 }
 
@@ -506,6 +501,10 @@ func (m *Match) EndRound() error {
 func (m *Match) StartRound(sr StartRoundMessage) error {
 	for i, as := range sr.Arrows {
 		m.Players[i].State.Arrows = as
+		m.Players[i].State.Alive = true
+		m.Players[i].State.Hat = true
+		m.Players[i].State.Lava = false
+		m.Players[i].State.Killer = -2
 	}
 	return m.Tournament.Persist()
 }

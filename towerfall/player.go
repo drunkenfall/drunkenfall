@@ -79,6 +79,7 @@ func NewPlayerState() PlayerState {
 		Arrows: make(Arrows, 0),
 		Alive:  true,
 		Hat:    true,
+		Killer: -2,
 	}
 	return ps
 }
