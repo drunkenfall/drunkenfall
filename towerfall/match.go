@@ -448,6 +448,14 @@ func (m *Match) handleMessage(msg Message) error {
 		}
 		return m.WingsUpdate(wm)
 
+	case inOrbLava:
+		lm := LavaOrbMessage{}
+		err := mapstructure.Decode(msg.Data, &lm)
+		if err != nil {
+			fmt.Println("Error: Could not decode mapstructure", err.Error())
+		}
+		return m.LavaOrb(lm)
+
 	default:
 		log.Printf("Warning: Unknown message type '%s'", msg.Type)
 	}
