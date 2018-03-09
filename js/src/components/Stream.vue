@@ -110,7 +110,7 @@ export default {
 </script>
 
 
-<style lang="scss" scoped>
+<style lang="scss">
 @import "../css/colors.scss";
 $stream-sidebar: 500px;
 $bottom: 75px;
