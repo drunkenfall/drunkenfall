@@ -11,26 +11,14 @@
     <div class="data">
       <div class="status">
         <div class="gamestats">
-          <div class="orbs" v-if="p.state.alive && p.state.lava || true">
+          <div class="orbs" v-if="p.state.alive && p.state.lava">
             <img alt="" :src="lavaOrbImage()"/>
           </div>
-          <div class="shield" v-if="p.state.alive && p.state.shield || true">
+          <div class="shield" v-if="p.state.alive && p.state.shield">
             <img alt="" :src="shieldImage()"/>
           </div>
           <div class="arrows" v-if="p.state.alive">
             <img v-for="a in p.state.arrows" alt="" :src="arrowImage(a)"/>
-            <img alt="" :src="arrowImage(0)"/>
-            <img alt="" :src="arrowImage(1)"/>
-            <img alt="" :src="arrowImage(2)"/>
-            <img alt="" :src="arrowImage(3)"/>
-            <img alt="" :src="arrowImage(4)"/>
-            <img alt="" :src="arrowImage(5)"/>
-            <img alt="" :src="arrowImage(6)"/>
-            <img alt="" :src="arrowImage(7)"/>
-            <img alt="" :src="arrowImage(8)"/>
-            <img alt="" :src="arrowImage(9)"/>
-            <img alt="" :src="arrowImage(10)"/>
-            <img alt="" :src="arrowImage(11)"/>
           </div>
           <div class="reason" v-else>
             <p>
@@ -311,7 +299,7 @@ export default {
             .number {
               width: 1em;
               text-align: center;
-              /* margin-right: 0.5em; */
+              font-size: 1.2em;
             }
           }
         }
