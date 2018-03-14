@@ -34,10 +34,11 @@ var broadcasting = true
 
 // Server is an abstraction that runs via a web interface
 type Server struct {
-	DB     *Database
-	router http.Handler
-	logger http.Handler
-	ws     *websockets.Server
+	DB        *Database
+	router    http.Handler
+	logger    http.Handler
+	simulator *Simulator
+	ws        *websockets.Server
 }
 
 // NewRequest is the request to make a new tournament
@@ -628,6 +629,35 @@ func (s *Server) FakeNameHandler(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write(data)
 }
 
+func (s *Server) startSimulator(w http.ResponseWriter, r *http.Request) {
+	var err error
+
+	// If we don't already have a simulator, make one
+	if s.simulator == nil {
+		log.Print("Creating new simulator")
+		s.simulator, err = NewSimulator(s)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	vars := mux.Vars(r)
+
+	err = s.simulator.Connect()
+	if err != nil {
+		log.Fatal(err)
+	}
+	s.simulator.Start(vars["id"])
+	w.Header().Set("Content-Type", "application/json")
+	_, _ = w.Write([]byte(`{"running": true}`))
+}
+
+func (s *Server) stopSimulator(w http.ResponseWriter, r *http.Request) {
+	s.simulator.Stop()
+	w.Header().Set("Content-Type", "application/json")
+	_, _ = w.Write([]byte(`{"running": false}`))
+}
+
 // BuildRouter sets up the routes
 func (s *Server) BuildRouter(ws *websockets.Server) http.Handler {
 	n := mux.NewRouter()
@@ -684,6 +714,9 @@ func (s *Server) BuildRouter(ws *websockets.Server) http.Handler {
 	m.HandleFunc("/start/", s.MatchStartHandler)
 	m.HandleFunc("/reset/", s.MatchResetHandler)
 	m.HandleFunc("/commit/", s.MatchCommitHandler)
+
+	r.HandleFunc("/simulator/start/{id}", s.startSimulator)
+	r.HandleFunc("/simulator/stop/{id}", s.stopSimulator)
 
 	return n
 }

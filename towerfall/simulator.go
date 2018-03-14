@@ -6,7 +6,6 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/drunkenfall/drunkenfall/faking"
 	"github.com/streadway/amqp"
 )
 
@@ -15,6 +14,7 @@ var defaultSleep = time.Millisecond * 650
 type Simulator struct {
 	Tournament *Tournament
 	enabled    bool
+	DB         *Database
 	conn       *amqp.Connection
 	ch         *amqp.Channel
 	q          amqp.Queue
@@ -26,25 +26,8 @@ const dogebutt = "/static/img/dogebutt.png"
 func NewSimulator(s *Server) (*Simulator, error) {
 	sim := &Simulator{
 		sleep: defaultSleep,
+		DB:    s.DB,
 	}
-	name, id := faking.FakeTournamentTitle()
-	t, err := NewTournament(name, id, dogebutt, time.Now(), nil, s)
-	if err != nil {
-		return sim, err
-	}
-
-	err = t.UsurpTournament()
-	if err != nil {
-		return sim, err
-	}
-
-	err = t.StartTournament(nil)
-	if err != nil {
-		return sim, err
-	}
-
-	sim.Tournament = t
-
 	return sim, nil
 }
 
@@ -75,10 +58,14 @@ func (s *Simulator) Connect() error {
 	return nil
 }
 
-func (s *Simulator) Start() error {
-	log.Print("Simulation starting...")
+func (s *Simulator) Start(tid string) {
+	if s.Tournament == nil {
+		s.Tournament = s.DB.tournamentRef[tid]
+	}
+
+	log.Printf("Simulation starting for %s...", tid)
 	s.enabled = true
-	return s.Connect()
+	go s.Serve()
 }
 
 func (s *Simulator) Stop() {
@@ -116,19 +103,25 @@ func (s *Simulator) Action() time.Duration {
 	// current round. Match end will be handled by the app automatically.
 	if len(s.alivePlayers()) <= 1 {
 		s.send(inRoundEnd)
-		return s.sleep * 4
+		time.Sleep(s.sleep * 4)
+		s.send(inRoundStart, StartRoundMessage{[]Arrows{
+			[]int{aNormal, aNormal, aNormal},
+			[]int{aNormal, aNormal, aNormal},
+			[]int{aNormal, aNormal, aNormal},
+			[]int{aNormal, aNormal, aNormal},
+		}})
+		return s.sleep
 	}
 
-	rand.Seed(time.Now().UnixNano())
-	y := rand.Intn(100)
 	p := s.randomPlayer()
 	// 5% of the times - environment suicide
 	// 15% of the times - kill a player (yourself included)
 	// Otherwise - how do i shot arw
+	y := rand.Intn(100)
 	if y <= 5 {
 		s.envkill(p)
-	} else if y <= 20 {
-		s.kill(p, s.randomPlayer())
+	} else if y <= 50 {
+		s.kill(p, s.otherPlayer(p))
 	} else {
 		s.arrow(p)
 	}
@@ -149,7 +142,20 @@ func (s *Simulator) alivePlayers() (ret []int) {
 // randomPlayer returns the index of a random player that is still alive.
 func (s *Simulator) randomPlayer() int {
 	ps := s.alivePlayers()
+	rand.Seed(time.Now().UnixNano())
 	return ps[rand.Intn(len(ps))]
+}
+
+// randomPlayer returns the index of a random player that is still alive.
+func (s *Simulator) otherPlayer(p int) (ret int) {
+	ps := s.alivePlayers()
+	rand.Seed(time.Now().UnixNano())
+	for {
+		ret = ps[rand.Intn(len(ps))]
+		if ret != p {
+			return ret
+		}
+	}
 }
 
 // envkill simulates being killed by the environment
@@ -181,7 +187,7 @@ func (s *Simulator) kill(k, p int) {
 	}
 
 	reason := reasons[rand.Intn(len(reasons))]
-	s.send(inKill, KillMessage{p, p, reason})
+	s.send(inKill, KillMessage{k, p, reason})
 }
 
 // arrow simulates either shooting an arrow or picking one up
@@ -248,10 +254,6 @@ func (s *Simulator) send(t string, m ...interface{}) error {
 			ContentType: "application/json",
 			Body:        []byte(body),
 		})
-
-	if err == nil {
-		log.Printf(" [x] Sent %s", body)
-	}
 
 	return err
 }

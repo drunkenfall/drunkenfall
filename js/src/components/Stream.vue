@@ -33,13 +33,36 @@
 
   <div class="stream-main">
     <div class="game">
-      <div></div>
+      <div>
+        <div v-if="tournament.isTest">
+          <div class="links">
+            <a @click="startSimulation">
+              <div class="icon positive">
+                <icon name="play"></icon>
+              </div>
+              <p>Start simulation</p>
+              <div class="clear"></div>
+            </a>
+
+            <a @click="stopSimulation">
+              <div class="icon danger">
+                <icon name="stop"></icon>
+              </div>
+              <p>Stop simulation</p>
+              <div class="clear"></div>
+            </a>
+
+          </div>
+          <div class="clear"></div>
+      </div>
     </div>
-    <div class="statusbar">
-      <div v-for="(p, idx) in match.players" class="player">
-        <div class="avatar">
-          <img :alt="p.person.nick" :src="p.person.avatar" :class="{dead: !p.state.alive}"/>
-          <div :class="{dead: !p.state.alive}">
+  </div>
+
+  <div class="statusbar">
+    <div v-for="(p, idx) in match.players" class="player">
+      <div class="avatar">
+        <img :alt="p.person.nick" :src="p.person.avatar" :class="{dead: !p.state.alive}"/>
+        <div :class="{dead: !p.state.alive}">
             <p>{{p.state.death}}</p>
           </div>
         </div>
@@ -106,8 +129,33 @@ export default {
       return this.tournament.matches[this.tournament.current]
     }
   },
+  methods: {
+    startSimulation () {
+      console.log("starting")
+
+      this.api.start({ id: this.tournament.id }).then((res) => {
+        console.log("start response:", res)
+      }, (err) => {
+        console.error(err)
+      })
+    },
+
+    stopSimulation () {
+      console.log("stopping")
+
+      this.api.stop({ id: this.tournament.id }).then((res) => {
+        console.log("stop response:", res)
+      }, (err) => {
+        console.error(err)
+      })
+    },
+  },
   created () {
     document.getElementsByTagName("body")[0].className = "scroll-less sidebar-less"
+    this.api = this.$resource("/api", {}, {
+      start: { method: "GET", url: "/api/simulator/start/{id}" },
+      stop: { method: "GET", url: "/api/simulator/stop/{id}" },
+    })
   },
 }
 </script>
@@ -118,7 +166,7 @@ export default {
 $stream-sidebar: 580px;
 $bottom: 75px;
 $chromakey: #0f0;
-/* $chromakey: #212; */
+$chromakey: #212;
 
 #live {
   height: 100%;
@@ -238,7 +286,7 @@ $chromakey: #0f0;
 
       div {
         color: rgba(255,255,255,0.3);
-        font-size: 2em;
+        /* font-size: 2em; */
       }
     }
 
