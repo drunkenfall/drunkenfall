@@ -7,7 +7,7 @@
       <p :class="tournament.color">{{tournament.subtitle}}</p>
     </div>
     <div class="casters cam">
-      <div>casters</div>
+      <div></div>
     </div>
     <div class="casternames">
       <div class="caster first">Xeago</div>
@@ -15,7 +15,7 @@
       <div class="caster">InfinitasX</div>
     </div>
     <div class="players cam">
-      <div>players</div>
+      <div></div>
     </div>
     <div class="match">
       <div class="name">{{match.title}}</div>
@@ -30,7 +30,7 @@
 
   <div class="stream-main">
     <div class="game">
-      <div>some kind of game or something idk</div>
+      <div></div>
     </div>
     <div class="statusbar">
       <div v-for="(p, idx) in match.players" class="player">
@@ -112,7 +112,7 @@ export default {
 
 <style lang="scss">
 @import "../css/colors.scss";
-$stream-sidebar: 500px;
+$stream-sidebar: 580px;
 $bottom: 75px;
 
 #live {
@@ -146,7 +146,7 @@ $bottom: 75px;
 
     .cam {
       height: 320px;
-      background-color: rgba(0,0,0,0.3);
+      background-color: #0f0;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -212,7 +212,7 @@ $bottom: 75px;
       display: flex;
       align-items: center;
       justify-content: center;
-      background-color: rgba(33,0,33,0.3);
+      background-color: #0f0;
 
       div {
         color: rgba(255,255,255,0.3);
@@ -335,6 +335,7 @@ $bottom: 75px;
             }
 
             .name {
+              font-size: 28px;
               order: 1
             }
           }
