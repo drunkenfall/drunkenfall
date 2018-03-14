@@ -108,7 +108,8 @@ export default class Match {
     if (this.kind === "final") {
       return "Final"
     }
-    return _.capitalize(this.kind) + " " + this.relativeIndex
+    let kind = this.kind + "s"
+    return _.capitalize(this.kind) + " " + this.relativeIndex + " / " + this.tournament[kind].length
   }
 
   get relativeIndex () {
