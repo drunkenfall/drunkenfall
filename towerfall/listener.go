@@ -8,6 +8,8 @@ import (
 	"github.com/streadway/amqp"
 )
 
+const queueName = "drunkenfall-events"
+
 func failOnError(err error, msg string) {
 	if err != nil {
 		log.Fatalf("%s: %s", msg, err)
@@ -38,12 +40,12 @@ func NewListener(db *Database) (*Listener, error) {
 	failOnError(err, "Failed to open a channel")
 
 	l.queue, err = l.ch.QueueDeclare(
-		"drunkenfall-events", // name
-		false,                // durable
-		false,                // delete when unused
-		false,                // exclusive
-		false,                // no-wait
-		nil,                  // arguments
+		queueName, // name
+		false,     // durable
+		false,     // delete when unused
+		false,     // exclusive
+		false,     // no-wait
+		nil,       // arguments
 	)
 	failOnError(err, "Failed to declare a queue")
 
