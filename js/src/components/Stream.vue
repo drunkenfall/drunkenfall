@@ -3,8 +3,11 @@
   <headful :title="tournament.subtitle + ' / Stream'"></headful>
   <div class="stream-sidebar">
     <div class="title">
-      <img alt="" src="/static/img/oem-text.svg"/>
-      <p :class="tournament.color">{{tournament.subtitle}}</p>
+      <img alt="" src="/static/img/oem.svg"/>
+      <div class="text">
+        <p class="header">DrunkenFall</p>
+        <p class="subtitle" :class="tournament.color">{{tournament.subtitle}}</p>
+      </div>
     </div>
     <div class="casters cam">
       <div></div>
@@ -114,6 +117,8 @@ export default {
 @import "../css/colors.scss";
 $stream-sidebar: 580px;
 $bottom: 75px;
+$chromakey: #0f0;
+/* $chromakey: #212; */
 
 #live {
   height: 100%;
@@ -131,22 +136,39 @@ $bottom: 75px;
     }
 
     .title {
-      height: 185px;
-      /* background-color: rgba(30,0,10,0.1); */
+      height: 180px;
+      display: flex;
+      align-items: center;
+      flex-direction: row;
 
-      p {
-        @include display2();
-        color: $fg-secondary;
-        padding-left: 150px;
-        padding-right: 40px;
-        text-align: center;
-        margin-top: -0.75em;
+      img {
+        width: 120px;
+        margin: 30px 30px 30px 30px;
+      }
+
+      .text {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+
+        .header {
+          font-size: 105px;
+          font-weight: 100;
+        }
+
+        .subtitle {
+          @include display2();
+          color: $fg-secondary;
+          width: 100%;
+          margin-left: 4px;
+          margin-top: -0.25em;
+        }
       }
     }
 
     .cam {
-      height: 320px;
-      background-color: #0f0;
+      height: 326px;
+      background-color: $chromakey;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -161,10 +183,10 @@ $bottom: 75px;
       display: flex;
       align-items: center;
       justify-content: center;
-      margin-bottom: 2em;
+      margin-bottom: 1em;
 
       .caster {
-        font-size: 2em;
+        font-size: 2.5em;
         padding: 0.5em;
         width: 45%;
         &.first {
@@ -173,7 +195,7 @@ $bottom: 75px;
       }
       .amp {
         color: $fg-secondary;
-        /* font-size: 1.5em; */
+        font-size: 1.5em;
         text-align: center;
         display: inline-block;
         margin: 0 0.5em;
@@ -212,7 +234,7 @@ $bottom: 75px;
       display: flex;
       align-items: center;
       justify-content: center;
-      background-color: #0f0;
+      background-color: $chromakey;
 
       div {
         color: rgba(255,255,255,0.3);
