@@ -9,11 +9,12 @@ $device-width: 769px;
 $font-primary: "Teko";
 $font-secondary: "Lato";
 
+$light: 100;
 $regular: 400;
 
 @mixin display4() {
   font-family: $font-primary;
-  font-weight: light;
+  font-weight: $light;
   font-size: 112px;
 }
 
