@@ -233,6 +233,12 @@ func (d *Database) LoadPeople() error {
 
 		err := b.ForEach(func(k []byte, v []byte) error {
 			p, err := LoadPerson(v)
+
+			// If the player is disabled, just skip them
+			if err == ErrPlayerDisabled {
+				return nil
+			}
+
 			if err != nil {
 				return err
 			}

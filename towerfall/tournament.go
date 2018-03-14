@@ -275,13 +275,17 @@ func (t *Tournament) Reshuffle(r *http.Request) error {
 	return nil
 }
 
-// UsurpTournament starts a fake tournament with all registered players
+// UsurpTournament adds a batch of eight random players
 func (t *Tournament) UsurpTournament() error {
 	t.server.DisableWebsocketUpdates()
 	t.db.LoadPeople()
-	for x := 0; x < 32; x++ {
+	rand.Seed(time.Now().UnixNano())
+	for x := 0; x < 8; x++ {
 		p := NewPlayer(t.db.People[rand.Intn(len(t.db.People))])
-		t.AddPlayer(p)
+		err := t.AddPlayer(p)
+		if err != nil {
+			x--
+		}
 	}
 
 	t.server.EnableWebsocketUpdates()

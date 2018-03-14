@@ -40,6 +40,7 @@ const (
 )
 
 var ErrFacebookAlreadyExists = errors.New("facebook user already exists")
+var ErrPlayerDisabled = errors.New("player is disabled")
 
 type score map[int]string
 
@@ -236,6 +237,10 @@ func LoadPerson(data []byte) (*Person, error) {
 	if err != nil {
 		log.Print(err)
 		return p, err
+	}
+
+	if p.Disabled {
+		return p, ErrPlayerDisabled
 	}
 
 	return p, nil
