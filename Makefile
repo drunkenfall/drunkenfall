@@ -87,5 +87,4 @@ docker:
 	docker-compose build
 
 caddy:
-	@which caddy
-	sudo /home/thiderman/bin/caddy -conf Caddyfile.local
+	sudo /home/thiderman/bin/caddy
