@@ -1,66 +1,68 @@
 <template>
-<div class="statusbar" v-if="tournament">
-  <div v-for="(p, idx) in match.players" class="player" v-if="match.isStarted">
-    <div class="avatar">
-      <img :alt="p.person.nick" :src="p.person.avatar" :class="{dead: !p.state.alive}"/>
-      <div :class="{dead: !p.state.alive}">
-        <p>{{p.state.death}}</p>
+<div v-if="tournament">
+  <div class="statusbar">
+    <div v-for="(p, idx) in match.players" class="player">
+      <div class="avatar">
+        <img :alt="p.person.nick" :src="p.person.avatar" :class="{dead: !p.state.alive}"/>
+        <div :class="{dead: !p.state.alive}">
+          <p>{{p.state.death}}</p>
+        </div>
       </div>
-    </div>
 
-    <div class="data">
-      <div class="status">
-        <div class="gamestats">
-          <div class="orbs" v-if="p.state.alive && p.state.lava">
-            <img alt="" :src="lavaOrbImage()"/>
+      <div class="data">
+        <div class="status">
+          <div class="gamestats">
+            <div class="orbs" v-if="p.state.alive && p.state.lava">
+              <img alt="" :src="lavaOrbImage()"/>
+            </div>
+            <div class="shield" v-if="p.state.alive && p.state.shield">
+              <img alt="" :src="shieldImage()"/>
+            </div>
+            <div class="arrows" v-if="p.state.alive">
+              <img v-for="a in p.state.arrows" alt="" :src="arrowImage(a)"/>
+            </div>
+            <div class="reason" v-else>
+              <p>
+                Killed by
+                <span v-if="p.state.killer === -1">
+                  the level, lol
+                </span>
+                <span v-else-if="p.state.killer !== idx" :color="match.players[p.state.killer].color">
+                  {{match.players[p.state.killer].displayName}}
+                </span>
+                <span v-else>
+                  suicide :'(
+                </span>
+              </p>
+            </div>
+
           </div>
-          <div class="shield" v-if="p.state.alive && p.state.shield">
-            <img alt="" :src="shieldImage()"/>
+
+          <div class="points">
+            <div v-for="n in match.endScore"
+              class="scores"
+              :class="bulletClass(p, idx, n)">
+              <p>{{bulletDisplay(p, idx, n)}}</p>
+            </div>
           </div>
-          <div class="arrows" v-if="p.state.alive">
-            <img v-for="a in p.state.arrows" alt="" :src="arrowImage(a)"/>
+
+        </div>
+        <div class="person">
+          <div class="stats">
+            <div class="kills">
+              <div class="emoji">💰</div>
+              <div class="number">{{p.kills}}</div>
+            </div>
+            <div class="shots">
+              <div class="emoji">🥃</div>
+              <div class="number">{{p.shots}}</div>
+            </div>
           </div>
-          <div class="reason" v-else>
-            <p>
-              💀 by
-              <span v-if="p.state.killer === -1">
-                the level, lol
-              </span>
-              <span v-else-if="p.state.killer !== idx" :color="match.players[p.state.killer].color">
-                {{match.players[p.state.killer].displayName}}
-              </span>
-              <span v-else>
-                suicide :'(
-              </span>
+          <div class="name">
+            <p :class="p.color">
+              {{p.person.displayName}}
             </p>
           </div>
-
-        </div>
-
-        <div class="points">
-          <div v-for="n in match.endScore"
-            class="scores"
-            :class="bulletClass(p, idx, n)">
-            <p>{{bulletDisplay(p, idx, n)}}</p>
-          </div>
-        </div>
-
-      </div>
-      <div class="person">
-        <div class="stats">
-          <div class="kills">
-            <div class="emoji">💰</div>
-            <div class="number">{{p.kills}}</div>
-          </div>
-          <div class="shots">
-            <div class="emoji">🥃</div>
-            <div class="number">{{p.shots}}</div>
-          </div>
-        </div>
-        <div class="name">
-          <p :class="p.color">
-            {{p.person.displayName}}
-          </p>
         </div>
       </div>
     </div>
@@ -70,10 +72,14 @@
 
 <script>
 import DrunkenFallMixin from "../mixin"
+import NextScreen from './NextScreen'
 
 export default {
   name: 'Statusbar',
   mixins: [DrunkenFallMixin],
+  components: {
+    NextScreen,
+  },
   computed: {
     tournament () {
       return this.runningTournament

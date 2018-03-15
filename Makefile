@@ -37,8 +37,13 @@ clean:
 clobber: clean
 	rm -rf js/node_modules
 
+BINARY = drunkenfall
 $(BINARY): $(SOURCES)
 	go build -v ${LDFLAGS} -o ${BINARY}
+
+.PHONY: $(BINARY)-start
+$(BINARY)-start: $(BINARY)
+	./$(BINARY)
 
 .PHONY: dist
 dist: $(BINARY)
@@ -74,9 +79,6 @@ npm-start: npm
 
 npm-dist: npm
 	cd js; npm run build
-
-$(BINARY)-start: $(BINARY)
-	./$(BINARY)
 
 .PHONY: vendor
 vendor:

@@ -13,6 +13,7 @@
         </strong>
       </div>
     </div>
+    <p class="controller">P{{reverseIndex(index-1)}}</p>
   </div>
 </template>
 
@@ -26,6 +27,12 @@ export default {
     index: 0,
   },
 
+  methods: {
+    reverseIndex (x) {
+      return [4, 3, 2, 1][x]
+    },
+  },
+
   computed: {
     showName () {
       // Don't show the first name tag super ribbon if the player name is the
@@ -34,7 +41,7 @@ export default {
         return false
       }
       return true
-    }
+    },
   },
 }
 </script>
@@ -68,6 +75,10 @@ export default {
   .ribbon {
     font-size: 1em;
     width: 60%;
+  }
+
+  .controller {
+    text-align: center;
   }
 }
 

@@ -1,28 +1,28 @@
 <template>
-  <div v-if="tournament">
-    <headful :title="tournament.name"></headful>
-    <header>
-      <div class="content">
-        <div class="title">
-          {{tournament.name}} / {{nextMatch.title}}
-        </div>
+<div v-if="tournament">
+  <headful :title="tournament.name"></headful>
+  <div class="top">
+    <div class="title subtitle-logo">
+      <img alt="" src="/static/img/oem.svg"/>
+      <div class="text">
+        <p class="header">DrunkenFall</p>
+        <p class="subtitle" :class="tournament.color">{{tournament.subtitle}}</p>
       </div>
-      <div class="links">
-        <p class="time">
-          {{clock.time}}
-        </p>
-      </div>
-      <div class="clear"></div>
-    </header>
-
-    <h1>Starting in</h1>
-    <div class="timer">
-      {{countdown.time}}
     </div>
+    <div class="time">
+      <p>{{clock.time}}</p>
+    </div>
+  </div>
+
+  <h1>{{nextMatch.title}}</h1>
+
+  <div class="timer">
+    {{countdown.time}}
+  </div>
 
     <div class="players">
       <template v-for="(player, index) in playersReversed" ref="players">
-        <preview-player :index="index + 1" :player="player" :match="nextMatch"></preview-player>
+        <preview-player :index="index + 1" :player="player" :match="match"></preview-player>
       </template>
     </div>
   </div>
@@ -70,7 +70,13 @@ export default {
   computed: {
     playersReversed () {
       // Work on a clone, not the original data object.
-      return _.reverse(_.map(this.nextMatch.players, _.clone))
+      return _.reverse(_.map(this.match.players, _.clone))
+    },
+    tournament () {
+      return this.runningTournament
+    },
+    match () {
+      return this.tournament.upcomingMatch
     },
   },
 
@@ -95,11 +101,24 @@ export default {
 
 <style lang="scss" scoped>
 @import "../css/colors.scss";
+@import "../css/fonts.scss";
 @import "../css/ribbon.scss";
 
-header {
-  background-color: transparent;
-  box-shadow: none;
+.top {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  flex-direction: row;
+
+  .title {
+    width: 580px;
+  }
+
+  .time {
+    font-size: 1.5em;
+    padding: 16px 40px;
+    @include button();
+  }
 }
 
 .players {
@@ -113,7 +132,7 @@ header {
 }
 
 h1 {
-  margin-top: 100px;
+  /* margin-top: -50px; */
   margin-bottom: -1em;
 }
 
@@ -125,11 +144,6 @@ h1 {
   padding: 0.08em 0.4em;
 
   text-shadow: 3px 3px 3px rgba(0,0,0,0.7);
-}
-
-.time {
-  font-size: 1.5em;
-  padding: 16px 40px;
 }
 
 </style>

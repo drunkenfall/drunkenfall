@@ -131,6 +131,10 @@ export default class Tournament {
     return !this.name.startsWith('DrunkenFall')
   }
 
+  get betweenMatches () {
+    return this.currentMatch.isEnded && !this.upcomingMatch.isStarted
+  }
+
   get canStart () {
     return !this.isStarted
   }
@@ -179,6 +183,17 @@ export default class Tournament {
 
   get currentMatch () {
     return this.matches[this.current]
+  }
+
+  // This is supposed to be used when you need the next match before
+  // it is started. It returns the upcoming match if the current one
+  // is ended.
+  get upcomingMatch () {
+    let m = this.matches[this.current]
+    if (m.isEnded) {
+      return this.matches[this.current + 1]
+    }
+    return m
   }
 
   get playoffs () {

@@ -33,6 +33,7 @@ import ScoreScreen from './components/ScoreScreen.vue'
 import Settings from './components/Settings.vue'
 import Sidebar from './components/Sidebar.vue'
 import Statusbar from './components/Statusbar.vue'
+import HUD from './components/Hud.vue'
 import Stream from './components/Stream'
 import TournamentList from './components/TournamentList.vue'
 import TournamentView from './components/Tournament.vue'
@@ -175,6 +176,11 @@ var router = new Router({
       path: '/status/',
       name: 'status',
       component: Statusbar
+    },
+    {
+      path: '/hud/',
+      name: 'hud',
+      component: HUD
     },
     {
       path: '/tournaments/:tournament/credits/',

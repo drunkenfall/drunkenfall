@@ -2,7 +2,7 @@
 <div id="live" v-if="tournament">
   <headful :title="tournament.subtitle + ' / Stream'"></headful>
   <div class="stream-sidebar">
-    <div class="title">
+    <div class="title subtitle-logo">
       <img alt="" src="/static/img/oem.svg"/>
       <div class="text">
         <p class="header">DrunkenFall</p>
@@ -181,37 +181,6 @@ $chromakey: #212;
 
     >div {
       width: 100%;
-    }
-
-    .title {
-      height: 180px;
-      display: flex;
-      align-items: center;
-      flex-direction: row;
-
-      img {
-        width: 120px;
-        margin: 30px 30px 30px 30px;
-      }
-
-      .text {
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-start;
-
-        .header {
-          font-size: 105px;
-          font-weight: 100;
-        }
-
-        .subtitle {
-          @include display2();
-          color: $fg-secondary;
-          width: 100%;
-          margin-left: 4px;
-          margin-top: -0.25em;
-        }
-      }
     }
 
     .cam {

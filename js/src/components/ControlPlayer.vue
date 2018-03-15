@@ -68,9 +68,7 @@ export default {
       return this.match.players[this.index]
     },
     match () {
-      // This is solely so that all of the already written code works
-      // straight off the bat.
-      return this.nextMatch
+      return this.tournament.upcomingMatch
     }
   },
 
