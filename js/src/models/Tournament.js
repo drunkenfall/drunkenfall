@@ -134,6 +134,8 @@ export default class Tournament {
   get betweenMatches () {
     if (this.isEnded) {
       return false
+    } else if (this.isStarted && !this.matches[0].isStarted) {
+      return true
     }
     return this.currentMatch.isEnded && !this.upcomingMatch.isStarted
   }

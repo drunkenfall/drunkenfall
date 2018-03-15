@@ -93,7 +93,17 @@ export default {
   computed: {
     isJoined () {
       return this.tournament.playerJoined(this.user)
-    }
+    },
+    tournament () {
+      if (this.runningTournament) {
+        return this.runningTournament
+      }
+
+      let up = this.upcomingTournament
+      if (up.isToday) {
+        return up
+      }
+    },
   },
 
   watch: {
