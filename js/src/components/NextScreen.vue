@@ -14,7 +14,7 @@
     </div>
   </div>
 
-  <h1>{{nextMatch.title}}</h1>
+  <h1>{{match.title}}</h1>
 
   <div class="timer">
     {{countdown.time}}
@@ -90,7 +90,7 @@ export default {
     tournament (nt, ot) {
       if (nt) {
         console.log("starting clocks")
-        this.countdown.start(this.nextMatch.scheduled)
+        this.countdown.start(this.match.scheduled)
         this.clock.start()
       }
     }

@@ -3,11 +3,11 @@
   <headful :title="tournament.subtitle + ' - DrunkenFall'"></headful>
   <tournament-controls />
 
-  <div class="subheader" v-if="user.isCommentator && nextMatch && !tournament.isEnded">
-    <div v-if="!nextMatch.isScheduled">
+  <div class="subheader" v-if="user.isCommentator && tournament.upcomingMatch && !tournament.isEnded">
+    <div v-if="!tournament.upcomingMatch.isScheduled">
       <p>
         Pause until
-          <span>{{tournament.currentMatch.title}}</span>
+          <span>{{tournament.upcomingMatch.title}}</span>
         </p>
         <div class="links">
           <a @click="setTime(10)">10 min</a>
@@ -17,10 +17,10 @@
         </div>
         <div class="clear"></div>
       </div>
-      <div v-if="nextMatch.isScheduled">
+      <div v-if="tournament.upcomingMatch.isScheduled">
         <p class="center">
-          <span>{{tournament.currentMatch.title}}</span> scheduled at
-          {{nextMatch.scheduled.format("HH:mm")}}
+          <span>{{tournament.upcomingMatch.title}}</span> scheduled at
+          {{tournament.upcomingMatch.scheduled.format("HH:mm")}}
         </p>
         <div class="clear"></div>
       </div>
