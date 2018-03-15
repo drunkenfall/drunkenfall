@@ -259,7 +259,7 @@ func (d *Database) LoadPeople() error {
 // Returns the first matching one, so if there are multiple they will
 // be shadowed.
 func (d *Database) GetCurrentTournament() (*Tournament, error) {
-	for _, t := range d.Tournaments {
+	for _, t := range SortByScheduleDate(d.Tournaments) {
 		if t.IsRunning() {
 			return t, nil
 		}
