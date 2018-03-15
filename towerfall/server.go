@@ -77,7 +77,7 @@ type FakeNameResponse struct {
 
 func init() {
 	// To get line numbers in log output
-	log.SetFlags(log.LstdFlags | log.Lshortfile)
+	log.SetFlags(log.LstdFlags | log.Lshortfile | log.Lmicroseconds)
 }
 
 // NewServer instantiates a server with an active database
