@@ -419,7 +419,12 @@ func (m *Match) handleMessage(msg Message) error {
 		return m.EndRound()
 
 	case inMatchStart:
-		return m.Start(nil)
+		nm, err := m.Tournament.NextMatch()
+		if err != nil {
+			return err
+		}
+
+		return nm.Start(nil)
 
 	case inMatchEnd:
 		return m.End(nil)
