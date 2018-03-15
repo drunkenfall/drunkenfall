@@ -27,7 +27,7 @@
                 <span v-if="p.state.killer === -1">
                   the level, lol
                 </span>
-                <span v-else-if="p.state.killer !== idx" :color="match.players[p.state.killer].color">
+                <span v-else-if="p.state.killer !== idx" :class="match.players[p.state.killer].color">
                   {{match.players[p.state.killer].displayName}}
                 </span>
                 <span v-else>
@@ -156,6 +156,10 @@ export default {
         height: 230px;
         width: 230px;
         object-fit: cover;
+
+        &.dead {
+          filter: brightness(33%) blur(1px) grayscale(75%);
+        }
       }
 
       div {
@@ -173,7 +177,7 @@ export default {
         justify-content: center;
         align-items: center;
 
-        font-size: 30px;
+        font-size: 3em;
         text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;
         color: #aaa;
 
@@ -226,6 +230,7 @@ export default {
             display: flex;
             justify-content: center;
             align-items: center;
+            font-size: 2em;
           }
         }
       }
