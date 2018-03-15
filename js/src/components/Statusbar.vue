@@ -50,11 +50,15 @@
         <div class="person">
           <div class="stats">
             <div class="kills">
-              <div class="emoji">💰</div>
+              <div class="emoji">
+                <img alt="coin" src="/static/img/coin.png"/>
+              </div>
               <div class="number">{{p.kills}}</div>
             </div>
             <div class="shots">
-              <div class="emoji">🥃</div>
+              <div class="emoji">
+                <img alt="bullet" src="/static/img/bullet.png"/>
+              </div>
               <div class="number">{{p.shots}}</div>
             </div>
           </div>
@@ -306,6 +310,9 @@ export default {
 
             .emoji {
               font-size: 0.5em;
+              img {
+                width: 40px;
+              }
             }
             .number {
               width: 1em;

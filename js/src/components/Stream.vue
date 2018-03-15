@@ -54,15 +54,15 @@
 
           </div>
           <div class="clear"></div>
+        </div>
       </div>
     </div>
-  </div>
 
-  <div class="statusbar">
-    <div v-for="(p, idx) in match.players" class="player">
-      <div class="avatar">
-        <img :alt="p.person.nick" :src="p.person.avatar" :class="{dead: !p.state.alive}"/>
-        <div :class="{dead: !p.state.alive}">
+    <div class="statusbar">
+      <div v-for="(p, idx) in match.players" class="player">
+        <div class="avatar">
+          <img :alt="p.person.nick" :src="p.person.avatar" :class="{dead: !p.state.alive}"/>
+          <div :class="{dead: !p.state.alive}">
             <p>{{p.state.death}}</p>
           </div>
         </div>
@@ -96,11 +96,15 @@
           <div class="person">
             <div class="stats">
               <div class="kills">
-                <div class="emoji">💀</div>
+                <div class="emoji">
+                  <img alt="coin" src="/static/img/coin.png"/>
+                </div>
                 <div class="number">{{p.kills}}</div>
               </div>
               <div class="shots">
-                <div class="emoji">🥃</div>
+                <div class="emoji">
+                  <img alt="bullet" src="/static/img/bullet.png"/>
+                </div>
                 <div class="number">{{p.shots}}</div>
               </div>
             </div>
@@ -364,6 +368,11 @@ $chromakey: #212;
 
                 .emoji {
                   font-size: 0.5em;
+                  img {
+                    margin-top: 5px;
+                    height: 20px;
+                    /* width: 20px; */
+                  }
                 }
                 .number {
                   width: 25px;
