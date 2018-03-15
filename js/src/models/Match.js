@@ -171,4 +171,18 @@ export default class Match {
   get tournament () {
     return this.$vue.$store.getters.getTournament(this.tournament_id)
   }
+  get levelTitle () {
+    if (this.level === "twilight") {
+      return "Twilight Spire"
+    } else if (this.level === "kingscourt") {
+      return "King's Court"
+    } else if (this.level === "frostfang") {
+      return "Frostfang Keep"
+    } else if (this.level === "sunken") {
+      return "Sunken City"
+    } else if (this.level === "amaranth") {
+      return "The Amaranth"
+    }
+    return this.level.charAt(0).toUpperCase() + this.level.slice(1)
+  }
 };

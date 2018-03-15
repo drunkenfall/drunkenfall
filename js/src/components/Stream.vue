@@ -23,7 +23,7 @@
     <div class="match">
       <div class="name">{{match.title}}</div>
       <div class="level">
-        {{match.level | levelTitle}}
+        {{match.levelTitle}}
         -
         Match to {{match.endScore}} points
       </div>

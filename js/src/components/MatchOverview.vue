@@ -1,7 +1,7 @@
 <template>
 <div>
   <div class="level">
-    {{match.level | levelTitle}}
+    {{match.levelTitle}}
   </div>
   <div class="clear"></div>
 
