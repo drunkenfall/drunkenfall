@@ -23,7 +23,7 @@ body, html {
   // scrollbars can appear
   &.scroll-less {
     height: 100%;
-    overflow-y: hidden;
+    overflow: hidden;
   }
 
   // Whenever we don't need a sidebar, just add this class and it will
