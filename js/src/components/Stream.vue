@@ -80,11 +80,11 @@
             </div>
             <div class="reason" v-else>
               <p>
-                💀 by
+                Killed by
                 <span v-if="p.state.killer === -1">
                   the level, lol
                 </span>
-                <span v-else-if="p.state.killer !== idx" :color="match.players[p.state.killer].color">
+                <span v-else-if="p.state.killer !== idx" :class="match.players[p.state.killer].color">
                   {{match.players[p.state.killer].displayName}}
                 </span>
                 <span v-else>
