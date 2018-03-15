@@ -243,11 +243,7 @@ func (t *Tournament) StartTournament(r *http.Request) error {
 	t.Started = time.Now()
 
 	// Get the first match and set the scheduled date to be now.
-	m, err := t.NextMatch()
-	if err != nil {
-		log.Fatal(err)
-	}
-	m.SetTime(r, 0)
+	t.Matches[0].SetTime(r, 0)
 	t.LogEvent(
 		"start", "Tournament started",
 		"person", PersonFromSession(t.server, r))
@@ -455,6 +451,13 @@ func (t *Tournament) movePlayoffPlayers(m *Match) error {
 			// This spreads the winners into the semis so that the winners do not
 			// face off immediately in the semis
 			offset := len(t.Matches) - 3 + ((i + m.Index) % 2)
+			log.Printf(
+				"Moving %s (pos %d in match %d) to %s",
+				p.Person.Name,
+				i,
+				m.Index,
+				t.Matches[offset].Title(),
+			)
 			err := t.Matches[offset].AddPlayer(p)
 			if err != nil {
 				log.Fatal(err)
@@ -547,11 +550,19 @@ func (t *Tournament) BackfillsNeeded() int {
 }
 
 // NextMatch returns the next match
-func (t *Tournament) NextMatch() (m *Match, err error) {
+func (t *Tournament) NextMatch() (*Match, error) {
 	if !t.IsRunning() {
 		return nil, errors.New("tournament not running")
 	}
-	return t.Matches[t.Current], nil
+	// If the first match hasn't ended yet, we can still consider the
+	// next match to be the first one.
+	if !t.Matches[0].IsStarted() {
+		log.Print("Returning first match as next match")
+		return t.Matches[0], nil
+	}
+	m := t.Matches[t.Current+1]
+	log.Printf("Returning %d as next match", m.Index)
+	return m, nil
 }
 
 // AwardMedals places the winning players in the Winners position

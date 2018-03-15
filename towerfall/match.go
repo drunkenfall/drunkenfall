@@ -627,9 +627,19 @@ func (m *Match) Start(r *http.Request) error {
 		return errors.New("match already started")
 	}
 
+	log.Printf("Starting match %d", m.Index)
+
 	for i := range m.Players {
 		m.Players[i].Reset()
 		m.Players[i].Match = m
+	}
+
+	// Increment the current match, but only if we're not at the first.
+	if m.Index != 0 {
+		log.Printf("Increasing current from %d", m.Tournament.Current)
+		m.Tournament.Current++
+	} else {
+		log.Print("Not increasing current when starting first match")
 	}
 
 	m.Started = time.Now()
@@ -638,11 +648,7 @@ func (m *Match) Start(r *http.Request) error {
 		"match", m.Title(),
 		"person", PersonFromSession(m.Tournament.server, r))
 
-	if m.Tournament != nil {
-		m.Tournament.Persist()
-	}
-
-	return nil
+	return m.Tournament.Persist()
 }
 
 // End signals that the match has ended
@@ -650,15 +656,10 @@ func (m *Match) Start(r *http.Request) error {
 // It is also the place that moves players into either the Runnerup bracket
 // or into their place in the semis.
 func (m *Match) End(r *http.Request) error {
+	log.Printf("Ending match %d", m.Index)
 	if !m.Ended.IsZero() {
 		return errors.New("match already ended")
 	}
-
-	// Increment the current match number. Some of the operations below
-	// count on the t.NextMatch() method to already return the actually
-	// next match, and until this has been incremented it would return
-	// _this_ match.
-	m.Tournament.Current++
 
 	// XXX(thiderman): In certain test cases a Commit() might not have been run
 	// and therefore this might not have been set. Since the calculation is
