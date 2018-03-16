@@ -32,7 +32,7 @@
 import PreviewPlayer from './PreviewPlayer.vue'
 import {Countdown, Clock} from '../models/Timer'
 import _ from 'lodash'
-import moment from 'moment'
+// import moment from 'moment'
 import DrunkenFallMixin from "../mixin"
 
 export default {
@@ -54,7 +54,14 @@ export default {
       // We need an extra two seconds because 1) one interval has to
       // pass 2) by the time it renders the clock a few milliseconds
       // has passed and there is actually less time left.
-      this.countdown.start(moment().add(x, 'minutes').add(2, 'seconds'))
+      // this.countdown.start(moment().add(x, 'minutes').add(2, 'seconds'))
+      let $vue = this
+      this.api.setTime({ id: this.tournament.id, time: x }).then((res) => {
+        console.debug("settime response:", res)
+      }, (err) => {
+        $vue.$alert("Setting time failed. See console.")
+        console.error(err)
+      })
     },
     keyPress (e) {
       let code = e.keyCode
@@ -96,6 +103,11 @@ export default {
     }
   },
 
+  created () {
+    this.api = this.$resource("/api", {}, {
+      setTime: { method: "GET", url: "/api/{/id}/time{/time}" },
+    })
+  },
 }
 </script>
 

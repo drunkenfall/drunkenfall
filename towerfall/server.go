@@ -487,7 +487,7 @@ func (s *Server) SetTimeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// If the match is already started, we need to bail
-	if m.IsScheduled() {
+	if m.IsStarted() {
 		PermissionFailure(w, r, "Match already started")
 		return
 	}
