@@ -87,8 +87,20 @@ var DrunkenFallMixin = {
         return up[0]
       }
     },
+    latestTournament () {
+      return this.$store.getters.latest
+    },
     runningTournament () {
       return this.$store.getters.running
+    },
+    trackingTournament () {
+      if (this.runningTournament) {
+        return this.runningTournament
+      } else if (this.upcomingTournament && this.upcomingTournament.isToday) {
+        return this.upcomingTournament
+      } else if (this.latestTournament && this.latestTournament.endedRecently) {
+        return this.latestTournament
+      }
     },
     currentLeague () {
       let ts = _.filter(this.tournaments, (t) => {

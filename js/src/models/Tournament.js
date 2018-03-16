@@ -140,6 +140,10 @@ export default class Tournament {
     return this.currentMatch.isEnded && !this.upcomingMatch.isStarted
   }
 
+  get endedRecently () {
+    return moment().isBetween(this.ended, moment().add(6, 'hours'))
+  }
+
   get canStart () {
     return !this.isStarted
   }

@@ -58,7 +58,7 @@ export default {
 
   created () {
     let $vue = this
-    this.scheduled = moment().hour(20).minute(0).second(0).format()
+    this.scheduled = moment().add(1, 'day').hour(20).minute(0).second(0).format()
 
     this.$set(
       this.$data,

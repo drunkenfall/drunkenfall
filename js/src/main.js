@@ -322,6 +322,9 @@ const store = new Vuex.Store({ // eslint-disable-line
     running: state => {
       return _.filter(_.sortBy(state.tournaments, 'scheduled'), 'isRunning')[0]
     },
+    latest: state => {
+      return _.reverse(_.filter(_.sortBy(state.tournaments, 'scheduled'), 'isEnded'))[0]
+    },
     getPerson: (state, getters) => (id) => {
       if (!state.people) {
         return undefined

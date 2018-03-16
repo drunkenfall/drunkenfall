@@ -100,7 +100,7 @@ export default {
       }
 
       let up = this.upcomingTournament
-      if (up.isToday) {
+      if (up) {
         return up
       }
     },
