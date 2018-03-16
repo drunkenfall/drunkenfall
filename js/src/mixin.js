@@ -96,7 +96,7 @@ var DrunkenFallMixin = {
     trackingTournament () {
       if (this.runningTournament) {
         return this.runningTournament
-      } else if (this.upcomingTournament && this.upcomingTournament.isToday) {
+      } else if (this.upcomingTournament) {
         return this.upcomingTournament
       } else if (this.latestTournament && this.latestTournament.endedRecently) {
         return this.latestTournament

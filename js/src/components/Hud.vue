@@ -2,8 +2,8 @@
 <div v-if="tournament">
   <tournament-preview v-if="!tournament.isStarted"></tournament-preview>
   <next-screen class="local" v-else-if="tournament.betweenMatches"></next-screen>
-  <statusbar v-else-if="match.isStarted && !tournament.isEnded"></statusbar>
-  <tournament-summary v-else></tournament-summary>
+  <statusbar v-else-if="match && match.isStarted && !tournament.isEnded"></statusbar>
+  <tournament-summary v-else-if="tournament.isEnded"></tournament-summary>
 </div>
 </template>
 
