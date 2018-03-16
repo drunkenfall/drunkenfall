@@ -2,7 +2,8 @@
 <div v-if="tournament">
   <tournament-preview v-if="!tournament.isStarted"></tournament-preview>
   <next-screen class="local" v-else-if="tournament.betweenMatches"></next-screen>
-  <statusbar v-else-if="match.isStarted"></statusbar>
+  <statusbar v-else-if="match.isStarted && !tournament.isEnded"></statusbar>
+  <tournament-summary v-else></tournament-summary>
 </div>
 </template>
 
@@ -10,6 +11,7 @@
 import DrunkenFallMixin from "../mixin"
 import NextScreen from './NextScreen'
 import TournamentPreview from './TournamentPreview'
+import TournamentSummary from './TournamentSummary'
 import Statusbar from './Statusbar'
 
 export default {
@@ -18,15 +20,12 @@ export default {
   components: {
     NextScreen,
     TournamentPreview,
+    TournamentSummary,
     Statusbar,
   },
   computed: {
     tournament () {
-      if (this.runningTournament) {
-        return this.runningTournament
-      } else if (this.upcomingTournament && this.upcomingTournament.isToday) {
-        return this.upcomingTournament
-      }
+      return this.trackingTournament
     },
     match () {
       return this.tournament.currentMatch
