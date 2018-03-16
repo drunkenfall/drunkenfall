@@ -284,21 +284,18 @@ func (d *Database) ClearTestTournaments() error {
 				if err != nil {
 					return err
 				}
-
-				// Also remove the database from memory
-				delete(d.tournamentRef, t.ID)
-				for j := 0; j < len(d.Tournaments); j++ {
-					ot := d.Tournaments[j]
-					if t.ID == ot.ID {
-						d.Tournaments = append(d.Tournaments[:j], d.Tournaments[j+1:]...)
-						break
-					}
-				}
 			}
 			return nil
+
 		})
 		return err
 	})
+
+	d.Tournaments = make([]*Tournament, 0)
+	err = d.LoadTournaments()
+	if err != nil {
+		return err
+	}
 
 	d.Server.SendWebsocketUpdate("all", d.asMap())
 

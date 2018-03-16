@@ -77,7 +77,7 @@ export default {
           if (res.type === 'all') {
             $vue.$store.commit('updateAll', {
               '$vue': $vue,
-              'tournaments': res.data.tournaments,
+              'tournaments': res.data,
             })
           } else if (res.type === 'tournament') {
             $vue.$store.commit('updateTournament', {
