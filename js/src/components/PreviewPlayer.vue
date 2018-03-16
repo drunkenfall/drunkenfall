@@ -3,10 +3,6 @@
     <img :alt="player.displayName" :src="player.avatar"/>
 
     <div class="protector">
-      <!-- <div v-if="showName" class="super-ribbon">
-           {{player.firstName}}
-           </div> -->
-
       <div :class="'ribbon ' + player.color">
         <strong class="ribbon-content">
           {{player.displayName}}

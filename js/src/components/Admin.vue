@@ -20,6 +20,12 @@
         :label="'Clear tests'" />
 
     </div>
+
+    <div class="tournament" v-for="t in tournaments">
+      <router-link :to="{ name: 'tournament', params: {'tournament': t.id}}">
+        {{t.name}}
+      </router-link>
+    </div>
   </div>
 
   <div class="section">
@@ -112,6 +118,14 @@ export default {
 
 <style lang="scss">
 @import "../css/colors.scss";
+
+.tournament {
+  margin: 0.5em;
+  padding: 0.5em 1em;
+  background-color: $bg-default;
+  a {
+  }
+}
 
 .section {
   @media screen and ($desktop: $desktop-width) {
