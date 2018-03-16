@@ -127,9 +127,9 @@ export default {
   }
 
   .time {
-    font-size: 1.5em;
     padding: 16px 40px;
     @include button();
+    font-size: 3em !important;
   }
 }
 
@@ -145,6 +145,7 @@ export default {
 
 h1 {
   /* margin-top: -50px; */
+  font-size: 5em;
   margin-bottom: -1em;
 }
 
@@ -154,8 +155,6 @@ h1 {
   font-size: 12em;
   text-align: center;
   padding: 0.08em 0.4em;
-
-  text-shadow: 3px 3px 3px rgba(0,0,0,0.7);
 }
 
 </style>
