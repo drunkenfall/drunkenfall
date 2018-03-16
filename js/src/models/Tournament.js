@@ -23,6 +23,8 @@ export default class Tournament {
     t.players = _.map(t.players, Player.fromObject)
     t.runnerups = _.map(t.runnerups, Person.fromObject)
 
+    t.casters = _.map(t.casters, Person.fromObject)
+
     let events = t.events
     _.each(t.matches, (m) => {
       events = _.concat(events, m.events)

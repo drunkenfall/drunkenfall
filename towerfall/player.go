@@ -374,7 +374,3 @@ func AvailableColors(m *Match) mapset.Set {
 	ret := colors.Difference(m.presentColors)
 	return ret
 }
-
-// Judge is a Participant that has access to the judge functions
-type Judge struct {
-}

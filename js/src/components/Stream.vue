@@ -12,11 +12,23 @@
     <div class="casters cam">
       <div></div>
     </div>
-    <div class="casternames">
-      <div class="caster first">Xeago</div>
+
+    <div class="casternames" v-if="tournament.casters.length === 2">
+      <div class="caster first">
+        {{tournament.casters[1].displayName}}
+      </div>
       <div class="amp">&amp;</div>
-      <div class="caster">InfinitasX</div>
+      <div class="caster">
+        {{tournament.casters[0].displayName}}
+      </div>
     </div>
+
+    <div class="casternames" v-if="tournament.casters.length === 1">
+      <div class="sole caster">
+        {{tournament.casters[0].displayName}}
+      </div>
+    </div>
+
     <div class="players cam">
       <div></div>
     </div>
@@ -212,6 +224,9 @@ $chromakey: #212;
         width: 45%;
         &.first {
           text-align: right;
+        }
+        &.sole {
+          text-align: center;
         }
       }
       .amp {

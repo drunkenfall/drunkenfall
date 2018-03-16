@@ -32,6 +32,11 @@
         :icon="'film'"
         :label="'Roll credits'" />
 
+      <button-link v-if="user.isProducer"
+        :to="{ name: 'casters', params: { tournament: tournament.id }}"
+        :icon="'microphone'"
+        :label="'Set casters'" />
+
       <button-link v-if="user.isCommentator && tournament.shouldBackfill"
         :to="{ name: 'runnerups', params: { tournament: tournament.id }}"
         :iconClass="'positive'"

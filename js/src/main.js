@@ -15,8 +15,8 @@ import _ from 'lodash'
 
 import About from './components/About.vue'
 import Admin from './components/Admin.vue'
+import Casters from './components/Caster.vue'
 import Credits from './components/Credits.vue'
-// import Dispatch from './components/Dispatch.vue'
 import Disable from './components/Disable.vue'
 import Edit from './components/Edit.vue'
 import Join from './components/Join.vue'
@@ -136,6 +136,11 @@ var router = new Router({
       path: '/tournaments/:tournament/runnerups/',
       name: 'runnerups',
       component: Runnerups
+    },
+    {
+      path: '/tournaments/:tournament/casters/',
+      name: 'casters',
+      component: Casters
     },
     {
       path: '/tournaments/:tournament/edit/',

@@ -513,6 +513,32 @@ func (s *Server) PeopleHandler(w http.ResponseWriter, _ *http.Request) {
 	_, _ = w.Write(data)
 }
 
+// CastersHandler sets casters
+func (s *Server) CastersHandler(w http.ResponseWriter, r *http.Request) {
+	if !HasPermission(r, PermissionJudge) {
+		PermissionFailure(w, r, "You need to be a judge to toggle casters")
+		return
+	}
+
+	tm := s.getTournament(r)
+	data, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		PermissionFailure(w, r, err.Error())
+		return
+	}
+
+	spl := strings.Split(string(data), ",")
+
+	if len(spl) > 2 {
+		PermissionFailure(w, r, "Too many casters")
+		return
+	}
+
+	tm.SetCasters(spl)
+	w.Header().Set("Content-Type", "application/json")
+	_, _ = w.Write([]byte(`{}`))
+}
+
 func (s *Server) StatsHandler(w http.ResponseWriter, r *http.Request) {
 	out := NewSnapshot(s)
 	data, err := json.Marshal(out)
@@ -693,6 +719,7 @@ func (s *Server) BuildRouter(ws *websockets.Server) http.Handler {
 	r.HandleFunc("/{id}/edit/", s.EditHandler)
 	r.HandleFunc("/{id}/reshuffle/", s.ReshuffleHandler)
 	r.HandleFunc("/{id}/backfill/", s.BackfillSemisHandler)
+	r.HandleFunc("/{id}/casters/", s.CastersHandler)
 	r.HandleFunc("/{id}/toggle/{person}", s.ToggleHandler)
 	r.HandleFunc("/{id}/time/{time}", s.SetTimeHandler)
 	r.HandleFunc("/{id}/credits/", s.CreditsHandler)

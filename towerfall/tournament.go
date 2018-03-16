@@ -20,7 +20,7 @@ type Tournament struct {
 	Players     []Player     `json:"players"` // See getTournamentPlayerObject()
 	Winners     []Player     `json:"winners"`
 	Runnerups   []*Person    `json:"runnerups"`
-	Judges      []Judge      `json:"judges"`
+	Casters     []*Person    `json:"casters"`
 	Matches     []*Match     `json:"matches"`
 	Current     CurrentMatch `json:"current"`
 	Opened      time.Time    `json:"opened"`
@@ -192,6 +192,17 @@ func (t *Tournament) TogglePlayer(id string) error {
 	// If there was no error, the player is in the tournament and we should remove them!
 	err = t.removePlayer(*p)
 	return err
+}
+
+// SetCasters resets the casters to the input people
+func (t *Tournament) SetCasters(ids []string) {
+	t.Casters = make([]*Person, 0)
+	for _, id := range ids {
+		ps, _ := t.db.GetPerson(id)
+		t.Casters = append(t.Casters, ps)
+	}
+
+	t.Persist()
 }
 
 // ShufflePlayers will position players into matches

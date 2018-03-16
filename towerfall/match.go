@@ -133,7 +133,7 @@ type StartRoundMessage struct {
 // changeset of what happened in the match.
 type Match struct {
 	Players       []Player      `json:"players"`
-	Judges        []Judge       `json:"judges"`
+	Casters       []*Person     `json:"casters"`
 	Kind          string        `json:"kind"`
 	Index         int           `json:"index"`
 	Length        int           `json:"length"`
@@ -638,6 +638,9 @@ func (m *Match) Start(r *http.Request) error {
 		m.Players[i].Reset()
 		m.Players[i].Match = m
 	}
+
+	// Set the casters
+	m.Casters = m.Tournament.Casters
 
 	// Increment the current match, but only if we're not at the first.
 	if m.Index != 0 {
