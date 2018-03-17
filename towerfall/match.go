@@ -157,6 +157,7 @@ type Round struct {
 	Kills     [][]int `json:"kills"`
 	Shots     []bool  `json:"shots"`
 	Committed string  `json:"committed"` // ISO-8601
+	started   bool
 }
 
 // NewMatch creates a new Match
@@ -519,6 +520,7 @@ func (m *Match) StartRound(sr StartRoundMessage) error {
 		m.Players[i].State.Lava = false
 		m.Players[i].State.Killer = -2
 	}
+	m.currentRound.started = true
 	return m.Tournament.Persist()
 }
 
@@ -544,6 +546,12 @@ func (m *Match) ShieldUpdate(sm ShieldMessage) error {
 			"person", m.Players[sm.Player].Person,
 		)
 	}
+
+	if !m.currentRound.started {
+		log.Print("Skipping update of non-started round")
+		return nil
+	}
+
 	return m.sendPlayerUpdate(sm.Player)
 }
 
@@ -563,6 +571,12 @@ func (m *Match) WingsUpdate(wm WingsMessage) error {
 			"person", m.Players[wm.Player].Person,
 		)
 	}
+
+	if !m.currentRound.started {
+		log.Print("Skipping update of non-started round")
+		return nil
+	}
+
 	return m.sendPlayerUpdate(wm.Player)
 }
 
@@ -836,6 +850,7 @@ func NewMatchCommit(c CommitRequest) Round {
 		},
 		// ISO-8601 timestamp
 		time.Now().UTC().Format(time.RFC3339),
+		false,
 	}
 
 	return m
@@ -872,6 +887,7 @@ func NewAutoplayRound() Round {
 		[][]int{{0, 0}, {0, 0}, {0, 0}, {0, 0}},
 		[]bool{false, false, false, false},
 		time.Now().UTC().Format(time.RFC3339),
+		false,
 	}
 
 	rand.Seed(time.Now().UnixNano())
