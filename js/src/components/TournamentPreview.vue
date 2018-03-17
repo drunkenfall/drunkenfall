@@ -1,5 +1,5 @@
 <template>
-  <div v-if="tournament">
+  <div v-if="tournament" class="preview">
     <headful :title="tournament.subtitle + ' - DrunkenFall'"></headful>
     <tournament-controls />
 
@@ -131,6 +131,10 @@ export default {
 <style lang="scss" scoped>
 @import "../css/colors.scss";
 @import "../css/ribbon.scss";
+
+.preview {
+  max-height: 920px;
+}
 
 h1 {
   @media screen and ($desktop: $desktop-width) {
