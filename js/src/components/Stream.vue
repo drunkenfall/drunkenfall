@@ -139,7 +139,7 @@ export default {
   mixins: [DrunkenFallMixin],
   computed: {
     tournament () {
-      return this.runningTournament
+      return this.trackingTournament
     },
     match () {
       return this.tournament.matches[this.tournament.current]
