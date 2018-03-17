@@ -8,35 +8,35 @@ var DrunkenFallMixin = {
     $alert (msg) {
       console.error(msg)
 
-      this.$toast(msg, {
-        className: ['event', 'alert'],
-        horizontalPosition: 'right',
-        verticalPosition: 'bottom',
-        duration: 5000,
-        mode: 'queue',
-      })
+      // this.$toast(msg, {
+      //   className: ['event', 'alert'],
+      //   horizontalPosition: 'right',
+      //   verticalPosition: 'bottom',
+      //   duration: 5000,
+      //   mode: 'queue',
+      // })
     },
     $warn (msg) {
       console.warn(msg)
 
-      this.$toast(msg, {
-        className: ['event', 'warning'],
-        horizontalPosition: 'right',
-        verticalPosition: 'bottom',
-        duration: 5000,
-        mode: 'queue',
-      })
+      // this.$toast(msg, {
+      //   className: ['event', 'warning'],
+      //   horizontalPosition: 'right',
+      //   verticalPosition: 'bottom',
+      //   duration: 5000,
+      //   mode: 'queue',
+      // })
     },
     $info (msg) {
       console.log(msg)
 
-      this.$toast(msg, {
-        className: ['event'],
-        horizontalPosition: 'right',
-        verticalPosition: 'bottom',
-        duration: 5000,
-        mode: 'queue',
-      })
+      // this.$toast(msg, {
+      //   className: ['event'],
+      //   horizontalPosition: 'right',
+      //   verticalPosition: 'bottom',
+      //   duration: 5000,
+      //   mode: 'queue',
+      // })
     },
     getOrdinal (n) {
       var s = ["th", "st", "nd", "rd"]
