@@ -145,7 +145,7 @@ h1 {
     font-size: 2.5em;
     text-shadow: 3px 3px 6px rgba(0,0,0,0.7);
   }
-  margin-top: 0.5em;
+  margin-top: 0 !important;
   margin-bottom: 0.4em;
   padding-top: 0.2em;
 }
