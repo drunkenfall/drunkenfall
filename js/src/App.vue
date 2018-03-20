@@ -73,7 +73,6 @@ export default {
             return
           }
 
-          console.log(`ws ${res.type} message`, res.data)
           if (res.type === 'all') {
             $vue.$store.commit('updateAll', {
               '$vue': $vue,

@@ -215,7 +215,6 @@ router.beforeEach((to, from, next) => {
     if (_.isEmpty(router.app.$store.state.tournaments)) {
       router.app.$http.get('/api/tournament/').then(response => {
         let data = JSON.parse(response.data)
-        console.debug("tournament state", data)
         router.app.$store.commit('updateAll', {
           "tournaments": data.tournaments,
           "$vue": router.app,
@@ -228,7 +227,6 @@ router.beforeEach((to, from, next) => {
     if (!router.app.$store.state.user.authenticated) {
       router.app.$http.get('/api/user/').then(response => {
         let data = JSON.parse(response.data)
-        console.debug("user state", data)
 
         // If we're not signed in, then the backend will return an
         // object with just "false" and nothing else. If this happens,
@@ -252,7 +250,6 @@ router.beforeEach((to, from, next) => {
     if (!router.app.$store.state.stats) {
       router.app.$http.get('/api/people/stats/').then(response => {
         let data = JSON.parse(response.data)
-        console.debug("stats state", data)
         router.app.$store.commit('setStats', data)
         // Since the stats also contain the profiles, we can use this
         // data to populate those as well!
@@ -292,7 +289,6 @@ const store = new Vuex.Store({ // eslint-disable-line
       Vue.set(state.tournaments, t.id, t)
     },
     updatePlayer (state, data) {
-      console.log(data)
       data = data.player
       let t = state.tournaments[data.tournament]
       t.matches[data.match].players[data.player].state = data.state
