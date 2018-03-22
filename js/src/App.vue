@@ -1,6 +1,5 @@
 <script>
 /* eslint-env browser */
-import _ from 'lodash'
 import DrunkenFallMixin from "./mixin.js"
 
 export default {
@@ -106,10 +105,6 @@ export default {
         }
       }
     },
-
-    get: function (tid) {
-      return _.find(this.tournaments, { id: tid })
-    }
   }
 }
 </script>
