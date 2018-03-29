@@ -35,6 +35,7 @@ var broadcasting = true
 // Server is an abstraction that runs via a web interface
 type Server struct {
 	DB        *Database
+	config    *Config
 	router    http.Handler
 	logger    http.Handler
 	simulator *Simulator
@@ -81,8 +82,11 @@ func init() {
 }
 
 // NewServer instantiates a server with an active database
-func NewServer(db *Database) *Server {
-	s := Server{DB: db}
+func NewServer(config *Config, db *Database) *Server {
+	s := Server{
+		DB:     db,
+		config: config,
+	}
 	s.ws = websockets.NewServer()
 	s.router = s.BuildRouter(s.ws)
 

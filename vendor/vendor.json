@@ -58,6 +58,12 @@
 			"revisionTime": "2017-03-07T00:35:30Z"
 		},
 		{
+			"checksumSHA1": "MMeRLzVlQa2QyxxpLTWu0FIB/M0=",
+			"path": "github.com/kelseyhightower/envconfig",
+			"revision": "b2c5c876e2659d9060d82e9b8494150d53854cc4",
+			"revisionTime": "2018-03-08T19:05:16Z"
+		},
+		{
 			"checksumSHA1": "gILp4IL+xwXLH6tJtRLrnZ56F24=",
 			"path": "github.com/mitchellh/mapstructure",
 			"revision": "06020f85339e21b2478f756a78e295255ffa4d6a",
