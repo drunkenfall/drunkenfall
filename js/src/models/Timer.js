@@ -56,11 +56,16 @@ export class Countdown {
 
 export class Clock {
   constructor () {
-    this.time = "00:00 (+02:00)"
+    this.time = this._getTime()
   }
+
   start () {
     setInterval(() => {
-      this.time = moment().format("HH:mm (Z)")
+      this.time = this._getTime()
     }, 1000)
+  }
+
+  _getTime () {
+    return moment().format("HH:mm (Z)")
   }
 }
