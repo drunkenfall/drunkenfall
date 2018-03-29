@@ -2,12 +2,14 @@ import { isGoZeroDateOrFalsy } from '../util/date.js'
 import moment from 'moment'
 import _ from 'lodash'
 import Player from './Player.js'
+// import Tournament from './Tournament.js'
+
+// import store from '../core/store.js'a
 
 export default class Match {
-  static fromObject (obj, $vue, t) {
+  static fromObject (obj, t) {
     let m = new Match()
     Object.assign(m, obj)
-    m.$vue = $vue
 
     m.started = moment(m.started)
     m.ended = moment(m.ended)

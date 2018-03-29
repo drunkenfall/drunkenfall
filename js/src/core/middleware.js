@@ -8,9 +8,7 @@ router.beforeEach((to, from, next) => {
   // Why in the world does this need a short timeout? The connect
   // isn't set otherwise.
   setTimeout(function () {
-    router.app.connect()
-
-    if (_.isEmpty(router.app.$store.state.tournaments)) {
+    if (!router.app.$store.state.tournamentsLoaded) {
       router.app.$http.get('/api/tournament/').then(response => {
         let data = JSON.parse(response.data)
         router.app.$store.commit('updateAll', {

@@ -1,3 +1,4 @@
+import Vue from 'vue'
 import { isGoZeroDateOrFalsy } from '../util/date.js'
 import moment from 'moment'
 import Event from './Event.js'
@@ -7,10 +8,9 @@ import Match from './Match.js'
 import _ from 'lodash'
 
 export default class Tournament {
-  static fromObject (obj, $vue) {
+  static fromObject (obj) {
     let t = new Tournament()
     t.raw = obj
-    t.$vue = $vue
     Object.assign(t, obj)
 
     t.opened = moment(t.opened)
@@ -18,7 +18,7 @@ export default class Tournament {
     t.started = moment(t.started)
     t.ended = moment(t.ended)
 
-    t.matches = _.map(t.matches, (m) => { return Match.fromObject(m, $vue, t) })
+    t.matches = _.map(t.matches, (m) => { return Match.fromObject(m, t) })
 
     t.players = _.map(t.players, Player.fromObject)
     t.runnerups = _.map(t.runnerups, Person.fromObject)
@@ -101,7 +101,7 @@ export default class Tournament {
   }
 
   get isNext () {
-    return this.$vue.$store.getters.upcoming[0].id === this.id
+    return Vue.$store.getters.upcoming[0].id === this.id
   }
 
   get isToday () {
@@ -116,8 +116,8 @@ export default class Tournament {
     // We can only shuffle after the tournament has started (otherwise
     // technically no matches exists, so nothing can be shuffled
     // into), and before the first match has been started.
-    let match = Match.fromObject(this.matches[0], this.$vue)
-    return this.isStarted && !match.isStarted
+    // let match = Match.fromObject(this.matches[0], this)
+    return this.isStarted && !this.matches[0].isStarted
   }
 
   get isUsurpable () {
