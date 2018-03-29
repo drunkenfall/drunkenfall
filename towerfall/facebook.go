@@ -12,18 +12,21 @@ import (
 
 	"context"
 	"encoding/json"
-	"os"
 
 	"github.com/gorilla/mux"
-	"github.com/nu7hatch/gouuid"
-	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/facebook"
+	uuid "github.com/nu7hatch/gouuid"
 )
 
-var (
-	oauthConf        *oauth2.Config
-	oauthStateString string
-)
+var oauthStateString string
+
+func init() {
+	randomUUID, err := uuid.NewV4()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	oauthStateString = randomUUID.String()
+}
 
 // FacebookAuthResponse is the data we get back on the initial auth
 type FacebookAuthResponse struct {
@@ -33,44 +36,15 @@ type FacebookAuthResponse struct {
 	Token string `json:"access_token"`
 }
 
-func init() {
-	// You need to have these three env vars in your env for Facebook to work.
-	// If you need access to them, talk to @thiderman.
-	oauthConf = &oauth2.Config{
-		ClientID:     os.Getenv("DF_FB_ID"),
-		ClientSecret: os.Getenv("DF_FB_SECRET"),
-		RedirectURL:  os.Getenv("DF_FB_CALLBACK"),
-		Scopes:       []string{"public_profile", "email"},
-		Endpoint:     facebook.Endpoint,
-	}
-
-	if os.Getenv("DF_FB_ID") != "" {
-		if strings.Contains(oauthConf.RedirectURL, "localhost") {
-			log.Print("Facebook dev configuration loaded.")
-		} else {
-			log.Print("Facebook configuration loaded.")
-		}
-	} else {
-		log.Print("Facebook app configuration missing. Auth will not work.")
-	}
-
-	randomUUID, err := uuid.NewV4()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	oauthStateString = randomUUID.String()
-}
-
 func (s *Server) handleFacebookLogin(w http.ResponseWriter, r *http.Request) {
-	URL, err := url.Parse(oauthConf.Endpoint.AuthURL)
+	URL, err := url.Parse(s.config.oauthConf.Endpoint.AuthURL)
 	if err != nil {
 		log.Fatal("Parse: ", err)
 	}
 	parameters := url.Values{}
-	parameters.Add("client_id", oauthConf.ClientID)
-	parameters.Add("scope", strings.Join(oauthConf.Scopes, " "))
-	parameters.Add("redirect_uri", oauthConf.RedirectURL)
+	parameters.Add("client_id", s.config.oauthConf.ClientID)
+	parameters.Add("scope", strings.Join(s.config.oauthConf.Scopes, " "))
+	parameters.Add("redirect_uri", s.config.oauthConf.RedirectURL)
 	parameters.Add("response_type", "code")
 	parameters.Add("state", oauthStateString)
 	URL.RawQuery = parameters.Encode()
@@ -88,9 +62,9 @@ func (s *Server) handleFacebookCallback(w http.ResponseWriter, r *http.Request) 
 
 	code := r.FormValue("code")
 
-	token, err := oauthConf.Exchange(context.TODO(), code)
+	token, err := s.config.oauthConf.Exchange(context.TODO(), code)
 	if err != nil {
-		fmt.Printf("oauthConf.Exchange() failed with '%s'\n", err)
+		fmt.Printf("s.config.oauthConf.Exchange() failed with '%s'\n", err)
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}

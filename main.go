@@ -13,8 +13,11 @@ import (
 func main() {
 	Kekkonen() // Kekkonen
 
+	// Load the configuration
+	config := towerfall.ParseConfig()
+
 	// Instantiate the database
-	db, err := towerfall.NewDatabase(os.Getenv("DF_DB_PATH"))
+	db, err := towerfall.NewDatabase(config.DbPath)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -26,7 +29,7 @@ func main() {
 	}
 
 	// Create the server instance
-	s := towerfall.NewServer(db)
+	s := towerfall.NewServer(config, db)
 
 	// Load tournaments from the database
 	err = db.LoadTournaments()
@@ -51,7 +54,7 @@ func main() {
 		<-c
 		log.Print("Catching SIGTERM, closing database...")
 		db.DB.Close()
-		log.Print("Done. Exiting uncleanly.")
+		log.Print("Done. Exiting.")
 		os.Exit(1)
 	}()
 
