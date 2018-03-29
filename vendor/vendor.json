@@ -83,6 +83,12 @@
 			"revisionTime": "2017-01-30T11:31:45Z"
 		},
 		{
+			"checksumSHA1": "iKhBZEQPcOaAG7CM8IPuwhJeHwc=",
+			"path": "github.com/streadway/amqp",
+			"revision": "fc7fda2371f5327ad39211e09482845b8734cc72",
+			"revisionTime": "2018-01-31T09:42:50Z"
+		},
+		{
 			"checksumSHA1": "JXUVA1jky8ZX8w09p2t5KLs97Nc=",
 			"path": "github.com/stretchr/testify/assert",
 			"revision": "4d4bfba8f1d1027c4fdbe371823030df51419987",
