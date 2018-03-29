@@ -1,5 +1,5 @@
 <template>
-<div v-if="userLoaded && user.isProducer">
+<div v-if="userLoaded && user.isProducer && tournaments">
   <headful title="Superpowers - DrunkenFall"></headful>
   <h1>Superpowers</h1>
 
