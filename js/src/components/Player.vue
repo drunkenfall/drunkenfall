@@ -1,5 +1,6 @@
 <template>
   <div :class="'player ' + classes">
+    <img :src="avatar" :alt="display_name"/>
     <p>{{display_name}}</p>
   </div>
 </template>
@@ -50,11 +51,27 @@ export default {
 @import "../css/colors.scss";
 
 .player {
-  font-size: 30px;
   &.gold, &.silver, &.bronze {
     p {
       color: #fff !important;
     }
+  }
+
+  img {
+    display: inline-block;
+    height: 38px;
+    width: 38px;
+    object-fit: cover;
+    border-radius: 100%;
+    float: left;
+    margin-left: 5px;
+  }
+}
+
+.player:nth-child(even) {
+  img {
+    float: right;
+    margin-right: 5px;
   }
 }
 
