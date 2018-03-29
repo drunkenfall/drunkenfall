@@ -1,16 +1,14 @@
 /* eslint-env browser */
 
 import Vue from 'vue'
-// import VueNativeSock from 'vue-native-websocket'
 import Resource from 'vue-resource'
 import Cookie from 'vue-cookie'
 import Vue2Filters from 'vue2-filters'
 import Toast from 'vue-easy-toast'
 import vueHeadful from 'vue-headful'
 import * as Icon from 'vue-awesome'
-import App from './App'
-
-import store from './core/store'
+// import App from './App'
+import App from './DrunkenFall'
 
 import Sidebar from './components/Sidebar.vue'
 
@@ -24,6 +22,7 @@ Vue.component('sidebar', Sidebar)
 Vue.component('headful', vueHeadful)
 
 import router from './core/router.js'
+import store from './core/store'
 import middleware from './core/middleware.js'
 
 middleware(router)

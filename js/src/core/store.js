@@ -14,18 +14,25 @@ const store = new Vuex.Store({ // eslint-disable-line
   state: {
     tournaments: {},
     user: new Person(),
+    tournamentsLoaded: false,
     userLoaded: false,
     stats: undefined,
     people: undefined,
-    credits: {}
+    credits: {},
+    socket: {
+      isConnected: false,
+      reconnectError: false,
+    },
   },
   mutations: {
     updateAll (state, data) {
       let ts = {}
+      console.log("hehe", data)
       _.forEach(data.tournaments, (t) => {
-        ts[t.id] = Tournament.fromObject(t, data.$vue)
+        ts[t.id] = Tournament.fromObject(t)
       })
       state.tournaments = ts
+      state.tournamentsLoaded = true
     },
     updateTournament (state, data) {
       let t = Tournament.fromObject(data.tournament, data.$vue)
@@ -54,6 +61,46 @@ const store = new Vuex.Store({ // eslint-disable-line
       state.people = _.map(data, (p) => {
         return Person.fromObject(p)
       })
+    },
+    SOCKET_ONOPEN (state, event) {
+      state.socket.isConnected = true
+    },
+    SOCKET_ONCLOSE (state, event) {
+      state.socket.isConnected = false
+    },
+    SOCKET_ONERROR (state, event) {
+      console.error(state, event)
+    },
+    // default handler called for all methods
+
+    SOCKET_ONMESSAGE (state, res) {
+      let data = res.data
+      if (res.type === 'all') {
+        let ts = {}
+        _.forEach(data.tournaments, (t) => {
+          ts[t.id] = Tournament.fromObject(t)
+        })
+        state.tournaments = ts
+      } else if (res.type === 'tournament') {
+        let t = Tournament.fromObject(data)
+        console.log("loading tournament", t)
+        Vue.set(state.tournaments, t.id, t)
+      } else if (res.type === 'player') {
+        data = data.player
+        let t = state.tournaments[data.tournament]
+        t.matches[data.match].players[data.player].state = data.state
+        Vue.set(state.tournaments, t.id, t)
+      } else {
+        console.log('Unknown websocket update:', res)
+      }
+    },
+
+    // mutations for reconnect methods
+    SOCKET_RECONNECT (state, count) {
+      console.info(state, count)
+    },
+    SOCKET_RECONNECT_ERROR (state) {
+      state.socket.reconnectError = true
     },
   },
   getters: {
