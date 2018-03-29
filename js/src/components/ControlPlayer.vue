@@ -97,6 +97,7 @@ export default {
 
     score (playerIndex, score) {
       if (!this.match.isStarted) {
+        console.log("match aint started yo")
         return
       }
 
