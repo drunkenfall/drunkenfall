@@ -14,18 +14,21 @@
     </div>
   </div>
 
-  <h1>{{match.title}}</h1>
+  <div class="info">
+    <h1 class="match-title">{{match.title}}</h1>
+    <h2 class="level-title">{{match.levelTitle}}</h2>
 
-  <div class="timer">
-    {{countdown.time}}
-  </div>
-
-    <div class="players">
-      <template v-for="(player, index) in playersReversed" ref="players">
-        <preview-player :index="index + 1" :player="player" :match="match"></preview-player>
-      </template>
+    <div class="timer">
+      {{countdown.time}}
     </div>
   </div>
+
+  <div class="players">
+    <template v-for="(player, index) in playersReversed" ref="players">
+      <preview-player :index="index + 1" :player="player" :match="match"></preview-player>
+    </template>
+  </div>
+</div>
 </template>
 
 <script>
@@ -133,28 +136,38 @@ export default {
   }
 }
 
-.players {
-  width: 100%;
+.info {
+  display: flex;
+  flex-direction: column;
 
-  .player {
-    width: 25%;
-    display: block;
-    float: left;
+  .match-title {
+    font-size: 5em;
+    margin-bottom: 25px;
+  }
+
+  .level-title {
+    margin-bottom: 75px;
+  }
+
+  .match-title, .level-title {
+    margin-top: 0;
   }
 }
 
-h1 {
-  /* margin-top: -50px; */
-  font-size: 5em;
-  margin-bottom: -1em;
+.players {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+
+  .player {
+    width: 25%;
+    display: inline-block;
+  }
 }
 
 .timer {
-  margin: 0.5em auto 0.25em;
-  width: 3em;
   font-size: 12em;
   text-align: center;
-  padding: 0.08em 0.4em;
 }
 
 </style>
