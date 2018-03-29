@@ -36,65 +36,11 @@ export default class Tournament {
     events = _.map(events, Event.fromObject)
     t.events = events
 
-    let root = "/api/{/id}"
-
-    t.api = $vue.$resource("/api/", {}, {
-      startTournament: { method: "GET", url: `${root}/start/` },
-      next: { method: "GET", url: `${root}/next/` },
-      reshuffle: { method: "GET", url: `${root}/reshuffle/` },
-      usurp: { method: "GET", url: `${root}/usurp/` },
-      autoplay: { method: "GET", url: `${root}/autoplay/` },
-    })
-
     return t
   }
 
-  start () {
-    let $vue = this.$vue
-    this.api.startTournament({ id: this.id }).then((res) => {
-      console.debug("start response:", res)
-      $vue.$router.push({'name': 'tournament', params: {'tournament': this.id}})
-    }, (err) => {
-      $vue.$alert("Start failed. See console.")
-      console.error(err)
-    })
-  }
-
-  next () {
+  get next () {
     return this.currentMatch.index
-  }
-
-  reshuffle () {
-    let $vue = this.$vue
-    console.log(this)
-    this.api.reshuffle({ id: this.id }).then((res) => {
-      console.debug("reshuffle response:", res)
-    }, (err) => {
-      $vue.$alert("Reshuffle failed. See console.")
-      console.error(err)
-    })
-  }
-
-  usurp () {
-    let $vue = this.$vue
-    console.log(this)
-    this.api.usurp({ id: this.id }).then((res) => {
-      console.log("usurp response", res)
-    }, (err) => {
-      $vue.$alert("Usurp failed. See console.")
-      console.error(err)
-    })
-  }
-
-  autoplay () {
-    let $vue = this.$vue
-    console.log(this)
-    this.api.autoplay({ id: this.id }).then((res) => {
-      console.log("autoplay response", res)
-    }, (err) => {
-      $vue.$alert("Autoplay failed. See console.")
-      console.error(err)
-    })
   }
 
   playerJoined (person) {

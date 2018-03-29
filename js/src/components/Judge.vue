@@ -114,22 +114,53 @@ export default {
         $vue.sending = false
       })
     },
-    end () {
-      this.match.end(this)
-    },
     start () {
-      this.match.start()
+      let $vue = this
+      if (this.tournament.shouldBackfill) {
+        console.log("Not starting match; backfill required.")
+        return
+      }
+
+      console.log("Starting match...")
+      this.api.start(this.match_id).then((res) => {
+        console.log("Match started.", res)
+      }, (res) => {
+        $vue.$alert("Starting failed. See console.")
+        console.error(res)
+      })
     },
+
+    end () {
+      let $vue = this
+      console.log("Ending match...")
+      this.api.end(this.match_id).then((res) => {
+        console.log("Match ended.", res)
+      }, (res) => {
+        $vue.$alert("Ending failed. See console.")
+        console.error(res)
+      })
+    },
+
     reset () {
-      this.match.reset()
+      let $vue = this
+      console.log("Resetting match...")
+      this.api.reset(this.match_id).then((res) => {
+        console.log("Match reset.", res)
+      }, (res) => {
+        $vue.$alert("Reset failed. See console.")
+        console.error(res)
+      })
     },
   },
 
   created () {
     document.getElementsByTagName("body")[0].className = "scroll-less sidebar-less"
 
+    let root = "/api/tournament{/id}{/index}"
     this.api = this.$resource("/api", {}, {
-      commit: { method: "POST", url: "/api/tournament{/id}{/index}/commit/" },
+      commit: { method: "POST", url: `${root}/commit/` },
+      start: { method: "GET", url: `${root}/start/` },
+      end: { method: "GET", url: `${root}/end/` },
     })
   },
 }

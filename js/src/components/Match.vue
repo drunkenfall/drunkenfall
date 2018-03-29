@@ -117,13 +117,13 @@ export default {
       })
     },
     end () {
-      this.match.end(this)
+      console.log("this has been disabled")
     },
     start () {
-      this.match.start()
+      console.log("this has been disabled")
     },
     reset () {
-      this.match.reset()
+      console.log("this has been disabled")
     },
   },
 

@@ -23,63 +23,12 @@ export default class Match {
       m.endScore = m.kind === "final" ? 20 : 10
     }
 
-    let root = "/api/tournament{/id}{/index}"
-    m.api = $vue.$resource("/api", {}, {
-      start: { method: "GET", url: `${root}/start/` },
-      commit: { method: "POST", url: `${root}/commit/` },
-      end: { method: "GET", url: `${root}/end/` },
-      reset: { method: "GET", url: `${root}/reset/` },
-    })
-
     if (t !== undefined) {
+      m.tournament = t
       m.tournament_id = t.id
     }
 
     return m
-  }
-
-  start () {
-    let $vue = this
-    if (this.tournament.shouldBackfill) {
-      console.log("Not starting match; backfill required.")
-      return
-    }
-
-    console.log("Starting match...")
-    this.api.start(this.id).then((res) => {
-      console.log("Match started.", res)
-    }, (res) => {
-      $vue.$alert("Starting failed. See console.")
-      console.error(res)
-    })
-  }
-
-  end () {
-    let $vue = this
-    console.log("Ending match...")
-    this.api.end(this.id).then((res) => {
-      console.log("Match ended.", res)
-      // this.$vue.$router.push({
-      //   name: "tournament",
-      //   params: {
-      //     tournament: this.tournament_id,
-      //   }
-      // })
-    }, (res) => {
-      $vue.$alert("Ending failed. See console.")
-      console.error(res)
-    })
-  }
-
-  reset () {
-    let $vue = this
-    console.log("Resetting match...")
-    this.api.reset(this.id).then((res) => {
-      console.log("Match reset.", res)
-    }, (res) => {
-      $vue.$alert("Reset failed. See console.")
-      console.error(res)
-    })
   }
 
   // TODO(thiderman): This could somehow not be migrated to here from
@@ -168,9 +117,6 @@ export default class Match {
     return out
   }
 
-  get tournament () {
-    return this.$vue.$store.getters.getTournament(this.tournament_id)
-  }
   get levelTitle () {
     if (this.level === "twilight") {
       return "Twilight Spire"

@@ -83,29 +83,64 @@ export default {
   components: {
     ButtonLink,
   },
+
   methods: {
     usurp () {
-      return this.tournament.usurp()
+      this.api.usurp({ id: this.tournament.id }).then((res) => {
+        console.log("usurp response", res)
+      }, (err) => {
+        this.$alert("Usurp failed. See console.")
+        console.error(err)
+      })
     },
     autoplay () {
-      return this.tournament.autoplay()
+      this.api.autoplay({ id: this.tournament.id }).then((res) => {
+        console.log("autoplay response", res)
+      }, (err) => {
+        this.$alert("Autoplay failed. See console.")
+        console.error(err)
+      })
     },
     start () {
-      return this.tournament.start()
+      this.api.startTournament({ id: this.tournament.id }).then((res) => {
+        console.debug("start response:", res)
+        this.$router.push({'name': 'tournament', params: {'tournament': this.tournament.id}})
+      }, (err) => {
+        this.$alert("Start failed. See console.")
+        console.error(err)
+      })
     },
     reshuffle () {
-      return this.tournament.reshuffle()
+      this.api.reshuffle({ id: this.tournament.id }).then((res) => {
+        console.debug("reshuffle response:", res)
+      }, (err) => {
+        this.$alert("Reshuffle failed. See console.")
+        console.error(err)
+      })
     },
     next () {
       this.$router.push({name: "match", params: {
-        "match": this.tournament.next()
+        "match": this.tournament.next
       }})
     },
   },
+
   computed: {
     autoplayLabel () {
       return `Autoplay ${this.nextMatch.kind}s`
     }
+  },
+
+  created () {
+    let root = "/api/{/id}"
+
+    this.api = this.$resource("/api/", {}, {
+      startTournament: { method: "GET", url: `${root}/start/` },
+      next: { method: "GET", url: `${root}/next/` },
+      reshuffle: { method: "GET", url: `${root}/reshuffle/` },
+      usurp: { method: "GET", url: `${root}/usurp/` },
+      autoplay: { method: "GET", url: `${root}/autoplay/` },
+    })
   },
 }
 </script>
