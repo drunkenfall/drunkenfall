@@ -131,7 +131,7 @@ export default {
     document.getElementsByTagName("body")[0].className = "scroll-less"
 
     this.api = this.$resource("/api", {}, {
-      commit: { method: "POST", url: "/api/tournament{/id}{/index}/commit/" },
+      commit: { method: "POST", url: "/api/tournaments/{id}/match/{index}/" },
     })
   },
 }

@@ -68,7 +68,7 @@ export default {
 
       let $vue = this
       event.preventDefault()
-      return this.$http.get('/api/tournament/clear/').then(function (res) {
+      return this.$http.delete('/api/tournament/').then(function (res) {
         console.log(res)
       }, function (res) {
         $vue.$alert("Clearing failed. See console.")

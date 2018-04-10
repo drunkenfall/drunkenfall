@@ -60,7 +60,7 @@ export default {
 
   created () {
     this.api = this.$resource("/api", {}, {
-      join: { method: "GET", url: "/api/{id}/join/" },
+      join: { method: "GET", url: "/api/tournaments/{id}/join/" },
     })
   },
 }

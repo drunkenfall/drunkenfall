@@ -113,9 +113,9 @@ export default {
 
   created () {
     this.api = this.$resource("/api", {}, {
-      toggle: { method: "GET", url: "/api/{id}/toggle/{person}" },
+      toggle: { method: "GET", url: "/api/tournaments/{id}/toggle/{person}" },
       people: { method: "GET", url: "/api/people/" },
-      backfill: { method: "POST", url: "/api{/id}/backfill/" },
+      backfill: { method: "POST", url: "/api/tournaments/{id}/backfill/" },
     })
   }
 }

@@ -9,7 +9,7 @@ router.beforeEach((to, from, next) => {
   // isn't set otherwise.
   setTimeout(function () {
     if (!router.app.$store.state.tournamentsLoaded) {
-      router.app.$http.get('/api/tournament/').then(response => {
+      router.app.$http.get('/api/tournaments/').then(response => {
         let data = JSON.parse(response.data)
         router.app.$store.commit('updateAll', {
           "tournaments": data.tournaments,

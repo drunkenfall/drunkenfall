@@ -94,7 +94,7 @@ export default {
         color: this.color,
       }
 
-      this.$http.post('/api/new/', payload).then((res) => {
+      this.$http.post('/api/tournaments/', payload).then((res) => {
       }, (res) => {
         $vue.$alert("Creating failed. See console.")
         console.error(res)

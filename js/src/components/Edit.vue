@@ -40,7 +40,7 @@ export default {
 
   created () {
     this.api = this.$resource("/", {}, {
-      edit: { method: "POST", url: "/api/{id}/edit/" },
+      edit: { method: "POST", url: "/api/tournaments/{id}/edit/" },
     })
   },
   mounted () {

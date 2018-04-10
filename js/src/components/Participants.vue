@@ -52,7 +52,7 @@ export default {
 
   created () {
     this.api = this.$resource("/api", {}, {
-      toggle: { method: "GET", url: "/api/{id}/toggle/{person}" },
+      toggle: { method: "GET", url: "/api/tournaments/{id}/toggle/{person}" },
     })
   }
 }

@@ -156,9 +156,9 @@ export default {
   created () {
     document.getElementsByTagName("body")[0].className = "scroll-less sidebar-less"
 
-    let root = "/api/tournament{/id}{/index}"
+    let root = "/api/tournaments/{id}/match/{index}"
     this.api = this.$resource("/api", {}, {
-      commit: { method: "POST", url: `${root}/commit/` },
+      commit: { method: "POST", url: `${root}/` },
       start: { method: "GET", url: `${root}/start/` },
       end: { method: "GET", url: `${root}/end/` },
     })

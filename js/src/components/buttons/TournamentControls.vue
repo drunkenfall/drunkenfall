@@ -132,7 +132,7 @@ export default {
   },
 
   created () {
-    let root = "/api/{/id}"
+    let root = "/api/tournaments/{id}"
 
     this.api = this.$resource("/api/", {}, {
       startTournament: { method: "GET", url: `${root}/start/` },

@@ -105,7 +105,7 @@ export default {
     let id = this.$route.params.tournament
 
     this.api = this.$resource("/api", {}, {
-      getCredits: { method: "GET", url: "/api{/id}/credits/" }
+      getCredits: { method: "GET", url: "/api/tournaments/{id}/credits/" }
     })
 
     this.api.getCredits({id: id}).then((res) => {

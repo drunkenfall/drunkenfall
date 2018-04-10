@@ -27,7 +27,6 @@ const store = new Vuex.Store({ // eslint-disable-line
   mutations: {
     updateAll (state, data) {
       let ts = {}
-      console.log("hehe", data)
       _.forEach(data.tournaments, (t) => {
         ts[t.id] = Tournament.fromObject(t)
       })

@@ -98,7 +98,7 @@ export default {
 
   created () {
     this.api = this.$resource("/api", {}, {
-      casters: { method: "POST", url: "/api{/id}/casters/" },
+      casters: { method: "POST", url: "/api/tournaments/{id}/casters/" },
     })
   }
 }

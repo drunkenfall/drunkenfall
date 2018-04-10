@@ -122,7 +122,7 @@ export default {
 
   created () {
     this.api = this.$resource("/api", {}, {
-      setTime: { method: "GET", url: "/api/{/id}/time{/time}" },
+      setTime: { method: "GET", url: "/api/tournaments/{id}/time/{time}" },
     })
   },
 }
