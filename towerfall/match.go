@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
-	"net/http"
 	"strings"
 	"time"
 
 	"github.com/deckarep/golang-set"
+	"github.com/gin-gonic/gin"
 	"github.com/mitchellh/mapstructure"
 )
 
@@ -641,7 +641,7 @@ func (m *Match) Kill(km KillMessage) error {
 }
 
 // Start starts the match
-func (m *Match) Start(r *http.Request) error {
+func (m *Match) Start(c *gin.Context) error {
 	if !m.Started.IsZero() {
 		return errors.New("match already started")
 	}
@@ -668,7 +668,7 @@ func (m *Match) Start(r *http.Request) error {
 	m.LogEvent(
 		"started", "{match} started",
 		"match", m.Title(),
-		"person", PersonFromSession(m.Tournament.server, r))
+		"person", PersonFromSession(m.Tournament.server, c))
 
 	return m.Tournament.Persist()
 }
@@ -677,7 +677,7 @@ func (m *Match) Start(r *http.Request) error {
 //
 // It is also the place that moves players into either the Runnerup bracket
 // or into their place in the semis.
-func (m *Match) End(r *http.Request) error {
+func (m *Match) End(c *gin.Context) error {
 	log.Printf("Ending match %d", m.Index)
 	if !m.Ended.IsZero() {
 		return errors.New("match already ended")
@@ -697,10 +697,10 @@ func (m *Match) End(r *http.Request) error {
 	m.LogEvent(
 		"ended", "{match} ended",
 		"match", m.Title(),
-		"person", PersonFromSession(m.Tournament.server, r))
+		"person", PersonFromSession(m.Tournament.server, c))
 
 	if m.Kind == final {
-		if err := m.Tournament.AwardMedals(r, m); err != nil {
+		if err := m.Tournament.AwardMedals(c, m); err != nil {
 			return err
 		}
 	} else {
@@ -723,8 +723,7 @@ func (m *Match) Reset() error {
 	// And remove all the rounds
 	m.Rounds = make([]Round, 0)
 
-	m.Tournament.Persist()
-	return nil
+	return m.Tournament.Persist()
 }
 
 // Autoplay runs through the entire match simulating real play
@@ -739,14 +738,14 @@ func (m *Match) Autoplay() {
 }
 
 // SetTime sets the scheduled time based on the Pause attribute
-func (m *Match) SetTime(r *http.Request, minutes int) {
+func (m *Match) SetTime(c *gin.Context, minutes int) {
 	m.Scheduled = time.Now().Add(time.Minute * time.Duration(minutes))
 
 	m.LogEvent(
 		"time_set", "{match} scheduled in {minutes}m",
 		"minutes", minutes,
 		"match", m.Title(),
-		"person", PersonFromSession(m.Tournament.server, r))
+		"person", PersonFromSession(m.Tournament.server, c))
 	m.Tournament.Persist()
 }
 

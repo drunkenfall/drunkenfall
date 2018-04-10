@@ -9,6 +9,9 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-gonic/gin"
 )
 
 // A Person is someone having a role in the tournament
@@ -121,11 +124,6 @@ func (p *Person) PrefillNickname() {
 		p.Nick = "skolpadda"
 		p.Userlevel = PermissionProducer
 
-	// Commentators
-	case "Daniel McHugh":
-		p.Nick = "Radcliffe"
-		p.Userlevel = PermissionCommentator
-
 	// Judges
 	case "Daniele Sluijters":
 		p.Nick = "Daenney"
@@ -173,19 +171,19 @@ func (p *Person) Correct() {
 }
 
 // StoreCookies stores the cookies of the
-func (p *Person) StoreCookies(w http.ResponseWriter, r *http.Request) error {
-	c := &http.Cookie{
+func (p *Person) StoreCookies(c *gin.Context) error {
+	cookie := &http.Cookie{
 		Name:    "userlevel",
 		Value:   strconv.Itoa(p.Userlevel),
 		Path:    "/",
 		Expires: time.Now().Add(30 * 24 * time.Hour), // Set to the same as CookieStore
 	}
-	http.SetCookie(w, c)
+	http.SetCookie(c.Writer, cookie)
 
-	session, _ := CookieStore.Get(r, "session")
-	session.Values["user"] = p.ID
-	session.Values["userlevel"] = p.Userlevel
-	err := session.Save(r, w)
+	session := sessions.Default(c)
+	session.Set("user", p.ID)
+	session.Set("userlevel", p.Userlevel)
+	err := session.Save()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -195,31 +193,31 @@ func (p *Person) StoreCookies(w http.ResponseWriter, r *http.Request) error {
 }
 
 // RemoveCookies ...
-func (p *Person) RemoveCookies(w http.ResponseWriter, r *http.Request) error {
-	c := &http.Cookie{
+func (p *Person) RemoveCookies(c *gin.Context) error {
+	cookie := &http.Cookie{
 		Name:    "userlevel",
 		Value:   "0",
 		Path:    "/",
 		Expires: time.Now(),
 	}
-	http.SetCookie(w, c)
+	http.SetCookie(c.Writer, cookie)
 
-	session, _ := CookieStore.Get(r, "session")
-	delete(session.Values, "user")
-	delete(session.Values, "userlevel")
-	session.Save(r, w)
+	session := sessions.Default(c)
+	session.Delete("user")
+	session.Delete("userlevel")
+	session.Save()
 
 	return nil
 }
 
 // PersonFromSession returns the Person{} object attached to the session
-func PersonFromSession(s *Server, r *http.Request) *Person {
-	if r == nil {
+func PersonFromSession(s *Server, c *gin.Context) *Person {
+	if c == nil {
 		return nil
 	}
 
-	session, _ := CookieStore.Get(r, "session")
-	id := session.Values["user"].(string)
+	session := sessions.Default(c)
+	id := session.Get("user").(string)
 
 	p, err := s.DB.GetPerson(id)
 	if err != nil {

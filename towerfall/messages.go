@@ -1,13 +1,9 @@
-package towerfall // JSONMessage defines a message to be returned to the frontend
+package towerfall
+
+// JSONMessage defines a message to be returned to the frontend
 type JSONMessage struct {
 	Message  string `json:"message"`
 	Redirect string `json:"redirect"`
-}
-
-// SettingsUpdateResponse is a redirect response with an extra Person field
-type SettingsUpdateResponse struct {
-	Redirect string  `json:"redirect"`
-	Person   *Person `json:"person"`
 }
 
 // GeneralRedirect is an explicit permission failure
@@ -33,11 +29,6 @@ type TournamentList struct {
 
 // UpdateStateMessage returns an update to the current match
 type UpdateStateMessage TournamentList
-
-// PeopleList returns a list with users
-type PeopleList struct {
-	People []*Person `json:"people"`
-}
 
 type PlayerStateUpdateMessage struct {
 	Tournament string      `json:"tournament"`

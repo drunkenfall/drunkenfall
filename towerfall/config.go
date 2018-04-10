@@ -14,6 +14,7 @@ type Config struct {
 	FacebookID       string `default:"668534419991204"`
 	FacebookSecret   string `default:"e74696c890216108c69d55d0e1b7866f"`
 	FacebookCallback string `default:"http://localhost/api/facebook/oauth2callback"`
+	Port             int    `default:"42001"`
 	oauthConf        *oauth2.Config
 }
 

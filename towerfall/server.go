@@ -14,16 +14,15 @@ import (
 
 	"github.com/drunkenfall/drunkenfall/faking"
 	"github.com/drunkenfall/drunkenfall/websockets"
-	"github.com/gorilla/handlers"
-	"github.com/gorilla/mux"
-	"github.com/gorilla/sessions"
-	"golang.org/x/net/websocket"
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-gonic/gin"
 )
 
 // Setup variables for the cookies.
 var (
-	CookieStoreKey = []byte("dtf")
-	CookieStore    = sessions.NewCookieStore(CookieStoreKey)
+	CookieStoreName = "user-session"
+	CookieStoreKey  = []byte("dtf")
+	CookieStore     = sessions.NewCookieStore(CookieStoreKey)
 )
 
 // Determines whether websocket updates should be sent or not.
@@ -32,23 +31,22 @@ var (
 // once the Autoplay is over.
 var broadcasting = true
 
-// Server is an abstraction that runs via a web interface
+// Server is an abstraction that runs a web interface
 type Server struct {
 	DB        *Database
 	config    *Config
-	router    http.Handler
-	logger    http.Handler
+	router    *gin.Engine
 	simulator *Simulator
 	ws        *websockets.Server
 }
 
 // NewRequest is the request to make a new tournament
 type NewRequest struct {
-	Name      string    `json:"name"`
-	ID        string    `json:"id"`
-	Cover     string    `json:"cover"`
-	Scheduled time.Time `json:"scheduled"`
-	Fake      bool      `json:"fake"`
+	Name      string    `json:"name" binding:"required"`
+	ID        string    `json:"id" binding:"required"`
+	Cover     string    `json:"cover" binding:"required"`
+	Scheduled time.Time `json:"scheduled" binding:"required"`
+	Fake      bool      `json:"fake" binding:"required"`
 }
 
 // CommitPlayer is one state for a player in a commit message
@@ -96,570 +94,466 @@ func NewServer(config *Config, db *Database) *Server {
 	return &s
 }
 
-// RegisterHandlersAndListeners registers the routes and the websocket listeners
-func (s *Server) RegisterHandlersAndListeners() {
-	http.Handle("/", s.router)
-	s.logger = handlers.LoggingHandler(os.Stdout, s.router)
-
-	// Also websocket listener
-	go s.ws.Listen()
-
-	// Send an initial complete update. Without this, the clients will
-	// not receieve anything when they connect, leaving them stranded
-	// and sad.
-	// s.SendWebsocketUpdate()
-}
-
 // NewHandler shows the page to create a new tournament
-func (s *Server) NewHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Server) NewHandler(c *gin.Context) {
 	var req NewRequest
 	var t *Tournament
 
-	if !HasPermission(r, PermissionProducer) {
-		PermissionFailure(w, r, "Cannot create match unless producer")
+	if !HasPermission(c, PermissionProducer) {
+		c.JSON(http.StatusForbidden, gin.H{"message": "Cannot create tournament unless producer"})
 		return
 	}
 
-	body, err := ioutil.ReadAll(r.Body)
+	err := c.BindJSON(&req)
 	if err != nil {
-		log.Print(err)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Cannot JSON"})
 		return
 	}
 
-	err = json.Unmarshal(body, &req)
+	t, err = NewTournament(req.Name, req.ID, req.Cover, req.Scheduled, c, s)
 	if err != nil {
-		log.Fatal(err)
-	}
-
-	t, err = NewTournament(req.Name, req.ID, req.Cover, req.Scheduled, r, s)
-	if err != nil {
-		http.Error(w, err.Error(), 500)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Cannot create tournament"})
 		return
 	}
 
 	log.Printf("Created tournament %s!", t.Name)
 
-	s.DB.Tournaments = append(s.DB.Tournaments, t)
-	s.DB.tournamentRef[t.ID] = t
+	// s.DB.Tournaments = append(s.DB.Tournaments, t)
+	// s.DB.tournamentRef[t.ID] = t
 
-	s.Redirect(w, t.URL())
+	c.Redirect(http.StatusTemporaryRedirect, t.URL())
 }
 
 // TournamentHandler returns the current state of the tournament
-func (s *Server) TournamentHandler(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
+func (s *Server) TournamentHandler(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{"tournament": s.getTournament(c)})
+}
 
-	tm := s.DB.tournamentRef[vars["id"]]
-	out := &TournamentMessage{tm}
-
-	data, err := json.Marshal(out)
-	if err != nil {
-		log.Fatal(err)
-	}
-	w.Header().Set("Content-Type", "application/json")
-	_, _ = w.Write(data)
+// TournamentListHandler returns a list of all tournaments
+func (s *Server) TournamentListHandler(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{"tournaments": s.DB.asMap()})
 }
 
 // JoinHandler shows the tournament view and handles tournaments
-func (s *Server) JoinHandler(w http.ResponseWriter, r *http.Request) {
-	if !HasPermission(r, PermissionPlayer) {
-		PermissionFailure(w, r, "You need to sign in to join a tournament")
+func (s *Server) JoinHandler(c *gin.Context) {
+	if !HasPermission(c, PermissionPlayer) {
+		c.JSON(http.StatusForbidden, gin.H{"message": "You need to sign in to join a tournament"})
 		return
 	}
 
-	tm := s.getTournament(r)
-	ps := PersonFromSession(s, r)
+	tm := s.getTournament(c)
+	ps := PersonFromSession(s, c)
 	tm.TogglePlayer(ps.ID)
-	s.Redirect(w, tm.URL())
+	c.Redirect(http.StatusTemporaryRedirect, tm.URL())
 }
 
 // EditHandler shows the tournament view and handles tournaments
-func (s *Server) EditHandler(w http.ResponseWriter, r *http.Request) {
-	if !HasPermission(r, PermissionProducer) {
-		PermissionFailure(w, r, "You need to be very hax to edit a tournament")
+func (s *Server) EditHandler(c *gin.Context) {
+	if !HasPermission(c, PermissionProducer) {
+		c.JSON(http.StatusForbidden, gin.H{"message": "You need to be very hax to edit a tournament"})
 		return
 	}
 
-	ps := PersonFromSession(s, r)
+	ps := PersonFromSession(s, c)
 
-	data, err := ioutil.ReadAll(r.Body)
+	data, err := ioutil.ReadAll(c.Request.Body)
 	if err != nil {
-		log.Fatal(err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
 	t, err := LoadTournament(data, s.DB)
 	if err != nil {
-		log.Fatal(err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
 
 	err = s.DB.OverwriteTournament(t)
 	if err != nil {
-		log.Fatal(err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
 
 	log.Printf("%s has edited %s!", ps.Nick, t.ID)
 	err = t.Persist()
 	if err != nil {
-		log.Fatal(err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
-	s.Redirect(w, t.URL())
+	c.Redirect(http.StatusTemporaryRedirect, t.URL())
+
 }
 
 // BackfillSemisHandler shows the tournament view and handles tournaments
-func (s *Server) BackfillSemisHandler(w http.ResponseWriter, r *http.Request) {
-	if !HasPermission(r, PermissionJudge) {
-		PermissionFailure(w, r, "You need to be a judge to backfill")
+func (s *Server) BackfillSemisHandler(c *gin.Context) {
+	if !HasPermission(c, PermissionJudge) {
+		c.JSON(http.StatusForbidden, gin.H{"message": "You need to be a judge to backfill"})
 		return
 	}
 
-	tm := s.getTournament(r)
-	data, err := ioutil.ReadAll(r.Body)
+	tm := s.getTournament(c)
+	data, err := ioutil.ReadAll(c.Request.Body)
 	if err != nil {
-		PermissionFailure(w, r, err.Error())
+		c.JSON(http.StatusForbidden, gin.H{"message": err.Error()})
 		return
 	}
 
 	spl := strings.Split(string(data), ",")
-	err = tm.BackfillSemis(r, spl)
+	err = tm.BackfillSemis(c, spl)
 
 	if err != nil {
-		PermissionFailure(w, r, err.Error())
+		c.JSON(http.StatusForbidden, gin.H{"message": err.Error()})
 		return
 	}
 
-	s.Redirect(w, tm.URL())
+	c.Redirect(http.StatusTemporaryRedirect, tm.URL())
 }
 
 // ReshuffleHandler reshuffles the player order of the tournament
-func (s *Server) ReshuffleHandler(w http.ResponseWriter, r *http.Request) {
-	if !HasPermission(r, PermissionProducer) {
-		PermissionFailure(w, r, "You need to be a producer to reshuffle")
+func (s *Server) ReshuffleHandler(c *gin.Context) {
+	if !HasPermission(c, PermissionProducer) {
+		c.JSON(http.StatusForbidden, gin.H{"message": "You need to be a producer to reshuffle"})
 		return
 	}
 
-	tm := s.getTournament(r)
-	err := tm.Reshuffle(r)
+	tm := s.getTournament(c)
+	err := tm.Reshuffle(c)
 
 	if err != nil {
-		PermissionFailure(w, r, err.Error())
+		c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
 		return
 	}
 
-	s.Redirect(w, tm.URL())
+	c.Redirect(http.StatusTemporaryRedirect, tm.URL())
 }
 
 // CreditsHandler returns the data object needed to display the
 // credits roll.
-func (s *Server) CreditsHandler(w http.ResponseWriter, r *http.Request) {
-	// if !HasPermission(r, PermissionCommentator) {
-	// 	PermissionFailure(w, r, "You need to be a commentator to get credits data")
-	// 	return
-	// }
-
-	tm := s.getTournament(r)
+func (s *Server) CreditsHandler(c *gin.Context) {
+	tm := s.getTournament(c)
 	credits, err := tm.GetCredits()
 
 	if err != nil {
-		PermissionFailure(w, r, err.Error())
+		c.JSON(http.StatusForbidden, gin.H{"message": err.Error()})
 		return
 	}
 
-	data, err := json.Marshal(credits)
-	if err != nil {
-		log.Fatal(err)
-	}
-	w.Header().Set("Content-Type", "application/json")
-	_, _ = w.Write(data)
+	c.JSON(http.StatusOK, credits)
 }
 
 // StartTournamentHandler starts tournaments
-func (s *Server) StartTournamentHandler(w http.ResponseWriter, r *http.Request) {
-	if !HasPermission(r, PermissionCommentator) {
-		PermissionFailure(w, r, "Cannot start tournament unless commentator or above")
+func (s *Server) StartTournamentHandler(c *gin.Context) {
+	if !HasPermission(c, PermissionCommentator) {
+		c.JSON(http.StatusForbidden, gin.H{"message": "Cannot start tournament unless commentator or above"})
 		return
 	}
 
-	tm := s.getTournament(r)
-	err := tm.StartTournament(r)
+	tm := s.getTournament(c)
+	err := tm.StartTournament(c)
 	if err != nil {
-		http.Error(w, err.Error(), 500)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
 
-	s.Redirect(w, tm.URL())
+	c.Redirect(http.StatusTemporaryRedirect, tm.URL())
 }
 
 // UsurpTournamentHandler usurps tournaments
-func (s *Server) UsurpTournamentHandler(w http.ResponseWriter, r *http.Request) {
-	if !HasPermission(r, PermissionCommentator) {
-		PermissionFailure(w, r, "Cannot usurp tournament unless commentator or above")
+func (s *Server) UsurpTournamentHandler(c *gin.Context) {
+	if !HasPermission(c, PermissionCommentator) {
+		c.JSON(http.StatusForbidden, gin.H{"message": "Cannot usurp tournament unless commentator or above"})
 		return
 	}
 
-	tm := s.getTournament(r)
+	tm := s.getTournament(c)
 	err := tm.UsurpTournament()
 	if err != nil {
-		http.Error(w, err.Error(), 500)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
 
-	s.Redirect(w, tm.URL())
+	c.Redirect(http.StatusTemporaryRedirect, tm.URL())
 }
 
 // AutoplayTournamentHandler usurps tournaments
-func (s *Server) AutoplayTournamentHandler(w http.ResponseWriter, r *http.Request) {
-	if !HasPermission(r, PermissionProducer) {
-		PermissionFailure(w, r, "Cannot autoplay tournament unless producer or above")
+func (s *Server) AutoplayTournamentHandler(c *gin.Context) {
+	if !HasPermission(c, PermissionProducer) {
+		c.JSON(http.StatusForbidden, gin.H{"message": "Cannot autoplay tournament unless producer or above"})
 		return
 	}
 
-	tm := s.getTournament(r)
+	tm := s.getTournament(c)
 	tm.AutoplaySection()
-	s.Redirect(w, tm.URL())
+	c.Redirect(http.StatusTemporaryRedirect, tm.URL())
 }
-
-// MatchFunctor is a common function for usage in MatchHandler
-type MatchFunctor func(w http.ResponseWriter, r *http.Request, match *Match) error
 
 // MatchHandler is the common function for match operations.
-func (s *Server) MatchHandler(w http.ResponseWriter, r *http.Request, functor MatchFunctor) {
-	if !HasPermission(r, PermissionJudge) {
-		PermissionFailure(w, r, "Cannot modify match unless judge or above")
+func (s *Server) MatchHandler(c *gin.Context) {
+	if !HasPermission(c, PermissionJudge) {
+		c.JSON(http.StatusForbidden, gin.H{"message": "Cannot modify match unless judge or above"})
 		return
 	}
 
-	m := s.getMatch(r)
-	err := functor(w, r, m)
+	m, err := s.getMatch(c)
 	if err != nil {
-		msg := err.Error()
-		log.Print(msg)
-		ErrorResponse(w, r, msg)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "Couldn't get match",
+			"error":   err.Error(),
+		})
 		return
 	}
 
-	data, err := json.Marshal(UpdateMessage{
-		Tournament: m.Tournament,
-	})
+	action, found := c.Params.Get("action")
+	if !found {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Action not set"})
+		return
+	}
+
+	switch action {
+	case "start":
+		err = m.Start(c)
+	case "end":
+		err = m.End(c)
+	case "reset":
+		err = m.Reset()
+	default:
+		err = errors.New("Unknown action")
+	}
+
 	if err != nil {
-		log.Print(err)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "Match action failed",
+			"action":  action,
+			"error":   err.Error(),
+		})
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
-	_, _ = w.Write(data)
-}
 
-// MatchEndHandler ends matches
-func (s *Server) MatchEndHandler(w http.ResponseWriter, r *http.Request) {
-	s.MatchHandler(w, r, func(w http.ResponseWriter, r *http.Request, m *Match) error {
-		if !m.IsStarted() {
-			errorMsg := fmt.Sprintf("Cannot end the match `%s` that is in not started.", m.String())
-			return errors.New(errorMsg)
-		}
-		err := m.End(r)
-		if err != nil {
-			log.Fatal(err)
-		}
-		return nil
-	})
-}
-
-// MatchStartHandler starts matches
-func (s *Server) MatchStartHandler(w http.ResponseWriter, r *http.Request) {
-	s.MatchHandler(w, r, func(w http.ResponseWriter, r *http.Request, m *Match) error {
-		log.Print("Trying to start match!")
-		if m.IsStarted() {
-			log.Print("Trying to send error. Wäääääääää")
-			errorMsg := fmt.Sprintf("Cannot start the match `%s` that is already in progress.", m.String())
-			return errors.New(errorMsg)
-		}
-
-		err := m.Start(r)
-		if err != nil {
-			log.Fatal(err)
-		}
-		return nil
-	})
-}
-
-// MatchResetHandler starts matches
-func (s *Server) MatchResetHandler(w http.ResponseWriter, r *http.Request) {
-	s.MatchHandler(w, r, func(w http.ResponseWriter, r *http.Request, m *Match) error {
-		if !m.IsStarted() {
-			errorMsg := fmt.Sprintf("Cannot reset the match `%s` that is not started yet.", m.String())
-			return errors.New(errorMsg)
-		}
-
-		err := m.Reset()
-		if err != nil {
-			return err
-		}
-
-		log.Printf("%s has been reset", m.String())
-		return nil
+	c.JSON(http.StatusOK, gin.H{
+		"action":  action,
+		"message": "Done",
 	})
 }
 
 // MatchCommitHandler commits a single round of a match
-func (s *Server) MatchCommitHandler(w http.ResponseWriter, r *http.Request) {
-	if !HasPermission(r, PermissionJudge) {
-		PermissionFailure(w, r, "Cannot commit match unless judge or above")
+func (s *Server) MatchCommitHandler(c *gin.Context) {
+	if !HasPermission(c, PermissionJudge) {
+		c.JSON(http.StatusForbidden, gin.H{"message": "Cannot commit match unless judge or above"})
 		return
 	}
 
 	var req CommitRequest
 
-	body, err := ioutil.ReadAll(r.Body)
+	err := c.BindJSON(&req)
 	if err != nil {
-		log.Print(err)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "Couldn't get CommitRequest",
+			"error":   err.Error(),
+		})
 		return
 	}
 
-	err = json.Unmarshal(body, &req)
+	commit := NewMatchCommit(req)
+	m, err := s.getMatch(c)
+
 	if err != nil {
-		log.Print(err)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "Couldn't get match",
+			"error":   err.Error(),
+		})
 		return
 	}
 
-	c := NewMatchCommit(req)
-	m := s.getMatch(r)
-	m.Commit(c)
-
-	data, err := json.Marshal(UpdateMatchMessage{
-		Match: m,
-	})
-	if err != nil {
-		log.Print(err)
-		return
-	}
-	w.Header().Set("Content-Type", "application/json")
-	_, _ = w.Write(data)
-}
-
-// TournamentListHandler returns a list of all tournaments
-func (s *Server) TournamentListHandler(w http.ResponseWriter, _ *http.Request) {
-	data, err := json.Marshal(&TournamentList{
-		Tournaments: s.DB.asMap(),
-	})
-	if err != nil {
-		log.Fatal(err)
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(data)
+	m.Commit(commit)
+	c.JSON(http.StatusOK, gin.H{"message": "Done"})
 }
 
 // ClearTournamentHandler removes all test tournaments
-func (s *Server) ClearTournamentHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Server) ClearTournamentHandler(c *gin.Context) {
 	err := s.DB.ClearTestTournaments()
 	if err != nil {
-		log.Fatal(err)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "Couldn't clear test tournaments",
+			"error":   err.Error(),
+		})
+		return
 	}
-	s.TournamentListHandler(w, r)
+	s.TournamentListHandler(c)
 }
 
 // ToggleHandler manages who's in the tournament or not
-func (s *Server) ToggleHandler(w http.ResponseWriter, r *http.Request) {
-	if !HasPermission(r, PermissionJudge) {
-		PermissionFailure(w, r, "You need to be a manager to change joins")
+func (s *Server) ToggleHandler(c *gin.Context) {
+	if !HasPermission(c, PermissionJudge) {
+		c.JSON(http.StatusForbidden, gin.H{"message": "You need to be a manager to change joins"})
 		return
 	}
 
-	vars := mux.Vars(r)
-	id := vars["person"]
-	t := s.getTournament(r)
+	t := s.getTournament(c)
 
-	t.TogglePlayer(id)
-	w.Header().Set("Content-Type", "application/json")
-	_, _ = w.Write([]byte("{}"))
+	id, found := c.Params.Get("person")
+	if !found {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Couldn't get person ID"})
+		return
+	}
+
+	err := t.TogglePlayer(id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "Couldn't toggle player",
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Done"})
 }
 
 // SetTimeHandler sets the pause time for the next match
-func (s *Server) SetTimeHandler(w http.ResponseWriter, r *http.Request) {
-	if !HasPermission(r, PermissionCommentator) {
-		PermissionFailure(w, r, "You need to be a commentator to change times")
+func (s *Server) SetTimeHandler(c *gin.Context) {
+	if !HasPermission(c, PermissionCommentator) {
+		c.JSON(http.StatusForbidden, gin.H{"message": "You need to be a commentator to change times"})
 		return
 	}
 
-	vars := mux.Vars(r)
-	t := s.getTournament(r)
-	x, err := strconv.Atoi(vars["time"])
+	t := s.getTournament(c)
+
+	st, found := c.Params.Get("time")
+	if !found {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Couldn't get time"})
+		return
+	}
+
+	x, err := strconv.Atoi(st)
 	if err != nil {
-		log.Fatal(err)
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Couldn't parse time"})
+		return
 	}
 
 	m, err := t.NextMatch()
 	if err != nil {
-		log.Fatal(err)
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Couldn't get next match"})
+		return
 	}
 
 	// If the match is already started, we need to bail
 	if m.IsStarted() {
-		PermissionFailure(w, r, "Match already started")
+		c.JSON(http.StatusForbidden, gin.H{"message": "Match already started"})
 		return
 	}
 
-	m.SetTime(r, x)
-	s.Redirect(w, m.URL())
+	m.SetTime(c, x)
+	c.Redirect(http.StatusTemporaryRedirect, m.URL())
 }
 
 // PeopleHandler returns a list of all the players registered in the app
-func (s *Server) PeopleHandler(w http.ResponseWriter, _ *http.Request) {
+func (s *Server) PeopleHandler(c *gin.Context) {
 	if err := s.DB.LoadPeople(); err != nil {
-		log.Fatal(err)
-	}
-
-	data, err := json.Marshal(&PeopleList{
-		People: s.DB.People,
-	})
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	_, _ = w.Write(data)
-}
-
-// CastersHandler sets casters
-func (s *Server) CastersHandler(w http.ResponseWriter, r *http.Request) {
-	if !HasPermission(r, PermissionJudge) {
-		PermissionFailure(w, r, "You need to be a judge to toggle casters")
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "databaz is ded"})
 		return
 	}
 
-	tm := s.getTournament(r)
-	data, err := ioutil.ReadAll(r.Body)
+	c.JSON(http.StatusOK, gin.H{"people": s.DB.People})
+}
+
+// CastersHandler sets casters
+func (s *Server) CastersHandler(c *gin.Context) {
+	if !HasPermission(c, PermissionJudge) {
+		c.JSON(http.StatusForbidden, gin.H{"message": "You need to be a judge to toggle casters"})
+		return
+	}
+
+	tm := s.getTournament(c)
+	data, err := ioutil.ReadAll(c.Request.Body)
 	if err != nil {
-		PermissionFailure(w, r, err.Error())
+		c.JSON(http.StatusForbidden, gin.H{"message": err.Error()})
 		return
 	}
 
 	spl := strings.Split(string(data), ",")
 
 	if len(spl) > 2 {
-		PermissionFailure(w, r, "Too many casters")
+		c.JSON(http.StatusForbidden, gin.H{"message": "Too many casters"})
 		return
 	}
 
 	tm.SetCasters(spl)
-	w.Header().Set("Content-Type", "application/json")
-	_, _ = w.Write([]byte(`{}`))
+	c.JSON(http.StatusOK, gin.H{"message": "Done"})
 }
 
-func (s *Server) StatsHandler(w http.ResponseWriter, r *http.Request) {
-	out := NewSnapshot(s)
-	data, err := json.Marshal(out)
-	if err != nil {
-		log.Fatal(err)
-	}
-	w.Header().Set("Content-Type", "application/json")
-	_, _ = w.Write(data)
+func (s *Server) StatsHandler(c *gin.Context) {
+	c.JSON(http.StatusOK, NewSnapshot(s))
 }
 
 // UserHandler returns data about the current user
-func (s *Server) UserHandler(w http.ResponseWriter, r *http.Request) {
-	if !HasPermission(r, PermissionPlayer) {
-		w.Header().Set("Content-Type", "application/json")
-		_, _ = w.Write([]byte(`{"authenticated":false}`))
+func (s *Server) UserHandler(c *gin.Context) {
+	if !HasPermission(c, PermissionPlayer) {
+		c.JSON(http.StatusOK, gin.H{"authenticated": false})
 		return
 	}
 
-	p := PersonFromSession(s, r)
-
-	data, err := json.Marshal(p)
-	if err != nil {
-		log.Fatal(err)
-	}
-	w.Header().Set("Content-Type", "application/json")
-	_, _ = w.Write(data)
+	c.JSON(http.StatusOK, PersonFromSession(s, c))
 }
 
 // DisableHandler disables or enables players
-func (s *Server) DisableHandler(w http.ResponseWriter, r *http.Request) {
-	if !HasPermission(r, PermissionProducer) {
-		PermissionFailure(w, r, "You need to be a producer to toggle")
+func (s *Server) DisableHandler(c *gin.Context) {
+	if !HasPermission(c, PermissionProducer) {
+		c.JSON(http.StatusForbidden, gin.H{"message": "You need to be a producer to toggle"})
 		return
 	}
 
-	vars := mux.Vars(r)
-	s.DB.DisablePerson(vars["person"])
-
-	data, err := json.Marshal(s.DB.People)
-	if err != nil {
-		log.Fatal(err)
+	id, found := c.Params.Get("person")
+	if !found {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Couldn't get person ID"})
+		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	_, _ = w.Write(data)
+	s.DB.DisablePerson(id)
+	c.JSON(http.StatusOK, gin.H{"people": s.DB.People})
 }
 
 // LogoutHandler logs out the user
-func (s *Server) LogoutHandler(w http.ResponseWriter, r *http.Request) {
-	p := PersonFromSession(s, r)
+func (s *Server) LogoutHandler(c *gin.Context) {
+	p := PersonFromSession(s, c)
 
 	log.Printf("User '%s' logging out", p.Nick)
-	p.RemoveCookies(w, r)
-	w.Header().Set("Content-Type", "application/json")
-	_, _ = w.Write([]byte(""))
+	p.RemoveCookies(c)
+	c.JSON(http.StatusOK, gin.H{"message": "Done"})
 }
 
 // SettingsHandler gets the POST from the user with a settings update
-func (s *Server) SettingsHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Server) SettingsHandler(c *gin.Context) {
 	var req SettingsPostRequest
 
-	body, err := ioutil.ReadAll(r.Body)
+	err := c.BindJSON(&req)
 	if err != nil {
-		log.Print(err)
-		return
-	}
-
-	err = json.Unmarshal(body, &req)
-	if err != nil {
-		log.Print(err)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Cannot JSON"})
 		return
 	}
 	log.Print(req)
 
-	p := PersonFromSession(s, r)
+	p := PersonFromSession(s, c)
 	if p == nil {
-		w.Header().Set("Content-Type", "application/json")
-		_, _ = w.Write([]byte(`{"message":"oh no pls"}`))
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Person not found"})
 		return
 	}
+
 	p.UpdatePerson(&req)
 	s.DB.SavePerson(p)
 
-	_ = p.StoreCookies(w, r)
+	_ = p.StoreCookies(c)
 
-	data, err := json.Marshal(SettingsUpdateResponse{
-		Redirect: "/",
-		Person:   p,
-	})
-
-	if err != nil {
-		log.Print(err)
-		return
-	}
-	w.Header().Set("Content-Type", "application/json")
-	_, _ = w.Write(data)
+	c.JSON(http.StatusOK, gin.H{"person": p})
 }
 
 // FakeNameHandler returns a fake name for a tournament
-func (s *Server) FakeNameHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Server) FakeNameHandler(c *gin.Context) {
 	name, numeral := faking.FakeTournamentTitle()
-	ret := FakeNameResponse{
-		Name:    name,
-		Numeral: numeral,
-	}
-
-	data, err := json.Marshal(ret)
-
-	if err != nil {
-		log.Print(err)
-		return
-	}
-	w.Header().Set("Content-Type", "application/json")
-	_, _ = w.Write(data)
+	c.JSON(http.StatusOK, gin.H{
+		"name":    name,
+		"numeral": numeral,
+	})
 }
 
-func (s *Server) startSimulator(w http.ResponseWriter, r *http.Request) {
+func (s *Server) startSimulator(c *gin.Context) {
 	var err error
 
 	// If we don't already have a simulator, make one
@@ -667,106 +561,114 @@ func (s *Server) startSimulator(w http.ResponseWriter, r *http.Request) {
 		log.Print("Creating new simulator")
 		s.simulator, err = NewSimulator(s)
 		if err != nil {
-			log.Fatal(err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
 		}
 	}
 
-	vars := mux.Vars(r)
-
+	tm := s.getTournament(c)
 	err = s.simulator.Connect()
 	if err != nil {
-		log.Fatal(err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
-	s.simulator.Start(vars["id"])
-	w.Header().Set("Content-Type", "application/json")
-	_, _ = w.Write([]byte(`{"running": true}`))
+	s.simulator.Start(tm.ID)
+	c.JSON(http.StatusOK, gin.H{"running": true})
 }
 
-func (s *Server) stopSimulator(w http.ResponseWriter, r *http.Request) {
+func (s *Server) stopSimulator(c *gin.Context) {
 	s.simulator.Stop()
-	w.Header().Set("Content-Type", "application/json")
-	_, _ = w.Write([]byte(`{"running": false}`))
+	c.JSON(http.StatusOK, gin.H{"running": false})
+}
+
+func (s *Server) RequireJudge() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		p := PersonFromSession(s, c)
+		if p == nil || p.Userlevel < PermissionJudge {
+			c.JSON(http.StatusUnauthorized, gin.H{"message": "Permissions required"})
+			c.Abort()
+		}
+		c.Next()
+	}
 }
 
 // BuildRouter sets up the routes
-func (s *Server) BuildRouter(ws *websockets.Server) http.Handler {
-	n := mux.NewRouter()
-	n.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if _, err := os.Stat("js/dist/index.html"); !os.IsNotExist(err) {
-			http.ServeFile(w, r, "js/dist/index.html")
-			return
-		}
+func (s *Server) BuildRouter(ws *websockets.Server) *gin.Engine {
+	router := gin.Default()
 
-		http.ServeFile(w, r, "js/index.html")
-	})
-	r := n.PathPrefix("/api").Subrouter()
+	router.Use(sessions.Sessions(CookieStoreName, CookieStore))
 
-	r.HandleFunc("/people/", s.PeopleHandler)
-	r.HandleFunc("/people/stats/", s.StatsHandler)
-	r.HandleFunc("/user/", s.UserHandler)
-	r.HandleFunc("/user/logout/", s.LogoutHandler)
-	r.HandleFunc("/user/settings/", s.SettingsHandler)
-	r.HandleFunc("/user/{person}/disable", s.DisableHandler)
+	index := "js/index.html"
+	if _, err := os.Stat(index); !os.IsNotExist(err) {
+		router.LoadHTMLFiles(index)
+		router.NoRoute(func(c *gin.Context) {
+			if strings.HasPrefix(c.Request.URL.Path, "/api") {
+				c.JSON(404, nil)
+				return
+			}
+			c.HTML(200, "index.html", gin.H{})
+		})
+	}
 
-	r.HandleFunc("/fake/name/", s.FakeNameHandler)
+	api := router.Group("/api")
 
-	r.HandleFunc("/tournament/", s.TournamentListHandler)
-	r.HandleFunc("/tournament/clear/", s.ClearTournamentHandler)
-	r.HandleFunc("/tournament/{id}/", s.TournamentHandler)
+	// Public routes that don't require any authentication
+	api.GET("/people/", s.PeopleHandler)
+	api.GET("/people/stats/", s.StatsHandler)
+	api.GET("/user/", s.UserHandler)
+	api.GET("/user/logout/", s.LogoutHandler)
+	api.GET("/user/settings/", s.SettingsHandler)
+	api.GET("/fake/name/", s.FakeNameHandler)
+	api.GET("/tournaments/", s.TournamentListHandler)
+	// api.GET("/tournaments/:id", s.TournamentHandler)
+	api.GET("/facebook/login", s.handleFacebookLogin)
+	api.GET("/facebook/oauth2callback", s.handleFacebookCallback)
 
-	// TODO(thiderman): Normalize for all to use /tournament
-	r.HandleFunc("/new/", s.NewHandler)
-	r.HandleFunc("/{id}/start/", s.StartTournamentHandler)
-	r.HandleFunc("/{id}/usurp/", s.UsurpTournamentHandler)
-	r.HandleFunc("/{id}/autoplay/", s.AutoplayTournamentHandler)
-	r.HandleFunc("/{id}/join/", s.JoinHandler)
-	r.HandleFunc("/{id}/edit/", s.EditHandler)
-	r.HandleFunc("/{id}/reshuffle/", s.ReshuffleHandler)
-	r.HandleFunc("/{id}/backfill/", s.BackfillSemisHandler)
-	r.HandleFunc("/{id}/casters/", s.CastersHandler)
-	r.HandleFunc("/{id}/toggle/{person}", s.ToggleHandler)
-	r.HandleFunc("/{id}/time/{time}", s.SetTimeHandler)
-	r.HandleFunc("/{id}/credits/", s.CreditsHandler)
+	// Protected routes - everything past this points requires that you
+	// are at least a judge.
+	api.Use(s.RequireJudge())
+
+	api.POST("/user/:person/disable", s.DisableHandler)
+	api.DELETE("/tournaments/", s.ClearTournamentHandler)
+
+	api.POST("/tournaments/", s.NewHandler)
+
+	t := api.Group("/tournaments/:id")
+	t.GET("/autoplay/", s.AutoplayTournamentHandler)
+	t.GET("/credits/", s.CreditsHandler)
+	t.GET("/join/", s.JoinHandler)
+	t.GET("/reshuffle/", s.ReshuffleHandler)
+	t.GET("/time/:time", s.SetTimeHandler)
+	t.GET("/toggle/:person", s.ToggleHandler)
+	t.GET("/usurp/", s.UsurpTournamentHandler)
+	t.GET("/start/", s.StartTournamentHandler)
+
+	t.POST("/backfill/", s.BackfillSemisHandler)
+	t.POST("/casters/", s.CastersHandler)
+	t.POST("/edit/", s.EditHandler)
+
+	m := t.Group("/match/:index")
+
+	m.POST("/", s.MatchCommitHandler)
+	m.POST("/:action/", s.MatchHandler)
+
+	api.POST("/simulator/start/:id", s.startSimulator)
+	api.POST("/simulator/stop/:id", s.stopSimulator)
 
 	// Add the fallback static serving
-	n.PathPrefix("/static/js").Handler(http.StripPrefix("/static/js", http.FileServer(http.Dir("./js/dist/static/js"))))
-	n.PathPrefix("/static/css").Handler(http.StripPrefix("/static/css", http.FileServer(http.Dir("./js/dist/static/css"))))
-	n.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./js/static/"))))
+	// router.PathPrefix("/static/js").Handler(http.StripPrefix("/static/js", http.FileServer(http.Dir("./js/dist/static/js"))))
+	// router.PathPrefix("/static/css").Handler(http.StripPrefix("/static/css", http.FileServer(http.Dir("./js/dist/static/css"))))
+	// router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./js/static/"))))
 
 	// Install the websockets
-	r.Handle("/auto-updater", websocket.Handler(ws.OnConnected))
+	// api.Handle("/auto-updater", websocket.Handler(ws.OnConnected))
 
-	// Handle Facebook
-	s.FacebookRouter(r)
-
-	m := r.PathPrefix("/tournament/{id}/{index:[0-9]+}").Subrouter()
-
-	m.HandleFunc("/end/", s.MatchEndHandler)
-	m.HandleFunc("/start/", s.MatchStartHandler)
-	m.HandleFunc("/reset/", s.MatchResetHandler)
-	m.HandleFunc("/commit/", s.MatchCommitHandler)
-
-	r.HandleFunc("/simulator/start/{id}", s.startSimulator)
-	r.HandleFunc("/simulator/stop/{id}", s.stopSimulator)
-
-	return n
+	return router
 }
 
 // Serve serves forever
 func (s *Server) Serve() error {
-	port := 42001
-	e := os.Getenv("DF_PORT")
-	if e != "" {
-		var err error
-		port, err = strconv.Atoi(e)
-
-		if err != nil {
-			log.Fatalf("Port '%s' is not an integer", e)
-		}
-	}
-
-	log.Printf("Listening HTTP on :%d", port)
-	return http.ListenAndServe(fmt.Sprintf(":%d", port), s.logger)
+	return s.router.Run(fmt.Sprintf(":%d", s.config.Port))
 }
 
 // SendWebsocketUpdate sends an update to all listening sockets
@@ -798,22 +700,29 @@ func (s *Server) EnableWebsocketUpdates() {
 	broadcasting = true
 }
 
-// TODO(thiderman): Should definitely return an error
-func (s *Server) getMatch(r *http.Request) *Match {
-	vars := mux.Vars(r)
+func (s *Server) getMatch(c *gin.Context) (*Match, error) {
+	tm := s.getTournament(c)
 
-	t := s.DB.tournamentRef[vars["id"]]
-	index, err := strconv.Atoi(vars["index"])
-	if err != nil {
-		return nil
+	i, found := c.Params.Get("")
+	if !found {
+		return nil, errors.New("match index not set in params")
 	}
 
-	return t.Matches[index]
+	index, err := strconv.Atoi(i)
+	if err != nil {
+		return nil, err
+	}
+
+	return tm.Matches[index], nil
 }
 
-func (s *Server) getTournament(r *http.Request) *Tournament {
-	vars := mux.Vars(r)
-	tm := s.DB.tournamentRef[vars["id"]]
+func (s *Server) getTournament(c *gin.Context) *Tournament {
+	id, found := c.Params.Get("id")
+	if !found {
+		log.Printf("going for id in URL but none is there")
+		return nil
+	}
+	tm := s.DB.tournamentRef[id]
 	return tm
 }
 
@@ -831,40 +740,14 @@ func (s *Server) Redirect(w http.ResponseWriter, url string) {
 }
 
 // HasPermission checks that the user is allowed to do an action
-func HasPermission(r *http.Request, lvl int) bool {
-	s, _ := CookieStore.Get(r, "session")
-	l, ok := s.Values["userlevel"]
-	if !ok {
-		// log.Print("Userlevel missing for auth")
+func HasPermission(c *gin.Context, lvl int) bool {
+	session := sessions.Default(c)
+	l := session.Get("userlevel")
+
+	// Nothing set in the session - no permission
+	if l == nil {
 		return false
 	}
 
 	return l.(int) >= lvl
-}
-
-// PermissionFailure returns an error 401
-func PermissionFailure(w http.ResponseWriter, r *http.Request, msg string) {
-	GeneralResponse(w, r, http.StatusUnauthorized, msg)
-}
-
-// ErrorResponse returns an error with the statuscode of 400
-func ErrorResponse(w http.ResponseWriter, r *http.Request, msg string) {
-	GeneralResponse(w, r, http.StatusBadRequest, msg)
-}
-
-// GeneralResponse returns an error with the statuscode of status, status being
-// the input of the function. Also redirects the user to the best of its ability
-// to / (meaning errors are completely ignored :') ).
-func GeneralResponse(w http.ResponseWriter, _ *http.Request, status int, msg string) {
-	data, err := json.Marshal(GeneralRedirect{
-		Message:  msg,
-		Redirect: "/",
-	})
-	if err != nil {
-		log.Print(err)
-		return
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
-	_, _ = w.Write(data)
 }

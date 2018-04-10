@@ -13,7 +13,7 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/gorilla/mux"
+	"github.com/gin-gonic/gin"
 	uuid "github.com/nu7hatch/gouuid"
 )
 
@@ -36,7 +36,12 @@ type FacebookAuthResponse struct {
 	Token string `json:"access_token"`
 }
 
-func (s *Server) handleFacebookLogin(w http.ResponseWriter, r *http.Request) {
+type facebookCallback struct {
+	State string `form:"state"`
+	Code  string `form:"code"`
+}
+
+func (s *Server) handleFacebookLogin(c *gin.Context) {
 	URL, err := url.Parse(s.config.oauthConf.Endpoint.AuthURL)
 	if err != nil {
 		log.Fatal("Parse: ", err)
@@ -49,23 +54,23 @@ func (s *Server) handleFacebookLogin(w http.ResponseWriter, r *http.Request) {
 	parameters.Add("state", oauthStateString)
 	URL.RawQuery = parameters.Encode()
 	url := URL.String()
-	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
+	c.Redirect(http.StatusTemporaryRedirect, url)
 }
 
-func (s *Server) handleFacebookCallback(w http.ResponseWriter, r *http.Request) {
-	state := r.FormValue("state")
-	if state != oauthStateString {
-		fmt.Printf("invalid oauth state, expected '%s', got '%s'\n", oauthStateString, state)
-		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+func (s *Server) handleFacebookCallback(c *gin.Context) {
+	var cb facebookCallback
+	c.Bind(&cb)
+
+	if cb.State != oauthStateString {
+		fmt.Printf("invalid oauth state, expected '%s', got '%s'\n", oauthStateString, cb.State)
+		c.Redirect(http.StatusTemporaryRedirect, "/")
 		return
 	}
 
-	code := r.FormValue("code")
-
-	token, err := s.config.oauthConf.Exchange(context.TODO(), code)
+	token, err := s.config.oauthConf.Exchange(context.TODO(), cb.Code)
 	if err != nil {
 		fmt.Printf("s.config.oauthConf.Exchange() failed with '%s'\n", err)
-		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+		c.Redirect(http.StatusTemporaryRedirect, "/")
 		return
 	}
 
@@ -74,7 +79,7 @@ func (s *Server) handleFacebookCallback(w http.ResponseWriter, r *http.Request) 
 	resp, err := http.Get(fbURL + escToken)
 	if err != nil {
 		fmt.Printf("Get: %s\n", err)
-		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+		c.Redirect(http.StatusTemporaryRedirect, "/")
 		return
 	}
 	defer resp.Body.Close()
@@ -82,7 +87,7 @@ func (s *Server) handleFacebookCallback(w http.ResponseWriter, r *http.Request) 
 	response, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		fmt.Printf("ReadAll: %s\n", err)
-		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+		c.Redirect(http.StatusTemporaryRedirect, "/")
 		return
 	}
 
@@ -100,15 +105,18 @@ func (s *Server) handleFacebookCallback(w http.ResponseWriter, r *http.Request) 
 	ep, err := s.DB.GetPerson(req.ID)
 	if err == nil && ep != nil {
 		// This player already exists, so we should just log them in.
-		_ = ep.StoreCookies(w, r)
+		err = ep.StoreCookies(c)
+		if err != nil {
+			log.Fatal(err)
+		}
 		log.Printf("Sending already existing player '%s' to frontpage", ep.Nick)
 
-		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+		c.Redirect(http.StatusTemporaryRedirect, "/")
 		return
 	}
 
 	p := CreateFromFacebook(s, req)
-	err = p.StoreCookies(w, r)
+	err = p.StoreCookies(c)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -119,11 +127,5 @@ func (s *Server) handleFacebookCallback(w http.ResponseWriter, r *http.Request) 
 	v.Add("nick", p.Nick)
 
 	lastURL := "/facebook/finalize?" + v.Encode()
-	http.Redirect(w, r, lastURL, http.StatusTemporaryRedirect)
-}
-
-// FacebookRouter builds the paths for Facebook handling
-func (s *Server) FacebookRouter(r *mux.Router) {
-	r.HandleFunc("/facebook/login", s.handleFacebookLogin)
-	r.HandleFunc("/facebook/oauth2callback", s.handleFacebookCallback)
+	c.Redirect(http.StatusTemporaryRedirect, lastURL)
 }

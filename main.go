@@ -37,9 +37,6 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// Set up the paths and the websocket listeners
-	s.RegisterHandlersAndListeners()
-
 	// Start the live updater
 	listener, err := towerfall.NewListener(db)
 	if err != nil {

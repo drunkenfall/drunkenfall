@@ -6,11 +6,11 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
-	"net/http"
 	"time"
 
 	"github.com/deckarep/golang-set"
 	"github.com/drunkenfall/drunkenfall/faking"
+	"github.com/gin-gonic/gin"
 )
 
 // Tournament is the main container of data for this app.
@@ -46,7 +46,7 @@ const matchLength = 10
 const finalLength = 20
 
 // NewTournament returns a completely new Tournament
-func NewTournament(name, id, cover string, scheduledStart time.Time, r *http.Request, server *Server) (*Tournament, error) {
+func NewTournament(name, id, cover string, scheduledStart time.Time, c *gin.Context, server *Server) (*Tournament, error) {
 	t := Tournament{
 		Name:        name,
 		ID:          id,
@@ -65,7 +65,7 @@ func NewTournament(name, id, cover string, scheduledStart time.Time, r *http.Req
 		"new_tournament", "{name} ({id}) created",
 		"name", name,
 		"id", id,
-		"person", PersonFromSession(t.server, r))
+		"person", PersonFromSession(t.server, c))
 
 	t.Persist()
 	return &t, nil
@@ -223,7 +223,7 @@ func (t *Tournament) ShufflePlayers() {
 }
 
 // StartTournament will generate the tournament.
-func (t *Tournament) StartTournament(r *http.Request) error {
+func (t *Tournament) StartTournament(c *gin.Context) error {
 	ps := len(t.Players)
 	if ps < minPlayers || ps > maxPlayers {
 		return fmt.Errorf("tournament needs %d or more players and %d or less, got %d", minPlayers, maxPlayers, ps)
@@ -254,15 +254,15 @@ func (t *Tournament) StartTournament(r *http.Request) error {
 	t.Started = time.Now()
 
 	// Get the first match and set the scheduled date to be now.
-	t.Matches[0].SetTime(r, 0)
+	t.Matches[0].SetTime(c, 0)
 	t.LogEvent(
 		"start", "Tournament started",
-		"person", PersonFromSession(t.server, r))
+		"person", PersonFromSession(t.server, c))
 	return t.Persist()
 }
 
 // Reshuffle shuffles the players of an already started tournament
-func (t *Tournament) Reshuffle(r *http.Request) error {
+func (t *Tournament) Reshuffle(c *gin.Context) error {
 	if !t.IsRunning() || t.Matches[0].IsStarted() {
 		return errors.New("cannot reshuffle")
 	}
@@ -276,7 +276,7 @@ func (t *Tournament) Reshuffle(r *http.Request) error {
 	t.ShufflePlayers()
 	t.LogEvent(
 		"reshuffle", "Players reshuffled",
-		"person", PersonFromSession(t.server, r))
+		"person", PersonFromSession(t.server, c))
 	t.Persist()
 
 	return nil
@@ -515,7 +515,7 @@ func (t *Tournament) UpdateRunnerups() error {
 
 // BackfillSemis takes a few Person IDs and shuffles those into the remaining slots
 // of the semi matches
-func (t *Tournament) BackfillSemis(r *http.Request, ids []string) error {
+func (t *Tournament) BackfillSemis(c *gin.Context, ids []string) error {
 	// If we're on the last playoff, we should backfill the semis with runnerups
 	// until they have have full seats.
 	// The amount of players needed; 8 minus the current amount
@@ -547,10 +547,9 @@ func (t *Tournament) BackfillSemis(r *http.Request, ids []string) error {
 		"backfill_semi", "Backfilling {count} semi players",
 		"count", semiPlayers,
 		"players", added,
-		"person", PersonFromSession(t.server, r))
+		"person", PersonFromSession(t.server, c))
 
-	t.Persist()
-	return nil
+	return t.Persist()
 }
 
 // BackfillsNeeded returns the number of players needed to be backfilled
@@ -577,7 +576,7 @@ func (t *Tournament) NextMatch() (*Match, error) {
 }
 
 // AwardMedals places the winning players in the Winners position
-func (t *Tournament) AwardMedals(r *http.Request, m *Match) error {
+func (t *Tournament) AwardMedals(c *gin.Context, m *Match) error {
 	if m.Kind != final {
 		return errors.New("awarding medals outside of the final")
 	}
@@ -588,7 +587,7 @@ func (t *Tournament) AwardMedals(r *http.Request, m *Match) error {
 	t.LogEvent(
 		"tournament_end",
 		"Tournament finished",
-		"person", PersonFromSession(t.server, r))
+		"person", PersonFromSession(t.server, c))
 
 	t.Ended = time.Now()
 	t.Persist()
@@ -702,10 +701,10 @@ func (t *Tournament) ArchersHarmed() int {
 }
 
 // SetupFakeTournament creates a fake tournament
-func SetupFakeTournament(r *http.Request, s *Server, req *NewRequest) *Tournament {
+func SetupFakeTournament(c *gin.Context, s *Server, req *NewRequest) *Tournament {
 	title, id := req.Name, req.ID
 
-	t, err := NewTournament(title, id, "", time.Now().Add(time.Hour), r, s)
+	t, err := NewTournament(title, id, "", time.Now().Add(time.Hour), c, s)
 	if err != nil {
 		// TODO this is the least we can do
 		log.Printf("error creating tournament: %v", err)
