@@ -14,31 +14,16 @@
 
   <h1>DrunkenFall 2018</h1>
 
-  <!--
-  <p>Pellentesque dapibus suscipit ligula.  Donec posuere augue in
-  quam.  Etiam vel tortor sodales tellus ultricies commodo.
-  Suspendisse potenti.  Aenean in sem ac leo mollis blandit.  Donec
-  neque quam, dignissim in, mollis nec, sagittis eu, wisi.  Phasellus
-  lacus.  Etiam laoreet quam sed arcu.  Phasellus at dui in ligula
-  mollis ultricies.  Integer placerat tristique nisl.  Praesent augue.
-  Fusce commodo.  Vestibulum convallis, lorem a tempus semper, dui dui
-  euismod elit, vitae placerat urna tortor vitae lacus.  Nullam libero
-  mauris, consequat quis, varius et, dictum id, arcu.  Mauris mollis
-  tincidunt felis.  Aliquam feugiat tellus ut neque.  Nulla facilisis,
-  risus a rhoncus fermentum, tellus tellus lacinia purus, et dictum
-  nunc justo sit amet elit. </p>
- -->
-
   <div class="tournaments" :class="{ loading: !tournaments }">
     <div
       v-for="(t, i) in currentLeague"
       :tournament="t.id"
       track-by="id"
       @click="gotoTournament(t)"
-      :class="{clickable: t.isEnded || t.isNext}">
+      :class="{clickable: t.isEnded || t.isNext || t.isRunning}">
       <img class="cover" :src="t.cover" />
       <div class="text">
-        <div v-if="t.isEnded || t.isNext" class="title">
+        <div v-if="t.isEnded || t.isRunning || t.isNext" class="title">
           {{t.subtitle}}
         </div>
         <div v-else-if="t.isUpcoming && i < 8" class="title dark">
@@ -72,7 +57,7 @@ export default {
 
   methods: {
     gotoTournament (t) {
-      if (t.isEnded || t.isNext) {
+      if (t.isEnded || t.isNext || t.isRunning) {
         return this.$router.push({name: "tournament", params: {tournament: t.id}})
       }
     },
