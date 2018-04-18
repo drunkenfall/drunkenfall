@@ -1,4 +1,4 @@
-import Vue from 'vue'
+import store from '../core/store'
 import { isGoZeroDateOrFalsy } from '../util/date.js'
 import moment from 'moment'
 import Event from './Event.js'
@@ -101,7 +101,10 @@ export default class Tournament {
   }
 
   get isNext () {
-    return Vue.$store.getters.upcoming[0].id === this.id
+    if (store.getters.upcoming.length === 0) {
+      return false
+    }
+    return store.getters.upcoming[0].id === this.id
   }
 
   get isToday () {
