@@ -107,12 +107,6 @@ func (s *Server) NewHandler(c *gin.Context) {
 
 	plog := s.logger.With(zap.String("path", c.Request.URL.Path))
 
-	if !HasPermission(c, PermissionProducer) {
-		plog.Info("Permission denied")
-		c.JSON(http.StatusForbidden, gin.H{"message": "Cannot create tournament unless producer"})
-		return
-	}
-
 	err := c.BindJSON(&req)
 	if err != nil {
 		plog.Error("Bind failed", zap.Error(err))
@@ -204,15 +198,11 @@ func (s *Server) EditHandler(c *gin.Context) {
 
 // BackfillSemisHandler inserts players into the semis
 func (s *Server) BackfillSemisHandler(c *gin.Context) {
-	plog := s.logger.With(zap.String("path", c.Request.URL.Path))
-	if !HasPermission(c, PermissionJudge) {
-		plog.Info("Permission denied")
-		c.JSON(http.StatusForbidden, gin.H{"message": "You need to be a judge to backfill"})
-		return
-	}
-
 	tm := s.getTournament(c)
-	tlog := plog.With(zap.String("tournament", tm.ID))
+	tlog := s.logger.With(
+		zap.String("path", c.Request.URL.Path),
+		zap.String("tournament", tm.ID),
+	)
 
 	data, err := ioutil.ReadAll(c.Request.Body)
 	if err != nil {
@@ -236,15 +226,11 @@ func (s *Server) BackfillSemisHandler(c *gin.Context) {
 
 // ReshuffleHandler reshuffles the player order of the tournament
 func (s *Server) ReshuffleHandler(c *gin.Context) {
-	plog := s.logger.With(zap.String("path", c.Request.URL.Path))
-	if !HasPermission(c, PermissionProducer) {
-		plog.Info("Permission denied")
-		c.JSON(http.StatusForbidden, gin.H{"message": "You need to be a producer to reshuffle"})
-		return
-	}
-
 	tm := s.getTournament(c)
-	tlog := plog.With(zap.String("tournament", tm.ID))
+	tlog := s.logger.With(
+		zap.String("path", c.Request.URL.Path),
+		zap.String("tournament", tm.ID),
+	)
 
 	err := tm.Reshuffle(c)
 	if err != nil {
@@ -263,7 +249,8 @@ func (s *Server) CreditsHandler(c *gin.Context) {
 	tm := s.getTournament(c)
 	tlog := s.logger.With(
 		zap.String("path", c.Request.URL.Path),
-		zap.String("tournament", tm.ID))
+		zap.String("tournament", tm.ID),
+	)
 
 	credits, err := tm.GetCredits()
 
@@ -279,15 +266,11 @@ func (s *Server) CreditsHandler(c *gin.Context) {
 
 // StartTournamentHandler starts tournaments
 func (s *Server) StartTournamentHandler(c *gin.Context) {
-	plog := s.logger.With(zap.String("path", c.Request.URL.Path))
-	if !HasPermission(c, PermissionCommentator) {
-		plog.Info("Permission denied")
-		c.JSON(http.StatusForbidden, gin.H{"message": "Cannot start tournament unless commentator or above"})
-		return
-	}
-
 	tm := s.getTournament(c)
-	tlog := plog.With(zap.String("tournament", tm.ID))
+	tlog := s.logger.With(
+		zap.String("path", c.Request.URL.Path),
+		zap.String("tournament", tm.ID),
+	)
 
 	err := tm.StartTournament(c)
 	if err != nil {
@@ -302,28 +285,25 @@ func (s *Server) StartTournamentHandler(c *gin.Context) {
 
 // UsurpTournamentHandler usurps tournaments
 func (s *Server) UsurpTournamentHandler(c *gin.Context) {
-	if !HasPermission(c, PermissionCommentator) {
-		c.JSON(http.StatusForbidden, gin.H{"message": "Cannot usurp tournament unless commentator or above"})
-		return
-	}
-
 	tm := s.getTournament(c)
+	tlog := s.logger.With(
+		zap.String("path", c.Request.URL.Path),
+		zap.String("tournament", tm.ID),
+	)
+
 	err := tm.UsurpTournament()
 	if err != nil {
+		tlog.Info("Could not usurp tournament", zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
 
+	tlog.Info("Tournament usurped")
 	c.JSON(http.StatusOK, gin.H{"redirect": tm.URL()})
 }
 
-// AutoplayTournamentHandler usurps tournaments
+// AutoplayTournamentHandler plays a section of the tournament automatically
 func (s *Server) AutoplayTournamentHandler(c *gin.Context) {
-	if !HasPermission(c, PermissionProducer) {
-		c.JSON(http.StatusForbidden, gin.H{"message": "Cannot autoplay tournament unless producer or above"})
-		return
-	}
-
 	tm := s.getTournament(c)
 	tm.AutoplaySection()
 	c.JSON(http.StatusOK, gin.H{"redirect": tm.URL()})
@@ -331,13 +311,10 @@ func (s *Server) AutoplayTournamentHandler(c *gin.Context) {
 
 // MatchHandler is the common function for match operations.
 func (s *Server) MatchHandler(c *gin.Context) {
-	if !HasPermission(c, PermissionJudge) {
-		c.JSON(http.StatusForbidden, gin.H{"message": "Cannot modify match unless judge or above"})
-		return
-	}
-
+	plog := s.logger.With(zap.String("path", c.Request.URL.Path))
 	m, err := s.getMatch(c)
 	if err != nil {
+		plog.Info("Could not get match")
 		c.JSON(http.StatusBadRequest, gin.H{
 			"message": "Couldn't get match",
 			"error":   err.Error(),
@@ -345,8 +322,14 @@ func (s *Server) MatchHandler(c *gin.Context) {
 		return
 	}
 
+	mlog := plog.With(
+		zap.String("tournament", m.Tournament.ID),
+		zap.Int("match", m.Index),
+	)
+
 	action, found := c.Params.Get("action")
 	if !found {
+		mlog.Info("Action was not set")
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Action not set"})
 		return
 	}
@@ -363,6 +346,7 @@ func (s *Server) MatchHandler(c *gin.Context) {
 	}
 
 	if err != nil {
+		mlog.Error("Action failed", zap.Error(err))
 		c.JSON(http.StatusBadRequest, gin.H{
 			"message": "Match action failed",
 			"action":  action,
@@ -371,6 +355,7 @@ func (s *Server) MatchHandler(c *gin.Context) {
 		return
 	}
 
+	mlog.Info("Action executed", zap.String("action", action))
 	c.JSON(http.StatusOK, gin.H{
 		"action":  action,
 		"message": "Done",
@@ -379,15 +364,12 @@ func (s *Server) MatchHandler(c *gin.Context) {
 
 // MatchCommitHandler commits a single round of a match
 func (s *Server) MatchCommitHandler(c *gin.Context) {
-	if !HasPermission(c, PermissionJudge) {
-		c.JSON(http.StatusForbidden, gin.H{"message": "Cannot commit match unless judge or above"})
-		return
-	}
-
 	var req CommitRequest
+	plog := s.logger.With(zap.String("path", c.Request.URL.Path))
 
 	err := c.BindJSON(&req)
 	if err != nil {
+		plog.Info("Couldn't get CommitRequest")
 		c.JSON(http.StatusBadRequest, gin.H{
 			"message": "Couldn't get CommitRequest",
 			"error":   err.Error(),
@@ -399,6 +381,7 @@ func (s *Server) MatchCommitHandler(c *gin.Context) {
 	m, err := s.getMatch(c)
 
 	if err != nil {
+		plog.Info("Couldn't get match")
 		c.JSON(http.StatusBadRequest, gin.H{
 			"message": "Couldn't get match",
 			"error":   err.Error(),
@@ -407,39 +390,51 @@ func (s *Server) MatchCommitHandler(c *gin.Context) {
 	}
 
 	m.Commit(commit)
+	plog.Info(
+		"Match committed",
+		zap.String("tournament", m.Tournament.ID),
+		zap.Int("match", m.Index),
+	)
 	c.JSON(http.StatusOK, gin.H{"message": "Done"})
 }
 
 // ClearTournamentHandler removes all test tournaments
 func (s *Server) ClearTournamentHandler(c *gin.Context) {
+	plog := s.logger.With(zap.String("path", c.Request.URL.Path))
+
 	err := s.DB.ClearTestTournaments()
 	if err != nil {
+		plog.Info("Couldn't clear test tournaments")
 		c.JSON(http.StatusBadRequest, gin.H{
 			"message": "Couldn't clear test tournaments",
 			"error":   err.Error(),
 		})
 		return
 	}
+
+	plog.Info("Test tournaments cleared")
 	s.TournamentListHandler(c)
 }
 
 // ToggleHandler manages who's in the tournament or not
 func (s *Server) ToggleHandler(c *gin.Context) {
-	if !HasPermission(c, PermissionJudge) {
-		c.JSON(http.StatusForbidden, gin.H{"message": "You need to be a manager to change joins"})
-		return
-	}
-
 	t := s.getTournament(c)
+	tlog := s.logger.With(
+		zap.String("path", c.Request.URL.Path),
+		zap.String("tournament", t.ID),
+	)
 
 	id, found := c.Params.Get("person")
 	if !found {
+		tlog.Info("Couldn't get person ID")
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Couldn't get person ID"})
 		return
 	}
+	pslog := tlog.With(zap.String("player", id))
 
 	err := t.TogglePlayer(id)
 	if err != nil {
+		pslog.Error("Could not toggle player")
 		c.JSON(http.StatusBadRequest, gin.H{
 			"message": "Couldn't toggle player",
 			"error":   err.Error(),
@@ -447,78 +442,92 @@ func (s *Server) ToggleHandler(c *gin.Context) {
 		return
 	}
 
+	pslog.Info("Player toggled")
 	c.JSON(http.StatusOK, gin.H{"message": "Done"})
 }
 
 // SetTimeHandler sets the pause time for the next match
 func (s *Server) SetTimeHandler(c *gin.Context) {
-	if !HasPermission(c, PermissionCommentator) {
-		c.JSON(http.StatusForbidden, gin.H{"message": "You need to be a commentator to change times"})
-		return
-	}
-
 	t := s.getTournament(c)
+	tlog := s.logger.With(
+		zap.String("path", c.Request.URL.Path),
+		zap.String("tournament", t.ID),
+	)
 
 	st, found := c.Params.Get("time")
 	if !found {
+		tlog.Error("Couldn't get time")
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Couldn't get time"})
 		return
 	}
 
 	x, err := strconv.Atoi(st)
 	if err != nil {
+		tlog.Error("Couldn't parse time")
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Couldn't parse time"})
 		return
 	}
 
 	m, err := t.NextMatch()
 	if err != nil {
+		tlog.Error("Couldn't get next match")
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Couldn't get next match"})
 		return
 	}
 
+	mlog := tlog.With(zap.Int("match", m.Index))
+
 	// If the match is already started, we need to bail
 	if m.IsStarted() {
+		mlog.Warn("Match already started")
 		c.JSON(http.StatusForbidden, gin.H{"message": "Match already started"})
 		return
 	}
 
 	m.SetTime(c, x)
+	mlog.Info("Time set", zap.Int("minutes", x))
 	c.JSON(http.StatusOK, gin.H{"redirect": m.URL()})
 }
 
 // PeopleHandler returns a list of all the players registered in the app
 func (s *Server) PeopleHandler(c *gin.Context) {
+	plog := s.logger.With(zap.String("path", c.Request.URL.Path))
 	if err := s.DB.LoadPeople(); err != nil {
+		plog.Error("oh no databaz is ded")
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "databaz is ded"})
 		return
 	}
 
+	plog.Info("Players returned")
 	c.JSON(http.StatusOK, gin.H{"people": s.DB.People})
 }
 
 // CastersHandler sets casters
 func (s *Server) CastersHandler(c *gin.Context) {
-	if !HasPermission(c, PermissionJudge) {
-		c.JSON(http.StatusForbidden, gin.H{"message": "You need to be a judge to toggle casters"})
-		return
-	}
-
 	tm := s.getTournament(c)
+	tlog := s.logger.With(
+		zap.String("path", c.Request.URL.Path),
+		zap.String("tournament", tm.ID),
+	)
+
 	data, err := ioutil.ReadAll(c.Request.Body)
 	if err != nil {
+		tlog.Error("Couldn't read body")
 		c.JSON(http.StatusForbidden, gin.H{"message": err.Error()})
 		return
 	}
 
 	spl := strings.Split(string(data), ",")
+	clog := tlog.With(zap.String("casters", string(data)))
 
 	if len(spl) > 2 {
+		clog.Error("Too many casters set")
 		c.JSON(http.StatusForbidden, gin.H{"message": "Too many casters"})
 		return
 	}
 
 	tm.SetCasters(spl)
+	clog.Info("Casters set")
 	c.JSON(http.StatusOK, gin.H{"message": "Done"})
 }
 
@@ -528,7 +537,9 @@ func (s *Server) StatsHandler(c *gin.Context) {
 
 // UserHandler returns data about the current user
 func (s *Server) UserHandler(c *gin.Context) {
+	plog := s.logger.With(zap.String("path", c.Request.URL.Path))
 	if !HasPermission(c, PermissionPlayer) {
+		plog.Info("Not signed in")
 		c.JSON(http.StatusOK, gin.H{"authenticated": false})
 		return
 	}
@@ -538,18 +549,17 @@ func (s *Server) UserHandler(c *gin.Context) {
 
 // DisableHandler disables or enables players
 func (s *Server) DisableHandler(c *gin.Context) {
-	if !HasPermission(c, PermissionProducer) {
-		c.JSON(http.StatusForbidden, gin.H{"message": "You need to be a producer to toggle"})
-		return
-	}
+	plog := s.logger.With(zap.String("path", c.Request.URL.Path))
 
 	id, found := c.Params.Get("person")
 	if !found {
+		plog.Error("Couldn't get person ID")
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Couldn't get person ID"})
 		return
 	}
 
 	s.DB.DisablePerson(id)
+	plog.Info("Person disabled", zap.String("person", id))
 	c.JSON(http.StatusOK, gin.H{"people": s.DB.People})
 }
 
@@ -557,24 +567,30 @@ func (s *Server) DisableHandler(c *gin.Context) {
 func (s *Server) LogoutHandler(c *gin.Context) {
 	p := PersonFromSession(s, c)
 
-	log.Printf("User '%s' logging out", p.Nick)
 	p.RemoveCookies(c)
+	s.logger.Info(
+		"User logged out",
+		zap.String("path", c.Request.URL.Path),
+		zap.String("user", p.ID),
+	)
 	c.JSON(http.StatusOK, gin.H{"message": "Done"})
 }
 
 // SettingsHandler gets the POST from the user with a settings update
 func (s *Server) SettingsHandler(c *gin.Context) {
+	plog := s.logger.With(zap.String("path", c.Request.URL.Path))
 	var req SettingsPostRequest
 
 	err := c.BindJSON(&req)
 	if err != nil {
+		plog.Info("Couldn't JSON")
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Cannot JSON"})
 		return
 	}
-	log.Print(req)
 
 	p := PersonFromSession(s, c)
 	if p == nil {
+		plog.Error("Person not found")
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Person not found"})
 		return
 	}
@@ -584,6 +600,7 @@ func (s *Server) SettingsHandler(c *gin.Context) {
 
 	_ = p.StoreCookies(c)
 
+	plog.Info("Person saved", zap.String("person", p.ID))
 	c.JSON(http.StatusOK, gin.H{"person": p})
 }
 
@@ -597,11 +614,12 @@ func (s *Server) FakeNameHandler(c *gin.Context) {
 }
 
 func (s *Server) startSimulator(c *gin.Context) {
+	plog := s.logger.With(zap.String("path", c.Request.URL.Path))
 	var err error
 
 	// If we don't already have a simulator, make one
 	if s.simulator == nil {
-		log.Print("Creating new simulator")
+		plog.Info("Creating new simulator")
 		s.simulator, err = NewSimulator(s)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -610,25 +628,47 @@ func (s *Server) startSimulator(c *gin.Context) {
 	}
 
 	tm := s.getTournament(c)
+	tlog := plog.With(zap.String("tournament", tm.ID))
 	err = s.simulator.Connect()
 	if err != nil {
+		tlog.Error("Connecting failed", zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	s.simulator.Start(tm.ID)
+	tlog.Info("Simulation started")
 	c.JSON(http.StatusOK, gin.H{"running": true})
 }
 
 func (s *Server) stopSimulator(c *gin.Context) {
 	s.simulator.Stop()
+	s.logger.Info("Simulation stopped", zap.String("path", c.Request.URL.Path))
 	c.JSON(http.StatusOK, gin.H{"running": false})
 }
 
 func (s *Server) RequireJudge() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		p := PersonFromSession(s, c)
-		if p == nil || p.Userlevel < PermissionJudge {
-			c.JSON(http.StatusUnauthorized, gin.H{"message": "Permissions required"})
+
+		if p == nil {
+			// If the request is from someone that's not signed in, we need to
+			// signal that.
+			s.logger.Info(
+				"Unauthorized",
+				zap.String("path", c.Request.URL.Path),
+			)
+			c.JSON(http.StatusUnauthorized, gin.H{"message": "Please log in"})
+			c.Abort()
+
+		} else if p.Userlevel < PermissionJudge {
+			// If not, we need to check if the permissions are enough
+			s.logger.Info(
+				"Permission denied",
+				zap.String("path", c.Request.URL.Path),
+				zap.String("person", p.ID),
+				zap.Int("userlevel", p.Userlevel),
+			)
+			c.JSON(http.StatusUnauthorized, gin.H{"message": "Permission denied"})
 			c.Abort()
 		}
 		c.Next()
@@ -734,20 +774,20 @@ func (s *Server) SendWebsocketUpdate(kind string, data interface{}) error {
 
 // DisableWebsocketUpdates... disables websocket updates.
 func (s *Server) DisableWebsocketUpdates() {
-	log.Print("Disabling websocket broadcast")
+	s.logger.Info("Disabling websocket broadcast")
 	broadcasting = false
 }
 
 // EnableWebsocketUpdates... enables websocket updates.
 func (s *Server) EnableWebsocketUpdates() {
-	log.Print("Enabling websocket broadcast")
+	s.logger.Info("Enabling websocket broadcast")
 	broadcasting = true
 }
 
 func (s *Server) getMatch(c *gin.Context) (*Match, error) {
 	tm := s.getTournament(c)
 
-	i, found := c.Params.Get("")
+	i, found := c.Params.Get("index")
 	if !found {
 		return nil, errors.New("match index not set in params")
 	}
