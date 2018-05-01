@@ -1,7 +1,6 @@
 package towerfall
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -15,7 +14,9 @@ import (
 	"github.com/drunkenfall/drunkenfall/faking"
 	"github.com/drunkenfall/drunkenfall/websockets"
 	"github.com/gin-contrib/sessions"
+	"github.com/gin-contrib/zap"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 // Setup variables for the cookies.
@@ -36,6 +37,7 @@ type Server struct {
 	DB        *Database
 	config    *Config
 	router    *gin.Engine
+	logger    *zap.Logger
 	simulator *Simulator
 	ws        *websockets.Server
 }
@@ -44,9 +46,9 @@ type Server struct {
 type NewRequest struct {
 	Name      string    `json:"name" binding:"required"`
 	ID        string    `json:"id" binding:"required"`
-	Cover     string    `json:"cover" binding:"required"`
 	Scheduled time.Time `json:"scheduled" binding:"required"`
-	Fake      bool      `json:"fake" binding:"required"`
+	Cover     string    `json:"cover"`
+	Fake      bool      `json:"fake"`
 }
 
 // CommitPlayer is one state for a player in a commit message
@@ -88,6 +90,10 @@ func NewServer(config *Config, db *Database) *Server {
 	s.ws = websockets.NewServer()
 	s.router = s.BuildRouter(s.ws)
 
+	// Add zap logging
+	s.logger, _ = zap.NewDevelopment()
+	s.router.Use(ginzap.Ginzap(s.logger, time.RFC3339, true))
+
 	// Give the db a reference to the server.
 	// Not the cleanest, but y'know... here we are.
 	db.Server = &s
@@ -99,29 +105,31 @@ func (s *Server) NewHandler(c *gin.Context) {
 	var req NewRequest
 	var t *Tournament
 
+	plog := s.logger.With(zap.String("path", c.Request.URL.Path))
+
 	if !HasPermission(c, PermissionProducer) {
+		plog.Info("Permission denied")
 		c.JSON(http.StatusForbidden, gin.H{"message": "Cannot create tournament unless producer"})
 		return
 	}
 
 	err := c.BindJSON(&req)
 	if err != nil {
+		plog.Error("Bind failed", zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Cannot JSON"})
 		return
 	}
 
+	idlog := plog.With(zap.String("id", req.ID))
 	t, err = NewTournament(req.Name, req.ID, req.Cover, req.Scheduled, c, s)
 	if err != nil {
+		idlog.Info("Creation failed")
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Cannot create tournament"})
 		return
 	}
 
-	log.Printf("Created tournament %s!", t.Name)
-
-	// s.DB.Tournaments = append(s.DB.Tournaments, t)
-	// s.DB.tournamentRef[t.ID] = t
-
-	c.Redirect(http.StatusTemporaryRedirect, t.URL())
+	idlog.Info("Tournament created", zap.String("name", t.Name))
+	c.JSON(http.StatusOK, gin.H{"redirect": t.URL()})
 }
 
 // TournamentHandler returns the current state of the tournament
@@ -144,55 +152,71 @@ func (s *Server) JoinHandler(c *gin.Context) {
 	tm := s.getTournament(c)
 	ps := PersonFromSession(s, c)
 	tm.TogglePlayer(ps.ID)
-	c.Redirect(http.StatusTemporaryRedirect, tm.URL())
+	c.JSON(http.StatusOK, gin.H{"redirect": tm.URL()})
 }
 
 // EditHandler shows the tournament view and handles tournaments
 func (s *Server) EditHandler(c *gin.Context) {
+	plog := s.logger.With(zap.String("path", c.Request.URL.Path))
+
 	if !HasPermission(c, PermissionProducer) {
+		plog.Info("Permission denied")
 		c.JSON(http.StatusForbidden, gin.H{"message": "You need to be very hax to edit a tournament"})
 		return
 	}
 
 	ps := PersonFromSession(s, c)
+	pslog := plog.With(zap.String("person", ps.ID))
 
 	data, err := ioutil.ReadAll(c.Request.Body)
 	if err != nil {
+		pslog.Error("Couldn't read body", zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	t, err := LoadTournament(data, s.DB)
 	if err != nil {
+		pslog.Error("Couldn't load tournaments", zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
+	tlog := pslog.With(zap.String("tournament", t.ID))
 
 	err = s.DB.OverwriteTournament(t)
 	if err != nil {
+		tlog.Error("Couldn't overwrite tournament", zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	log.Printf("%s has edited %s!", ps.Nick, t.ID)
 	err = t.Persist()
 	if err != nil {
+		tlog.Error("Persisting failed", zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.Redirect(http.StatusTemporaryRedirect, t.URL())
+
+	tlog.Info("Tournament edited")
+	c.JSON(http.StatusOK, gin.H{"redirect": t.URL()})
 
 }
 
-// BackfillSemisHandler shows the tournament view and handles tournaments
+// BackfillSemisHandler inserts players into the semis
 func (s *Server) BackfillSemisHandler(c *gin.Context) {
+	plog := s.logger.With(zap.String("path", c.Request.URL.Path))
 	if !HasPermission(c, PermissionJudge) {
+		plog.Info("Permission denied")
 		c.JSON(http.StatusForbidden, gin.H{"message": "You need to be a judge to backfill"})
 		return
 	}
 
 	tm := s.getTournament(c)
+	tlog := plog.With(zap.String("tournament", tm.ID))
+
 	data, err := ioutil.ReadAll(c.Request.Body)
 	if err != nil {
+		tlog.Error("Couldn't read body", zap.Error(err))
 		c.JSON(http.StatusForbidden, gin.H{"message": err.Error()})
 		return
 	}
@@ -201,60 +225,79 @@ func (s *Server) BackfillSemisHandler(c *gin.Context) {
 	err = tm.BackfillSemis(c, spl)
 
 	if err != nil {
+		tlog.Error("Couldn't backfill", zap.Error(err))
 		c.JSON(http.StatusForbidden, gin.H{"message": err.Error()})
 		return
 	}
 
-	c.Redirect(http.StatusTemporaryRedirect, tm.URL())
+	tlog.Info("Tournament backfilled")
+	c.JSON(http.StatusOK, gin.H{"redirect": tm.URL()})
 }
 
 // ReshuffleHandler reshuffles the player order of the tournament
 func (s *Server) ReshuffleHandler(c *gin.Context) {
+	plog := s.logger.With(zap.String("path", c.Request.URL.Path))
 	if !HasPermission(c, PermissionProducer) {
+		plog.Info("Permission denied")
 		c.JSON(http.StatusForbidden, gin.H{"message": "You need to be a producer to reshuffle"})
 		return
 	}
 
 	tm := s.getTournament(c)
-	err := tm.Reshuffle(c)
+	tlog := plog.With(zap.String("tournament", tm.ID))
 
+	err := tm.Reshuffle(c)
 	if err != nil {
+		tlog.Info("Couldn't reshuffle", zap.Error(err))
 		c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.Redirect(http.StatusTemporaryRedirect, tm.URL())
+	tlog.Info("Tournament reshuffled")
+	c.JSON(http.StatusOK, gin.H{"redirect": tm.URL()})
 }
 
 // CreditsHandler returns the data object needed to display the
 // credits roll.
 func (s *Server) CreditsHandler(c *gin.Context) {
 	tm := s.getTournament(c)
+	tlog := s.logger.With(
+		zap.String("path", c.Request.URL.Path),
+		zap.String("tournament", tm.ID))
+
 	credits, err := tm.GetCredits()
 
 	if err != nil {
+		tlog.Info("Could not get credits", zap.Error(err))
 		c.JSON(http.StatusForbidden, gin.H{"message": err.Error()})
 		return
 	}
 
+	tlog.Info("Credits grabbed")
 	c.JSON(http.StatusOK, credits)
 }
 
 // StartTournamentHandler starts tournaments
 func (s *Server) StartTournamentHandler(c *gin.Context) {
+	plog := s.logger.With(zap.String("path", c.Request.URL.Path))
 	if !HasPermission(c, PermissionCommentator) {
+		plog.Info("Permission denied")
 		c.JSON(http.StatusForbidden, gin.H{"message": "Cannot start tournament unless commentator or above"})
 		return
 	}
 
 	tm := s.getTournament(c)
+	tlog := plog.With(zap.String("tournament", tm.ID))
+
 	err := tm.StartTournament(c)
 	if err != nil {
+		tlog.Info("Could not start tournament", zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
 
-	c.Redirect(http.StatusTemporaryRedirect, tm.URL())
+	tlog.Info("Tournament started")
+	c.JSON(http.StatusOK, gin.H{"redirect": tm.URL()})
 }
 
 // UsurpTournamentHandler usurps tournaments
@@ -271,7 +314,7 @@ func (s *Server) UsurpTournamentHandler(c *gin.Context) {
 		return
 	}
 
-	c.Redirect(http.StatusTemporaryRedirect, tm.URL())
+	c.JSON(http.StatusOK, gin.H{"redirect": tm.URL()})
 }
 
 // AutoplayTournamentHandler usurps tournaments
@@ -283,7 +326,7 @@ func (s *Server) AutoplayTournamentHandler(c *gin.Context) {
 
 	tm := s.getTournament(c)
 	tm.AutoplaySection()
-	c.Redirect(http.StatusTemporaryRedirect, tm.URL())
+	c.JSON(http.StatusOK, gin.H{"redirect": tm.URL()})
 }
 
 // MatchHandler is the common function for match operations.
@@ -441,7 +484,7 @@ func (s *Server) SetTimeHandler(c *gin.Context) {
 	}
 
 	m.SetTime(c, x)
-	c.Redirect(http.StatusTemporaryRedirect, m.URL())
+	c.JSON(http.StatusOK, gin.H{"redirect": m.URL()})
 }
 
 // PeopleHandler returns a list of all the players registered in the app
@@ -594,7 +637,8 @@ func (s *Server) RequireJudge() gin.HandlerFunc {
 
 // BuildRouter sets up the routes
 func (s *Server) BuildRouter(ws *websockets.Server) *gin.Engine {
-	router := gin.Default()
+	router := gin.New()
+	router.Use(gin.Recovery())
 
 	router.Use(sessions.Sessions(CookieStoreName, CookieStore))
 
@@ -724,19 +768,6 @@ func (s *Server) getTournament(c *gin.Context) *Tournament {
 	}
 	tm := s.DB.tournamentRef[id]
 	return tm
-}
-
-// Redirect creates a JSON Redirect
-func (s *Server) Redirect(w http.ResponseWriter, url string) {
-	data, err := json.Marshal(JSONMessage{
-		Redirect: url,
-	})
-	if err != nil {
-		log.Print(err)
-		return
-	}
-	w.Header().Set("Content-Type", "application/json")
-	_, _ = w.Write(data)
 }
 
 // HasPermission checks that the user is allowed to do an action

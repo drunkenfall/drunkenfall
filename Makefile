@@ -60,7 +60,7 @@ install-linter:
 	gometalinter --install
 
 test:
-	cd towerfall; go test -v
+	GIN_MODE=test go test -v ./...
 
 cover:
 	go test -coverprofile=cover.out ./...
@@ -82,7 +82,7 @@ npm-dist: npm
 
 .PHONY: vendor
 vendor:
-	govendor sync
+	dep ensure
 
 .PHONY: docker
 docker:

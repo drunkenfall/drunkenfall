@@ -22,14 +22,19 @@ func MockServer(arg ...string) *Server {
 		fn = "test/test.db"
 	}
 
+	conf := &Config{
+		DbPath: fn,
+		Port:   56513,
+	}
+
 	os.Remove(fn) // Clean it out
-	db, err := NewDatabase(fn)
+	db, err := NewDatabase(conf.DbPath)
 	if err != nil {
 		log.Fatal(err)
 	}
 	db.LoadTournaments()
 
-	s := NewServer(db)
+	s := NewServer(conf, db)
 	db.Server = s
 
 	return s
