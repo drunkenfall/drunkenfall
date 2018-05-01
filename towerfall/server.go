@@ -12,10 +12,10 @@ import (
 	"time"
 
 	"github.com/drunkenfall/drunkenfall/faking"
-	"github.com/drunkenfall/drunkenfall/websockets"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/zap"
 	"github.com/gin-gonic/gin"
+	"github.com/olahol/melody"
 	"go.uber.org/zap"
 )
 
@@ -39,7 +39,7 @@ type Server struct {
 	router    *gin.Engine
 	logger    *zap.Logger
 	simulator *Simulator
-	ws        *websockets.Server
+	ws        *melody.Melody
 }
 
 // NewRequest is the request to make a new tournament
@@ -87,7 +87,7 @@ func NewServer(config *Config, db *Database) *Server {
 		DB:     db,
 		config: config,
 	}
-	s.ws = websockets.NewServer()
+	s.ws = melody.New()
 	s.router = s.BuildRouter(s.ws)
 
 	// Add zap logging
@@ -676,7 +676,7 @@ func (s *Server) RequireJudge() gin.HandlerFunc {
 }
 
 // BuildRouter sets up the routes
-func (s *Server) BuildRouter(ws *websockets.Server) *gin.Engine {
+func (s *Server) BuildRouter(ws *melody.Melody) *gin.Engine {
 	router := gin.New()
 	router.Use(gin.Recovery())
 
@@ -708,7 +708,17 @@ func (s *Server) BuildRouter(ws *websockets.Server) *gin.Engine {
 	api.GET("/facebook/login", s.handleFacebookLogin)
 	api.GET("/facebook/oauth2callback", s.handleFacebookCallback)
 
-	// Protected routes - everything past this points requires that you
+	// Websockets are auth free
+	api.GET("/auto-updater", func(c *gin.Context) {
+		s.logger.Info("Websocket setup")
+		ws.HandleRequest(c.Writer, c.Request)
+	})
+
+	ws.HandleMessage(func(s *melody.Session, msg []byte) {
+		ws.Broadcast(msg)
+	})
+
+	// Protected routes - everything past this point requires that you
 	// are at least a judge.
 	api.Use(s.RequireJudge())
 
@@ -744,9 +754,6 @@ func (s *Server) BuildRouter(ws *websockets.Server) *gin.Engine {
 	// router.PathPrefix("/static/css").Handler(http.StripPrefix("/static/css", http.FileServer(http.Dir("./js/dist/static/css"))))
 	// router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./js/static/"))))
 
-	// Install the websockets
-	// api.Handle("/auto-updater", websocket.Handler(ws.OnConnected))
-
 	return router
 }
 
@@ -765,10 +772,11 @@ func (s *Server) SendWebsocketUpdate(kind string, data interface{}) error {
 	// There is a situation where a certain test (TestLavaOrb) makes the
 	// tests hang repeatedly if this is not a goroutine. This is extra
 	// weird since hundreds of other messages have been sent before that.
-	go s.ws.SendAll(&websockets.Message{
-		Type: kind,
-		Data: data,
-	})
+	// TODO(thiderman): Re-implement via Melody
+	// go s.ws.SendAll(&websockets.Message{
+	// 	Type: kind,
+	// 	Data: data,
+	// })
 	return nil
 }
 
