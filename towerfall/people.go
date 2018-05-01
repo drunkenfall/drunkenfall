@@ -217,7 +217,12 @@ func PersonFromSession(s *Server, c *gin.Context) *Person {
 	}
 
 	session := sessions.Default(c)
-	id := session.Get("user").(string)
+	uid := session.Get("user")
+	if uid == nil {
+		return nil
+	}
+
+	id := uid.(string)
 
 	p, err := s.DB.GetPerson(id)
 	if err != nil {
