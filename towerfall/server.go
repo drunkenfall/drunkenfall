@@ -1,6 +1,7 @@
 package towerfall
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -12,7 +13,9 @@ import (
 	"time"
 
 	"github.com/drunkenfall/drunkenfall/faking"
+	"github.com/drunkenfall/drunkenfall/websockets"
 	"github.com/gin-contrib/sessions"
+	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-contrib/zap"
 	"github.com/gin-gonic/gin"
 	"github.com/olahol/melody"
@@ -23,7 +26,6 @@ import (
 var (
 	CookieStoreName = "user-session"
 	CookieStoreKey  = []byte("dtf")
-	CookieStore     = sessions.NewCookieStore(CookieStoreKey)
 )
 
 // Determines whether websocket updates should be sent or not.
@@ -679,8 +681,9 @@ func (s *Server) RequireJudge() gin.HandlerFunc {
 func (s *Server) BuildRouter(ws *melody.Melody) *gin.Engine {
 	router := gin.New()
 	router.Use(gin.Recovery())
+	cookieStore := cookie.NewStore(CookieStoreKey)
 
-	router.Use(sessions.Sessions(CookieStoreName, CookieStore))
+	router.Use(sessions.Sessions(CookieStoreName, cookieStore))
 
 	index := "js/index.html"
 	if _, err := os.Stat(index); !os.IsNotExist(err) {
@@ -714,7 +717,8 @@ func (s *Server) BuildRouter(ws *melody.Melody) *gin.Engine {
 		ws.HandleRequest(c.Writer, c.Request)
 	})
 
-	ws.HandleMessage(func(s *melody.Session, msg []byte) {
+	ws.HandleMessage(func(ms *melody.Session, msg []byte) {
+		s.logger.Info("Websocket message", zap.String("message", string(msg)))
 		ws.Broadcast(msg)
 	})
 
@@ -764,6 +768,7 @@ func (s *Server) Serve() error {
 
 // SendWebsocketUpdate sends an update to all listening sockets
 func (s *Server) SendWebsocketUpdate(kind string, data interface{}) error {
+	s.logger.Info("Websocket update", zap.String("kind", kind))
 	if !broadcasting {
 		return nil
 	}
@@ -773,10 +778,21 @@ func (s *Server) SendWebsocketUpdate(kind string, data interface{}) error {
 	// tests hang repeatedly if this is not a goroutine. This is extra
 	// weird since hundreds of other messages have been sent before that.
 	// TODO(thiderman): Re-implement via Melody
-	// go s.ws.SendAll(&websockets.Message{
-	// 	Type: kind,
-	// 	Data: data,
-	// })
+	go func(kind string, data interface{}) {
+		msg := websockets.Message{
+			Type: kind,
+			Data: data,
+		}
+
+		out, err := json.Marshal(msg)
+		if err != nil {
+			s.logger.Warn("cannot marshal", zap.Error(err))
+			return
+		}
+
+		s.ws.Broadcast(out)
+	}(kind, data)
+
 	return nil
 }
 

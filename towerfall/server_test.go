@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/drunkenfall/drunkenfall/websockets"
+	"github.com/olahol/melody"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -20,7 +20,7 @@ func testServer() *httptest.Server {
 	SetupFakeTournament(nil, s, &NewRequest{"b", "b", time.Now(), "cover", true})
 	s.DB.LoadTournaments()
 
-	ws := websockets.NewServer()
+	ws := melody.New()
 	r := s.BuildRouter(ws)
 	return httptest.NewServer(r)
 }

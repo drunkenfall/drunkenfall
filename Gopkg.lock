@@ -8,28 +8,10 @@
   revision = "81f07040d2feb7dad8817c9fe3d8effe9ca784c6"
 
 [[projects]]
-  name = "github.com/boj/redistore"
-  packages = ["."]
-  revision = "fc113767cd6b051980f260d6dbe84b2740c46ab0"
-  version = "v1.2"
-
-[[projects]]
   name = "github.com/boltdb/bolt"
   packages = ["."]
   revision = "2f1ce7a837dcb8da3ec595b1dac9d0632f0f99e8"
   version = "v1.3.1"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/bradfitz/gomemcache"
-  packages = ["memcache"]
-  revision = "1952afaa557dc08e8e0d89eafab110fb501c1a2b"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/bradleypeabody/gorilla-sessions-memcache"
-  packages = ["."]
-  revision = "75ee37df8664a47cd5d9eb84d41e1f2b08086893"
 
 [[projects]]
   name = "github.com/davecgh/go-spew"
@@ -44,19 +26,13 @@
   version = "v1.7"
 
 [[projects]]
-  name = "github.com/garyburd/redigo"
-  packages = [
-    "internal",
-    "redis"
-  ]
-  revision = "a69d19351219b6dd56f274f96d85a7014a2ec34e"
-  version = "v1.6.0"
-
-[[projects]]
   branch = "master"
   name = "github.com/gin-contrib/sessions"
-  packages = ["."]
-  revision = "fda3be6efa2da56e31a1a72bffd65279191e8009"
+  packages = [
+    ".",
+    "cookie"
+  ]
+  revision = "854e10e72056b122034a60b0fa207b8f29ae3d07"
 
 [[projects]]
   branch = "master"
@@ -115,12 +91,6 @@
   packages = ["."]
   revision = "f611eb38b3875cc3bd991ca91c51d06446afa14c"
   version = "v1.3.0"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/kidstuff/mongostore"
-  packages = ["."]
-  revision = "256d65ac5b0e35e7c5ebb3f175c0bed1e5c2b253"
 
 [[projects]]
   name = "github.com/mattn/go-isatty"
@@ -248,18 +218,6 @@
   version = "v8.18.2"
 
 [[projects]]
-  branch = "v2"
-  name = "gopkg.in/mgo.v2"
-  packages = [
-    ".",
-    "bson",
-    "internal/json",
-    "internal/sasl",
-    "internal/scram"
-  ]
-  revision = "3f83fa5005286a7fe593b055f0d7771a7dce4655"
-
-[[projects]]
   name = "gopkg.in/yaml.v2"
   packages = ["."]
   revision = "5420a8b6744d3b0345ab293f6fcba19c978f1183"
@@ -268,6 +226,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "2e64f425b44cfdb0615b7c5c7a0177623efd312afc5337c6b6da8637f73278b7"
+  inputs-digest = "6d5763201541dd82bca8217c5f97526b7d54d248826dd35180f5ba0476fae955"
   solver-name = "gps-cdcl"
   solver-version = 1
