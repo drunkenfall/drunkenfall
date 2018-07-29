@@ -20,7 +20,5 @@ proxy /__webpack_hmr localhost:42002 {
 }
 header /api Access-Control-Allow-Origin *
 
-# The except part makes sure that we simply serve the static files
-# rather than asking vue about them.
 proxy  / localhost:42002 {
 }
