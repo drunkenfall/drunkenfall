@@ -38,7 +38,7 @@ func main() {
 	}
 
 	// Start the live updater
-	listener, err := towerfall.NewListener(db)
+	listener, err := towerfall.NewListener(config, db)
 	if err != nil {
 		log.Fatal(err)
 	} else {

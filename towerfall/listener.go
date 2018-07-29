@@ -8,8 +8,6 @@ import (
 	"github.com/streadway/amqp"
 )
 
-const queueName = "drunkenfall-events"
-
 func failOnError(err error, msg string) {
 	if err != nil {
 		log.Fatalf("%s: %s", msg, err)
@@ -17,21 +15,22 @@ func failOnError(err error, msg string) {
 }
 
 type Listener struct {
-	DB    *Database
-	conn  *amqp.Connection
-	queue amqp.Queue
-	ch    *amqp.Channel
-	msgs  <-chan amqp.Delivery
+	DB       *Database
+	conn     *amqp.Connection
+	incoming amqp.Queue
+	outgoing amqp.Queue
+	ch       *amqp.Channel
+	msgs     <-chan amqp.Delivery
 }
 
 // NewListener sets up a new listener
-func NewListener(db *Database) (*Listener, error) {
+func NewListener(conf *Config, db *Database) (*Listener, error) {
 	var err error
 	l := Listener{
 		DB: db,
 	}
 
-	l.conn, err = amqp.Dial("amqp://rabbitmq:thiderman@drunkenfall.com:5672/")
+	l.conn, err = amqp.Dial(conf.RabbitURL)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -39,26 +38,38 @@ func NewListener(db *Database) (*Listener, error) {
 	l.ch, err = l.conn.Channel()
 	failOnError(err, "Failed to open a channel")
 
-	l.queue, err = l.ch.QueueDeclare(
-		queueName, // name
-		false,     // durable
-		false,     // delete when unused
-		false,     // exclusive
-		false,     // no-wait
-		nil,       // arguments
+	l.outgoing, err = l.ch.QueueDeclare(
+		conf.RabbitOutgoingQueue, // name
+		false, // durable
+		false, // delete when unused
+		false, // exclusive
+		false, // no-wait
+		nil,   // arguments
 	)
-	failOnError(err, "Failed to declare a queue")
+	failOnError(err, "Failed to declare the outgoing queue")
+
+	l.incoming, err = l.ch.QueueDeclare(
+		conf.RabbitIncomingQueue, // name
+		false, // durable
+		false, // delete when unused
+		false, // exclusive
+		false, // no-wait
+		nil,   // arguments
+	)
+	failOnError(err, "Failed to declare the incoming queue")
 
 	l.msgs, err = l.ch.Consume(
-		l.queue.Name, // queue
-		"",           // consumer
-		true,         // auto-ack
-		false,        // exclusive
-		false,        // no-local
-		false,        // no-wait
-		nil,          // args
+		conf.RabbitIncomingQueue, // queue
+		"",    // consumer
+		true,  // auto-ack
+		false, // exclusive
+		false, // no-local
+		false, // no-wait
+		nil,   // args
 	)
-	failOnError(err, "Failed to register a consumer")
+	failOnError(err, "Failed to register the consumer")
+
+	l.Publish("test", 9)
 
 	return &l, err
 }
@@ -82,6 +93,32 @@ func (l *Listener) Serve() {
 			}
 		}()
 	}
+}
+
+// Publish sends a message on the defualt exchange to the currently
+// configured queue
+func (l *Listener) Publish(kind string, data interface{}) error {
+	msg := Message{
+		kind,
+		data,
+		time.Now(),
+	}
+
+	body, err := json.Marshal(msg)
+	if err != nil {
+		return err
+	}
+
+	err = l.ch.Publish(
+		"",              // exchange
+		l.outgoing.Name, // routing key
+		false,           // mandatory
+		false,           // immediate
+		amqp.Publishing{
+			ContentType: "application/json",
+			Body:        []byte(body),
+		})
+	return nil
 }
 
 func (l *Listener) handle(t *Tournament, body []byte) error {

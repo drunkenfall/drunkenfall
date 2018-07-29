@@ -11,11 +11,14 @@ import (
 type Config struct {
 	DbPath string `default:"data/dev.db"`
 	// Pointing to the test app
-	FacebookID       string `default:"668534419991204"`
-	FacebookSecret   string `default:"e74696c890216108c69d55d0e1b7866f"`
-	FacebookCallback string `default:"http://localhost/api/facebook/oauth2callback"`
-	Port             int    `default:"42001"`
-	oauthConf        *oauth2.Config
+	FacebookID          string `default:"668534419991204"`
+	FacebookSecret      string `default:"e74696c890216108c69d55d0e1b7866f"`
+	FacebookCallback    string `default:"http://localhost/api/facebook/oauth2callback"`
+	Port                int    `default:"42001"`
+	RabbitURL           string `default:"amqp://rabbitmq:thiderman@drunkenfall.com:5672/"`
+	RabbitIncomingQueue string `default:"drunkenfall-app-dev"`
+	RabbitOutgoingQueue string `default:"drunkenfall-game-dev"`
+	oauthConf           *oauth2.Config
 }
 
 func ParseConfig() *Config {

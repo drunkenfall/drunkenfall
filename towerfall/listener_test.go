@@ -10,7 +10,7 @@ func testListener(t *testing.T) (*Listener, *Tournament) {
 	s := MockServer()
 	db := s.DB
 
-	l, err := NewListener(db)
+	l, err := NewListener(s.config, db)
 	assert.NoError(t, err)
 
 	tm := testTournament(12, s)
