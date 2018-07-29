@@ -82,7 +82,7 @@ npm-dist: npm
 
 .PHONY: vendor
 vendor:
-	dep ensure
+	dep ensure -v
 
 .PHONY: docker
 docker:

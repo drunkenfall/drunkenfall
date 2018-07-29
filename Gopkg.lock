@@ -105,6 +105,12 @@
   version = "v1.1"
 
 [[projects]]
+  name = "github.com/gorilla/websocket"
+  packages = ["."]
+  revision = "ea4d1f681babbce9545c9c5f3d5194a789c89f5b"
+  version = "v1.2.0"
+
+[[projects]]
   name = "github.com/kelseyhightower/envconfig"
   packages = ["."]
   revision = "f611eb38b3875cc3bd991ca91c51d06446afa14c"
@@ -133,6 +139,12 @@
   name = "github.com/nu7hatch/gouuid"
   packages = ["."]
   revision = "179d4d0c4d8d407a32af483c2354df1d2c91e6c3"
+
+[[projects]]
+  name = "github.com/olahol/melody"
+  packages = ["."]
+  revision = "d521390733761fe1db13de575c253afd5c743085"
+  version = "v1"
 
 [[projects]]
   name = "github.com/pkg/errors"
@@ -256,6 +268,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "6507aea7cd6c1974f0f3a4ba006cc1277bc66c3876e1e9c5a16db8950c8f68c8"
+  inputs-digest = "2e64f425b44cfdb0615b7c5c7a0177623efd312afc5337c6b6da8637f73278b7"
   solver-name = "gps-cdcl"
   solver-version = 1
