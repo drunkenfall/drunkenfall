@@ -9,14 +9,13 @@ RUN mkdir ./logs
 # I hate everything.
 RUN curl -sL https://deb.nodesource.com/setup_6.x | bash -
 RUN apt-get install nodejs
-
-RUN go get github.com/kardianos/govendor
+RUN curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
 
 COPY js/package*.json ./js/
 RUN cd js; npm install --only-production
 
-COPY vendor/vendor.json ./vendor/
-RUN govendor sync -v
+COPY Gopkg.lock Gopkg.toml ./
+RUN dep ensure -v -vendor-only
 
 # Copy mostly static js stuff
 COPY js/build/ ./js/build/
