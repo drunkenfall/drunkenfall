@@ -32,28 +32,28 @@ func NewSimulator(s *Server) (*Simulator, error) {
 }
 
 func (s *Simulator) Connect() error {
-	var err error
-	s.conn, err = amqp.Dial("amqp://rabbitmq:thiderman@drunkenfall.com:5672/")
-	if err != nil {
-		return err
-	}
+	// var err error
+	// s.conn, err = amqp.Dial()
+	// if err != nil {
+	// 	return err
+	// }
 
-	s.ch, err = s.conn.Channel()
-	if err != nil {
-		return err
-	}
+	// s.ch, err = s.conn.Channel()
+	// if err != nil {
+	// 	return err
+	// }
 
-	s.q, err = s.ch.QueueDeclare(
-		queueName, // name
-		false,     // durable
-		false,     // delete when unused
-		false,     // exclusive
-		false,     // no-wait
-		nil,       // arguments
-	)
-	if err != nil {
-		return err
-	}
+	// s.q, err = s.ch.QueueDeclare(
+	// 	s.conf.RabbitIncomingQueue, // name
+	// 	false, // durable
+	// 	false, // delete when unused
+	// 	false, // exclusive
+	// 	false, // no-wait
+	// 	nil,   // arguments
+	// )
+	// if err != nil {
+	// 	return err
+	// }
 
 	return nil
 }
