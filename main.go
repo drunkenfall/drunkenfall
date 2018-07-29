@@ -41,9 +41,9 @@ func main() {
 	listener, err := towerfall.NewListener(config, db)
 	if err != nil {
 		log.Fatal(err)
-	} else {
-		go listener.Serve()
 	}
+	go listener.Serve()
+
 	// Catch termination signals so we can close the databas properly
 	c := make(chan os.Signal, 2)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)

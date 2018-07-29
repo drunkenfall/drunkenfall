@@ -18,7 +18,6 @@ type Listener struct {
 	DB       *Database
 	conn     *amqp.Connection
 	incoming amqp.Queue
-	outgoing amqp.Queue
 	ch       *amqp.Channel
 	msgs     <-chan amqp.Delivery
 }
@@ -37,16 +36,6 @@ func NewListener(conf *Config, db *Database) (*Listener, error) {
 
 	l.ch, err = l.conn.Channel()
 	failOnError(err, "Failed to open a channel")
-
-	l.outgoing, err = l.ch.QueueDeclare(
-		conf.RabbitOutgoingQueue, // name
-		false, // durable
-		false, // delete when unused
-		false, // exclusive
-		false, // no-wait
-		nil,   // arguments
-	)
-	failOnError(err, "Failed to declare the outgoing queue")
 
 	l.incoming, err = l.ch.QueueDeclare(
 		conf.RabbitIncomingQueue, // name
@@ -68,8 +57,6 @@ func NewListener(conf *Config, db *Database) (*Listener, error) {
 		nil,   // args
 	)
 	failOnError(err, "Failed to register the consumer")
-
-	l.Publish("test", 9)
 
 	return &l, err
 }
@@ -93,32 +80,6 @@ func (l *Listener) Serve() {
 			}
 		}()
 	}
-}
-
-// Publish sends a message on the defualt exchange to the currently
-// configured queue
-func (l *Listener) Publish(kind string, data interface{}) error {
-	msg := Message{
-		kind,
-		data,
-		time.Now(),
-	}
-
-	body, err := json.Marshal(msg)
-	if err != nil {
-		return err
-	}
-
-	err = l.ch.Publish(
-		"",              // exchange
-		l.outgoing.Name, // routing key
-		false,           // mandatory
-		false,           // immediate
-		amqp.Publishing{
-			ContentType: "application/json",
-			Body:        []byte(body),
-		})
-	return nil
 }
 
 func (l *Listener) handle(t *Tournament, body []byte) error {

@@ -17,111 +17,7 @@ const (
 	playoff = "playoff"
 	semi    = "semi"
 	final   = "final"
-
-	EnvironmentKill = -1
 )
-
-type Message struct {
-	Type      string      `json:"type"`
-	Data      interface{} `json:"data"`
-	Timestamp time.Time   `json:"timestamp"`
-}
-
-// Kill reasons
-const (
-	rArrow = iota
-	rExplosion
-	rBrambles
-	rJumpedOn
-	rLava
-	rShock
-	rSpikeBall
-	rFallingObject
-	rSquish
-	rCurse
-	rMiasma
-	rEnemy
-	rChalice
-)
-
-// Arrows
-const (
-	aNormal = iota
-	aBomb
-	aSuperBomb
-	aLaser
-	aBramble
-	aDrill
-	aBolt
-	aToy
-	aFeather
-	aTrigger
-	aPrism
-)
-
-// Message types
-const (
-	inKill       = "kill"
-	inRoundStart = "round_start"
-	inRoundEnd   = "round_end"
-	inMatchStart = "match_start"
-	inMatchEnd   = "match_end"
-	inPickup     = "arrows_collected"
-	inShot       = "arrow_shot"
-	inShield     = "shield_state"
-	inWings      = "wings_state"
-	inOrbLava    = "lava_orb_state"
-	// TODO(thiderman): Non-player orbs are not implemented
-	inOrbSlow   = "slow_orb_state"
-	inOrbDark   = "dark_orb_state"
-	inOrbScroll = "scroll_orb_state"
-)
-
-type KillMessage struct {
-	Player int `json:"player"`
-	Killer int `json:"killer"`
-	Cause  int `json:"cause"`
-}
-
-type ArrowMessage struct {
-	Player int    `json:"player"`
-	Arrows Arrows `json:"arrows"`
-}
-
-type ShieldMessage struct {
-	Player int  `json:"player"`
-	State  bool `json:"state"`
-}
-
-type WingsMessage struct {
-	Player int  `json:"player"`
-	State  bool `json:"state"`
-}
-
-type SlowOrbMessage struct {
-	State bool `json:"state"`
-}
-
-type DarkOrbMessage struct {
-	State bool `json:"state"`
-}
-
-type ScrollOrbMessage struct {
-	State bool `json:"state"`
-}
-
-type LavaOrbMessage struct {
-	Player int  `json:"player"`
-	State  bool `json:"state"`
-}
-
-// List of integers where one item is an arrow type as described in
-// the arrow types above.
-type Arrows []int
-
-type StartRoundMessage struct {
-	Arrows []Arrows `json:"arrows"`
-}
 
 // Match represents a game being played
 //
@@ -300,7 +196,7 @@ func (m *Match) UpdatePlayer(p Player) error {
 	return nil
 }
 
-// CorrectFuckingColorConflicts corrects color conflicts :@
+// CorrectFuckingColorConflicts corrects color conflicts :@ 😠
 func (m *Match) CorrectFuckingColorConflicts() error {
 	// Make a map of conflicting players keyed on the color
 	pairs := make(map[string][]Player)
@@ -599,6 +495,22 @@ func (m *Match) LavaOrb(lm LavaOrbMessage) error {
 	}
 
 	return m.sendPlayerUpdate(lm.Player)
+}
+
+// Publish sends a message to the game about the match
+func (m *Match) Publish() error {
+	msg := GameMatchMessage{}
+	msg.Level = m.Level
+
+	for _, p := range m.Players {
+		gp := GamePlayer{
+			p.Name(),
+			p.Color,
+		}
+		msg.Players = append(msg.Players, gp)
+	}
+
+	return m.tournament.server.publisher.Publish(gMatch, msg)
 }
 
 // Kill records a Kill

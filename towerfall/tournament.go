@@ -258,6 +258,11 @@ func (t *Tournament) StartTournament(c *gin.Context) error {
 	t.LogEvent(
 		"start", "Tournament started",
 		"person", PersonFromSession(t.server, c))
+
+	err := t.Matches[0].Publish()
+	if err != nil {
+		return err
+	}
 	return t.Persist()
 }
 

@@ -42,6 +42,7 @@ type Server struct {
 	logger    *zap.Logger
 	simulator *Simulator
 	ws        *melody.Melody
+	publisher *Publisher
 }
 
 // NewRequest is the request to make a new tournament
@@ -85,6 +86,7 @@ func init() {
 
 // NewServer instantiates a server with an active database
 func NewServer(config *Config, db *Database) *Server {
+	var err error
 	s := Server{
 		DB:     db,
 		config: config,
@@ -95,6 +97,12 @@ func NewServer(config *Config, db *Database) *Server {
 	// Add zap logging
 	s.logger, _ = zap.NewDevelopment()
 	s.router.Use(ginzap.Ginzap(s.logger, time.RFC3339, true))
+
+	// Add the Rabbit publisher
+	s.publisher, err = NewPublisher(config)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	// Give the db a reference to the server.
 	// Not the cleanest, but y'know... here we are.
@@ -768,7 +776,6 @@ func (s *Server) Serve() error {
 
 // SendWebsocketUpdate sends an update to all listening sockets
 func (s *Server) SendWebsocketUpdate(kind string, data interface{}) error {
-	s.logger.Info("Websocket update", zap.String("kind", kind))
 	if !broadcasting {
 		return nil
 	}
