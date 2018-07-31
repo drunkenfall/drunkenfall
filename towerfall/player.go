@@ -100,6 +100,19 @@ func (p *Player) Name() string {
 	return p.Person.Nick
 }
 
+// NumericColor is the numeric representation of the color the player has
+func (p *Player) NumericColor() int {
+	for x, c := range AllColors {
+		if p.Color == c {
+			return x
+		}
+	}
+
+	// No color was found - this is a bug. Return default.
+	log.Printf("Player '%s' did not match a color for '%s'", p.Name(), p.Color)
+	return 0
+}
+
 // Score calculates the score to determine runnerup positions.
 func (p *Player) Score() (out int) {
 	// This algorithm is probably flawed, but at least it should be able to

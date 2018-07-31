@@ -132,7 +132,7 @@ func (t *Tournament) PublishNext() error {
 	for _, p := range next.Players {
 		gp := GamePlayer{
 			p.Name(),
-			p.Color,
+			p.NumericColor(),
 		}
 		msg.Players = append(msg.Players, gp)
 	}
