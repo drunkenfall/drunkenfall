@@ -111,6 +111,7 @@ func (d *Database) SaveTournament(t *Tournament) error {
 	if !found {
 		log.Printf("Adding new tournament %s into the memory cache", t.ID)
 		d.Tournaments = append(d.Tournaments, t)
+		d.tournamentRef[t.ID] = t
 	}
 
 	go d.Server.SendWebsocketUpdate("tournament", t)
