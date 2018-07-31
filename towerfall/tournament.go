@@ -11,6 +11,7 @@ import (
 	"github.com/deckarep/golang-set"
 	"github.com/drunkenfall/drunkenfall/faking"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 // Tournament is the main container of data for this app.
@@ -259,7 +260,7 @@ func (t *Tournament) StartTournament(c *gin.Context) error {
 		"start", "Tournament started",
 		"person", PersonFromSession(t.server, c))
 
-	err := t.Matches[0].Publish()
+	err := t.Matches[0].PublishNext()
 	if err != nil {
 		return err
 	}
@@ -530,6 +531,14 @@ func (t *Tournament) BackfillSemis(c *gin.Context, ids []string) error {
 		return fmt.Errorf("Need %d players, got %d", semiPlayers, len(ids))
 	}
 
+	publish := true
+	if semiPlayers == 1 {
+		// If we only have one player to add, that means that the previous
+		// match already has four players and therefore the update message
+		// has already been sent
+		publish = false
+	}
+
 	added := make([]*Person, semiPlayers)
 	for x, id := range ids {
 		index := 0
@@ -546,6 +555,15 @@ func (t *Tournament) BackfillSemis(c *gin.Context, ids []string) error {
 		t.Matches[offset+index].AddPlayer(*p)
 		added[x] = ps
 		t.removeFromRunnerups(ps)
+	}
+
+	// If we haven't already sent a message about the next match to the
+	// game, it is high time to do so!
+	if publish {
+		err := t.Matches[t.Current].PublishNext()
+		if err != nil {
+			t.server.logger.Info("Publishing next match failed", zap.Error(err))
+		}
 	}
 
 	t.LogEvent(

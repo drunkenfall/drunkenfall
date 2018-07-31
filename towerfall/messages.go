@@ -52,8 +52,9 @@ const (
 // GameMatchMessage is the message sent to the game about the
 // configuration of the next match
 type GameMatchMessage struct {
-	Players []GamePlayer `json:"players"`
-	Level   string       `json:"level"`
+	Players    []GamePlayer `json:"players"`
+	Level      string       `json:"level"`
+	Tournament string       `json:"tournament"`
 }
 
 // GamePlayer is a player object to be consumed by the game
