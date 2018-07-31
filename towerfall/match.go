@@ -145,6 +145,11 @@ func (m *Match) URL() string {
 	return out
 }
 
+// realLevel returns the level name string that the game expects
+func (m *Match) realLevel() string {
+	return realNames[m.Level]
+}
+
 // LogEvent makes an event and stores it on the tournament object
 func (m *Match) LogEvent(kind, message string, items ...interface{}) {
 	ev, err := NewEvent(kind, message, items...)

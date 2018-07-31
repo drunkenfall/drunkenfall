@@ -126,8 +126,8 @@ func (t *Tournament) PublishNext() error {
 
 	msg := GameMatchMessage{
 		Tournament: t.ID,
+		Level:      next.realLevel(),
 	}
-	msg.Level = next.Level
 
 	for _, p := range next.Players {
 		gp := GamePlayer{
