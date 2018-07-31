@@ -347,15 +347,15 @@ func TestCorrectColorConflictsNoScores(t *testing.T) {
 	m := MockMatch(0, "final")
 	m.Players = make([]Player, 0)
 
-	m.Tournament.Players[0].PreferredColor = "green"
-	m.Tournament.Players[1].PreferredColor = "green"
-	m.Tournament.Players[2].PreferredColor = "blue"
-	m.Tournament.Players[3].PreferredColor = "red"
+	m.tournament.Players[0].PreferredColor = "green"
+	m.tournament.Players[1].PreferredColor = "green"
+	m.tournament.Players[2].PreferredColor = "blue"
+	m.tournament.Players[3].PreferredColor = "red"
 
-	assert.Nil(m.AddPlayer(m.Tournament.Players[0]))
-	assert.Nil(m.AddPlayer(m.Tournament.Players[1]))
-	assert.Nil(m.AddPlayer(m.Tournament.Players[2]))
-	assert.Nil(m.AddPlayer(m.Tournament.Players[3]))
+	assert.Nil(m.AddPlayer(m.tournament.Players[0]))
+	assert.Nil(m.AddPlayer(m.tournament.Players[1]))
+	assert.Nil(m.AddPlayer(m.tournament.Players[2]))
+	assert.Nil(m.AddPlayer(m.tournament.Players[3]))
 
 	assert.Equal("green", m.Players[0].Color)
 	assert.Equal("green", m.Players[0].PreferredColor)
@@ -376,17 +376,17 @@ func TestCorrectColorConflictsUserLevels(t *testing.T) {
 	m := MockMatch(0, "final")
 	m.Players = make([]Player, 0)
 
-	m.Tournament.Players[0].PreferredColor = "green"
-	m.Tournament.Players[0].Person.Userlevel = 10000
-	m.Tournament.Players[1].PreferredColor = "green"
-	m.Tournament.Players[2].PreferredColor = "red"
-	m.Tournament.Players[2].Person.Userlevel = -10000
-	m.Tournament.Players[3].PreferredColor = "red"
+	m.tournament.Players[0].PreferredColor = "green"
+	m.tournament.Players[0].Person.Userlevel = 10000
+	m.tournament.Players[1].PreferredColor = "green"
+	m.tournament.Players[2].PreferredColor = "red"
+	m.tournament.Players[2].Person.Userlevel = -10000
+	m.tournament.Players[3].PreferredColor = "red"
 
-	assert.Nil(m.AddPlayer(m.Tournament.Players[0]))
-	assert.Nil(m.AddPlayer(m.Tournament.Players[1]))
-	assert.Nil(m.AddPlayer(m.Tournament.Players[2]))
-	assert.Nil(m.AddPlayer(m.Tournament.Players[3]))
+	assert.Nil(m.AddPlayer(m.tournament.Players[0]))
+	assert.Nil(m.AddPlayer(m.tournament.Players[1]))
+	assert.Nil(m.AddPlayer(m.tournament.Players[2]))
+	assert.Nil(m.AddPlayer(m.tournament.Players[3]))
 
 	assert.Equal("green", m.Players[0].Color)
 	assert.Equal("green", m.Players[0].PreferredColor)
@@ -458,15 +458,15 @@ func TestCorrectColorConflictsNoScoresDoubleConflict(t *testing.T) {
 	m := MockMatch(0, "final")
 	m.Players = make([]Player, 0)
 
-	m.Tournament.Players[0].PreferredColor = "green"
-	m.Tournament.Players[1].PreferredColor = "green"
-	m.Tournament.Players[2].PreferredColor = "blue"
-	m.Tournament.Players[3].PreferredColor = "blue"
+	m.tournament.Players[0].PreferredColor = "green"
+	m.tournament.Players[1].PreferredColor = "green"
+	m.tournament.Players[2].PreferredColor = "blue"
+	m.tournament.Players[3].PreferredColor = "blue"
 
-	assert.Nil(m.AddPlayer(m.Tournament.Players[0]))
-	assert.Nil(m.AddPlayer(m.Tournament.Players[1]))
-	assert.Nil(m.AddPlayer(m.Tournament.Players[2]))
-	assert.Nil(m.AddPlayer(m.Tournament.Players[3]))
+	assert.Nil(m.AddPlayer(m.tournament.Players[0]))
+	assert.Nil(m.AddPlayer(m.tournament.Players[1]))
+	assert.Nil(m.AddPlayer(m.tournament.Players[2]))
+	assert.Nil(m.AddPlayer(m.tournament.Players[3]))
 
 	assert.Equal("green", m.Players[0].Color)
 	assert.Equal("green", m.Players[0].PreferredColor)
@@ -486,22 +486,22 @@ func TestCorrectColorConflictsWithScoresDoubleConflict(t *testing.T) {
 	m := MockMatch(0, "final")
 	m.Players = make([]Player, 0)
 
-	m.Tournament.Players[0].PreferredColor = "green"
-	m.Tournament.Players[0].Person.Nick = "GreenCorrected"
+	m.tournament.Players[0].PreferredColor = "green"
+	m.tournament.Players[0].Person.Nick = "GreenCorrected"
 
-	m.Tournament.Players[1].Kills = 3
-	m.Tournament.Players[1].PreferredColor = "green"
+	m.tournament.Players[1].Kills = 3
+	m.tournament.Players[1].PreferredColor = "green"
 
-	m.Tournament.Players[2].PreferredColor = "blue"
-	m.Tournament.Players[2].Person.Nick = "BlueCorrected"
+	m.tournament.Players[2].PreferredColor = "blue"
+	m.tournament.Players[2].Person.Nick = "BlueCorrected"
 
-	m.Tournament.Players[3].Kills = 3
-	m.Tournament.Players[3].PreferredColor = "blue"
+	m.tournament.Players[3].Kills = 3
+	m.tournament.Players[3].PreferredColor = "blue"
 
-	assert.Nil(m.AddPlayer(m.Tournament.Players[0]))
-	assert.Nil(m.AddPlayer(m.Tournament.Players[1]))
-	assert.Nil(m.AddPlayer(m.Tournament.Players[2]))
-	assert.Nil(m.AddPlayer(m.Tournament.Players[3]))
+	assert.Nil(m.AddPlayer(m.tournament.Players[0]))
+	assert.Nil(m.AddPlayer(m.tournament.Players[1]))
+	assert.Nil(m.AddPlayer(m.tournament.Players[2]))
+	assert.Nil(m.AddPlayer(m.tournament.Players[3]))
 
 	assert.NotEqual("green", m.Players[0].Color)
 	assert.Equal("green", m.Players[0].PreferredColor)
@@ -521,24 +521,24 @@ func TestCorrectColorConflictsWithScoresTripleConflict(t *testing.T) {
 	m := MockMatch(0, "final")
 	m.Players = make([]Player, 0)
 
-	m.Tournament.Players[0].PreferredColor = "green"
-	m.Tournament.Players[0].Person.Nick = "Green1Corrected"
+	m.tournament.Players[0].PreferredColor = "green"
+	m.tournament.Players[0].Person.Nick = "Green1Corrected"
 
-	m.Tournament.Players[1].Kills = 3
-	m.Tournament.Players[1].PreferredColor = "green"
-	m.Tournament.Players[1].Person.Nick = "Green2Corrected"
+	m.tournament.Players[1].Kills = 3
+	m.tournament.Players[1].PreferredColor = "green"
+	m.tournament.Players[1].Person.Nick = "Green2Corrected"
 
-	m.Tournament.Players[2].PreferredColor = "blue"
-	m.Tournament.Players[2].Person.Nick = "BlueKeep"
+	m.tournament.Players[2].PreferredColor = "blue"
+	m.tournament.Players[2].Person.Nick = "BlueKeep"
 
-	m.Tournament.Players[3].Kills = 10
-	m.Tournament.Players[3].PreferredColor = "green"
-	m.Tournament.Players[3].Person.Nick = "GreenKeep"
+	m.tournament.Players[3].Kills = 10
+	m.tournament.Players[3].PreferredColor = "green"
+	m.tournament.Players[3].Person.Nick = "GreenKeep"
 
-	assert.Nil(m.AddPlayer(m.Tournament.Players[0]))
-	assert.Nil(m.AddPlayer(m.Tournament.Players[1]))
-	assert.Nil(m.AddPlayer(m.Tournament.Players[2]))
-	assert.Nil(m.AddPlayer(m.Tournament.Players[3]))
+	assert.Nil(m.AddPlayer(m.tournament.Players[0]))
+	assert.Nil(m.AddPlayer(m.tournament.Players[1]))
+	assert.Nil(m.AddPlayer(m.tournament.Players[2]))
+	assert.Nil(m.AddPlayer(m.tournament.Players[3]))
 
 	assert.NotEqual("green", m.Players[0].Color)
 	assert.NotEqual("green", m.Players[1].Color)

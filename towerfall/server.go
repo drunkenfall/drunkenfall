@@ -333,7 +333,7 @@ func (s *Server) MatchHandler(c *gin.Context) {
 	}
 
 	mlog := plog.With(
-		zap.String("tournament", m.Tournament.ID),
+		zap.String("tournament", m.tournament.ID),
 		zap.Int("match", m.Index),
 	)
 
@@ -402,7 +402,7 @@ func (s *Server) MatchCommitHandler(c *gin.Context) {
 	m.Commit(commit)
 	plog.Info(
 		"Match committed",
-		zap.String("tournament", m.Tournament.ID),
+		zap.String("tournament", m.tournament.ID),
 		zap.Int("match", m.Index),
 	)
 	c.JSON(http.StatusOK, gin.H{"message": "Done"})

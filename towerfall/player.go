@@ -160,7 +160,7 @@ func (p *Player) Classes() string {
 			return "gold"
 		} else if ps[1].Name() == p.Name() {
 			// Silver for the second, unless there is a short amount of playoffs
-			if p.Match.Kind != playoff || len(p.Match.Tournament.Matches)-3 <= 4 {
+			if p.Match.Kind != playoff || len(p.Match.tournament.Matches)-3 <= 4 {
 				return "silver"
 			}
 		} else if ps[2].Name() == p.Name() && p.Match.Kind == final {
@@ -305,7 +305,7 @@ func SortByColorConflicts(ps []Player) (tmp []Player, err error) {
 	tmp = make([]Player, len(ps))
 	for i, p := range ps {
 		// TODO(thiderman): This is not very elegant and should be replaced.
-		tp, err = p.Match.Tournament.getTournamentPlayerObject(p.Person)
+		tp, err = p.Match.tournament.getTournamentPlayerObject(p.Person)
 		if err != nil {
 			return
 		}

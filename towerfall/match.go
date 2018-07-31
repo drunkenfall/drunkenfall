@@ -41,15 +41,14 @@ type Match struct {
 	Started       time.Time     `json:"started"`
 	Ended         time.Time     `json:"ended"`
 	Events        []*Event      `json:"events"`
-	Tournament    *Tournament   `json:"-"`
 	KillOrder     []int         `json:"kill_order"`
 	Rounds        []Round       `json:"commits"`
 	Messages      []Message     `json:"messages"`
 	Level         string        `json:"level"`
 	Ruleset       string        `json:"ruleset"`
+	tournament    *Tournament
 	currentRound  Round
 	presentColors mapset.Set
-	tournament    *Tournament
 }
 
 // Round is a state commit for a round of a match
@@ -66,7 +65,7 @@ func NewMatch(t *Tournament, kind string) *Match {
 	m := Match{
 		Index:      index,
 		Kind:       kind,
-		Tournament: t,
+		tournament: t,
 		Length:     t.Length,
 		Pause:      time.Minute * 5,
 		Rounds:     make([]Round, 0),
@@ -126,7 +125,7 @@ func (m *Match) Title() string {
 	if m.Kind == final {
 		return "Final"
 	} else if m.Kind == playoff {
-		l = len(m.Tournament.Matches) - 3
+		l = len(m.tournament.Matches) - 3
 	}
 
 	out := fmt.Sprintf(
@@ -142,7 +141,7 @@ func (m *Match) Title() string {
 func (m *Match) URL() string {
 	out := fmt.Sprintf(
 		"/%s/%d/",
-		m.Tournament.ID,
+		m.tournament.ID,
 		m.Index,
 	)
 	return out
@@ -286,7 +285,7 @@ func (m *Match) Commit(round Round) {
 		m.KillOrder = m.MakeKillOrder()
 	}
 
-	_ = m.Tournament.Persist()
+	_ = m.tournament.Persist()
 }
 
 // storeMessage stores a message on the match
@@ -327,7 +326,7 @@ func (m *Match) handleMessage(msg Message) error {
 		return m.EndRound()
 
 	case inMatchStart:
-		nm, err := m.Tournament.NextMatch()
+		nm, err := m.tournament.NextMatch()
 		if err != nil {
 			return err
 		}
@@ -378,10 +377,10 @@ func (m *Match) handleMessage(msg Message) error {
 
 // sendPlayerUpdate sends a status update for a single player
 func (m *Match) sendPlayerUpdate(idx int) error {
-	return m.Tournament.server.SendWebsocketUpdate(
+	return m.tournament.server.SendWebsocketUpdate(
 		"player",
 		PlayerStateUpdateMessage{
-			m.Tournament.ID,
+			m.tournament.ID,
 			m.Index,
 			idx,
 			m.Players[idx].State,
@@ -415,7 +414,7 @@ func (m *Match) EndRound() error {
 		Shots: []bool{false, false, false, false},
 	}
 
-	return m.Tournament.Persist()
+	return m.tournament.Persist()
 }
 
 // StartRound sets the initial state of player arrows.
@@ -428,7 +427,7 @@ func (m *Match) StartRound(sr StartRoundMessage) error {
 		m.Players[i].State.Killer = -2
 	}
 	m.currentRound.started = true
-	return m.Tournament.Persist()
+	return m.tournament.Persist()
 }
 
 // ArrowUpdate updates the arrow state for a player
@@ -544,7 +543,7 @@ func (m *Match) Kill(km KillMessage) error {
 			"cause", km.Cause,
 		)
 	}
-	return m.Tournament.Persist()
+	return m.tournament.Persist()
 }
 
 // Start starts the match
@@ -561,12 +560,12 @@ func (m *Match) Start(c *gin.Context) error {
 	}
 
 	// Set the casters
-	m.Casters = m.Tournament.Casters
+	m.Casters = m.tournament.Casters
 
 	// Increment the current match, but only if we're not at the first.
 	if m.Index != 0 {
-		log.Printf("Increasing current from %d", m.Tournament.Current)
-		m.Tournament.Current++
+		log.Printf("Increasing current from %d", m.tournament.Current)
+		m.tournament.Current++
 	} else {
 		log.Print("Not increasing current when starting first match")
 	}
@@ -575,9 +574,9 @@ func (m *Match) Start(c *gin.Context) error {
 	m.LogEvent(
 		"started", "{match} started",
 		"match", m.Title(),
-		"person", PersonFromSession(m.Tournament.server, c))
+		"person", PersonFromSession(m.tournament.server, c))
 
-	return m.Tournament.Persist()
+	return m.tournament.Persist()
 }
 
 // End signals that the match has ended
@@ -604,14 +603,14 @@ func (m *Match) End(c *gin.Context) error {
 	m.LogEvent(
 		"ended", "{match} ended",
 		"match", m.Title(),
-		"person", PersonFromSession(m.Tournament.server, c))
+		"person", PersonFromSession(m.tournament.server, c))
 
 	if m.Kind == final {
-		if err := m.Tournament.AwardMedals(c, m); err != nil {
+		if err := m.tournament.AwardMedals(c, m); err != nil {
 			return err
 		}
 	} else {
-		if err := m.Tournament.MovePlayers(m); err != nil {
+		if err := m.tournament.MovePlayers(m); err != nil {
 			return err
 		}
 	}
@@ -621,7 +620,7 @@ func (m *Match) End(c *gin.Context) error {
 		m.tournament.server.logger.Info("Publishing next match failed", zap.Error(err))
 	}
 
-	m.Tournament.Persist()
+	m.tournament.Persist()
 	return nil
 }
 
@@ -635,7 +634,7 @@ func (m *Match) Reset() error {
 	// And remove all the rounds
 	m.Rounds = make([]Round, 0)
 
-	return m.Tournament.Persist()
+	return m.tournament.Persist()
 }
 
 // Autoplay runs through the entire match simulating real play
@@ -657,8 +656,8 @@ func (m *Match) SetTime(c *gin.Context, minutes int) {
 		"time_set", "{match} scheduled in {minutes}m",
 		"minutes", minutes,
 		"match", m.Title(),
-		"person", PersonFromSession(m.Tournament.server, c))
-	m.Tournament.Persist()
+		"person", PersonFromSession(m.tournament.server, c))
+	m.tournament.Persist()
 }
 
 // IsStarted returns boolean whether the match has started or not
@@ -739,7 +738,7 @@ func (m *Match) Duration() time.Duration {
 }
 
 func (m *Match) getRandomLevel() string {
-	l := m.Tournament.Levels[m.Kind]
+	l := m.tournament.Levels[m.Kind]
 	return l[m.Index%len(l)]
 }
 

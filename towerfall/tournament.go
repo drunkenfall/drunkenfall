@@ -721,7 +721,7 @@ func (t *Tournament) SetMatchPointers() error {
 	for i := range t.Matches {
 		m = t.Matches[i]
 		m.presentColors = mapset.NewSet()
-		m.Tournament = t
+		m.tournament = t
 		for j := range m.Players {
 			m.Players[j].Match = m
 		}
