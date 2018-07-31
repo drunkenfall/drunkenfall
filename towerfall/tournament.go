@@ -108,10 +108,42 @@ func (t *Tournament) Persist() error {
 	return t.db.SaveTournament(t)
 }
 
+// PublishNext sends information about the next match to the game
+//
+// It only does this if the match already has four players. If it does
+// not, it's a semi that needs backfilling, and then the backfilling
+// will make the publish. This should always be called before the
+// match is started, so t.NextMatch() can always safely be used.
+func (t *Tournament) PublishNext() error {
+	next, err := t.NextMatch()
+	if err != nil {
+		return err
+	}
+
+	if len(next.Players) != 4 {
+		return ErrPublishIncompleteMatch
+	}
+
+	msg := GameMatchMessage{
+		Tournament: t.ID,
+	}
+	msg.Level = next.Level
+
+	for _, p := range next.Players {
+		gp := GamePlayer{
+			p.Name(),
+			p.Color,
+		}
+		msg.Players = append(msg.Players, gp)
+	}
+
+	t.server.logger.Info("Sending publish", zap.Any("match", msg))
+	return t.server.publisher.Publish(gMatch, msg)
+}
+
 // JSON returns a JSON representation of the Tournament
 func (t *Tournament) JSON() (out []byte, err error) {
-	out, err = json.Marshal(t)
-	return
+	return json.Marshal(t)
 }
 
 // URL returns the URL for the tournament
@@ -260,7 +292,7 @@ func (t *Tournament) StartTournament(c *gin.Context) error {
 		"start", "Tournament started",
 		"person", PersonFromSession(t.server, c))
 
-	err := t.Matches[0].PublishNext()
+	err := t.PublishNext()
 	if err != nil {
 		return err
 	}
@@ -560,7 +592,7 @@ func (t *Tournament) BackfillSemis(c *gin.Context, ids []string) error {
 	// If we haven't already sent a message about the next match to the
 	// game, it is high time to do so!
 	if publish {
-		err := t.Matches[t.Current].PublishNext()
+		err := t.PublishNext()
 		if err != nil {
 			t.server.logger.Info("Publishing next match failed", zap.Error(err))
 		}

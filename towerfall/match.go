@@ -500,40 +500,6 @@ func (m *Match) LavaOrb(lm LavaOrbMessage) error {
 	return m.sendPlayerUpdate(lm.Player)
 }
 
-// PublishNext sends information about the next match to the game
-//
-// It only does this if the match already has four players. If it does
-// not, it's a semi that needs backfilling, and then the backfilling
-// will make the publish. This should always be called before the
-// match is started, so t.NextMatch() can always safely be used.
-func (m *Match) PublishNext() error {
-	next, err := m.tournament.NextMatch()
-	if err != nil {
-		return err
-	}
-
-	if len(next.Players) != 4 {
-		return ErrPublishIncompleteMatch
-	}
-
-	msg := GameMatchMessage{
-		Tournament: m.tournament.ID,
-	}
-	msg.Level = next.Level
-
-	for _, p := range next.Players {
-		gp := GamePlayer{
-			p.Name(),
-			p.Color,
-		}
-		msg.Players = append(msg.Players, gp)
-	}
-
-	s := next.tournament.server
-	s.logger.Info("Sending publish", zap.Any("match", msg))
-	return s.publisher.Publish(gMatch, msg)
-}
-
 // Kill records a Kill
 func (m *Match) Kill(km KillMessage) error {
 	m.Players[km.Player].State.Alive = false
@@ -642,7 +608,7 @@ func (m *Match) End(c *gin.Context) error {
 		}
 	}
 
-	err := m.PublishNext()
+	err := m.tournament.PublishNext()
 	if err != nil {
 		m.tournament.server.logger.Info("Publishing next match failed", zap.Error(err))
 	}

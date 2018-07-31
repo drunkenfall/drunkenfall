@@ -44,9 +44,11 @@ type MatchUpdateMessage struct {
 	Match      *Match `json:"state"`
 }
 
-// Constant strings for use as kinds when sending messages to the game
+// Constant strings for use as kinds when communicating with the game
 const (
-	gMatch = "match"
+	gMatch      = "match"
+	gConnect    = "game_connected"
+	gDisconnect = "game_disconnected"
 )
 
 // GameMatchMessage is the message sent to the game about the

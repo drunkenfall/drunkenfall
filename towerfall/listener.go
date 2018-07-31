@@ -93,6 +93,14 @@ func (l *Listener) handle(t *Tournament, body []byte) error {
 		return err
 	}
 
-	//
+	// Check if this is a meta communication from the game.
+	switch msg.Type {
+	case gConnect:
+		// If this is a connect event, it means that the game wants to
+		// know what's up with the current match.
+		return t.PublishNext()
+	}
+
+	// If it wasn't, then it's about a match
 	return t.Matches[t.Current].handleMessage(msg)
 }
