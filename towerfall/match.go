@@ -46,6 +46,7 @@ type Match struct {
 	Rounds        []Round       `json:"commits"`
 	Messages      []Message     `json:"messages"`
 	Level         string        `json:"level"`
+	Ruleset       string        `json:"ruleset"`
 	currentRound  Round
 	presentColors mapset.Set
 	tournament    *Tournament
@@ -66,9 +67,10 @@ func NewMatch(t *Tournament, kind string) *Match {
 		Index:      index,
 		Kind:       kind,
 		Tournament: t,
-		Length:     t.length,
+		Length:     t.Length,
 		Pause:      time.Minute * 5,
 		Rounds:     make([]Round, 0),
+		Ruleset:    "A",
 		currentRound: Round{
 			Kills: [][]int{{0, 0}, {0, 0}, {0, 0}, {0, 0}},
 			Shots: []bool{false, false, false, false},
@@ -78,7 +80,8 @@ func NewMatch(t *Tournament, kind string) *Match {
 
 	// Finals are longer <3
 	if kind == final {
-		m.Length = t.finalLength
+		m.Length = t.FinalLength
+		m.Ruleset = "B"
 	}
 
 	m.Level = m.getRandomLevel()

@@ -18,9 +18,9 @@ export default class Match {
 
     m.endScore = m.length
 
-    // TODO(thiderman): There is this weird bug where some matches are
-    // created without a length. This circumvents this in a semi-ugly
-    // way.
+    // TODO(thiderman): There used to be this weird bug where some
+    // matches are created without a length. This circumvents this in
+    // a semi-ugly way. The bug is fixed, but workarounds are forever. <3
     if (m.endScore === 0) {
       m.endScore = m.kind === "final" ? 20 : 10
     }

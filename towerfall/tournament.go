@@ -32,10 +32,10 @@ type Tournament struct {
 	Color       string       `json:"color"`
 	Levels      Levels       `json:"levels"`
 	Cover       string       `json:"cover"`
+	Length      int          `json:"length"`
+	FinalLength int          `json:"final_length"`
 	db          *Database
 	server      *Server
-	length      int
-	finalLength int
 }
 
 // CurrentMatch holds the pointers needed to find the current match
@@ -55,10 +55,10 @@ func NewTournament(name, id, cover string, scheduledStart time.Time, c *gin.Cont
 		Scheduled:   scheduledStart,
 		Levels:      NewLevels(),
 		Cover:       cover,
+		Length:      matchLength,
+		FinalLength: finalLength,
 		db:          server.DB,
 		server:      server,
-		length:      matchLength,
-		finalLength: finalLength,
 	}
 
 	t.SetMatchPointers()
@@ -127,6 +127,8 @@ func (t *Tournament) PublishNext() error {
 	msg := GameMatchMessage{
 		Tournament: t.ID,
 		Level:      next.realLevel(),
+		Length:     next.Length,
+		Ruleset:    next.Ruleset,
 	}
 
 	for _, p := range next.Players {

@@ -55,8 +55,10 @@ const (
 // configuration of the next match
 type GameMatchMessage struct {
 	Players    []GamePlayer `json:"players"`
-	Level      string       `json:"level"`
 	Tournament string       `json:"tournament"`
+	Level      string       `json:"level"`
+	Length     int          `json:"length"`
+	Ruleset    string       `json:"ruleset"`
 }
 
 // GamePlayer is a player object to be consumed by the game
