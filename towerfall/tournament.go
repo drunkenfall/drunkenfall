@@ -14,6 +14,8 @@ import (
 	"go.uber.org/zap"
 )
 
+var ErrPublishDisconnected = errors.New("not connected; will not publish")
+
 // Tournament is the main container of data for this app.
 type Tournament struct {
 	Name        string       `json:"name"`
@@ -34,6 +36,7 @@ type Tournament struct {
 	Cover       string       `json:"cover"`
 	Length      int          `json:"length"`
 	FinalLength int          `json:"final_length"`
+	connected   bool
 	db          *Database
 	server      *Server
 }
@@ -115,6 +118,11 @@ func (t *Tournament) Persist() error {
 // will make the publish. This should always be called before the
 // match is started, so t.NextMatch() can always safely be used.
 func (t *Tournament) PublishNext() error {
+	if !t.connected {
+		t.server.logger.Info("Not publishing disconnected tournament")
+		return ErrPublishDisconnected
+	}
+
 	next, err := t.NextMatch()
 	if err != nil {
 		return err
@@ -142,6 +150,19 @@ func (t *Tournament) PublishNext() error {
 
 	t.server.logger.Info("Sending publish", zap.Any("match", msg))
 	return t.server.publisher.Publish(gMatch, msg)
+}
+
+// connect sets the connect variable
+func (t *Tournament) connect(connected bool) {
+	if t.connected == connected {
+		return
+	}
+
+	t.server.logger.Info(
+		"Torunament connection changed",
+		zap.Bool("connected", connected),
+	)
+	t.connected = connected
 }
 
 // JSON returns a JSON representation of the Tournament
@@ -296,7 +317,7 @@ func (t *Tournament) StartTournament(c *gin.Context) error {
 		"person", PersonFromSession(t.server, c))
 
 	err := t.PublishNext()
-	if err != nil {
+	if err != nil && err != ErrPublishDisconnected {
 		return err
 	}
 	return t.Persist()
@@ -596,7 +617,7 @@ func (t *Tournament) BackfillSemis(c *gin.Context, ids []string) error {
 	// game, it is high time to do so!
 	if publish {
 		err := t.PublishNext()
-		if err != nil {
+		if err != nil && err != ErrPublishDisconnected {
 			t.server.logger.Info("Publishing next match failed", zap.Error(err))
 		}
 	}

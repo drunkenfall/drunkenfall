@@ -617,7 +617,7 @@ func (m *Match) End(c *gin.Context) error {
 	}
 
 	err := m.tournament.PublishNext()
-	if err != nil {
+	if err != nil && err != ErrPublishDisconnected {
 		m.tournament.server.logger.Info("Publishing next match failed", zap.Error(err))
 	}
 

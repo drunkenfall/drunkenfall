@@ -98,7 +98,15 @@ func (l *Listener) handle(t *Tournament, body []byte) error {
 	case gConnect:
 		// If this is a connect event, it means that the game wants to
 		// know what's up with the current match.
-		return t.PublishNext()
+		t.connect(true)
+		if err := t.PublishNext(); err != nil && err != ErrPublishDisconnected {
+			return err
+		}
+		return nil
+
+	case gDisconnect:
+		t.connect(false)
+		return nil
 	}
 
 	// If it wasn't, then it's about a match
