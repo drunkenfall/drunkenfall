@@ -88,5 +88,12 @@ vendor:
 docker:
 	docker-compose build
 
-caddy:
+.PHONY: download-caddy
+download-caddy:
+	go get github.com/mholt/caddy/caddy
+	go get github.com/caddyserver/builds
+	cd $(GOPATH)/src/github.com/mholt/caddy/caddy; go run build.go
+
+.PHONY: caddy
+caddy: download-caddy
 	sudo /home/thiderman/bin/caddy
