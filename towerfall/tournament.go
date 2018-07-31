@@ -129,6 +129,7 @@ func (t *Tournament) PublishNext() error {
 		Level:      next.realLevel(),
 		Length:     next.Length,
 		Ruleset:    next.Ruleset,
+		Kind:       next.Kind,
 	}
 
 	for _, p := range next.Players {

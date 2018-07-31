@@ -59,6 +59,7 @@ type GameMatchMessage struct {
 	Level      string       `json:"level"`
 	Length     int          `json:"length"`
 	Ruleset    string       `json:"ruleset"`
+	Kind       string       `json:"kind"`
 }
 
 // GamePlayer is a player object to be consumed by the game
