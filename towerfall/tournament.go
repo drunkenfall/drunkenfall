@@ -141,9 +141,11 @@ func (t *Tournament) PublishNext() error {
 	}
 
 	for _, p := range next.Players {
+		top, bot := transformName(p.Name())
 		gp := GamePlayer{
-			p.Name(),
-			p.NumericColor(),
+			TopName:    top,
+			BottomName: bot,
+			Color:      p.NumericColor(),
 		}
 		msg.Players = append(msg.Players, gp)
 	}

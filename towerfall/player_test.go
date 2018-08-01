@@ -180,3 +180,55 @@ func TestSortRunnerups(t *testing.T) {
 	assert.Equal("second", ret[1].Name())
 	assert.Equal("last", ret[2].Name())
 }
+
+func TestTransformName(t *testing.T) {
+	t.Run("Two words, one space", func(t *testing.T) {
+		first, second := transformName("Queen Obscene")
+		assert.Equal(t, "Queen", first)
+		assert.Equal(t, "Obscene", second)
+
+		first, second = transformName("Green Vegan")
+		assert.Equal(t, "Green", first)
+		assert.Equal(t, "Vegan", second)
+	})
+
+	t.Run("Mr. Prefix", func(t *testing.T) {
+		first, second := transformName("Mr. Formal Wear")
+		assert.Equal(t, "Formal", first)
+		assert.Equal(t, "Wear", second)
+	})
+
+	t.Run("Single names", func(t *testing.T) {
+		first, second := transformName("thiderman")
+		assert.NotEqual(t, "", first)
+		assert.Equal(t, "thiderman", second)
+	})
+
+	t.Run("CamelCase", func(t *testing.T) {
+		first, second := transformName("FrontierPsycho")
+		assert.Equal(t, "Frontier", first)
+		assert.Equal(t, "Psycho", second)
+
+		first, second = transformName("TheHalfBlood")
+		assert.Equal(t, "The Half", first)
+		assert.Equal(t, "Blood", second)
+	})
+
+	t.Run("Dashes", func(t *testing.T) {
+		first, second := transformName("Qrl-Astrid")
+		assert.Equal(t, "Qrl", first)
+		assert.Equal(t, "Astrid", second)
+	})
+
+	t.Run("Parenthesis", func(t *testing.T) {
+		first, second := transformName("Dixie Normous (Marcoth) ")
+		assert.Equal(t, "Dixie", first)
+		assert.Equal(t, "Normous", second)
+	})
+
+	t.Run("Non-alpha", func(t *testing.T) {
+		first, second := transformName("Zeb.dwarf")
+		assert.Equal(t, "Zeb", first)
+		assert.Equal(t, "dwarf", second)
+	})
+}

@@ -4,9 +4,12 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"regexp"
 	"sort"
+	"strings"
 
 	"github.com/deckarep/golang-set"
+	"github.com/fatih/camelcase"
 )
 
 // AllColors is a list of the available player colors
@@ -386,4 +389,69 @@ func AvailableColors(m *Match) mapset.Set {
 	colors := mapset.NewSetFromSlice(AllColors)
 	ret := colors.Difference(m.presentColors)
 	return ret
+}
+
+// transformName
+func transformName(name string) (string, string) {
+	name = strings.TrimSpace(name)
+
+	rxp := regexp.MustCompile("[^0-9A-Za-z()]+")
+	// Run it twice so that double spaces are removed
+	name = rxp.ReplaceAllString(name, " ")
+	name = rxp.ReplaceAllString(name, " ")
+
+	if strings.Contains(name, " ") {
+		spl := strings.Split(name, " ")
+
+		if len(spl) == 2 {
+			// Perfect - two spaces; just do it!
+			return spl[0], spl[1]
+		}
+
+		if (spl[0]) == "Mr" {
+			return spl[1], spl[2]
+		}
+
+		if len(spl) == 3 {
+			// Sigh.
+			if strings.HasPrefix(spl[2], "(") {
+				return spl[0], spl[1]
+			}
+
+			front := fmt.Sprintf("%s %s", spl[0], spl[1])
+			back := fmt.Sprintf("%s %s", spl[1], spl[2])
+			if len(front) >= len(spl[2]) {
+				return front, spl[2]
+			} else {
+				return spl[0], back
+			}
+		}
+	}
+
+	spl := camelcase.Split(name)
+	if len(spl) > 1 {
+		// Oh noes, CamelCase!
+		if len(spl) == 2 {
+			return spl[0], spl[1]
+		}
+
+		if spl[0] == "The" {
+			return fmt.Sprintf("%s %s", spl[0], spl[1]), spl[2]
+		}
+	}
+
+	prefixes := []string{
+		"The",
+		"El Grande",
+		"Sweet",
+		"Big",
+		"Strong",
+		"Boss",
+		"Master",
+		"Vicious",
+		"Vengeful",
+	}
+
+	// One-namer!
+	return prefixes[rand.Intn(len(prefixes))], name
 }

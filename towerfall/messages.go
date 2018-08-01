@@ -64,8 +64,9 @@ type GameMatchMessage struct {
 
 // GamePlayer is a player object to be consumed by the game
 type GamePlayer struct {
-	Name  string `json:"name"`
-	Color int    `json:"color"`
+	TopName    string `json:"top_name"`
+	BottomName string `json:"bottom_name"`
+	Color      int    `json:"color"`
 }
 
 type Message struct {

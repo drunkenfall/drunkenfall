@@ -27,6 +27,12 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/fatih/camelcase"
+  packages = ["."]
+  revision = "44e46d280b43ec1531bb25252440e34f1b800b65"
+
+[[projects]]
+  branch = "master"
   name = "github.com/gin-contrib/sessions"
   packages = [
     ".",
@@ -226,6 +232,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "6d5763201541dd82bca8217c5f97526b7d54d248826dd35180f5ba0476fae955"
+  inputs-digest = "3bff84a8de9eaad336c313e91247888b3f8ce753b6c5d82413dec14ff424965a"
   solver-name = "gps-cdcl"
   solver-version = 1

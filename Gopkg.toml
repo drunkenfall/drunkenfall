@@ -84,3 +84,7 @@
 [[constraint]]
   branch = "master"
   name = "github.com/gin-contrib/zap"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/fatih/camelcase"
