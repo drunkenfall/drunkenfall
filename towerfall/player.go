@@ -479,9 +479,7 @@ func transformName(name string) (string, string) {
 
 	suffixes := []string{
 		"The Great",
-		"The Indominatable",
 		"The Not So Great",
-		"The Incomparable",
 		"K?",
 		"AS FUCK",
 		"The Goon",
