@@ -198,10 +198,10 @@ func TestTransformName(t *testing.T) {
 		assert.Equal(t, "Wear", second)
 	})
 
-	t.Run("Single names", func(t *testing.T) {
+	t.Run("Single names becomes two", func(t *testing.T) {
 		first, second := transformName("thiderman")
 		assert.NotEqual(t, "", first)
-		assert.Equal(t, "thiderman", second)
+		assert.NotEqual(t, "", second)
 	})
 
 	t.Run("CamelCase", func(t *testing.T) {

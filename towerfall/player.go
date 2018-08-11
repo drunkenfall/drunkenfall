@@ -450,8 +450,66 @@ func transformName(name string) (string, string) {
 		"Master",
 		"Vicious",
 		"Vengeful",
+		"Sassy",
+		"Gay",
+		"Yaaas",
+		"Epic",
+		"Grandmaster",
+		"Ser",
+		"Jarl of",
+		"Bishop",
+		"Lady",
+		"Lord",
+		"Duke",
+		"Their Majesty",
+		"Royal",
+		"Brother",
+		"Sister",
+		"Governor",
+		"Papa",
+		"Monsieur",
+		"Madamoiselle",
+		"1337",
+		"Motherfuckin",
+		"Wannabe",
+		"Call Me",
+		"Mr.",
+		"Ms.",
 	}
 
-	// One-namer!
-	return prefixes[rand.Intn(len(prefixes))], name
+	suffixes := []string{
+		"The Great",
+		"The Indominatable",
+		"The Not So Great",
+		"The Incomparable",
+		"K?",
+		"AS FUCK",
+		"The Goon",
+		"The Fucker",
+		"Fuck Yeah",
+		"for the win",
+		"for the lulz",
+		"The Supreme",
+		"Yaaaas",
+		"The Fabulous",
+		"The Gay",
+		"The Unicorn",
+		"The Wannabe",
+		"The Usurper",
+		"Esq.",
+		"2000",
+		"The Idiot",
+		"The Drunk",
+		"The Sober",
+		"Is Dead",
+		"Is Lame",
+		"Sucks",
+		"The Homeless",
+	}
+
+	// One-namer! Add a prefix or a suffix; 50% distrib
+	if rand.Intn(100) >= 50 {
+		return prefixes[rand.Intn(len(prefixes))], name
+	}
+	return name, suffixes[rand.Intn(len(suffixes))]
 }
