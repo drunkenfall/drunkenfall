@@ -693,7 +693,7 @@ func (s *Server) BuildRouter(ws *melody.Melody) *gin.Engine {
 
 	router.Use(sessions.Sessions(CookieStoreName, cookieStore))
 
-	index := "js/index.html"
+	index := "js/dist/index.html"
 	if _, err := os.Stat(index); !os.IsNotExist(err) {
 		router.LoadHTMLFiles(index)
 		router.NoRoute(func(c *gin.Context) {
@@ -703,6 +703,7 @@ func (s *Server) BuildRouter(ws *melody.Melody) *gin.Engine {
 			}
 			c.HTML(200, "index.html", gin.H{})
 		})
+		router.Static("/static", "./js/dist/static")
 	}
 
 	api := router.Group("/api")
