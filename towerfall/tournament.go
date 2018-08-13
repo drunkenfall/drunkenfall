@@ -161,7 +161,7 @@ func (t *Tournament) connect(connected bool) {
 	}
 
 	t.server.logger.Info(
-		"Torunament connection changed",
+		"Tournament connection changed",
 		zap.Bool("connected", connected),
 	)
 	t.connected = connected

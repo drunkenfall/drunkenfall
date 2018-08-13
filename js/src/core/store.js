@@ -38,8 +38,6 @@ const store = new Vuex.Store({ // eslint-disable-line
       Vue.set(state.tournaments, t.id, t)
     },
     updatePlayer (state, data) {
-      console.log("state", state)
-      console.log("data", data)
       let t = state.tournaments[data.tournament]
       t.matches[data.match].players[data.player].state = data.state
       Vue.set(state.tournaments, t.id, t)
@@ -83,10 +81,8 @@ const store = new Vuex.Store({ // eslint-disable-line
         state.tournaments = ts
       } else if (res.type === 'tournament') {
         let t = Tournament.fromObject(data)
-        console.log("loading tournament", t)
         Vue.set(state.tournaments, t.id, t)
       } else if (res.type === 'player') {
-        data = data.player
         let t = state.tournaments[data.tournament]
         t.matches[data.match].players[data.player].state = data.state
         Vue.set(state.tournaments, t.id, t)
