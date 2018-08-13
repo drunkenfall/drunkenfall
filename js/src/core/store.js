@@ -38,7 +38,6 @@ const store = new Vuex.Store({ // eslint-disable-line
       Vue.set(state.tournaments, t.id, t)
     },
     updatePlayer (state, data) {
-      data = data.player
       let t = state.tournaments[data.tournament]
       t.matches[data.match].players[data.player].state = data.state
       Vue.set(state.tournaments, t.id, t)
