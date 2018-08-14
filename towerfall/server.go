@@ -319,6 +319,14 @@ func (s *Server) AutoplayTournamentHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"redirect": tm.URL()})
 }
 
+// StartPlayHandler sends a message to the game that it is time to
+// start doing whatever is next.
+func (s *Server) StartPlayHandler(c *gin.Context) {
+	s.logger.Info("sending start_play")
+	s.publisher.Publish(gStartPlay, StartPlayMessage{})
+	c.JSON(http.StatusOK, gin.H{"sent": true})
+}
+
 // MatchHandler is the common function for match operations.
 func (s *Server) MatchHandler(c *gin.Context) {
 	plog := s.logger.With(zap.String("path", c.Request.URL.Path))
@@ -750,6 +758,7 @@ func (s *Server) BuildRouter(ws *melody.Melody) *gin.Engine {
 	t.GET("/usurp/", s.UsurpTournamentHandler)
 	t.GET("/start/", s.StartTournamentHandler)
 
+	t.POST("/play/", s.StartPlayHandler)
 	t.POST("/backfill/", s.BackfillSemisHandler)
 	t.POST("/casters/", s.CastersHandler)
 	t.POST("/edit/", s.EditHandler)
@@ -761,11 +770,6 @@ func (s *Server) BuildRouter(ws *melody.Melody) *gin.Engine {
 
 	api.POST("/simulator/start/:id", s.startSimulator)
 	api.POST("/simulator/stop/:id", s.stopSimulator)
-
-	// Add the fallback static serving
-	// router.PathPrefix("/static/js").Handler(http.StripPrefix("/static/js", http.FileServer(http.Dir("./js/dist/static/js"))))
-	// router.PathPrefix("/static/css").Handler(http.StripPrefix("/static/css", http.FileServer(http.Dir("./js/dist/static/css"))))
-	// router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./js/static/"))))
 
 	return router
 }
@@ -785,7 +789,6 @@ func (s *Server) SendWebsocketUpdate(kind string, data interface{}) error {
 	// There is a situation where a certain test (TestLavaOrb) makes the
 	// tests hang repeatedly if this is not a goroutine. This is extra
 	// weird since hundreds of other messages have been sent before that.
-	// TODO(thiderman): Re-implement via Melody
 	go func(kind string, data interface{}) {
 		msg := websockets.Message{
 			Type: kind,
@@ -798,6 +801,7 @@ func (s *Server) SendWebsocketUpdate(kind string, data interface{}) error {
 			return
 		}
 
+		s.logger.Info("websocket send", zap.Any("message", msg))
 		s.ws.Broadcast(out)
 	}(kind, data)
 

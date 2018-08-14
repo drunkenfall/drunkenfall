@@ -8,7 +8,7 @@ import Credits from '../components/Credits.vue'
 import Disable from '../components/Disable.vue'
 import Edit from '../components/Edit.vue'
 import Join from '../components/Join.vue'
-import JudgeInterface from '../components/Judge.vue'
+import GogoInterface from '../components/Gogo.vue'
 import Log from '../components/Log.vue'
 import Match from '../components/Match.vue'
 import New from '../components/New.vue'
@@ -131,7 +131,7 @@ var router = new Router({
     {
       path: '/tournaments/:tournament/judge/',
       name: 'judge',
-      component: JudgeInterface
+      component: GogoInterface
     },
     {
       path: '/tournaments/:tournament/charts/',
