@@ -801,7 +801,6 @@ func (s *Server) SendWebsocketUpdate(kind string, data interface{}) error {
 			return
 		}
 
-		s.logger.Info("websocket send", zap.Any("message", msg))
 		s.ws.Broadcast(out)
 	}(kind, data)
 
