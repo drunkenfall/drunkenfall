@@ -326,6 +326,11 @@ func (m *Match) handleMessage(msg Message) error {
 		return m.EndRound()
 
 	case inMatchStart:
+		if m.IsStarted() && !m.IsEnded() {
+			log.Print("Current match not ended; ignoring match_start")
+			return nil
+		}
+
 		nm, err := m.tournament.NextMatch()
 		if err != nil {
 			return err

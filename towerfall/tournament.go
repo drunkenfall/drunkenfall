@@ -651,7 +651,14 @@ func (t *Tournament) NextMatch() (*Match, error) {
 		log.Print("Returning first match as next match")
 		return t.Matches[0], nil
 	}
-	m := t.Matches[t.Current+1]
+
+	next := t.Current + 1
+	if int(next) >= len(t.Matches) {
+		log.Println("Match index out of bounds - returning final")
+		return t.Matches[len(t.Matches)-1], nil
+	}
+
+	m := t.Matches[next]
 	log.Printf("Returning %d as next match", m.Index)
 	return m, nil
 }
