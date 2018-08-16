@@ -16,20 +16,32 @@
         <div id="join-images" class="images">
           <label for="images">Preferred archer</label>
 
-          <input type="image" @click="character" :class="colorClass('green')" id="green" src="/static/img/green-selected.png">
-          <input type="image" @click="character" :class="colorClass('blue')" id="blue" src="/static/img/blue-selected.png">
-          <input type="image" @click="character" :class="colorClass('pink')" id="pink" src="/static/img/pink-selected.png">
-          <input type="image" @click="character" :class="colorClass('orange')" id="orange" src="/static/img/orange-selected.png">
-          <input type="image" @click="character" :class="colorClass('white')" id="white" src="/static/img/white-selected.png">
-          <input type="image" @click="character" :class="colorClass('yellow')" id="yellow" src="/static/img/yellow-selected.png">
-          <input type="image" @click="character" :class="colorClass('cyan')" id="cyan" src="/static/img/cyan-selected.png">
-          <input type="image" @click="character" :class="colorClass('purple')" id="purple" src="/static/img/purple-selected.png">
-          <input type="image" @click="character" :class="colorClass('red')" id="red" src="/static/img/red-selected.png">
+          <input type="image" @click="character" :class="colorClass('green')" id="green" :src="archerImg('green')">
+          <input type="image" @click="character" :class="colorClass('blue')" id="blue" :src="archerImg('blue')">
+          <input type="image" @click="character" :class="colorClass('pink')" id="pink" :src="archerImg('pink')">
+          <input type="image" @click="character" :class="colorClass('orange')" id="orange" :src="archerImg('orange')">
+          <input type="image" @click="character" :class="colorClass('white')" id="white" :src="archerImg('white')">
+          <input type="image" @click="character" :class="colorClass('yellow')" id="yellow" :src="archerImg('yellow')">
+          <input type="image" @click="character" :class="colorClass('cyan')" id="cyan" :src="archerImg('cyan')">
+          <input type="image" @click="character" :class="colorClass('purple')" id="purple" :src="archerImg('purple')">
+          <input type="image" @click="character" :class="colorClass('red')" id="red" :src="archerImg('red')">
+        </div>
+      </div>
+
+      <div class="section selector">
+        <div class="split">
+          <input id="normal" name="normal" v-model="archer_type" type="radio" value="0" />
+          <label for="normal">Normal archers</label>
+        </div>
+
+        <div class="split">
+          <input id="alternate" name="normal" v-model="archer_type" type="radio" value="1" />
+          <label for="alternate">Alternate archers</label>
         </div>
       </div>
 
       <div class="links">
-        <a @click="submit" :class="{ disabled: !canSave}">
+        <a @click="submit" :class="{disabled: !canSave}">
           <div class="icon positive">
             <icon name="floppy-o"></icon>
           </div>
@@ -55,6 +67,7 @@ export default {
       name: "",
       nick: "",
       color: "",
+      archer_type: "0",
     }
   },
 
@@ -64,6 +77,12 @@ export default {
         return "selected"
       }
       return ""
+    },
+    archerImg (color) {
+      if (this.archer_type === "1") {
+        return `/static/img/${color}-alt.png`
+      }
+      return `/static/img/${color}-selected.png`
     },
     character (event) {
       event.preventDefault()
@@ -85,7 +104,8 @@ export default {
       var payload = {
         name: this.name,
         nick: this.nick,
-        color: this.color
+        color: this.color,
+        archer_type: this.archer_type === "1" ? 1 : 0,
       }
 
       this.$http.post('/api/user/settings/', payload).then((res) => {
@@ -105,20 +125,21 @@ export default {
       this.$set(this.$data, "name", q.name ? q.name : u.name)
 
       // If no nick is set, just suggest it from the full name
-      if (!q.nick && !u.nick) {
+      if (!q.nick && !u.nick && this.name) {
         this.$set(this.$data, "nick", this.name.split(" ")[0])
       } else {
         this.$set(this.$data, "nick", q.nick ? q.nick : u.nick)
       }
 
       this.$set(this.$data, "color", q.color ? q.color : u.color)
+      this.$set(this.$data, "archer_type", u.archer_type.toString())
     }
   },
 
   computed: {
     canSave () {
       let u = this.user
-      return u.color !== this.color || u.name !== this.name || u.nick !== this.nick
+      return u.color !== this.color || u.name !== this.name || u.nick !== this.nick || u.archer_type.toString() !== this.archer_type
     },
   },
 
@@ -148,6 +169,23 @@ form {
   .section {
     width: 80%;
     margin: 10px auto;
+
+    &.selector {
+      height: 2em;
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      margin-bottom: 2em;
+
+      .split {
+        margin: 0 2em;
+
+        label {
+          display: inline;
+          margin: 0;
+        }
+      }
+    }
   }
 
   label {

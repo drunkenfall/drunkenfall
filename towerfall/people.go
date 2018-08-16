@@ -20,6 +20,7 @@ type Person struct {
 	Name            string   `json:"name"`
 	Nick            string   `json:"nick"`
 	ColorPreference []string `json:"color_preference"`
+	ArcherType      int      `json:"archer_type"`
 	FacebookID      string   `json:"facebook_id"`
 	AvatarURL       string   `json:"avatar_url"`
 	Userlevel       int      `json:"userlevel"`
@@ -40,6 +41,14 @@ const (
 	PermissionCommentator = 50
 	PermissionJudge       = 30
 	PermissionPlayer      = 10
+)
+
+// Archer types. These decide which version of the character you are
+// playing as. Secret is selectable but never used.
+const (
+	atNormal = iota
+	atAlternate
+	atSecret
 )
 
 var ErrFacebookAlreadyExists = errors.New("facebook user already exists")
@@ -143,6 +152,7 @@ func (p *Person) PrefillNickname() {
 func (p *Person) UpdatePerson(r *SettingsPostRequest) {
 	p.Name = r.Name
 	p.Nick = r.Nick
+	p.ArcherType = r.ArcherType
 	p.ColorPreference = []string{r.Color}
 }
 

@@ -40,6 +40,7 @@ type Player struct {
 	Person         *Person     `json:"person"`
 	Color          string      `json:"color"`
 	PreferredColor string      `json:"preferred_color"`
+	ArcherType     int         `json:"archer_type"`
 	Shots          int         `json:"shots"`
 	Sweeps         int         `json:"sweeps"`
 	Kills          int         `json:"kills"`
@@ -65,8 +66,9 @@ type PlayerState struct {
 // NewPlayer returns a new instance of a player
 func NewPlayer(ps *Person) *Player {
 	p := &Player{
-		Person: ps,
-		State:  NewPlayerState(),
+		Person:     ps,
+		ArcherType: ps.ArcherType,
+		State:      NewPlayerState(),
 	}
 	if len(ps.ColorPreference) > 0 {
 		p.PreferredColor = ps.ColorPreference[0]

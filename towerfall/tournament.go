@@ -146,6 +146,7 @@ func (t *Tournament) PublishNext() error {
 			TopName:    top,
 			BottomName: bot,
 			Color:      p.NumericColor(),
+			ArcherType: p.Person.ArcherType,
 		}
 		msg.Players = append(msg.Players, gp)
 	}

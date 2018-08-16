@@ -69,9 +69,10 @@ type CommitRequest struct {
 
 // SettingsPostRequest is a settings update
 type SettingsPostRequest struct {
-	Name  string `json:"name"`
-	Nick  string `json:"nick"`
-	Color string `json:"color"`
+	Name       string `json:"name"`
+	Nick       string `json:"nick"`
+	Color      string `json:"color"`
+	ArcherType int    `json:"archer_type"`
 }
 
 type FakeNameResponse struct {
@@ -721,7 +722,7 @@ func (s *Server) BuildRouter(ws *melody.Melody) *gin.Engine {
 	api.GET("/people/stats/", s.StatsHandler)
 	api.GET("/user/", s.UserHandler)
 	api.GET("/user/logout/", s.LogoutHandler)
-	api.GET("/user/settings/", s.SettingsHandler)
+	api.POST("/user/settings/", s.SettingsHandler)
 	api.GET("/fake/name/", s.FakeNameHandler)
 	api.GET("/tournaments/", s.TournamentListHandler)
 	// api.GET("/tournaments/:id", s.TournamentHandler)
@@ -743,7 +744,7 @@ func (s *Server) BuildRouter(ws *melody.Melody) *gin.Engine {
 	// are at least a judge.
 	api.Use(s.RequireJudge())
 
-	api.POST("/user/:person/disable", s.DisableHandler)
+	api.POST("/user/disable/:person", s.DisableHandler)
 	api.DELETE("/tournaments/", s.ClearTournamentHandler)
 
 	api.POST("/tournaments/", s.NewHandler)

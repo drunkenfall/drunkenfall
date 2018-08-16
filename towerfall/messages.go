@@ -72,6 +72,7 @@ type GamePlayer struct {
 	TopName    string `json:"top_name"`
 	BottomName string `json:"bottom_name"`
 	Color      int    `json:"color"`
+	ArcherType int    `json:"archer_type"`
 }
 
 type Message struct {
