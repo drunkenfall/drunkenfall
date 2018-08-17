@@ -81,8 +81,16 @@ export default {
         return { tournaments: [] }
       })
     },
+
     reset () {
-      return this.runningMatch.reset()
+      let $vue = this
+      console.log("Resetting match...", this.runningMatch)
+      this.api.reset(this.runningMatch.id, {}).then((res) => {
+        console.log("Match reset.", res)
+      }, (res) => {
+        $vue.$alert("Reset failed. See console.")
+        console.error(res)
+      })
     },
   },
   computed: {
@@ -112,7 +120,12 @@ export default {
 
       return `Reset ${this.runningMatch.title}`
     },
-  }
+  },
+  created () {
+    this.api = this.$resource("/api", {}, {
+      reset: { method: "POST", url: "/api/tournaments/{id}/match/{index}/reset/" },
+    })
+  },
 }
 </script>
 
