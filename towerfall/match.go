@@ -639,6 +639,14 @@ func (m *Match) Reset() error {
 	// And remove all the rounds
 	m.Rounds = make([]Round, 0)
 
+	// And reset the start time
+	m.Started = time.Time{}
+
+	// Also decrease the Current. It was bumped on match start, and
+	// since we reset it's going to be too high and whatever calls for
+	// the next match will go to the one after the one that was reset.
+	m.tournament.Current--
+
 	return m.tournament.Persist()
 }
 
