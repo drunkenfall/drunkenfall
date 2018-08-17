@@ -6,8 +6,8 @@
       {{match.title}} - Round {{round}} @ {{match.levelTitle}}
     </p>
 
-    <a @click="play">
-      <div class="icon positive">
+    <a @click="play" id="gogo">
+      <div class="icon">
         <icon name="play"></icon>
       </div>
       <div class="clear"></div>
@@ -38,6 +38,14 @@ export default {
   methods: {
     play () {
       let $vue = this
+
+      let go = document.getElementById("gogo")
+      go.className = "disabled"
+      setTimeout(function () {
+        let go = document.getElementById("gogo")
+        go.className = ""
+      }, 3000)
+
       console.log("Sending startplay match...", this.match_id)
       this.api.play(this.match_id, {}).then((res) => {
         console.log("Match started.", res)
@@ -79,6 +87,12 @@ export default {
     text-align: center;
     text-decoration: none;
     background-color: $positive;
+    transition: 0.35s;
+
+    &.disabled {
+      background-color: $bg-disabled;
+      color: $fg-disabled;
+    }
   }
 }
 
