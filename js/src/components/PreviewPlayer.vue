@@ -9,7 +9,6 @@
         </strong>
       </div>
     </div>
-    <p class="controller">P{{reverseIndex(index-1)}}</p>
   </div>
 </template>
 
