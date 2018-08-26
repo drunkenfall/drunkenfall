@@ -1,5 +1,9 @@
 https://dev.drunkenfall.com
 
+tls lowe.thiderman@gmail.com {
+  ca https://acme-staging-v02.api.letsencrypt.org/directory
+}
+
 push
 gzip {
   not /__webpack_hmr
