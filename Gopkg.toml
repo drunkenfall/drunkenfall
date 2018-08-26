@@ -88,3 +88,7 @@
 [[constraint]]
   branch = "master"
   name = "github.com/fatih/camelcase"
+
+[[constraint]]
+  name = "github.com/lib/pq"
+  version = "1.0.0"
