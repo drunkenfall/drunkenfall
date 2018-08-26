@@ -27,7 +27,7 @@ func MockServer(arg ...string) *Server {
 	conf.Port = 56513
 
 	os.Remove(fn) // Clean it out
-	db, err := NewDatabase(conf.DbPath)
+	db, err := NewBoltDatabase(conf.DbPath)
 	if err != nil {
 		log.Fatal(err)
 	}

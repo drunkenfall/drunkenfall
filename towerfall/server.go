@@ -36,7 +36,7 @@ var broadcasting = true
 
 // Server is an abstraction that runs a web interface
 type Server struct {
-	DB        *Database
+	DB        *BoltDatabase
 	config    *Config
 	router    *gin.Engine
 	logger    *zap.Logger
@@ -86,7 +86,7 @@ func init() {
 }
 
 // NewServer instantiates a server with an active database
-func NewServer(config *Config, db *Database) *Server {
+func NewServer(config *Config, db *BoltDatabase) *Server {
 	var err error
 	s := Server{
 		DB:     db,

@@ -14,7 +14,7 @@ var defaultSleep = time.Millisecond * 650
 type Simulator struct {
 	Tournament *Tournament
 	enabled    bool
-	DB         *Database
+	DB         *BoltDatabase
 	conn       *amqp.Connection
 	ch         *amqp.Channel
 	q          amqp.Queue

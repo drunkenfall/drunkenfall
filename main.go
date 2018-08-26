@@ -17,7 +17,7 @@ func main() {
 	config := towerfall.ParseConfig()
 
 	// Instantiate the database
-	db, err := towerfall.NewDatabase(config.DbPath)
+	db, err := towerfall.NewBoltDatabase(config.DbPath)
 	if err != nil {
 		log.Fatal(err)
 	}

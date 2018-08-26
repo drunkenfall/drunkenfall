@@ -37,7 +37,7 @@ type Tournament struct {
 	Length      int          `json:"length"`
 	FinalLength int          `json:"final_length"`
 	connected   bool
-	db          *Database
+	db          *BoltDatabase
 	server      *Server
 }
 
@@ -73,22 +73,6 @@ func NewTournament(name, id, cover string, scheduledStart time.Time, c *gin.Cont
 
 	t.Persist()
 	return &t, nil
-}
-
-// LoadTournament loads a tournament from persisted JSON data
-func LoadTournament(data []byte, db *Database) (t *Tournament, e error) {
-	t = &Tournament{}
-	err := json.Unmarshal(data, t)
-	if err != nil {
-		log.Print(err)
-		return t, err
-	}
-
-	t.db = db
-	t.server = db.Server
-
-	t.SetMatchPointers()
-	return
 }
 
 // Semi returns one of the two semi matches

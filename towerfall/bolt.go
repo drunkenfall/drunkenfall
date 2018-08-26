@@ -13,8 +13,8 @@ import (
 	"github.com/boltdb/bolt"
 )
 
-// Database is the persisting class
-type Database struct {
+// BoltDatabase is the persisting class
+type BoltDatabase struct {
 	DB            *bolt.DB
 	Server        *Server
 	Tournaments   []*Tournament
@@ -38,15 +38,15 @@ var personMutex = &sync.Mutex{}
 // scanner should stop iterating.
 var ErrTournamentFound = errors.New("found")
 
-// NewDatabase returns a new database object
-func NewDatabase(fn string) (*Database, error) {
+// NewBoltDatabase returns a new database object
+func NewBoltDatabase(fn string) (*BoltDatabase, error) {
 	// log.Printf("Opening database at '%s'", fn)
 	bolt, err := bolt.Open(fn, 0600, &bolt.Options{Timeout: 1 * time.Second})
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	db := &Database{DB: bolt}
+	db := &BoltDatabase{DB: bolt}
 	db.tournamentRef = make(map[string]*Tournament)
 	db.LoadPeople()
 
@@ -54,7 +54,7 @@ func NewDatabase(fn string) (*Database, error) {
 }
 
 // LoadTournaments loads the tournaments from the database and into memory
-func (d *Database) LoadTournaments() error {
+func (d *BoltDatabase) LoadTournaments() error {
 	err := d.DB.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket(TournamentKey)
 		if b == nil {
@@ -84,7 +84,7 @@ func (d *Database) LoadTournaments() error {
 }
 
 // SaveTournament stores the current state of the tournaments into the db
-func (d *Database) SaveTournament(t *Tournament) error {
+func (d *BoltDatabase) SaveTournament(t *Tournament) error {
 	ret := d.DB.Update(func(tx *bolt.Tx) error {
 		b, err := tx.CreateBucketIfNotExists(TournamentKey)
 		if err != nil {
@@ -122,7 +122,7 @@ func (d *Database) SaveTournament(t *Tournament) error {
 // the one with the same ID with that one.
 //
 // Used from the EditHandler()
-func (d *Database) OverwriteTournament(t *Tournament) error {
+func (d *BoltDatabase) OverwriteTournament(t *Tournament) error {
 	ret := d.DB.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket(TournamentKey)
 
@@ -156,7 +156,7 @@ func (d *Database) OverwriteTournament(t *Tournament) error {
 }
 
 // SavePerson stores a person into the DB
-func (d *Database) SavePerson(p *Person) error {
+func (d *BoltDatabase) SavePerson(p *Person) error {
 	err := d.DB.Update(func(tx *bolt.Tx) error {
 		b, err := tx.CreateBucketIfNotExists(PeopleKey)
 		if err != nil {
@@ -180,7 +180,7 @@ func (d *Database) SavePerson(p *Person) error {
 }
 
 // GetPerson gets a Person{} from the DB
-func (d *Database) GetPerson(id string) (*Person, error) {
+func (d *BoltDatabase) GetPerson(id string) (*Person, error) {
 	tx, err := d.DB.Begin(false)
 	if err != nil {
 		fmt.Println(err)
@@ -205,13 +205,13 @@ func (d *Database) GetPerson(id string) (*Person, error) {
 // sure there will be no error.
 //
 // This is only for hardcoded cases where error handling is just pointless.
-func (d *Database) GetSafePerson(id string) *Person {
+func (d *BoltDatabase) GetSafePerson(id string) *Person {
 	p, _ := d.GetPerson(id)
 	return p
 }
 
 // DisablePerson disables or re-enables a person
-func (d *Database) DisablePerson(id string) error {
+func (d *BoltDatabase) DisablePerson(id string) error {
 	p, err := d.GetPerson(id)
 	if err != nil {
 		return err
@@ -224,7 +224,7 @@ func (d *Database) DisablePerson(id string) error {
 }
 
 // LoadPeople loads the people from the database and into memory
-func (d *Database) LoadPeople() error {
+func (d *BoltDatabase) LoadPeople() error {
 	d.People = make([]*Person, 0)
 	err := d.DB.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket(PeopleKey)
@@ -259,7 +259,7 @@ func (d *Database) LoadPeople() error {
 //
 // Returns the first matching one, so if there are multiple they will
 // be shadowed.
-func (d *Database) GetCurrentTournament() (*Tournament, error) {
+func (d *BoltDatabase) GetCurrentTournament() (*Tournament, error) {
 	for _, t := range SortByScheduleDate(d.Tournaments) {
 		if t.IsRunning() {
 			return t, nil
@@ -269,7 +269,7 @@ func (d *Database) GetCurrentTournament() (*Tournament, error) {
 }
 
 // ClearTestTournaments deletes any tournament that doesn't begin with "DrunkenFall"
-func (d *Database) ClearTestTournaments() error {
+func (d *BoltDatabase) ClearTestTournaments() error {
 	err := d.DB.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket(TournamentKey)
 
@@ -303,7 +303,7 @@ func (d *Database) ClearTestTournaments() error {
 	return err
 }
 
-func (d *Database) asMap() map[string]*Tournament {
+func (d *BoltDatabase) asMap() map[string]*Tournament {
 	tournamentMutex.Lock()
 	out := make(map[string]*Tournament)
 	for _, t := range d.Tournaments {
@@ -314,7 +314,7 @@ func (d *Database) asMap() map[string]*Tournament {
 }
 
 // Close closes the database
-func (d *Database) Close() error {
+func (d *BoltDatabase) Close() error {
 	return d.DB.Close()
 }
 

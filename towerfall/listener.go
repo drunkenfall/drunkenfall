@@ -15,7 +15,7 @@ func failOnError(err error, msg string) {
 }
 
 type Listener struct {
-	DB       *Database
+	DB       *BoltDatabase
 	conn     *amqp.Connection
 	incoming amqp.Queue
 	ch       *amqp.Channel
@@ -23,7 +23,7 @@ type Listener struct {
 }
 
 // NewListener sets up a new listener
-func NewListener(conf *Config, db *Database) (*Listener, error) {
+func NewListener(conf *Config, db *BoltDatabase) (*Listener, error) {
 	var err error
 	l := Listener{
 		DB: db,
