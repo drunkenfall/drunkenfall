@@ -5,6 +5,8 @@ import (
 	"sort"
 	"strings"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 type CompleteSnapshot map[string]*Snapshot
@@ -34,16 +36,28 @@ type PlayerSnapshot struct {
 // NewSnapshot returns a full snapshot
 func NewSnapshot(s *Server) CompleteSnapshot {
 	ss := make(map[string]*Snapshot)
-	s.DB.LoadPeople()
-	for _, p := range s.DB.People {
+
+	ps, err := s.DB.GetPeople()
+	if err != nil {
+		s.logger.Error("Getting people failed", zap.Error(err))
+		return nil
+	}
+
+	for _, p := range ps {
 		ss[p.ID] = &Snapshot{
 			Person:      p,
 			Tournaments: make(map[string]*PlayerSnapshot),
 		}
 	}
 
+	ts, err := s.DB.GetTournaments(s)
+	if err != nil {
+		s.logger.Error("Getting tournaments failed", zap.Error(err))
+		return nil
+	}
+
 	// Calculate the per-tournament data points
-	for _, t := range s.DB.Tournaments {
+	for _, t := range ts {
 		if !strings.HasPrefix(t.Name, "DrunkenFall 2018") {
 			continue
 		}

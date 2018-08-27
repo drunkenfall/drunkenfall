@@ -15,7 +15,7 @@ func failOnError(err error, msg string) {
 }
 
 type Listener struct {
-	DB       *BoltDatabase
+	DB       *Database
 	conn     *amqp.Connection
 	incoming amqp.Queue
 	ch       *amqp.Channel
@@ -23,7 +23,7 @@ type Listener struct {
 }
 
 // NewListener sets up a new listener
-func NewListener(conf *Config, db *BoltDatabase) (*Listener, error) {
+func NewListener(conf *Config, db *Database) (*Listener, error) {
 	var err error
 	l := Listener{
 		DB: db,
@@ -66,7 +66,7 @@ func (l *Listener) Serve() {
 	defer l.ch.Close()
 
 	for d := range l.msgs {
-		t, err := l.DB.GetCurrentTournament()
+		t, err := l.DB.GetCurrentTournament(l.DB.Server)
 		if err != nil {
 			log.Printf("Could not get current tournament, skipping message: %s", err.Error())
 			continue

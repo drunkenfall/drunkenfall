@@ -8,18 +8,23 @@ import (
 	"sort"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/boltdb/bolt"
 )
 
-// BoltDatabase is the persisting class
-type BoltDatabase struct {
-	DB            *bolt.DB
-	Server        *Server
-	Tournaments   []*Tournament
-	People        []*Person
-	tournamentRef map[string]*Tournament
+// Bolt is the persisting class
+type Bolt struct {
+	Server      *Server
+	Tournaments []*Tournament
+	People      []*Person
+}
+
+type boltWriter struct {
+	DB *bolt.DB
+}
+
+type boltReader struct {
+	DB *bolt.DB
 }
 
 var (
@@ -38,53 +43,8 @@ var personMutex = &sync.Mutex{}
 // scanner should stop iterating.
 var ErrTournamentFound = errors.New("found")
 
-// NewBoltDatabase returns a new database object
-func NewBoltDatabase(fn string) (*BoltDatabase, error) {
-	// log.Printf("Opening database at '%s'", fn)
-	bolt, err := bolt.Open(fn, 0600, &bolt.Options{Timeout: 1 * time.Second})
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	db := &BoltDatabase{DB: bolt}
-	db.tournamentRef = make(map[string]*Tournament)
-	db.LoadPeople()
-
-	return db, nil
-}
-
-// LoadTournaments loads the tournaments from the database and into memory
-func (d *BoltDatabase) LoadTournaments() error {
-	err := d.DB.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket(TournamentKey)
-		if b == nil {
-			// If there is no bucket, bail silently.
-			// This only really happens in tests.
-			return nil
-		}
-
-		err := b.ForEach(func(k []byte, v []byte) error {
-			t, err := LoadTournament(v, d)
-			if err != nil {
-				return err
-			}
-
-			tournamentMutex.Lock()
-			d.Tournaments = append(d.Tournaments, t)
-			d.tournamentRef[t.ID] = t
-			tournamentMutex.Unlock()
-			return nil
-		})
-
-		d.Tournaments = SortByScheduleDate(d.Tournaments)
-		return err
-	})
-
-	return err
-}
-
 // SaveTournament stores the current state of the tournaments into the db
-func (d *BoltDatabase) SaveTournament(t *Tournament) error {
+func (d boltWriter) saveTournament(t *Tournament) error {
 	ret := d.DB.Update(func(tx *bolt.Tx) error {
 		b, err := tx.CreateBucketIfNotExists(TournamentKey)
 		if err != nil {
@@ -100,21 +60,7 @@ func (d *BoltDatabase) SaveTournament(t *Tournament) error {
 		return nil
 	})
 
-	// If the tournament isn't already in the cache, we should add it
-	found := false
-	for _, ct := range d.Tournaments {
-		if ct.ID == t.ID {
-			found = true
-			break
-		}
-	}
-	if !found {
-		log.Printf("Adding new tournament %s into the memory cache", t.ID)
-		d.Tournaments = append(d.Tournaments, t)
-		d.tournamentRef[t.ID] = t
-	}
-
-	go d.Server.SendWebsocketUpdate("tournament", t)
+	// go d.Server.SendWebsocketUpdate("tournament", t)
 	return ret
 }
 
@@ -122,7 +68,7 @@ func (d *BoltDatabase) SaveTournament(t *Tournament) error {
 // the one with the same ID with that one.
 //
 // Used from the EditHandler()
-func (d *BoltDatabase) OverwriteTournament(t *Tournament) error {
+func (d boltWriter) overwriteTournament(t *Tournament) error {
 	ret := d.DB.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket(TournamentKey)
 
@@ -136,19 +82,6 @@ func (d *BoltDatabase) OverwriteTournament(t *Tournament) error {
 			log.Fatal(err)
 		}
 
-		// Replace the tournament in the in-memory list
-		for j := 0; j < len(d.Tournaments); j++ {
-			ot := d.Tournaments[j]
-			if t.ID == ot.ID {
-				d.Tournaments = d.Tournaments[:j]
-				d.Tournaments = append(d.Tournaments, t)
-				d.Tournaments = append(d.Tournaments, d.Tournaments[j+1:]...)
-				break
-			}
-		}
-		// And lastly the reference
-		d.tournamentRef[t.ID] = t
-
 		return nil
 	})
 
@@ -156,7 +89,7 @@ func (d *BoltDatabase) OverwriteTournament(t *Tournament) error {
 }
 
 // SavePerson stores a person into the DB
-func (d *BoltDatabase) SavePerson(p *Person) error {
+func (d boltWriter) savePerson(p *Person) error {
 	err := d.DB.Update(func(tx *bolt.Tx) error {
 		b, err := tx.CreateBucketIfNotExists(PeopleKey)
 		if err != nil {
@@ -172,15 +105,11 @@ func (d *BoltDatabase) SavePerson(p *Person) error {
 		return nil
 	})
 
-	if err == nil {
-		d.LoadPeople()
-	}
-
 	return err
 }
 
 // GetPerson gets a Person{} from the DB
-func (d *BoltDatabase) GetPerson(id string) (*Person, error) {
+func (d boltReader) getPerson(id string) (*Person, error) {
 	tx, err := d.DB.Begin(false)
 	if err != nil {
 		fmt.Println(err)
@@ -205,27 +134,27 @@ func (d *BoltDatabase) GetPerson(id string) (*Person, error) {
 // sure there will be no error.
 //
 // This is only for hardcoded cases where error handling is just pointless.
-func (d *BoltDatabase) GetSafePerson(id string) *Person {
-	p, _ := d.GetPerson(id)
+func (d boltReader) getSafePerson(id string) *Person {
+	p, _ := d.getPerson(id)
 	return p
 }
 
 // DisablePerson disables or re-enables a person
-func (d *BoltDatabase) DisablePerson(id string) error {
-	p, err := d.GetPerson(id)
-	if err != nil {
-		return err
-	}
+func (d boltReader) disablePerson(id string) error {
+	// p, err := d.getPerson(id)
+	// if err != nil {
+	// 	return err
+	// }
 
-	p.Disabled = !p.Disabled
-	d.SavePerson(p)
+	// p.Disabled = !p.Disabled
+	// d.SavePerson(p)
 
 	return nil
 }
 
-// LoadPeople loads the people from the database and into memory
-func (d *BoltDatabase) LoadPeople() error {
-	d.People = make([]*Person, 0)
+// LoadPeople loads the people from the database
+func (d boltReader) getPeople() ([]*Person, error) {
+	ret := make([]*Person, 0)
 	err := d.DB.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket(PeopleKey)
 		if b == nil {
@@ -244,23 +173,68 @@ func (d *BoltDatabase) LoadPeople() error {
 				return err
 			}
 
-			personMutex.Lock()
-			d.People = append(d.People, p)
-			personMutex.Unlock()
+			ret = append(ret, p)
 			return nil
 		})
 		return err
 	})
 
-	return err
+	return ret, err
+}
+
+// getTournament gets a tournament by ID
+func (d boltReader) getTournament(id string, s *Server) (*Tournament, error) {
+	tx, err := d.DB.Begin(false)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	b := tx.Bucket(TournamentKey)
+	if b == nil {
+		return nil, errors.New("database not initialized")
+	}
+	out := b.Get([]byte(id))
+	if out == nil {
+		return &Tournament{}, errors.New("user not found")
+	}
+	return LoadTournament(out, s)
+}
+
+func (d boltReader) getTournaments(s *Server) ([]*Tournament, error) {
+	ret := make([]*Tournament, 0)
+	err := d.DB.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket(TournamentKey)
+		if b == nil {
+			return nil
+		}
+
+		err := b.ForEach(func(k []byte, v []byte) error {
+			t, err := LoadTournament(v, s)
+			if err != nil {
+				return err
+			}
+
+			ret = append(ret, t)
+			return nil
+		})
+		return err
+	})
+
+	return ret, err
 }
 
 // GetCurrentTournament gets the currently running tournament.
 //
 // Returns the first matching one, so if there are multiple they will
 // be shadowed.
-func (d *BoltDatabase) GetCurrentTournament() (*Tournament, error) {
-	for _, t := range SortByScheduleDate(d.Tournaments) {
+func (d boltReader) getCurrentTournament(s *Server) (*Tournament, error) {
+	ts, err := d.getTournaments(s)
+	if err != nil {
+		return &Tournament{}, err
+	}
+	for _, t := range SortByScheduleDate(ts) {
 		if t.IsRunning() {
 			return t, nil
 		}
@@ -269,12 +243,12 @@ func (d *BoltDatabase) GetCurrentTournament() (*Tournament, error) {
 }
 
 // ClearTestTournaments deletes any tournament that doesn't begin with "DrunkenFall"
-func (d *BoltDatabase) ClearTestTournaments() error {
+func (d boltWriter) clearTestTournaments(s *Server) error {
 	err := d.DB.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket(TournamentKey)
 
 		err := b.ForEach(func(k []byte, v []byte) error {
-			t, err := LoadTournament(v, d)
+			t, err := LoadTournament(v, s)
 			if err != nil {
 				return err
 			}
@@ -292,29 +266,29 @@ func (d *BoltDatabase) ClearTestTournaments() error {
 		return err
 	})
 
-	d.Tournaments = make([]*Tournament, 0)
-	err = d.LoadTournaments()
-	if err != nil {
-		return err
-	}
-
-	d.Server.SendWebsocketUpdate("all", d.asMap())
+	log.Print("Not sending full update; not implemented")
+	// d.Server.SendWebsocketUpdate("all", d.asMap())
 
 	return err
 }
 
-func (d *BoltDatabase) asMap() map[string]*Tournament {
-	tournamentMutex.Lock()
-	out := make(map[string]*Tournament)
-	for _, t := range d.Tournaments {
-		out[t.ID] = t
-	}
-	tournamentMutex.Unlock()
-	return out
+// func (d boltReader) asMap() map[string]*Tournament {
+// 	tournamentMutex.Lock()
+// 	out := make(map[string]*Tournament)
+// 	for _, t := range d.Tournaments {
+// 		out[t.ID] = t
+// 	}
+// 	tournamentMutex.Unlock()
+// 	return out
+// }
+
+// Close closes the database
+func (d boltReader) close() error {
+	return d.DB.Close()
 }
 
 // Close closes the database
-func (d *BoltDatabase) Close() error {
+func (d boltWriter) close() error {
 	return d.DB.Close()
 }
 

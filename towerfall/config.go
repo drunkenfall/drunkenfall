@@ -9,7 +9,9 @@ import (
 )
 
 type Config struct {
-	DbPath string `default:"data/dev.db"`
+	DbPath   string `default:"data/dev.db"`
+	DbReader string `default:"bolt"`
+	DbWriter string `default:"bolt"`
 	// Pointing to the test app
 	FacebookID          string `default:"668534419991204"`
 	FacebookSecret      string `default:"e74696c890216108c69d55d0e1b7866f"`

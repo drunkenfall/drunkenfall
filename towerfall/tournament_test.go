@@ -51,10 +51,6 @@ func testTournament(count int, servers ...*Server) (t *Tournament) {
 		t.db.SavePerson(p)
 	}
 
-	err = t.db.LoadTournaments()
-	if err != nil {
-		log.Fatal(err)
-	}
 	return
 }
 

@@ -27,11 +27,10 @@ func MockServer(arg ...string) *Server {
 	conf.Port = 56513
 
 	os.Remove(fn) // Clean it out
-	db, err := NewBoltDatabase(conf.DbPath)
+	db, err := NewDatabase(conf)
 	if err != nil {
 		log.Fatal(err)
 	}
-	db.LoadTournaments()
 
 	s := NewServer(conf, db)
 	db.Server = s
@@ -97,7 +96,7 @@ func TestGetCurrentTournament(t *testing.T) {
 	assert.NoError(t, err)
 
 	t.Run("Get", func(t *testing.T) {
-		tm3, err := db.GetCurrentTournament()
+		tm3, err := db.GetCurrentTournament(s)
 		assert.NoError(t, err)
 		assert.Equal(t, tm3.ID, tm2.ID)
 	})

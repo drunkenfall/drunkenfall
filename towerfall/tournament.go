@@ -37,7 +37,7 @@ type Tournament struct {
 	Length      int          `json:"length"`
 	FinalLength int          `json:"final_length"`
 	connected   bool
-	db          *BoltDatabase
+	db          *Database
 	server      *Server
 }
 
@@ -334,15 +334,16 @@ func (t *Tournament) Reshuffle(c *gin.Context) error {
 // UsurpTournament adds a batch of eight random players
 func (t *Tournament) UsurpTournament() error {
 	t.server.DisableWebsocketUpdates()
-	t.db.LoadPeople()
-	rand.Seed(time.Now().UnixNano())
-	for x := 0; x < 8; x++ {
-		p := NewPlayer(t.db.People[rand.Intn(len(t.db.People))])
-		err := t.AddPlayer(p)
-		if err != nil {
-			x--
-		}
-	}
+
+	// t.db.LoadPeople()
+	// rand.Seed(time.Now().UnixNano())
+	// for x := 0; x < 8; x++ {
+	// 	p := NewPlayer(t.db.People[rand.Intn(len(t.db.People))])
+	// 	err := t.AddPlayer(p)
+	// 	if err != nil {
+	// 		x--
+	// 	}
+	// }
 
 	t.server.EnableWebsocketUpdates()
 	t.server.SendWebsocketUpdate("tournament", t)
@@ -726,41 +727,41 @@ func (t *Tournament) SetMatchPointers() error {
 
 // GetCredits returns the credits object needed to display the credits roll.
 func (t *Tournament) GetCredits() (*Credits, error) {
-	if t.Ended.IsZero() {
-		return nil, errors.New("cannot roll credits for unfinished tournament")
-	}
+	// if t.Ended.IsZero() {
+	// 	return nil, errors.New("cannot roll credits for unfinished tournament")
+	// }
 
-	// TODO(thiderman): Many of these values are currently hardcoded or
-	// broadly grabs everything.
-	// We should move towards specifying these live when setting
-	// up the tournament itself.
+	// // TODO(thiderman): Many of these values are currently hardcoded or
+	// // broadly grabs everything.
+	// // We should move towards specifying these live when setting
+	// // up the tournament itself.
 
-	executive := t.db.GetSafePerson("1279099058796903") // thiderman
-	producers := []*Person{
-		t.db.GetSafePerson("10153943465786915"), // GoosE
-		t.db.GetSafePerson("10154542569541289"), // Queen Obscene
-		t.db.GetSafePerson("10153964695568099"), // Karl-Astrid
-		t.db.GetSafePerson("10153910124391516"), // Hest
-		t.db.GetSafePerson("10154040229117471"), // Skolpadda
-		t.db.GetSafePerson("10154011729888111"), // Moijra
-		t.db.GetSafePerson("10154296655435218"), // Dalan
-	}
+	// executive := t.db.GetSafePerson("1279099058796903") // thiderman
+	// producers := []*Person{
+	// 	t.db.GetSafePerson("10153943465786915"), // GoosE
+	// 	t.db.GetSafePerson("10154542569541289"), // Queen Obscene
+	// 	t.db.GetSafePerson("10153964695568099"), // Karl-Astrid
+	// 	t.db.GetSafePerson("10153910124391516"), // Hest
+	// 	t.db.GetSafePerson("10154040229117471"), // Skolpadda
+	// 	t.db.GetSafePerson("10154011729888111"), // Moijra
+	// 	t.db.GetSafePerson("10154296655435218"), // Dalan
+	// }
 
-	players := []*Person{
-		t.Winners[0].Person,
-		t.Winners[1].Person,
-		t.Winners[2].Person,
-	}
-	players = append(players, t.Runnerups...)
+	// players := []*Person{
+	// 	t.Winners[0].Person,
+	// 	t.Winners[1].Person,
+	// 	t.Winners[2].Person,
+	// }
+	// players = append(players, t.Runnerups...)
 
-	c := &Credits{
-		Executive:     executive,
-		Producers:     producers,
-		Players:       players,
-		ArchersHarmed: t.ArchersHarmed(),
-	}
+	// c := &Credits{
+	// 	Executive:     executive,
+	// 	Producers:     producers,
+	// 	Players:       players,
+	// 	ArchersHarmed: t.ArchersHarmed(),
+	// }
 
-	return c, nil
+	return &Credits{}, nil
 }
 
 // ArchersHarmed returns the amount of killed archers during the tournament

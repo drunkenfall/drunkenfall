@@ -36,11 +36,10 @@ var broadcasting = true
 
 // Server is an abstraction that runs a web interface
 type Server struct {
-	DB        *BoltDatabase
+	DB        *Database
 	config    *Config
 	router    *gin.Engine
 	logger    *zap.Logger
-	simulator *Simulator
 	ws        *melody.Melody
 	publisher *Publisher
 }
@@ -86,7 +85,7 @@ func init() {
 }
 
 // NewServer instantiates a server with an active database
-func NewServer(config *Config, db *BoltDatabase) *Server {
+func NewServer(config *Config, db *Database) *Server {
 	var err error
 	s := Server{
 		DB:     db,
@@ -144,7 +143,11 @@ func (s *Server) TournamentHandler(c *gin.Context) {
 
 // TournamentListHandler returns a list of all tournaments
 func (s *Server) TournamentListHandler(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"tournaments": s.DB.asMap()})
+	ts, err := s.DB.GetTournaments(s)
+	if err != nil {
+		log.Fatal(err)
+	}
+	c.JSON(http.StatusOK, gin.H{"tournaments": ts})
 }
 
 // JoinHandler shows the tournament view and handles tournaments
@@ -179,7 +182,7 @@ func (s *Server) EditHandler(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	t, err := LoadTournament(data, s.DB)
+	t, err := LoadTournament(data, s)
 	if err != nil {
 		pslog.Error("Couldn't load tournaments", zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -511,14 +514,16 @@ func (s *Server) SetTimeHandler(c *gin.Context) {
 // PeopleHandler returns a list of all the players registered in the app
 func (s *Server) PeopleHandler(c *gin.Context) {
 	plog := s.logger.With(zap.String("path", c.Request.URL.Path))
-	if err := s.DB.LoadPeople(); err != nil {
-		plog.Error("oh no databaz is ded")
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "databaz is ded"})
+	ps, err := s.DB.GetPeople()
+	if err != nil {
+		plog.Error("couldn't get people", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "no people"})
 		return
 	}
 
 	plog.Info("Players returned")
-	c.JSON(http.StatusOK, gin.H{"people": s.DB.People})
+
+	c.JSON(http.StatusOK, gin.H{"people": ps})
 }
 
 // CastersHandler sets casters
@@ -579,7 +584,15 @@ func (s *Server) DisableHandler(c *gin.Context) {
 
 	s.DB.DisablePerson(id)
 	plog.Info("Person disabled", zap.String("person", id))
-	c.JSON(http.StatusOK, gin.H{"people": s.DB.People})
+
+	ps, err := s.DB.GetPeople()
+	if err != nil {
+		plog.Error("couldn't get people", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "no people"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"people": ps})
 }
 
 // LogoutHandler logs out the user
@@ -630,39 +643,6 @@ func (s *Server) FakeNameHandler(c *gin.Context) {
 		"name":    name,
 		"numeral": numeral,
 	})
-}
-
-func (s *Server) startSimulator(c *gin.Context) {
-	plog := s.logger.With(zap.String("path", c.Request.URL.Path))
-	var err error
-
-	// If we don't already have a simulator, make one
-	if s.simulator == nil {
-		plog.Info("Creating new simulator")
-		s.simulator, err = NewSimulator(s)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-	}
-
-	tm := s.getTournament(c)
-	tlog := plog.With(zap.String("tournament", tm.ID))
-	err = s.simulator.Connect()
-	if err != nil {
-		tlog.Error("Connecting failed", zap.Error(err))
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	s.simulator.Start(tm.ID)
-	tlog.Info("Simulation started")
-	c.JSON(http.StatusOK, gin.H{"running": true})
-}
-
-func (s *Server) stopSimulator(c *gin.Context) {
-	s.simulator.Stop()
-	s.logger.Info("Simulation stopped", zap.String("path", c.Request.URL.Path))
-	c.JSON(http.StatusOK, gin.H{"running": false})
 }
 
 func (s *Server) RequireJudge() gin.HandlerFunc {
@@ -769,9 +749,6 @@ func (s *Server) BuildRouter(ws *melody.Melody) *gin.Engine {
 	m.POST("/", s.MatchCommitHandler)
 	m.POST("/:action/", s.MatchHandler)
 
-	api.POST("/simulator/start/:id", s.startSimulator)
-	api.POST("/simulator/stop/:id", s.stopSimulator)
-
 	return router
 }
 
@@ -842,7 +819,11 @@ func (s *Server) getTournament(c *gin.Context) *Tournament {
 		log.Printf("going for id in URL but none is there")
 		return nil
 	}
-	tm := s.DB.tournamentRef[id]
+	tm, err := s.DB.GetTournament(id, s)
+	if err != nil {
+		log.Print("couldn't get tournament")
+		return nil
+	}
 	return tm
 }
 

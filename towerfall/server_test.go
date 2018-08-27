@@ -8,9 +8,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/olahol/melody"
 	"github.com/stretchr/testify/assert"
 )
+
+func init() {
+	gin.SetMode(gin.TestMode)
+}
 
 func testServer() *httptest.Server {
 	// Server tests use the fake production data.
@@ -18,7 +23,6 @@ func testServer() *httptest.Server {
 
 	SetupFakeTournament(nil, s, &NewRequest{"a", "a", time.Now(), "cover", true})
 	SetupFakeTournament(nil, s, &NewRequest{"b", "b", time.Now(), "cover", true})
-	s.DB.LoadTournaments()
 
 	ws := melody.New()
 	r := s.BuildRouter(ws)
