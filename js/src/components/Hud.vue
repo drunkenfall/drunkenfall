@@ -25,6 +25,9 @@ export default {
   },
   computed: {
     tournament () {
+      if (this.$route.params.tournament) {
+        return this.tournaments[this.$route.params.tournament]
+      }
       return this.trackingTournament
     },
     match () {

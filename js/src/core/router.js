@@ -149,6 +149,11 @@ var router = new Router({
       component: Stream
     },
     {
+      path: '/live/:tournament',
+      name: 'live-focused',
+      component: Stream
+    },
+    {
       path: '/status/',
       name: 'status',
       component: Statusbar
@@ -156,6 +161,11 @@ var router = new Router({
     {
       path: '/hud/',
       name: 'hud',
+      component: HUD
+    },
+    {
+      path: '/hud/:tournament',
+      name: 'hud-focused',
       component: HUD
     },
     {
