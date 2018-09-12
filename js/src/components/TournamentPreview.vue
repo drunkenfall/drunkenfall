@@ -94,16 +94,6 @@ export default {
     isJoined () {
       return this.tournament.playerJoined(this.user)
     },
-    tournament () {
-      if (this.runningTournament) {
-        return this.runningTournament
-      }
-
-      let up = this.upcomingTournament
-      if (up) {
-        return up
-      }
-    },
   },
 
   watch: {
