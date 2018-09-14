@@ -144,13 +144,13 @@ var router = new Router({
       component: Log
     },
     {
-      path: '/live/',
-      name: 'live',
+      path: '/live/:tournament',
+      name: 'live-focused',
       component: Stream
     },
     {
-      path: '/live/:tournament',
-      name: 'live-focused',
+      path: '/live/',
+      name: 'live',
       component: Stream
     },
     {
@@ -159,13 +159,13 @@ var router = new Router({
       component: Statusbar
     },
     {
-      path: '/hud/',
-      name: 'hud',
+      path: '/hud/:tournament',
+      name: 'hud-focused',
       component: HUD
     },
     {
-      path: '/hud/:tournament',
-      name: 'hud-focused',
+      path: '/hud/',
+      name: 'hud',
       component: HUD
     },
     {
