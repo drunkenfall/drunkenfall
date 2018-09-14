@@ -95,6 +95,7 @@ export default {
         id: this.id,
         scheduled: moment(this.scheduled),
         color: this.color,
+        cover: this.cover,
       }
 
       this.$http.post('/api/tournaments/', payload).then((res) => {
