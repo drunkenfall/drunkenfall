@@ -46,27 +46,6 @@
   <div class="stream-main">
     <div class="game">
       <div>
-        <div v-if="tournament.isTest">
-          <div class="links">
-            <a @click="startSimulation">
-              <div class="icon positive">
-                <icon name="play"></icon>
-              </div>
-              <p>Start simulation</p>
-              <div class="clear"></div>
-            </a>
-
-            <a @click="stopSimulation">
-              <div class="icon danger">
-                <icon name="stop"></icon>
-              </div>
-              <p>Stop simulation</p>
-              <div class="clear"></div>
-            </a>
-
-          </div>
-          <div class="clear"></div>
-        </div>
       </div>
     </div>
 
