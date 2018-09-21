@@ -159,7 +159,7 @@ func (s *Server) JoinHandler(c *gin.Context) {
 
 	tm := s.getTournament(c)
 	ps := PersonFromSession(s, c)
-	tm.TogglePlayer(ps.ID)
+	tm.TogglePlayer(ps.PersonID)
 	c.JSON(http.StatusOK, gin.H{"redirect": tm.URL()})
 }
 
@@ -174,7 +174,7 @@ func (s *Server) EditHandler(c *gin.Context) {
 	}
 
 	ps := PersonFromSession(s, c)
-	pslog := plog.With(zap.String("person", ps.ID))
+	pslog := plog.With(zap.String("person", ps.PersonID))
 
 	data, err := ioutil.ReadAll(c.Request.Body)
 	if err != nil {
@@ -189,7 +189,7 @@ func (s *Server) EditHandler(c *gin.Context) {
 		return
 	}
 
-	tlog := pslog.With(zap.String("tournament", t.ID))
+	tlog := pslog.With(zap.String("tournament", t.Slug))
 
 	err = s.DB.OverwriteTournament(t)
 	if err != nil {
@@ -215,7 +215,7 @@ func (s *Server) BackfillSemisHandler(c *gin.Context) {
 	tm := s.getTournament(c)
 	tlog := s.logger.With(
 		zap.String("path", c.Request.URL.Path),
-		zap.String("tournament", tm.ID),
+		zap.String("tournament", tm.Slug),
 	)
 
 	data, err := ioutil.ReadAll(c.Request.Body)
@@ -243,7 +243,7 @@ func (s *Server) ReshuffleHandler(c *gin.Context) {
 	tm := s.getTournament(c)
 	tlog := s.logger.With(
 		zap.String("path", c.Request.URL.Path),
-		zap.String("tournament", tm.ID),
+		zap.String("tournament", tm.Slug),
 	)
 
 	err := tm.Reshuffle(c)
@@ -263,7 +263,7 @@ func (s *Server) CreditsHandler(c *gin.Context) {
 	tm := s.getTournament(c)
 	tlog := s.logger.With(
 		zap.String("path", c.Request.URL.Path),
-		zap.String("tournament", tm.ID),
+		zap.String("tournament", tm.Slug),
 	)
 
 	credits, err := tm.GetCredits()
@@ -283,7 +283,7 @@ func (s *Server) StartTournamentHandler(c *gin.Context) {
 	tm := s.getTournament(c)
 	tlog := s.logger.With(
 		zap.String("path", c.Request.URL.Path),
-		zap.String("tournament", tm.ID),
+		zap.String("tournament", tm.Slug),
 	)
 
 	err := tm.StartTournament(c)
@@ -302,7 +302,7 @@ func (s *Server) UsurpTournamentHandler(c *gin.Context) {
 	tm := s.getTournament(c)
 	tlog := s.logger.With(
 		zap.String("path", c.Request.URL.Path),
-		zap.String("tournament", tm.ID),
+		zap.String("tournament", tm.Slug),
 	)
 
 	err := tm.UsurpTournament()
@@ -345,7 +345,7 @@ func (s *Server) MatchHandler(c *gin.Context) {
 	}
 
 	mlog := plog.With(
-		zap.String("tournament", m.tournament.ID),
+		zap.String("tournament", m.Tournament.Slug),
 		zap.Int("match", m.Index),
 	)
 
@@ -414,7 +414,7 @@ func (s *Server) MatchCommitHandler(c *gin.Context) {
 	m.Commit(commit)
 	plog.Info(
 		"Match committed",
-		zap.String("tournament", m.tournament.ID),
+		zap.String("tournament", m.Tournament.Slug),
 		zap.Int("match", m.Index),
 	)
 	c.JSON(http.StatusOK, gin.H{"message": "Done"})
@@ -443,7 +443,7 @@ func (s *Server) ToggleHandler(c *gin.Context) {
 	t := s.getTournament(c)
 	tlog := s.logger.With(
 		zap.String("path", c.Request.URL.Path),
-		zap.String("tournament", t.ID),
+		zap.String("tournament", t.Slug),
 	)
 
 	id, found := c.Params.Get("person")
@@ -473,7 +473,7 @@ func (s *Server) SetTimeHandler(c *gin.Context) {
 	t := s.getTournament(c)
 	tlog := s.logger.With(
 		zap.String("path", c.Request.URL.Path),
-		zap.String("tournament", t.ID),
+		zap.String("tournament", t.Slug),
 	)
 
 	st, found := c.Params.Get("time")
@@ -531,7 +531,7 @@ func (s *Server) CastersHandler(c *gin.Context) {
 	tm := s.getTournament(c)
 	tlog := s.logger.With(
 		zap.String("path", c.Request.URL.Path),
-		zap.String("tournament", tm.ID),
+		zap.String("tournament", tm.Slug),
 	)
 
 	data, err := ioutil.ReadAll(c.Request.Body)
@@ -603,7 +603,7 @@ func (s *Server) LogoutHandler(c *gin.Context) {
 	s.logger.Info(
 		"User logged out",
 		zap.String("path", c.Request.URL.Path),
-		zap.String("user", p.ID),
+		zap.String("user", p.PersonID),
 	)
 	c.JSON(http.StatusOK, gin.H{"message": "Done"})
 }
@@ -632,7 +632,7 @@ func (s *Server) SettingsHandler(c *gin.Context) {
 
 	_ = p.StoreCookies(c)
 
-	plog.Info("Person saved", zap.String("person", p.ID))
+	plog.Info("Person saved", zap.String("person", p.PersonID))
 	c.JSON(http.StatusOK, gin.H{"person": p})
 }
 
@@ -664,7 +664,7 @@ func (s *Server) RequireJudge() gin.HandlerFunc {
 			s.logger.Info(
 				"Permission denied",
 				zap.String("path", c.Request.URL.Path),
-				zap.String("person", p.ID),
+				zap.String("person", p.PersonID),
 				zap.Int("userlevel", p.Userlevel),
 			)
 			c.JSON(http.StatusUnauthorized, gin.H{"message": "Permission denied"})

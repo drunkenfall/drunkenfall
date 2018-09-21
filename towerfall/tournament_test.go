@@ -195,9 +195,9 @@ func TestRunnerupInsertion(t *testing.T) {
 	m.Players[0].AddKills(10)
 	m.End(nil)
 
-	assert.Equal(m.Players[1].Person.ID, tm.Runnerups[0].ID)
-	assert.Equal(m.Players[2].Person.ID, tm.Runnerups[1].ID)
-	assert.Equal(m.Players[3].Person.ID, tm.Runnerups[2].ID)
+	assert.Equal(m.Players[1].Person.PersonID, tm.Runnerups[0].PersonID)
+	assert.Equal(m.Players[2].Person.PersonID, tm.Runnerups[1].PersonID)
+	assert.Equal(m.Players[3].Person.PersonID, tm.Runnerups[2].PersonID)
 }
 
 func TestNextMatchNoMatchesAreStartedWithPlayoffs(t *testing.T) {
@@ -595,9 +595,9 @@ func TestEndComplete19PlayerTournamentKillsOnly(t *testing.T) {
 	// We need to backfill the players, and since that is a judge action we need
 	// to simulate that
 	err = tm.BackfillSemis(nil, []string{
-		tm.Runnerups[0].ID,
-		tm.Runnerups[1].ID,
-		tm.Runnerups[2].ID,
+		tm.Runnerups[0].PersonID,
+		tm.Runnerups[1].PersonID,
+		tm.Runnerups[2].PersonID,
 	})
 
 	assert.NoError(err)

@@ -1,6 +1,12 @@
 package towerfall
 
-import "time"
+import (
+	"encoding/json"
+	"log"
+	"time"
+
+	"github.com/jinzhu/gorm"
+)
 
 // JSONMessage defines a message to be returned to the frontend
 type JSONMessage struct {
@@ -76,9 +82,21 @@ type GamePlayer struct {
 }
 
 type Message struct {
+	gorm.Model
+
+	MatchID   uint
 	Type      string      `json:"type"`
-	Data      interface{} `json:"data"`
+	Data      interface{} `json:"data" gorm:"-"`
+	JSON      string      `json:"-"`
 	Timestamp time.Time   `json:"timestamp"`
+}
+
+func (m *Message) serialize() {
+	out, err := json.Marshal(&m.Data)
+	if err != nil {
+		log.Fatal(err)
+	}
+	m.JSON = string(out)
 }
 
 const EnvironmentKill = -1

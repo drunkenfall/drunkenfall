@@ -14,6 +14,9 @@ import (
 // Message should be a string containing "{key}" formatting strings for
 // interpolation of the Items.
 type Event struct {
+	// gorm.Model
+
+	// MatchID uint
 	Date    time.Time              `json:"time"`
 	Kind    string                 `json:"kind"`
 	Items   map[string]interface{} `json:"items"`

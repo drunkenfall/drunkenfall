@@ -6,12 +6,14 @@ import (
 	"time"
 
 	"github.com/boltdb/bolt"
+	"github.com/jinzhu/gorm"
+	"go.uber.org/zap"
 )
 
 type Database struct {
 	Server *Server
-	reader dbReader
-	writer dbWriter
+	Reader dbReader
+	Writer dbWriter
 }
 
 type dbReader interface {
@@ -32,6 +34,8 @@ type dbWriter interface {
 
 	savePerson(p *Person) error
 
+	setUp() error
+	migrate(r dbReader, s *Server) error
 	close() error
 }
 
@@ -51,38 +55,69 @@ func LoadTournament(data []byte, s *Server) (t *Tournament, err error) {
 	return
 }
 
-// NewDatabase returns a new database object
+// NewDatabase sets up the database reader and writer
 func NewDatabase(c *Config) (*Database, error) {
-	bolt, err := bolt.Open(c.DbPath, 0600, &bolt.Options{Timeout: 1 * time.Second})
-	if err != nil {
-		log.Fatal(err)
+	var b *bolt.DB
+	var pg *gorm.DB
+	var r dbReader
+	var w dbWriter
+	var err error
+
+	log, _ := zap.NewDevelopment()
+
+	if c.DbReader == "bolt" || c.DbWriter == "bolt" {
+		b, err = bolt.Open(c.DbPath, 0600, &bolt.Options{Timeout: 1 * time.Second})
+		if err != nil {
+			log.Fatal("bolt open error", zap.Error(err))
+		}
 	}
 
-	r := boltReader{bolt}
-	w := boltWriter{bolt}
+	if c.DbReader == "postgres" || c.DbWriter == "postgres" {
+		connStr := "user=postgres dbname=drunkenfall sslmode=disable"
+		pg, err = gorm.Open("postgres", connStr)
+		if err != nil {
+			log.Fatal("postgres open error", zap.Error(err))
+		}
+	}
 
 	if c.DbReader == "postgres" {
-		log.Print("not switching to postgres yet")
+		l := log.With(zap.String("db", "pg_read"))
+		r = postgresReader{pg, l}
+	} else {
+		r = boltReader{b}
 	}
 
-	db := &Database{reader: r, writer: w}
+	if c.DbWriter == "postgres" {
+		l := log.With(zap.String("db", "pg_write"))
+		w = postgresWriter{pg, l}
+		w.setUp()
+	} else {
+		w = boltWriter{b}
+	}
+
+	db := &Database{Reader: r, Writer: w}
 
 	return db, nil
 }
 
+// Migrate migrates the database
+func (d *Database) Migrate() error {
+	return d.Writer.migrate(d.Reader, d.Server)
+}
+
 // GetTournament gets a single tournament
 func (d *Database) GetTournament(id string, s *Server) (*Tournament, error) {
-	return d.reader.getTournament(id, s)
+	return d.Reader.getTournament(id, s)
 }
 
 // LoadTournaments loads the tournaments from the database and into memory
 func (d *Database) GetTournaments(s *Server) ([]*Tournament, error) {
-	return d.reader.getTournaments(s)
+	return d.Reader.getTournaments(s)
 }
 
 // SaveTournament stores the current state of the tournaments into the db
 func (d *Database) SaveTournament(t *Tournament) error {
-	err := d.writer.saveTournament(t)
+	err := d.Writer.saveTournament(t)
 	go d.Server.SendWebsocketUpdate("tournament", t)
 	return err
 }
@@ -92,22 +127,22 @@ func (d *Database) SaveTournament(t *Tournament) error {
 //
 // Used from the EditHandler()
 func (d *Database) OverwriteTournament(t *Tournament) error {
-	return d.writer.overwriteTournament(t)
+	return d.Writer.overwriteTournament(t)
 }
 
 // SavePerson stores a person into the DB
 func (d *Database) SavePerson(p *Person) error {
-	return d.writer.savePerson(p)
+	return d.Writer.savePerson(p)
 }
 
 // GetPerson gets a Person{} from the DB
 func (d *Database) GetPerson(id string) (*Person, error) {
-	return d.reader.getPerson(id)
+	return d.Reader.getPerson(id)
 }
 
 // GetPeople gets all Person{} from the DB
 func (d *Database) GetPeople() ([]*Person, error) {
-	return d.reader.getPeople()
+	return d.Reader.getPeople()
 }
 
 // GetSafePerson gets a Person{} from the DB, while being absolutely
@@ -137,12 +172,12 @@ func (d *Database) DisablePerson(id string) error {
 // Returns the first matching one, so if there are multiple they will
 // be shadowed.
 func (d *Database) GetCurrentTournament(s *Server) (*Tournament, error) {
-	return d.reader.getCurrentTournament(s)
+	return d.Reader.getCurrentTournament(s)
 }
 
 // ClearTestTournaments deletes any tournament that doesn't begin with "DrunkenFall"
 func (d *Database) ClearTestTournaments() error {
-	err := d.writer.clearTestTournaments(d.Server)
+	err := d.Writer.clearTestTournaments(d.Server)
 
 	log.Print("Not sending websocket update; map not implemented")
 	// d.Server.SendWebsocketUpdate("all", d.asMap())
@@ -152,10 +187,10 @@ func (d *Database) ClearTestTournaments() error {
 
 // Close closes the database
 func (d *Database) Close() error {
-	rerr := d.reader.close()
+	rerr := d.Reader.close()
 	if rerr != nil {
 		return rerr
 	}
 
-	return d.writer.close()
+	return d.Writer.close()
 }

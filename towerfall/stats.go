@@ -44,7 +44,7 @@ func NewSnapshot(s *Server) CompleteSnapshot {
 	}
 
 	for _, p := range ps {
-		ss[p.ID] = &Snapshot{
+		ss[p.PersonID] = &Snapshot{
 			Person:      p,
 			Tournaments: make(map[string]*PlayerSnapshot),
 		}
@@ -61,17 +61,17 @@ func NewSnapshot(s *Server) CompleteSnapshot {
 		if !strings.HasPrefix(t.Name, "DrunkenFall 2018") {
 			continue
 		}
-		tid := t.ID
+		tid := t.Slug
 		for _, m := range t.Matches {
 			for _, p := range m.Players {
 				if p.Person == nil {
 					continue
 				}
 
-				pid := p.Person.ID
+				pid := p.Person.PersonID
 				if _, ok := ss[pid]; !ok {
 					fmt.Println("Snapshot not set for player", p.Person)
-					ss[p.Person.ID] = &Snapshot{
+					ss[p.Person.PersonID] = &Snapshot{
 						Person:      p.Person,
 						Tournaments: make(map[string]*PlayerSnapshot),
 					}
@@ -94,7 +94,7 @@ func NewSnapshot(s *Server) CompleteSnapshot {
 
 		// Only do the winner calculations if someone actually won
 		if !t.Ended.IsZero() && len(t.Winners) > 0 {
-			winner := t.Winners[0].Person.ID
+			winner := t.Winners[0].Person.PersonID
 			ss[winner].Tournaments[tid].Wins++
 		}
 	}
@@ -128,7 +128,7 @@ func NewSnapshot(s *Server) CompleteSnapshot {
 		x++
 	}
 	for x, p := range SortByRank(ranked) {
-		ss[p.Person.ID].Rank = x + 1 // The +1 fixes zero-index.
+		ss[p.Person.PersonID].Rank = x + 1 // The +1 fixes zero-index.
 	}
 
 	return CompleteSnapshot(ss)

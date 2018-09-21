@@ -16,10 +16,11 @@ import (
 
 // A Person is someone having a role in the tournament
 type Person struct {
-	ID              string   `json:"id"`
+	PersonID        string   `json:"id" gorm:"primary_key"`
 	Name            string   `json:"name"`
 	Nick            string   `json:"nick"`
-	ColorPreference []string `json:"color_preference"`
+	ColorPreference []string `json:"color_preference" gorm:"-"`
+	PreferredColor  string   `json:"preferred_color"`
 	ArcherType      int      `json:"archer_type"`
 	FacebookID      string   `json:"facebook_id"`
 	AvatarURL       string   `json:"avatar_url"`
@@ -87,7 +88,7 @@ func (p *Person) Score() *ScoreSummary {
 // CreateFromFacebook adds a new player via Facebook login
 func CreateFromFacebook(s *Server, req *FacebookAuthResponse) *Person {
 	p := &Person{
-		ID:         req.ID,
+		PersonID:   req.ID,
 		FacebookID: req.ID,
 		Name:       req.Name,
 		Userlevel:  PermissionPlayer,
@@ -156,11 +157,6 @@ func (p *Person) UpdatePerson(r *SettingsPostRequest) {
 	p.ColorPreference = []string{r.Color}
 }
 
-// PreferredColor returns the preferred color
-func (p *Person) PreferredColor() string {
-	return p.ColorPreference[0]
-}
-
 // Correct sets a name and a color if they are missing
 //
 // This happens if someone did not complete the registration, and we need to
@@ -191,7 +187,7 @@ func (p *Person) StoreCookies(c *gin.Context) error {
 	http.SetCookie(c.Writer, cookie)
 
 	session := sessions.Default(c)
-	session.Set("user", p.ID)
+	session.Set("user", p.PersonID)
 	session.Set("userlevel", p.Userlevel)
 	err := session.Save()
 	if err != nil {

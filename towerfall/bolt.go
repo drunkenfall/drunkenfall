@@ -12,13 +12,6 @@ import (
 	"github.com/boltdb/bolt"
 )
 
-// Bolt is the persisting class
-type Bolt struct {
-	Server      *Server
-	Tournaments []*Tournament
-	People      []*Person
-}
-
 type boltWriter struct {
 	DB *bolt.DB
 }
@@ -43,6 +36,14 @@ var personMutex = &sync.Mutex{}
 // scanner should stop iterating.
 var ErrTournamentFound = errors.New("found")
 
+func (d boltWriter) setUp() error {
+	return nil
+}
+
+func (d boltWriter) migrate(r dbReader, s *Server) error {
+	return nil
+}
+
 // SaveTournament stores the current state of the tournaments into the db
 func (d boltWriter) saveTournament(t *Tournament) error {
 	ret := d.DB.Update(func(tx *bolt.Tx) error {
@@ -52,7 +53,7 @@ func (d boltWriter) saveTournament(t *Tournament) error {
 		}
 
 		json, _ := t.JSON()
-		err = b.Put([]byte(t.ID), json)
+		err = b.Put([]byte(t.Slug), json)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -77,7 +78,7 @@ func (d boltWriter) overwriteTournament(t *Tournament) error {
 			log.Fatal(err)
 		}
 
-		err = b.Put([]byte(t.ID), json)
+		err = b.Put([]byte(t.Slug), json)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -97,7 +98,7 @@ func (d boltWriter) savePerson(p *Person) error {
 		}
 
 		json, _ := p.JSON()
-		err = b.Put([]byte(p.ID), json)
+		err = b.Put([]byte(p.PersonID), json)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -165,11 +166,11 @@ func (d boltReader) getPeople() ([]*Person, error) {
 			p, err := LoadPerson(v)
 
 			// If the player is disabled, just skip them
-			if err == ErrPlayerDisabled {
-				return nil
-			}
+			// if err == ErrPlayerDisabled {
+			// 	return nil
+			// }
 
-			if err != nil {
+			if err != nil && err != ErrPlayerDisabled {
 				return err
 			}
 
@@ -222,6 +223,7 @@ func (d boltReader) getTournaments(s *Server) ([]*Tournament, error) {
 		return err
 	})
 
+	ret = SortByScheduleDate(ret)
 	return ret, err
 }
 
@@ -254,8 +256,8 @@ func (d boltWriter) clearTestTournaments(s *Server) error {
 			}
 
 			if !strings.HasPrefix(t.Name, "DrunkenFall") {
-				log.Print("Deleting ", t.ID)
-				err := b.Delete([]byte(t.ID))
+				log.Print("Deleting ", t.Slug)
+				err := b.Delete([]byte(t.Slug))
 				if err != nil {
 					return err
 				}

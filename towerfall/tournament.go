@@ -11,6 +11,7 @@ import (
 	"github.com/deckarep/golang-set"
 	"github.com/drunkenfall/drunkenfall/faking"
 	"github.com/gin-gonic/gin"
+	"github.com/jinzhu/gorm"
 	"go.uber.org/zap"
 )
 
@@ -18,24 +19,26 @@ var ErrPublishDisconnected = errors.New("not connected; will not publish")
 
 // Tournament is the main container of data for this app.
 type Tournament struct {
-	Name        string       `json:"name"`
-	ID          string       `json:"id"`
-	Players     []Player     `json:"players"` // See getTournamentPlayerObject()
-	Winners     []Player     `json:"winners"`
-	Runnerups   []*Person    `json:"runnerups"`
-	Casters     []*Person    `json:"casters"`
-	Matches     []*Match     `json:"matches"`
-	Current     CurrentMatch `json:"current"`
-	Opened      time.Time    `json:"opened"`
-	Scheduled   time.Time    `json:"scheduled"`
-	Started     time.Time    `json:"started"`
-	Ended       time.Time    `json:"ended"`
-	Events      []*Event     `json:"events"`
-	Color       string       `json:"color"`
-	Levels      Levels       `json:"levels"`
-	Cover       string       `json:"cover"`
-	Length      int          `json:"length"`
-	FinalLength int          `json:"final_length"`
+	gorm.Model
+
+	Name      string       `json:"name"`
+	Slug      string       `json:"id"`
+	Players   []Player     `json:"players"` // See getTournamentPlayerObject()
+	Winners   []Player     `json:"-" gorm:"-"`
+	Runnerups []*Person    `json:"runnerups"`
+	Casters   []*Person    `json:"casters"`
+	Matches   []*Match     `json:"matches"`
+	Current   CurrentMatch `json:"current"`
+	Opened    time.Time    `json:"opened"`
+	Scheduled time.Time    `json:"scheduled"`
+	Started   time.Time    `json:"started"`
+	Ended     time.Time    `json:"ended"`
+	Events    []*Event     `json:"events"`
+	Color     string       `json:"color"`
+	// Levels      Levels       `json:"levels"`
+	Cover       string `json:"cover"`
+	Length      int    `json:"length"`
+	FinalLength int    `json:"final_length"`
 	connected   bool
 	db          *Database
 	server      *Server
@@ -52,11 +55,11 @@ const finalLength = 20
 // NewTournament returns a completely new Tournament
 func NewTournament(name, id, cover string, scheduledStart time.Time, c *gin.Context, server *Server) (*Tournament, error) {
 	t := Tournament{
-		Name:        name,
-		ID:          id,
-		Opened:      time.Now(),
-		Scheduled:   scheduledStart,
-		Levels:      NewLevels(),
+		Name:      name,
+		Slug:      id,
+		Opened:    time.Now(),
+		Scheduled: scheduledStart,
+		// Levels:      NewLevels(),
 		Cover:       cover,
 		Length:      matchLength,
 		FinalLength: finalLength,
@@ -117,7 +120,7 @@ func (t *Tournament) PublishNext() error {
 	}
 
 	msg := GameMatchMessage{
-		Tournament: t.ID,
+		Tournament: t.Slug,
 		Level:      next.realLevel(),
 		Length:     next.Length,
 		Ruleset:    next.Ruleset,
@@ -159,7 +162,7 @@ func (t *Tournament) JSON() (out []byte, err error) {
 
 // URL returns the URL for the tournament
 func (t *Tournament) URL() string {
-	out := fmt.Sprintf("/%s/", t.ID)
+	out := fmt.Sprintf("/%s/", t.Slug)
 	return out
 }
 
@@ -206,7 +209,7 @@ func (t *Tournament) AddPlayer(p *Player) error {
 func (t *Tournament) removePlayer(p Player) error {
 	for i := 0; i < len(t.Players); i++ {
 		r := t.Players[i]
-		if r.Person.ID == p.Person.ID {
+		if r.Person.PersonID == p.Person.PersonID {
 			t.Players = append(t.Players[:i], t.Players[i+1:]...)
 			break
 		}
@@ -381,7 +384,7 @@ func (t *Tournament) AutoplaySection() {
 		if needed > 0 {
 			ids := make([]string, needed)
 			for x := 0; x < needed; x++ {
-				ids[x] = t.Runnerups[x].ID
+				ids[x] = t.Runnerups[x].PersonID
 			}
 			t.BackfillSemis(nil, ids)
 		}
@@ -534,7 +537,7 @@ func (t *Tournament) movePlayoffPlayers(m *Match) error {
 			found := false
 			for j := 0; j < len(t.Runnerups); j++ {
 				r := t.Runnerups[j]
-				if r.ID == p.Person.ID {
+				if r.PersonID == p.Person.PersonID {
 					found = true
 					break
 				}
@@ -716,7 +719,7 @@ func (t *Tournament) SetMatchPointers() error {
 	for i := range t.Matches {
 		m = t.Matches[i]
 		m.presentColors = mapset.NewSet()
-		m.tournament = t
+		m.Tournament = t
 		for j := range m.Players {
 			m.Players[j].Match = m
 		}
@@ -787,7 +790,7 @@ func SetupFakeTournament(c *gin.Context, s *Server, req *NewRequest) *Tournament
 	// Fake between 14 and max_players players
 	for i := 0; i < rand.Intn(18)+14; i++ {
 		ps := &Person{
-			ID:              faking.FakeName(),
+			PersonID:        faking.FakeName(),
 			Name:            faking.FakeName(),
 			Nick:            faking.FakeNick(),
 			AvatarURL:       faking.FakeAvatar(),
@@ -810,7 +813,7 @@ func SetupFakeTournament(c *gin.Context, s *Server, req *NewRequest) *Tournament
 func (t *Tournament) getTournamentPlayerObject(ps *Person) (p *Player, err error) {
 	for i := range t.Players {
 		p := &t.Players[i]
-		if ps.ID == p.Person.ID {
+		if ps.PersonID == p.Person.PersonID {
 			return p, nil
 		}
 	}
@@ -822,7 +825,7 @@ func (t *Tournament) getTournamentPlayerObject(ps *Person) (p *Player, err error
 func (t *Tournament) removeFromRunnerups(p *Person) {
 	for j := 0; j < len(t.Runnerups); j++ {
 		r := t.Runnerups[j]
-		if r.ID == p.ID {
+		if r.PersonID == p.PersonID {
 			t.Runnerups = append(t.Runnerups[:j], t.Runnerups[j+1:]...)
 			break
 		}

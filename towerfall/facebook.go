@@ -122,7 +122,7 @@ func (s *Server) handleFacebookCallback(c *gin.Context) {
 	}
 
 	v := url.Values{}
-	v.Add("id", p.ID)
+	v.Add("id", p.PersonID)
 	v.Add("name", p.Name)
 	v.Add("nick", p.Nick)
 

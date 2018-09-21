@@ -24,6 +24,8 @@ func MockServer(arg ...string) *Server {
 
 	conf := ParseConfig()
 	conf.DbPath = fn
+	conf.DbReader = "bolt"
+	conf.DbWriter = "postgres"
 	conf.Port = 56513
 
 	os.Remove(fn) // Clean it out
@@ -73,7 +75,7 @@ func TestSaveTournament(t *testing.T) {
 	})
 
 	assert.Equal(ct.Name, tm.Name)
-	assert.Equal(ct.ID, tm.ID)
+	assert.Equal(ct.Slug, tm.Slug)
 }
 
 func TestGetCurrentTournament(t *testing.T) {
@@ -98,6 +100,6 @@ func TestGetCurrentTournament(t *testing.T) {
 	t.Run("Get", func(t *testing.T) {
 		tm3, err := db.GetCurrentTournament(s)
 		assert.NoError(t, err)
-		assert.Equal(t, tm3.ID, tm2.ID)
+		assert.Equal(t, tm3.Slug, tm2.Slug)
 	})
 }

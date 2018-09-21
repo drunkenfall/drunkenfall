@@ -30,6 +30,11 @@ func main() {
 	// Create the server instance
 	s := towerfall.NewServer(config, db)
 
+	err = db.Migrate()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	// Start the live updater
 	listener, err := towerfall.NewListener(config, db)
 	if err != nil {

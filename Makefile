@@ -97,3 +97,7 @@ download-caddy:
 .PHONY: caddy
 caddy: download-caddy
 	sudo /home/thiderman/bin/caddy
+
+.PHONY: postgres
+postgres:
+	docker-compose up postgres

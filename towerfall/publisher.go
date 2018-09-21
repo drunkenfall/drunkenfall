@@ -29,11 +29,11 @@ func NewPublisher(conf *Config) (*Publisher, error) {
 
 	p.outgoing, err = p.ch.QueueDeclare(
 		conf.RabbitOutgoingQueue, // name
-		false, // durable
-		false, // delete when unused
-		false, // exclusive
-		false, // no-wait
-		nil,   // arguments
+		false,                    // durable
+		false,                    // delete when unused
+		false,                    // exclusive
+		false,                    // no-wait
+		nil,                      // arguments
 	)
 	failOnError(err, "Failed to declare the outgoing queue")
 
@@ -44,9 +44,9 @@ func NewPublisher(conf *Config) (*Publisher, error) {
 // configured queue
 func (p *Publisher) Publish(kind string, data interface{}) error {
 	msg := Message{
-		kind,
-		data,
-		time.Now(),
+		Type:      kind,
+		Data:      data,
+		Timestamp: time.Now(),
 	}
 
 	body, err := json.Marshal(msg)
