@@ -196,11 +196,11 @@ func (m *Match) AddPlayer(p Player) error {
 	}
 
 	// Reset all possible scores
-	p.Reset()
+	// p.Reset()
 
 	// Add all the previous players' colors.
 	// This is to fix a bug with the presentColors map if the app has been
-	// restarted. They cannot be added multiple tines anyway.
+	// restarted. They cannot be added multiple times anyway.
 	for _, p := range m.Players {
 		m.presentColors.Add(p.Color)
 	}
@@ -235,13 +235,14 @@ func (m *Match) UpdatePlayer(p Player) error {
 
 // CorrectFuckingColorConflicts corrects color conflicts :@ 😠
 func (m *Match) CorrectFuckingColorConflicts() error {
+	var player Player
 	// Make a map of conflicting players keyed on the color
-	pairs := make(map[string][]Player)
+	pairs := make(map[string][]Person)
 	for _, color := range m.presentColors.ToSlice() {
 		c := color.(string)
 		for _, p := range m.Players {
 			if p.PreferredColor == c {
-				pairs[c] = append(pairs[c], p)
+				pairs[c] = append(pairs[c], *p.Person)
 			}
 		}
 	}
@@ -253,7 +254,7 @@ func (m *Match) CorrectFuckingColorConflicts() error {
 		if len(pair) >= 2 {
 			// We want to sort them by score, so that we can let the player with the
 			// highest score keep their color.
-			ps, err := SortByColorConflicts(pair)
+			ps, err := SortByColorConflicts(m, pair)
 			if err != nil {
 				return err
 			}
@@ -262,22 +263,33 @@ func (m *Match) CorrectFuckingColorConflicts() error {
 				// For the players with lower scores, set their new colors
 				new := RandomColor(AvailableColors(m))
 				m.presentColors.Add(new)
-				p.Color = new
+
+				// FIXME(thiderman): There are better ways of updating the player
+				for _, o := range m.Players {
+					if p.PersonID == o.PersonID {
+						player = o
+						break
+					}
+				}
+
+				player.Color = new
 
 				// Since we are using the tournament level Player object, the compound
 				// scores from all other matches are currently on it. Reset that.
-				p.Reset()
+				// p.Reset()
 
-				if err := m.UpdatePlayer(p); err != nil {
+				if err := m.UpdatePlayer(player); err != nil {
 					return err
 				}
+
 				m.LogEvent(
 					"color_conflict",
 					"{nick} corrected from {preferred} to {new}", // Unfortunately we cannot reuse person from below..
-					"nick", p.Person.Nick,
-					"preferred", p.PreferredColor,
+					"nick", player.Person.Nick,
+					"preferred", player.PreferredColor,
 					"new", new,
-					"person", p.Person)
+					"person", player.Person)
+
 			}
 		}
 	}
@@ -587,7 +599,7 @@ func (m *Match) Start(c *gin.Context) error {
 	log.Printf("Starting match %d", m.Index)
 
 	for i := range m.Players {
-		m.Players[i].Reset()
+		// m.Players[i].Reset()
 		m.Players[i].Match = m
 	}
 
@@ -625,11 +637,11 @@ func (m *Match) End(c *gin.Context) error {
 	// and therefore this might not have been set. Since the calculation is
 	// quick and has no side effects, it's easier to just add it here now. In
 	// the future, make the tests better.
-	// m.KillOrder = m.MakeKillOrder()
+	ko := m.MakeKillOrder()
 
 	// Give the winner one last shot
-	// winner := m.KillOrder[0]
-	// m.Players[winner].AddShot()
+	winner := ko[0]
+	m.Players[winner].AddShot()
 
 	m.Ended = time.Now()
 	m.LogEvent(

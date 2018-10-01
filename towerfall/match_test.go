@@ -12,8 +12,8 @@ import (
 )
 
 // MockMatch makes a mock Match{} with a dummy Tournament{}
-func MockMatch(idx int, cat string) (m *Match) {
-	tm := testTournament(8)
+func MockMatch(t *testing.T, s *Server, idx int, cat string) (m *Match) {
+	tm := testTournament(t, s, 8)
 	tm.SetMatchPointers()
 	err := tm.StartTournament(nil)
 	if err != nil {
@@ -55,7 +55,10 @@ func testPerson(i int) *Person {
 
 func TestAddPlayer(t *testing.T) {
 	assert := assert.New(t)
-	m := MockMatch(0, "playoff")
+	s, teardown := MockServer(t)
+	defer teardown()
+
+	m := MockMatch(t, s, 0, "playoff")
 	m.Players = []Player{}
 	p := testPlayer()
 
@@ -67,7 +70,10 @@ func TestAddPlayer(t *testing.T) {
 
 func TestAddFifthPlayer(t *testing.T) {
 	assert := assert.New(t)
-	m := MockMatch(1, "playoff")
+	s, teardown := MockServer(t)
+	defer teardown()
+
+	m := MockMatch(t, s, 1, "playoff")
 
 	p := testPlayer()
 
@@ -78,7 +84,10 @@ func TestAddFifthPlayer(t *testing.T) {
 
 func TestStartAlreadyStartedMatch(t *testing.T) {
 	assert := assert.New(t)
-	m := MockMatch(1, "playoff")
+	s, teardown := MockServer(t)
+	defer teardown()
+
+	m := MockMatch(t, s, 1, "playoff")
 	m.Started = time.Now()
 
 	err := m.Start(nil)
@@ -87,7 +96,10 @@ func TestStartAlreadyStartedMatch(t *testing.T) {
 
 func TestStart(t *testing.T) {
 	assert := assert.New(t)
-	m := MockMatch(1, "playoff")
+	s, teardown := MockServer(t)
+	defer teardown()
+
+	m := MockMatch(t, s, 1, "playoff")
 
 	err := m.Start(nil)
 	assert.Nil(err)
@@ -96,7 +108,10 @@ func TestStart(t *testing.T) {
 
 func TestEndGivesShotToWinner(t *testing.T) {
 	assert := assert.New(t)
-	m := MockMatch(1, "playoff")
+	s, teardown := MockServer(t)
+	defer teardown()
+
+	m := MockMatch(t, s, 1, "playoff")
 
 	err := m.Start(nil)
 	assert.Nil(err)
@@ -110,7 +125,10 @@ func TestEndGivesShotToWinner(t *testing.T) {
 
 func TestEndAlreadyEndedMatch(t *testing.T) {
 	assert := assert.New(t)
-	m := MockMatch(1, "playoff")
+	s, teardown := MockServer(t)
+	defer teardown()
+
+	m := MockMatch(t, s, 1, "playoff")
 	m.Ended = time.Now()
 
 	err := m.End(nil)
@@ -120,7 +138,10 @@ func TestEndAlreadyEndedMatch(t *testing.T) {
 func TestCommitSweepPlayer1(t *testing.T) {
 	assert := assert.New(t)
 
-	m := MockMatch(0, "playoff")
+	s, teardown := MockServer(t)
+	defer teardown()
+
+	m := MockMatch(t, s, 0, "playoff")
 	_ = m.AddPlayer(testPlayer())
 	_ = m.AddPlayer(testPlayer())
 	_ = m.AddPlayer(testPlayer())
@@ -148,7 +169,10 @@ func TestCommitSweepPlayer1(t *testing.T) {
 func TestCommitDoubleKillPlayer2(t *testing.T) {
 	assert := assert.New(t)
 
-	m := MockMatch(0, "playoff")
+	s, teardown := MockServer(t)
+	defer teardown()
+
+	m := MockMatch(t, s, 0, "playoff")
 	_ = m.AddPlayer(testPlayer())
 	_ = m.AddPlayer(testPlayer())
 	_ = m.AddPlayer(testPlayer())
@@ -176,7 +200,10 @@ func TestCommitDoubleKillPlayer2(t *testing.T) {
 func TestCommitSweepAndSuicidePlayer3(t *testing.T) {
 	assert := assert.New(t)
 
-	m := MockMatch(0, "playoff")
+	s, teardown := MockServer(t)
+	defer teardown()
+
+	m := MockMatch(t, s, 0, "playoff")
 	_ = m.AddPlayer(testPlayer())
 	_ = m.AddPlayer(testPlayer())
 	_ = m.AddPlayer(testPlayer())
@@ -206,7 +233,10 @@ func TestCommitSweepAndSuicidePlayer3(t *testing.T) {
 func TestCommitSuicidePlayer4(t *testing.T) {
 	assert := assert.New(t)
 
-	m := MockMatch(0, "playoff")
+	s, teardown := MockServer(t)
+	defer teardown()
+
+	m := MockMatch(t, s, 0, "playoff")
 	_ = m.AddPlayer(testPlayer())
 	_ = m.AddPlayer(testPlayer())
 	_ = m.AddPlayer(testPlayer())
@@ -235,7 +265,10 @@ func TestCommitSuicidePlayer4(t *testing.T) {
 func TestCommitShotsForPlayer2and3(t *testing.T) {
 	assert := assert.New(t)
 
-	m := MockMatch(0, "playoff")
+	s, teardown := MockServer(t)
+	defer teardown()
+
+	m := MockMatch(t, s, 0, "playoff")
 	_ = m.AddPlayer(testPlayer())
 	_ = m.AddPlayer(testPlayer())
 	_ = m.AddPlayer(testPlayer())
@@ -264,7 +297,10 @@ func TestCommitShotsForPlayer2and3(t *testing.T) {
 func TestCommitSweepForPlayer1(t *testing.T) {
 	assert := assert.New(t)
 
-	m := MockMatch(0, "playoff")
+	s, teardown := MockServer(t)
+	defer teardown()
+
+	m := MockMatch(t, s, 0, "playoff")
 	_ = m.AddPlayer(testPlayer())
 	_ = m.AddPlayer(testPlayer())
 	_ = m.AddPlayer(testPlayer())
@@ -295,7 +331,10 @@ func TestCommitSweepForPlayer1(t *testing.T) {
 func TestCommitStoredOnMatch(t *testing.T) {
 	assert := assert.New(t)
 
-	m := MockMatch(0, "playoff")
+	s, teardown := MockServer(t)
+	defer teardown()
+
+	m := MockMatch(t, s, 0, "playoff")
 	_ = m.AddPlayer(testPlayer())
 	_ = m.AddPlayer(testPlayer())
 	_ = m.AddPlayer(testPlayer())
@@ -322,7 +361,10 @@ func TestCommitStoredOnMatch(t *testing.T) {
 func TestCommitWithOnlyShotsNotStoredOnMatch(t *testing.T) {
 	assert := assert.New(t)
 
-	m := MockMatch(0, "playoff")
+	s, teardown := MockServer(t)
+	defer teardown()
+
+	m := MockMatch(t, s, 0, "playoff")
 	_ = m.AddPlayer(testPlayer())
 	_ = m.AddPlayer(testPlayer())
 	_ = m.AddPlayer(testPlayer())
@@ -344,27 +386,30 @@ func TestCommitWithOnlyShotsNotStoredOnMatch(t *testing.T) {
 func TestCorrectColorConflictsNoScores(t *testing.T) {
 	assert := assert.New(t)
 
-	m := MockMatch(0, "final")
+	s, teardown := MockServer(t)
+	defer teardown()
+
+	m := MockMatch(t, s, 0, "final")
 	m.Players = make([]Player, 0)
 
-	m.Tournament.Players[0].PreferredColor = "green"
-	m.Tournament.Players[1].PreferredColor = "green"
-	m.Tournament.Players[2].PreferredColor = "blue"
-	m.Tournament.Players[3].PreferredColor = "red"
+	m.Tournament.Players[0].Person.PreferredColor = "green"
+	m.Tournament.Players[1].Person.PreferredColor = "green"
+	m.Tournament.Players[2].Person.PreferredColor = "blue"
+	m.Tournament.Players[3].Person.PreferredColor = "red"
 
-	assert.Nil(m.AddPlayer(m.Tournament.Players[0]))
-	assert.Nil(m.AddPlayer(m.Tournament.Players[1]))
-	assert.Nil(m.AddPlayer(m.Tournament.Players[2]))
-	assert.Nil(m.AddPlayer(m.Tournament.Players[3]))
+	assert.Nil(m.AddPlayer(m.Tournament.Players[0].Player()))
+	assert.Nil(m.AddPlayer(m.Tournament.Players[1].Player()))
+	assert.Nil(m.AddPlayer(m.Tournament.Players[2].Player()))
+	assert.Nil(m.AddPlayer(m.Tournament.Players[3].Player()))
 
 	assert.Equal("green", m.Players[0].Color)
-	assert.Equal("green", m.Players[0].PreferredColor)
+	assert.Equal("green", m.Players[0].Person.PreferredColor)
 	assert.NotEqual("green", m.Players[1].Color)
-	assert.Equal("green", m.Players[1].PreferredColor)
+	assert.Equal("green", m.Players[1].Person.PreferredColor)
 	assert.Equal("blue", m.Players[2].Color)
-	assert.Equal("blue", m.Players[2].PreferredColor)
+	assert.Equal("blue", m.Players[2].Person.PreferredColor)
 	assert.Equal("red", m.Players[3].Color)
-	assert.Equal("red", m.Players[3].PreferredColor)
+	assert.Equal("red", m.Players[3].Person.PreferredColor)
 
 	// Just one event - nothing started or ended
 	assert.Equal(1, len(m.Events))
@@ -373,29 +418,32 @@ func TestCorrectColorConflictsNoScores(t *testing.T) {
 func TestCorrectColorConflictsUserLevels(t *testing.T) {
 	assert := assert.New(t)
 
-	m := MockMatch(0, "final")
+	s, teardown := MockServer(t)
+	defer teardown()
+
+	m := MockMatch(t, s, 0, "final")
 	m.Players = make([]Player, 0)
 
-	m.Tournament.Players[0].PreferredColor = "green"
+	m.Tournament.Players[0].Person.PreferredColor = "green"
 	m.Tournament.Players[0].Person.Userlevel = 10000
-	m.Tournament.Players[1].PreferredColor = "green"
-	m.Tournament.Players[2].PreferredColor = "red"
+	m.Tournament.Players[1].Person.PreferredColor = "green"
+	m.Tournament.Players[2].Person.PreferredColor = "red"
 	m.Tournament.Players[2].Person.Userlevel = -10000
-	m.Tournament.Players[3].PreferredColor = "red"
+	m.Tournament.Players[3].Person.PreferredColor = "red"
 
-	assert.Nil(m.AddPlayer(m.Tournament.Players[0]))
-	assert.Nil(m.AddPlayer(m.Tournament.Players[1]))
-	assert.Nil(m.AddPlayer(m.Tournament.Players[2]))
-	assert.Nil(m.AddPlayer(m.Tournament.Players[3]))
+	assert.Nil(m.AddPlayer(m.Tournament.Players[0].Player()))
+	assert.Nil(m.AddPlayer(m.Tournament.Players[1].Player()))
+	assert.Nil(m.AddPlayer(m.Tournament.Players[2].Player()))
+	assert.Nil(m.AddPlayer(m.Tournament.Players[3].Player()))
 
 	assert.Equal("green", m.Players[0].Color)
-	assert.Equal("green", m.Players[0].PreferredColor)
+	assert.Equal("green", m.Players[0].Person.PreferredColor)
 	assert.NotEqual("green", m.Players[1].Color)
-	assert.Equal("green", m.Players[1].PreferredColor)
+	assert.Equal("green", m.Players[1].Person.PreferredColor)
 	assert.NotEqual("red", m.Players[2].Color)
-	assert.Equal("red", m.Players[2].PreferredColor)
+	assert.Equal("red", m.Players[2].Person.PreferredColor)
 	assert.Equal("red", m.Players[3].Color)
-	assert.Equal("red", m.Players[3].PreferredColor)
+	assert.Equal("red", m.Players[3].Person.PreferredColor)
 
 	assert.Equal(2, len(m.Events))
 }
@@ -409,7 +457,7 @@ func TestCorrectColorConflictsUserLevels(t *testing.T) {
 // func TestCorrectColorConflictsResetsToPreferredColor(t *testing.T) {
 // 	assert := assert.New(t)
 
-// 	tm := testTournament(12)
+// 	tm := testTournament(t, s, 12)
 // 	tm.StartTournament(nil)
 // 	m := tm.Matches[0]
 // 	m2 := tm.Matches[1]
@@ -455,27 +503,30 @@ func TestCorrectColorConflictsUserLevels(t *testing.T) {
 func TestCorrectColorConflictsNoScoresDoubleConflict(t *testing.T) {
 	assert := assert.New(t)
 
-	m := MockMatch(0, "final")
+	s, teardown := MockServer(t)
+	defer teardown()
+
+	m := MockMatch(t, s, 0, "final")
 	m.Players = make([]Player, 0)
 
-	m.Tournament.Players[0].PreferredColor = "green"
-	m.Tournament.Players[1].PreferredColor = "green"
-	m.Tournament.Players[2].PreferredColor = "blue"
-	m.Tournament.Players[3].PreferredColor = "blue"
+	m.Tournament.Players[0].Person.PreferredColor = "green"
+	m.Tournament.Players[1].Person.PreferredColor = "green"
+	m.Tournament.Players[2].Person.PreferredColor = "blue"
+	m.Tournament.Players[3].Person.PreferredColor = "blue"
 
-	assert.Nil(m.AddPlayer(m.Tournament.Players[0]))
-	assert.Nil(m.AddPlayer(m.Tournament.Players[1]))
-	assert.Nil(m.AddPlayer(m.Tournament.Players[2]))
-	assert.Nil(m.AddPlayer(m.Tournament.Players[3]))
+	assert.Nil(m.AddPlayer(m.Tournament.Players[0].Player()))
+	assert.Nil(m.AddPlayer(m.Tournament.Players[1].Player()))
+	assert.Nil(m.AddPlayer(m.Tournament.Players[2].Player()))
+	assert.Nil(m.AddPlayer(m.Tournament.Players[3].Player()))
 
 	assert.Equal("green", m.Players[0].Color)
-	assert.Equal("green", m.Players[0].PreferredColor)
+	assert.Equal("green", m.Players[0].Person.PreferredColor)
 	assert.NotEqual("green", m.Players[1].Color)
-	assert.Equal("green", m.Players[1].PreferredColor)
+	assert.Equal("green", m.Players[1].Person.PreferredColor)
 	assert.Equal("blue", m.Players[2].Color)
-	assert.Equal("blue", m.Players[2].PreferredColor)
+	assert.Equal("blue", m.Players[2].Person.PreferredColor)
 	assert.NotEqual("blue", m.Players[3].Color)
-	assert.Equal("blue", m.Players[3].PreferredColor)
+	assert.Equal("blue", m.Players[3].Person.PreferredColor)
 
 	assert.Equal(2, len(m.Events))
 }
@@ -483,34 +534,37 @@ func TestCorrectColorConflictsNoScoresDoubleConflict(t *testing.T) {
 func TestCorrectColorConflictsWithScoresDoubleConflict(t *testing.T) {
 	assert := assert.New(t)
 
-	m := MockMatch(0, "final")
+	s, teardown := MockServer(t)
+	defer teardown()
+
+	m := MockMatch(t, s, 0, "final")
 	m.Players = make([]Player, 0)
 
-	m.Tournament.Players[0].PreferredColor = "green"
+	m.Tournament.Players[0].Person.PreferredColor = "green"
 	m.Tournament.Players[0].Person.Nick = "GreenCorrected"
 
-	m.Tournament.Players[1].Kills = 3
-	m.Tournament.Players[1].PreferredColor = "green"
+	m.Tournament.Players[1].TotalScore = 3
+	m.Tournament.Players[1].Person.PreferredColor = "green"
 
-	m.Tournament.Players[2].PreferredColor = "blue"
+	m.Tournament.Players[2].Person.PreferredColor = "blue"
 	m.Tournament.Players[2].Person.Nick = "BlueCorrected"
 
-	m.Tournament.Players[3].Kills = 3
-	m.Tournament.Players[3].PreferredColor = "blue"
+	m.Tournament.Players[3].TotalScore = 3
+	m.Tournament.Players[3].Person.PreferredColor = "blue"
 
-	assert.Nil(m.AddPlayer(m.Tournament.Players[0]))
-	assert.Nil(m.AddPlayer(m.Tournament.Players[1]))
-	assert.Nil(m.AddPlayer(m.Tournament.Players[2]))
-	assert.Nil(m.AddPlayer(m.Tournament.Players[3]))
+	assert.Nil(m.AddPlayer(m.Tournament.Players[0].Player()))
+	assert.Nil(m.AddPlayer(m.Tournament.Players[1].Player()))
+	assert.Nil(m.AddPlayer(m.Tournament.Players[2].Player()))
+	assert.Nil(m.AddPlayer(m.Tournament.Players[3].Player()))
 
 	assert.NotEqual("green", m.Players[0].Color)
-	assert.Equal("green", m.Players[0].PreferredColor)
+	assert.Equal("green", m.Players[0].Person.PreferredColor)
 	assert.Equal("green", m.Players[1].Color)
-	assert.Equal("green", m.Players[1].PreferredColor)
+	assert.Equal("green", m.Players[1].Person.PreferredColor)
 	assert.NotEqual("blue", m.Players[2].Color)
-	assert.Equal("blue", m.Players[2].PreferredColor)
+	assert.Equal("blue", m.Players[2].Person.PreferredColor)
 	assert.Equal("blue", m.Players[3].Color)
-	assert.Equal("blue", m.Players[3].PreferredColor)
+	assert.Equal("blue", m.Players[3].Person.PreferredColor)
 
 	assert.Equal(2, len(m.Events))
 }
@@ -518,27 +572,30 @@ func TestCorrectColorConflictsWithScoresDoubleConflict(t *testing.T) {
 func TestCorrectColorConflictsWithScoresTripleConflict(t *testing.T) {
 	assert := assert.New(t)
 
-	m := MockMatch(0, "final")
+	s, teardown := MockServer(t)
+	defer teardown()
+
+	m := MockMatch(t, s, 0, "final")
 	m.Players = make([]Player, 0)
 
-	m.Tournament.Players[0].PreferredColor = "green"
+	m.Tournament.Players[0].Person.PreferredColor = "green"
 	m.Tournament.Players[0].Person.Nick = "Green1Corrected"
 
-	m.Tournament.Players[1].Kills = 3
-	m.Tournament.Players[1].PreferredColor = "green"
+	m.Tournament.Players[1].TotalScore = 3
+	m.Tournament.Players[1].Person.PreferredColor = "green"
 	m.Tournament.Players[1].Person.Nick = "Green2Corrected"
 
-	m.Tournament.Players[2].PreferredColor = "blue"
+	m.Tournament.Players[2].Person.PreferredColor = "blue"
 	m.Tournament.Players[2].Person.Nick = "BlueKeep"
 
-	m.Tournament.Players[3].Kills = 10
-	m.Tournament.Players[3].PreferredColor = "green"
+	m.Tournament.Players[3].TotalScore = 10
+	m.Tournament.Players[3].Person.PreferredColor = "green"
 	m.Tournament.Players[3].Person.Nick = "GreenKeep"
 
-	assert.Nil(m.AddPlayer(m.Tournament.Players[0]))
-	assert.Nil(m.AddPlayer(m.Tournament.Players[1]))
-	assert.Nil(m.AddPlayer(m.Tournament.Players[2]))
-	assert.Nil(m.AddPlayer(m.Tournament.Players[3]))
+	assert.Nil(m.AddPlayer(m.Tournament.Players[0].Player()))
+	assert.Nil(m.AddPlayer(m.Tournament.Players[1].Player()))
+	assert.Nil(m.AddPlayer(m.Tournament.Players[2].Player()))
+	assert.Nil(m.AddPlayer(m.Tournament.Players[3].Player()))
 
 	assert.NotEqual("green", m.Players[0].Color)
 	assert.NotEqual("green", m.Players[1].Color)
@@ -550,7 +607,10 @@ func TestCorrectColorConflictsWithScoresTripleConflict(t *testing.T) {
 
 func TestMakeKillOrder(t *testing.T) {
 	assert := assert.New(t)
-	m := MockMatch(0, "playoff")
+	s, teardown := MockServer(t)
+	defer teardown()
+
+	m := MockMatch(t, s, 0, "playoff")
 
 	m.Players[0].AddKills(1)
 	m.Players[1].AddKills(4)
@@ -601,7 +661,10 @@ func TestRoundIsShotUpdate(t *testing.T) {
 
 func TestKill(t *testing.T) {
 	t.Run("Kill by other player", func(t *testing.T) {
-		m := MockMatch(0, playoff)
+		s, teardown := MockServer(t)
+		defer teardown()
+
+		m := MockMatch(t, s, 0, playoff)
 		ev := len(m.Events)
 
 		km := KillMessage{1, 2, rArrow}
@@ -613,7 +676,10 @@ func TestKill(t *testing.T) {
 	})
 
 	t.Run("Environment kill", func(t *testing.T) {
-		m := MockMatch(0, playoff)
+		s, teardown := MockServer(t)
+		defer teardown()
+
+		m := MockMatch(t, s, 0, playoff)
 		ev := len(m.Events)
 
 		km := KillMessage{1, EnvironmentKill, rExplosion}
@@ -626,7 +692,10 @@ func TestKill(t *testing.T) {
 	})
 
 	t.Run("Suicide", func(t *testing.T) {
-		m := MockMatch(0, playoff)
+		s, teardown := MockServer(t)
+		defer teardown()
+
+		m := MockMatch(t, s, 0, playoff)
 		ev := len(m.Events)
 
 		km := KillMessage{1, 1, rCurse}
@@ -641,7 +710,10 @@ func TestKill(t *testing.T) {
 
 func TestLavaOrb(t *testing.T) {
 	t.Run("Enable", func(t *testing.T) {
-		m := MockMatch(0, playoff)
+		s, teardown := MockServer(t)
+		defer teardown()
+
+		m := MockMatch(t, s, 0, playoff)
 		ev := len(m.Events)
 
 		lm := LavaOrbMessage{0, true}
@@ -653,7 +725,10 @@ func TestLavaOrb(t *testing.T) {
 	})
 
 	t.Run("Disable", func(t *testing.T) {
-		m := MockMatch(0, playoff)
+		s, teardown := MockServer(t)
+		defer teardown()
+
+		m := MockMatch(t, s, 0, playoff)
 		ev := len(m.Events)
 
 		lm := LavaOrbMessage{0, false}
@@ -667,7 +742,10 @@ func TestLavaOrb(t *testing.T) {
 
 func TestShield(t *testing.T) {
 	t.Run("Gain", func(t *testing.T) {
-		m := MockMatch(0, playoff)
+		s, teardown := MockServer(t)
+		defer teardown()
+
+		m := MockMatch(t, s, 0, playoff)
 		ev := len(m.Events)
 
 		sm := ShieldMessage{0, true}
@@ -679,7 +757,10 @@ func TestShield(t *testing.T) {
 	})
 
 	t.Run("Break", func(t *testing.T) {
-		m := MockMatch(0, playoff)
+		s, teardown := MockServer(t)
+		defer teardown()
+
+		m := MockMatch(t, s, 0, playoff)
 		ev := len(m.Events)
 		m.Players[0].State.Shield = true
 
@@ -694,7 +775,10 @@ func TestShield(t *testing.T) {
 
 func TestWings(t *testing.T) {
 	t.Run("Grow", func(t *testing.T) {
-		m := MockMatch(0, playoff)
+		s, teardown := MockServer(t)
+		defer teardown()
+
+		m := MockMatch(t, s, 0, playoff)
 		ev := len(m.Events)
 
 		wm := WingsMessage{0, true}
@@ -706,7 +790,10 @@ func TestWings(t *testing.T) {
 	})
 
 	t.Run("Lose", func(t *testing.T) {
-		m := MockMatch(0, playoff)
+		s, teardown := MockServer(t)
+		defer teardown()
+
+		m := MockMatch(t, s, 0, playoff)
 		ev := len(m.Events)
 		m.Players[0].State.Wings = true
 
@@ -721,7 +808,10 @@ func TestWings(t *testing.T) {
 
 func TestArrow(t *testing.T) {
 	t.Run("Set", func(t *testing.T) {
-		m := MockMatch(0, playoff)
+		s, teardown := MockServer(t)
+		defer teardown()
+
+		m := MockMatch(t, s, 0, playoff)
 
 		wm := ArrowMessage{3, Arrows{aNormal, aPrism, aPrism}}
 		err := m.ArrowUpdate(wm)
@@ -731,7 +821,10 @@ func TestArrow(t *testing.T) {
 }
 
 func TestStartRound(t *testing.T) {
-	tm := testTournament(12)
+	s, teardown := MockServer(t)
+	defer teardown()
+
+	tm := testTournament(t, s, 12)
 	err := tm.StartTournament(nil)
 	assert.NoError(t, err)
 	m := tm.Matches[0]

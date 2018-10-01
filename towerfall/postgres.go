@@ -20,8 +20,9 @@ type postgresReader struct {
 }
 
 func (d postgresWriter) setUp() error {
-	d.DB.Exec("DROP TABLE tournaments; DROP TABLE matches; DROP TABLE players; DROP TABLE people; DROP TABLE commits; DROP TABLE messages;")
+	// d.DB.Exec("DROP TABLE tournaments; DROP TABLE matches; DROP TABLE players; DROP TABLE people; DROP TABLE commits; DROP TABLE messages;")
 	// d.DB.AutoMigrate(&Tournament{})
+	// d.DB.AutoMigrate(&PlayerSummary{})
 	// d.DB.AutoMigrate(&Match{})
 	// d.DB.AutoMigrate(&Player{})
 	// d.DB.AutoMigrate(&Person{})
@@ -73,8 +74,11 @@ func (p postgresWriter) migrate(r dbReader, s *Server) error {
 
 // SaveTournament stores the current state of the tournaments into the db
 func (d postgresWriter) saveTournament(t *Tournament) error {
-	d.DB.NewRecord(t)
-	d.DB.Create(t)
+	d.DB.Save(t)
+	err := d.DB.Error
+	if err != nil {
+		log.Fatal(err)
+	}
 	return nil
 }
 
@@ -88,12 +92,16 @@ func (d postgresWriter) overwriteTournament(t *Tournament) error {
 
 // SavePerson stores a person into the DB
 func (d postgresWriter) savePerson(p *Person) error {
+	d.DB.Save(p)
 	return nil
 }
 
 // GetPerson gets a Person{} from the DB
 func (d postgresReader) getPerson(id string) (*Person, error) {
-	return &Person{}, errors.New("user not found")
+	p := Person{}
+	d.DB.Where("id = ?", id).First(&p)
+
+	return &p, d.DB.Error
 }
 
 // GetSafePerson gets a Person{} from the DB, while being absolutely

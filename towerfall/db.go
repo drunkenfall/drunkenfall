@@ -73,7 +73,7 @@ func NewDatabase(c *Config) (*Database, error) {
 	}
 
 	if c.DbReader == "postgres" || c.DbWriter == "postgres" {
-		connStr := "user=postgres dbname=drunkenfall sslmode=disable"
+		connStr := c.DbPostgresConn
 		pg, err = gorm.Open("postgres", connStr)
 		if err != nil {
 			log.Fatal("postgres open error", zap.Error(err))

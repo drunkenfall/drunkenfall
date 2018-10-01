@@ -6,23 +6,25 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func testListener(t *testing.T) (*Listener, *Tournament) {
-	s := MockServer()
+func testListener(t *testing.T) (*Listener, *Tournament, func()) {
+	s, teardown := MockServer(t)
 	db := s.DB
 
 	l, err := NewListener(s.config, db)
 	assert.NoError(t, err)
 
-	tm := testTournament(12, s)
+	tm := testTournament(t, s, 12)
 	err = tm.StartTournament(nil)
 	assert.NoError(t, err)
 
-	return l, tm
+	return l, tm, teardown
 }
 
 func TestMessagesAreAddedToMatch(t *testing.T) {
 	t.Run("Passing kind", func(t *testing.T) {
-		l, tm := testListener(t)
+		l, tm, teardown := testListener(t)
+		defer teardown()
+
 		assert.Equal(t, 0, len(tm.Matches[tm.Current].Messages))
 
 		msg := `{"type":"round_start","data":{"arrows":[[1,0,0],[0,2,0],[0,0,3],[1,1,1]]}}`
@@ -32,7 +34,9 @@ func TestMessagesAreAddedToMatch(t *testing.T) {
 	})
 
 	t.Run("Unknown kind", func(t *testing.T) {
-		l, tm := testListener(t)
+		l, tm, teardown := testListener(t)
+		defer teardown()
+
 		assert.Equal(t, 0, len(tm.Matches[tm.Current].Messages))
 
 		// https://open.spotify.com/track/4Uepu89yTm3wGtYFZz04Vf

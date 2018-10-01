@@ -60,7 +60,7 @@ install-linter:
 	gometalinter --install
 
 test:
-	GIN_MODE=test go test -v ./...
+	GIN_MODE=test go test -v ./towerfall -failfast
 
 cover:
 	go test -coverprofile=cover.out ./...
@@ -101,3 +101,17 @@ caddy: download-caddy
 .PHONY: postgres
 postgres:
 	docker-compose up postgres
+
+.PHONY: psql
+psql:
+	@psql --host localhost --user postgres drunkenfall
+
+.PHONY: reset-db
+reset-db:
+	[[ -n "$(DRUNKENFALL_RESET_DB)" ]] && \
+	psql --host localhost --user postgres drunkenfall < init-db.sql \
+    || echo "need to set DRUNKENFALL_RESET_DB"
+
+.PHONY: reset-test-db
+reset-test-db:
+	psql --host localhost --user postgres test_drunkenfall < test-db.sql

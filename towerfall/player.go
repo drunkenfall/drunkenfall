@@ -36,7 +36,7 @@ type ScoreData struct {
 	Player *Player
 }
 
-// Player is someone that is actively participating in battles.
+// Player is a representation of one player in a match
 type Player struct {
 	gorm.Model
 
@@ -56,6 +56,21 @@ type Player struct {
 	Match          *Match      `json:"-" gorm:"-"`
 }
 
+// A PlayerSummary is a tournament-wide summary of the scores a player has
+type PlayerSummary struct {
+	gorm.Model
+
+	TournamentID uint
+	PersonID     string  `jsom:"id"`
+	Person       *Person `json:"person" gorm:"-"`
+	Shots        int     `json:"shots"`
+	Sweeps       int     `json:"sweeps"`
+	Kills        int     `json:"kills"`
+	Self         int     `json:"self"`
+	Matches      int     `json:"matches"`
+	TotalScore   int     `json:"score"`
+}
+
 type PlayerState struct {
 	Arrows    Arrows `json:"arrows"`
 	Shield    bool   `json:"shield"`
@@ -71,12 +86,13 @@ type PlayerState struct {
 // NewPlayer returns a new instance of a player
 func NewPlayer(ps *Person) *Player {
 	p := &Player{
+		PersonID:   ps.PersonID,
 		Person:     ps,
 		ArcherType: ps.ArcherType,
 		State:      NewPlayerState(),
 	}
 	if len(ps.ColorPreference) > 0 {
-		p.PreferredColor = ps.ColorPreference[0]
+		p.PreferredColor = ps.PreferredColor
 	} else {
 		p.PreferredColor = RandomColor(Colors)
 	}
@@ -92,6 +108,15 @@ func NewPlayerState() PlayerState {
 		Killer: -2,
 	}
 	return ps
+}
+
+// NewPlayerSummary returns a new instance of a tournament player
+func NewPlayerSummary(ps *Person) *PlayerSummary {
+	p := &PlayerSummary{
+		PersonID: ps.PersonID,
+		Person:   ps,
+	}
+	return p
 }
 
 func (p *Player) String() string {
@@ -124,6 +149,21 @@ func (p *Player) NumericColor() int {
 }
 
 // Score calculates the score to determine runnerup positions.
+func (p *PlayerSummary) Score() (out int) {
+	// This algorithm is probably flawed, but at least it should be able to
+	// determine who is the most entertaining.
+	// When executed, a sweep is basically 14 points since scoring a sweep
+	// also comes with a shot and three kills.
+
+	out += p.Sweeps * 5
+	out += p.Shots * 3
+	out += p.Kills * 2
+	out += p.Self
+
+	return
+}
+
+// Score calculates the score to determine runnerup positions.
 func (p *Player) Score() (out int) {
 	// This algorithm is probably flawed, but at least it should be able to
 	// determine who is the most entertaining.
@@ -136,6 +176,23 @@ func (p *Player) Score() (out int) {
 	out += p.Self
 
 	return
+}
+
+// Summary resturns a Summary{} object for the player
+func (p *Player) Summary() PlayerSummary {
+	return PlayerSummary{
+		PersonID: p.PersonID,
+		Person:   p.Person,
+		Shots:    p.Shots,
+		Sweeps:   p.Sweeps,
+		Kills:    p.Kills,
+		Self:     p.Self,
+	}
+}
+
+// Player resturns a Player{} object from the summary
+func (p *PlayerSummary) Player() Player {
+	return *NewPlayer(p.Person)
 }
 
 // ScoreData returns this players set of ScoreData
@@ -245,7 +302,7 @@ func (p *Player) AddSelf() {
 	p.RemoveKill()
 }
 
-// Reset resets the stats on a Player to 0
+// Reset resets the stats on a PlayerSummary to 0
 //
 // It is to be run in Match.Start()
 func (p *Player) Reset() {
@@ -257,29 +314,13 @@ func (p *Player) Reset() {
 	p.State = NewPlayerState()
 }
 
-// Update updates a player with the scores of another
-//
-// This is primarily used by the tournament score calculator
-func (p *Player) Update(other Player) {
-	p.Shots += other.Shots
-	p.Sweeps += other.Sweeps
-	p.Kills += other.Kills
-	p.Self += other.Self
-	p.TotalScore = p.Score()
-
-	// Every call to this method is per match. Count every call
-	// as if a match.
-	p.Matches++
-	// log.Printf("Updated player: %d, %d", p.TotalScore, p.Matches)
-}
-
 // HTML renders the HTML of a player
 func (p *Player) HTML() (out string) {
 	return
 }
 
 // ByColorConflict is a sort.Interface that sorts players by their score
-type ByColorConflict []Player
+type ByColorConflict []PlayerSummary
 
 func (s ByColorConflict) Len() int { return len(s) }
 
@@ -289,7 +330,7 @@ func (s ByColorConflict) Less(i, j int) bool {
 	if s[i].Person.Userlevel != s[j].Person.Userlevel {
 		return s[i].Person.Userlevel > s[j].Person.Userlevel
 	}
-	return s[i].Score() > s[j].Score()
+	return s[i].TotalScore > s[j].TotalScore
 }
 
 // ByScore is a sort.Interface that sorts players by their score
@@ -310,12 +351,12 @@ func (s ByScore) Less(i, j int) bool {
 
 // SortByColorConflicts returns a list in an unspecified order,
 // Probably by User level and then score.
-func SortByColorConflicts(ps []Player) (tmp []Player, err error) {
-	var tp *Player
-	tmp = make([]Player, len(ps))
+func SortByColorConflicts(m *Match, ps []Person) (tmp []PlayerSummary, err error) {
+	var tp *PlayerSummary
+	tmp = make([]PlayerSummary, len(ps))
 	for i, p := range ps {
 		// TODO(thiderman): This is not very elegant and should be replaced.
-		tp, err = p.Match.Tournament.getTournamentPlayerObject(p.Person)
+		tp, err = m.Tournament.getTournamentPlayerObject(&p)
 		if err != nil {
 			return
 		}
@@ -517,4 +558,31 @@ func transformName(name string) (string, string) {
 		return prefixes[rand.Intn(len(prefixes))], name
 	}
 	return name, suffixes[rand.Intn(len(suffixes))]
+}
+
+// Reset resets the stats on a PlayerSummary to 0
+//
+// It is to be run in Match.Start()
+func (p *PlayerSummary) Reset() {
+	p.Shots = 0
+	p.Sweeps = 0
+	p.Kills = 0
+	p.Self = 0
+	p.Matches = 0
+}
+
+// Update updates a player with the scores of another
+//
+// This is primarily used by the tournament score calculator
+func (p *PlayerSummary) Update(other PlayerSummary) {
+	p.Shots += other.Shots
+	p.Sweeps += other.Sweeps
+	p.Kills += other.Kills
+	p.Self += other.Self
+	p.TotalScore = p.Score()
+
+	// Every call to this method is per match. Count every call
+	// as if a match.
+	p.Matches++
+	// log.Printf("Updated player: %d, %d", p.TotalScore, p.Matches)
 }
