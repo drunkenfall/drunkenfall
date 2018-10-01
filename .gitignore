@@ -1,10 +1,12 @@
 /drunkenfall
-/*.test
-/*.out
+*.test
+*.out
 /test/*
 /towerfall/test/*
 *.db
 *.log
+*.sql
+*.json
 /*.env
 /vendor
 
