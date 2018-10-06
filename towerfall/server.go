@@ -13,7 +13,6 @@ import (
 	"time"
 
 	"github.com/drunkenfall/drunkenfall/faking"
-	"github.com/drunkenfall/drunkenfall/websockets"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-contrib/zap"
@@ -33,6 +32,12 @@ var (
 // hundreds of updates that are pointless. It is also reset to true
 // once the Autoplay is over.
 var broadcasting = true
+
+// Message is the data to send back
+type websocketMessage struct {
+	Type string      `json:"type"`
+	Data interface{} `json:"data"`
+}
 
 // Server is an abstraction that runs a web interface
 type Server struct {
@@ -768,7 +773,7 @@ func (s *Server) SendWebsocketUpdate(kind string, data interface{}) error {
 	// tests hang repeatedly if this is not a goroutine. This is extra
 	// weird since hundreds of other messages have been sent before that.
 	go func(kind string, data interface{}) {
-		msg := websockets.Message{
+		msg := websocketMessage{
 			Type: kind,
 			Data: data,
 		}
