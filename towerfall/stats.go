@@ -39,7 +39,7 @@ func NewSnapshot(s *Server) CompleteSnapshot {
 
 	ps, err := s.DB.GetPeople()
 	if err != nil {
-		s.logger.Error("Getting people failed", zap.Error(err))
+		s.log.Error("Getting people failed", zap.Error(err))
 		return nil
 	}
 

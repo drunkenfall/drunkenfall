@@ -2,11 +2,14 @@ package towerfall
 
 import (
 	"github.com/kelseyhightower/envconfig"
+	"go.uber.org/zap"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/facebook"
 )
 
 type Config struct {
+	Production bool `default:"true"`
+
 	DbPath         string `default:"data/dev.db"`
 	DbReader       string `default:"bolt"`
 	DbWriter       string `default:"bolt"`
@@ -22,15 +25,23 @@ type Config struct {
 	RabbitIncomingQueue string `default:"drunkenfall-app-dev"`
 	RabbitOutgoingQueue string `default:"drunkenfall-game-dev"`
 	oauthConf           *oauth2.Config
+	log                 *zap.Logger
 }
 
 func ParseConfig() *Config {
-	ret := Config{}
+	c := Config{}
 
-	envconfig.MustProcess("drunkenfall", &ret)
-	ret.parseOauth()
-	// log.Printf("Configuration loaded: %+v", ret)
-	return &ret
+	envconfig.MustProcess("drunkenfall", &c)
+
+	if c.Production {
+		c.log, _ = zap.NewProduction()
+	} else {
+		c.log, _ = zap.NewDevelopment()
+	}
+
+	c.parseOauth()
+	c.log.Info("Configuration loaded", zap.Any("config", c))
+	return &c
 }
 
 func (c *Config) parseOauth() {

@@ -44,7 +44,7 @@ type Server struct {
 	DB        *Database
 	config    *Config
 	router    *gin.Engine
-	logger    *zap.Logger
+	log       *zap.Logger
 	ws        *melody.Melody
 	publisher *Publisher
 }
@@ -100,8 +100,8 @@ func NewServer(config *Config, db *Database) *Server {
 	s.router = s.BuildRouter(s.ws)
 
 	// Add zap logging
-	s.logger, _ = zap.NewDevelopment()
-	s.router.Use(ginzap.Ginzap(s.logger, time.RFC3339, true))
+	s.log, _ = zap.NewDevelopment()
+	s.router.Use(ginzap.Ginzap(s.log, time.RFC3339, true))
 
 	// Add the Rabbit publisher
 	s.publisher, err = NewPublisher(config)
@@ -120,7 +120,7 @@ func (s *Server) NewHandler(c *gin.Context) {
 	var req NewRequest
 	var t *Tournament
 
-	plog := s.logger.With(zap.String("path", c.Request.URL.Path))
+	plog := s.log.With(zap.String("path", c.Request.URL.Path))
 
 	err := c.BindJSON(&req)
 	if err != nil {
@@ -170,7 +170,7 @@ func (s *Server) JoinHandler(c *gin.Context) {
 
 // EditHandler shows the tournament view and handles tournaments
 func (s *Server) EditHandler(c *gin.Context) {
-	plog := s.logger.With(zap.String("path", c.Request.URL.Path))
+	plog := s.log.With(zap.String("path", c.Request.URL.Path))
 
 	if !HasPermission(c, PermissionProducer) {
 		plog.Info("Permission denied")
@@ -218,7 +218,7 @@ func (s *Server) EditHandler(c *gin.Context) {
 // BackfillSemisHandler inserts players into the semis
 func (s *Server) BackfillSemisHandler(c *gin.Context) {
 	tm := s.getTournament(c)
-	tlog := s.logger.With(
+	tlog := s.log.With(
 		zap.String("path", c.Request.URL.Path),
 		zap.String("tournament", tm.Slug),
 	)
@@ -246,7 +246,7 @@ func (s *Server) BackfillSemisHandler(c *gin.Context) {
 // ReshuffleHandler reshuffles the player order of the tournament
 func (s *Server) ReshuffleHandler(c *gin.Context) {
 	tm := s.getTournament(c)
-	tlog := s.logger.With(
+	tlog := s.log.With(
 		zap.String("path", c.Request.URL.Path),
 		zap.String("tournament", tm.Slug),
 	)
@@ -266,7 +266,7 @@ func (s *Server) ReshuffleHandler(c *gin.Context) {
 // credits roll.
 func (s *Server) CreditsHandler(c *gin.Context) {
 	tm := s.getTournament(c)
-	tlog := s.logger.With(
+	tlog := s.log.With(
 		zap.String("path", c.Request.URL.Path),
 		zap.String("tournament", tm.Slug),
 	)
@@ -286,7 +286,7 @@ func (s *Server) CreditsHandler(c *gin.Context) {
 // StartTournamentHandler starts tournaments
 func (s *Server) StartTournamentHandler(c *gin.Context) {
 	tm := s.getTournament(c)
-	tlog := s.logger.With(
+	tlog := s.log.With(
 		zap.String("path", c.Request.URL.Path),
 		zap.String("tournament", tm.Slug),
 	)
@@ -305,7 +305,7 @@ func (s *Server) StartTournamentHandler(c *gin.Context) {
 // UsurpTournamentHandler usurps tournaments
 func (s *Server) UsurpTournamentHandler(c *gin.Context) {
 	tm := s.getTournament(c)
-	tlog := s.logger.With(
+	tlog := s.log.With(
 		zap.String("path", c.Request.URL.Path),
 		zap.String("tournament", tm.Slug),
 	)
@@ -331,14 +331,14 @@ func (s *Server) AutoplayTournamentHandler(c *gin.Context) {
 // StartPlayHandler sends a message to the game that it is time to
 // start doing whatever is next.
 func (s *Server) StartPlayHandler(c *gin.Context) {
-	s.logger.Info("sending start_play")
+	s.log.Info("sending start_play")
 	s.publisher.Publish(gStartPlay, StartPlayMessage{})
 	c.JSON(http.StatusOK, gin.H{"sent": true})
 }
 
 // MatchHandler is the common function for match operations.
 func (s *Server) MatchHandler(c *gin.Context) {
-	plog := s.logger.With(zap.String("path", c.Request.URL.Path))
+	plog := s.log.With(zap.String("path", c.Request.URL.Path))
 	m, err := s.getMatch(c)
 	if err != nil {
 		plog.Info("Could not get match")
@@ -392,7 +392,7 @@ func (s *Server) MatchHandler(c *gin.Context) {
 // MatchCommitHandler commits a single round of a match
 func (s *Server) MatchCommitHandler(c *gin.Context) {
 	var req CommitRequest
-	plog := s.logger.With(zap.String("path", c.Request.URL.Path))
+	plog := s.log.With(zap.String("path", c.Request.URL.Path))
 
 	err := c.BindJSON(&req)
 	if err != nil {
@@ -427,7 +427,7 @@ func (s *Server) MatchCommitHandler(c *gin.Context) {
 
 // ClearTournamentHandler removes all test tournaments
 func (s *Server) ClearTournamentHandler(c *gin.Context) {
-	plog := s.logger.With(zap.String("path", c.Request.URL.Path))
+	plog := s.log.With(zap.String("path", c.Request.URL.Path))
 
 	err := s.DB.ClearTestTournaments()
 	if err != nil {
@@ -446,7 +446,7 @@ func (s *Server) ClearTournamentHandler(c *gin.Context) {
 // ToggleHandler manages who's in the tournament or not
 func (s *Server) ToggleHandler(c *gin.Context) {
 	t := s.getTournament(c)
-	tlog := s.logger.With(
+	tlog := s.log.With(
 		zap.String("path", c.Request.URL.Path),
 		zap.String("tournament", t.Slug),
 	)
@@ -476,7 +476,7 @@ func (s *Server) ToggleHandler(c *gin.Context) {
 // SetTimeHandler sets the pause time for the next match
 func (s *Server) SetTimeHandler(c *gin.Context) {
 	t := s.getTournament(c)
-	tlog := s.logger.With(
+	tlog := s.log.With(
 		zap.String("path", c.Request.URL.Path),
 		zap.String("tournament", t.Slug),
 	)
@@ -518,7 +518,7 @@ func (s *Server) SetTimeHandler(c *gin.Context) {
 
 // PeopleHandler returns a list of all the players registered in the app
 func (s *Server) PeopleHandler(c *gin.Context) {
-	plog := s.logger.With(zap.String("path", c.Request.URL.Path))
+	plog := s.log.With(zap.String("path", c.Request.URL.Path))
 	ps, err := s.DB.GetPeople()
 	if err != nil {
 		plog.Error("couldn't get people", zap.Error(err))
@@ -534,7 +534,7 @@ func (s *Server) PeopleHandler(c *gin.Context) {
 // CastersHandler sets casters
 func (s *Server) CastersHandler(c *gin.Context) {
 	tm := s.getTournament(c)
-	tlog := s.logger.With(
+	tlog := s.log.With(
 		zap.String("path", c.Request.URL.Path),
 		zap.String("tournament", tm.Slug),
 	)
@@ -566,7 +566,7 @@ func (s *Server) StatsHandler(c *gin.Context) {
 
 // UserHandler returns data about the current user
 func (s *Server) UserHandler(c *gin.Context) {
-	plog := s.logger.With(zap.String("path", c.Request.URL.Path))
+	plog := s.log.With(zap.String("path", c.Request.URL.Path))
 	if !HasPermission(c, PermissionPlayer) {
 		plog.Info("Not signed in")
 		c.JSON(http.StatusOK, gin.H{"authenticated": false})
@@ -578,7 +578,7 @@ func (s *Server) UserHandler(c *gin.Context) {
 
 // DisableHandler disables or enables players
 func (s *Server) DisableHandler(c *gin.Context) {
-	plog := s.logger.With(zap.String("path", c.Request.URL.Path))
+	plog := s.log.With(zap.String("path", c.Request.URL.Path))
 
 	id, found := c.Params.Get("person")
 	if !found {
@@ -605,7 +605,7 @@ func (s *Server) LogoutHandler(c *gin.Context) {
 	p := PersonFromSession(s, c)
 
 	p.RemoveCookies(c)
-	s.logger.Info(
+	s.log.Info(
 		"User logged out",
 		zap.String("path", c.Request.URL.Path),
 		zap.String("user", p.PersonID),
@@ -615,7 +615,7 @@ func (s *Server) LogoutHandler(c *gin.Context) {
 
 // SettingsHandler gets the POST from the user with a settings update
 func (s *Server) SettingsHandler(c *gin.Context) {
-	plog := s.logger.With(zap.String("path", c.Request.URL.Path))
+	plog := s.log.With(zap.String("path", c.Request.URL.Path))
 	var req SettingsPostRequest
 
 	err := c.BindJSON(&req)
@@ -657,7 +657,7 @@ func (s *Server) RequireJudge() gin.HandlerFunc {
 		if p == nil {
 			// If the request is from someone that's not signed in, we need to
 			// signal that.
-			s.logger.Info(
+			s.log.Info(
 				"Unauthorized",
 				zap.String("path", c.Request.URL.Path),
 			)
@@ -666,7 +666,7 @@ func (s *Server) RequireJudge() gin.HandlerFunc {
 
 		} else if p.Userlevel < PermissionJudge {
 			// If not, we need to check if the permissions are enough
-			s.logger.Info(
+			s.log.Info(
 				"Permission denied",
 				zap.String("path", c.Request.URL.Path),
 				zap.String("person", p.PersonID),
@@ -716,12 +716,12 @@ func (s *Server) BuildRouter(ws *melody.Melody) *gin.Engine {
 
 	// Websockets are auth free
 	api.GET("/auto-updater", func(c *gin.Context) {
-		s.logger.Info("Websocket setup")
+		s.log.Info("Websocket setup")
 		ws.HandleRequest(c.Writer, c.Request)
 	})
 
 	ws.HandleMessage(func(ms *melody.Session, msg []byte) {
-		s.logger.Info("Websocket message", zap.String("message", string(msg)))
+		s.log.Info("Websocket message", zap.String("message", string(msg)))
 		ws.Broadcast(msg)
 	})
 
@@ -780,7 +780,7 @@ func (s *Server) SendWebsocketUpdate(kind string, data interface{}) error {
 
 		out, err := json.Marshal(msg)
 		if err != nil {
-			s.logger.Warn("cannot marshal", zap.Error(err))
+			s.log.Warn("cannot marshal", zap.Error(err))
 			return
 		}
 
@@ -792,13 +792,13 @@ func (s *Server) SendWebsocketUpdate(kind string, data interface{}) error {
 
 // DisableWebsocketUpdates... disables websocket updates.
 func (s *Server) DisableWebsocketUpdates() {
-	s.logger.Info("Disabling websocket broadcast")
+	s.log.Info("Disabling websocket broadcast")
 	broadcasting = false
 }
 
 // EnableWebsocketUpdates... enables websocket updates.
 func (s *Server) EnableWebsocketUpdates() {
-	s.logger.Info("Enabling websocket broadcast")
+	s.log.Info("Enabling websocket broadcast")
 	broadcasting = true
 }
 

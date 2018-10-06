@@ -20,13 +20,15 @@ type Listener struct {
 	incoming amqp.Queue
 	ch       *amqp.Channel
 	msgs     <-chan amqp.Delivery
+	log      *zap.Logger
 }
 
 // NewListener sets up a new listener
 func NewListener(conf *Config, db *Database) (*Listener, error) {
 	var err error
 	l := Listener{
-		DB: db,
+		DB:  db,
+		log: conf.log,
 	}
 
 	l.conn, err = amqp.Dial(conf.RabbitURL)

@@ -106,7 +106,7 @@ func (t *Tournament) Persist() error {
 // match is started, so t.NextMatch() can always safely be used.
 func (t *Tournament) PublishNext() error {
 	if !t.connected {
-		t.server.logger.Info("Not publishing disconnected tournament")
+		t.server.log.Info("Not publishing disconnected tournament")
 		return ErrPublishDisconnected
 	}
 
@@ -138,7 +138,7 @@ func (t *Tournament) PublishNext() error {
 		msg.Players = append(msg.Players, gp)
 	}
 
-	t.server.logger.Info("Sending publish", zap.Any("match", msg))
+	t.server.log.Info("Sending publish", zap.Any("match", msg))
 	return t.server.publisher.Publish(gMatch, msg)
 }
 
@@ -148,7 +148,7 @@ func (t *Tournament) connect(connected bool) {
 		return
 	}
 
-	t.server.logger.Info(
+	t.server.log.Info(
 		"Tournament connection changed",
 		zap.Bool("connected", connected),
 	)
@@ -626,7 +626,7 @@ func (t *Tournament) BackfillSemis(c *gin.Context, ids []string) error {
 	if publish {
 		err := t.PublishNext()
 		if err != nil && err != ErrPublishDisconnected {
-			t.server.logger.Info("Publishing next match failed", zap.Error(err))
+			t.server.log.Info("Publishing next match failed", zap.Error(err))
 		}
 	}
 
