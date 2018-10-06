@@ -5,6 +5,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/streadway/amqp"
 )
 
@@ -25,7 +26,9 @@ func NewPublisher(conf *Config) (*Publisher, error) {
 	}
 
 	p.ch, err = p.conn.Channel()
-	failOnError(err, "Failed to open publishing channel")
+	if err != nil {
+		errors.New("Failed to open publishing channel")
+	}
 
 	p.outgoing, err = p.ch.QueueDeclare(
 		conf.RabbitOutgoingQueue, // name
@@ -35,7 +38,9 @@ func NewPublisher(conf *Config) (*Publisher, error) {
 		false,                    // no-wait
 		nil,                      // arguments
 	)
-	failOnError(err, "Failed to declare the outgoing queue")
+	if err != nil {
+		errors.New("Failed to declare the outgoing queue")
+	}
 
 	return &p, err
 }
