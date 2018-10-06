@@ -28,8 +28,8 @@ func testDatabase(t *testing.T, c *Config) (*Database, func()) {
 	if os.Getenv("DRUNKENFALL_DBFASTTEST") != "" {
 		zlog, _ := zap.NewDevelopment()
 		db := &Database{
-			Reader: postgresReader{pg, zlog.With(zap.String("db", "test_read"))},
-			Writer: postgresWriter{pg, zlog.With(zap.String("db", "test_write"))},
+			DB:  pg,
+			log: zlog.With(zap.String("db", "test_read")),
 		}
 		return db, func() {}
 	}
@@ -68,8 +68,8 @@ func testDatabase(t *testing.T, c *Config) (*Database, func()) {
 
 	zlog, _ := zap.NewDevelopment()
 	db := &Database{
-		Reader: postgresReader{pg, zlog.With(zap.String("db", "test_read"))},
-		Writer: postgresWriter{pg, zlog.With(zap.String("db", "test_write"))},
+		DB:  pg,
+		log: zlog.With(zap.String("db", "test_read")),
 	}
 
 	return db, func() {

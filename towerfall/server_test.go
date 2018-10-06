@@ -16,7 +16,6 @@ func MockServer(t *testing.T) (*Server, func()) {
 	conf.DbReader = "postgres"
 	conf.DbWriter = "postgres"
 	conf.DbPostgresConn = "user=postgres dbname=test_drunkenfall sslmode=disable"
-	conf.DbVerbose = true
 	conf.Port = 56513
 
 	db, serverTeardown := testDatabase(t, conf)
