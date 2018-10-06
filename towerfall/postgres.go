@@ -92,7 +92,7 @@ func (d *Database) GetTournament(id string, s *Server) (*Tournament, error) {
 	return &Tournament{}, errors.New("tournament not found")
 }
 
-func (d *Database) GetTournaments(s *Server) ([]*Tournament, error) {
+func (d *Database) GetTournaments() ([]*Tournament, error) {
 	ret := make([]*Tournament, 0)
 	d.DB.Find(&ret)
 	errs := d.DB.GetErrors()
@@ -109,8 +109,8 @@ func (d *Database) GetTournaments(s *Server) ([]*Tournament, error) {
 //
 // Returns the first matching one, so if there are multiple they will
 // be shadowed.
-func (d *Database) GetCurrentTournament(s *Server) (*Tournament, error) {
-	ts, err := d.GetTournaments(s)
+func (d *Database) GetCurrentTournament() (*Tournament, error) {
+	ts, err := d.GetTournaments()
 	if err != nil {
 		return &Tournament{}, err
 	}

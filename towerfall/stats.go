@@ -50,9 +50,9 @@ func NewSnapshot(s *Server) CompleteSnapshot {
 		}
 	}
 
-	ts, err := s.DB.GetTournaments(s)
+	ts, err := s.DB.GetTournaments()
 	if err != nil {
-		s.logger.Error("Getting tournaments failed", zap.Error(err))
+		s.log.Error("Getting tournaments failed", zap.Error(err))
 		return nil
 	}
 

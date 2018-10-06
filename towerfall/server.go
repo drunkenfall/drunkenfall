@@ -148,7 +148,7 @@ func (s *Server) TournamentHandler(c *gin.Context) {
 
 // TournamentListHandler returns a list of all tournaments
 func (s *Server) TournamentListHandler(c *gin.Context) {
-	ts, err := s.DB.GetTournaments(s)
+	ts, err := s.DB.GetTournaments()
 	if err != nil {
 		log.Fatal(err)
 	}

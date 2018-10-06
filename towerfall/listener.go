@@ -68,7 +68,7 @@ func (l *Listener) Serve() {
 	defer l.ch.Close()
 
 	for d := range l.msgs {
-		t, err := l.DB.GetCurrentTournament(l.DB.Server)
+		t, err := l.DB.GetCurrentTournament()
 		if err != nil {
 			log.Printf("Could not get current tournament, skipping message: %s", err.Error())
 			continue
