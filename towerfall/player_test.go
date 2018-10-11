@@ -6,9 +6,13 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func emptyPlayer() Player {
+	return *NewPlayer(randomPerson())
+}
+
 func TestScoreWithShots(t *testing.T) {
 	assert := assert.New(t)
-	p := testPlayer()
+	p := emptyPlayer()
 	p.AddShot()
 
 	assert.Equal(3, p.Score())
@@ -18,7 +22,7 @@ func TestScoreWithShots(t *testing.T) {
 
 func TestScoreWithSweeps(t *testing.T) {
 	assert := assert.New(t)
-	p := testPlayer()
+	p := emptyPlayer()
 	p.AddKills(3)
 	p.AddShot()
 
@@ -30,7 +34,7 @@ func TestScoreWithSweeps(t *testing.T) {
 
 func TestScoreWithKills(t *testing.T) {
 	assert := assert.New(t)
-	p := testPlayer()
+	p := emptyPlayer()
 	p.AddKills(1)
 
 	assert.Equal(2, p.Score())
@@ -40,7 +44,7 @@ func TestScoreWithKills(t *testing.T) {
 
 func TestScoreWithSelfs(t *testing.T) {
 	assert := assert.New(t)
-	p := testPlayer()
+	p := emptyPlayer()
 	p.AddSelf()
 	p.AddShot()
 
@@ -52,7 +56,7 @@ func TestScoreWithSelfs(t *testing.T) {
 
 func TestASweepIsBasically14Points(t *testing.T) {
 	assert := assert.New(t)
-	p := testPlayer()
+	p := emptyPlayer()
 	p.AddKills(3) // sweep
 	p.AddShot()
 	assert.Equal(14, p.Score())
@@ -60,7 +64,7 @@ func TestASweepIsBasically14Points(t *testing.T) {
 
 func TestScoreWithAll(t *testing.T) {
 	assert := assert.New(t)
-	p := testPlayer()
+	p := emptyPlayer()
 	p.AddShot()
 	p.AddKills(3) // sweep
 	p.AddShot()
@@ -72,7 +76,7 @@ func TestScoreWithAll(t *testing.T) {
 
 func TestAddShot(t *testing.T) {
 	assert := assert.New(t)
-	p := testPlayer()
+	p := emptyPlayer()
 
 	p.AddShot()
 	assert.Equal(1, p.Shots)
@@ -82,7 +86,7 @@ func TestAddShot(t *testing.T) {
 
 func TestRemoveShot(t *testing.T) {
 	assert := assert.New(t)
-	p := testPlayer()
+	p := emptyPlayer()
 	p.Shots = 1
 
 	p.RemoveShot()
@@ -93,7 +97,7 @@ func TestRemoveShot(t *testing.T) {
 
 func TestAddSweep(t *testing.T) {
 	assert := assert.New(t)
-	p := testPlayer()
+	p := emptyPlayer()
 
 	p.AddKills(3)
 	p.AddShot()
@@ -110,7 +114,7 @@ func TestAddSweep(t *testing.T) {
 
 func TestAddKill(t *testing.T) {
 	assert := assert.New(t)
-	p := testPlayer()
+	p := emptyPlayer()
 
 	p.AddKills(1)
 	assert.Equal(1, p.Kills)
@@ -120,7 +124,7 @@ func TestAddKill(t *testing.T) {
 
 func TestRemoveKill(t *testing.T) {
 	assert := assert.New(t)
-	p := testPlayer()
+	p := emptyPlayer()
 	p.Kills = 1
 
 	p.RemoveKill()
@@ -131,7 +135,7 @@ func TestRemoveKill(t *testing.T) {
 
 func TestAddSelf(t *testing.T) {
 	assert := assert.New(t)
-	p := testPlayer()
+	p := emptyPlayer()
 
 	p.AddSelf()
 	p.AddShot()
@@ -146,8 +150,8 @@ func TestAddSelf(t *testing.T) {
 // Same number of kills, but more pints for player p2.
 func TestSortTiedPlayersByKills(t *testing.T) {
 	assert := assert.New(t)
-	p1 := testPlayer()
-	p2 := testPlayer()
+	p1 := emptyPlayer()
+	p2 := emptyPlayer()
 
 	p2.AddShot()
 
@@ -159,9 +163,9 @@ func TestSortTiedPlayersByKills(t *testing.T) {
 
 func TestSortRunnerups(t *testing.T) {
 	assert := assert.New(t)
-	p1 := testPlayer() // 10 points, 1 match
-	p2 := testPlayer() // 20 points, 2 Matches
-	p3 := testPlayer() // 16 points, 1 match
+	p1 := emptyPlayer() // 10 points, 1 match
+	p2 := emptyPlayer() // 20 points, 2 Matches
+	p3 := emptyPlayer() // 16 points, 1 match
 
 	p1.Kills = 5
 	p1.Matches = 1

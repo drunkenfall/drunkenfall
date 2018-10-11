@@ -58,9 +58,9 @@ type Match struct {
 
 // Round is a state commit for a round of a match
 type Round struct {
-	Kills     [][]int `json:"kills"`
-	Shots     []bool  `json:"shots"`
-	Committed string  `json:"committed"` // ISO-8601
+	Kills     [][]int   `json:"kills"`
+	Shots     []bool    `json:"shots"`
+	Committed time.Time `json:"committed"`
 	started   bool
 }
 
@@ -82,7 +82,7 @@ type Commit struct {
 	P4down  int
 	P4shot  bool
 
-	Committed string
+	Committed time.Time
 	started   bool
 }
 
@@ -448,7 +448,7 @@ func (m *Match) EndRound() error {
 		}
 	}
 
-	m.currentRound.Committed = time.Now().UTC().Format(time.RFC3339)
+	m.currentRound.Committed = time.Now()
 	m.Rounds = append(m.Rounds, m.currentRound)
 	// m.KillOrder = m.MakeKillOrder()
 
@@ -661,7 +661,7 @@ func (m *Match) End(c *gin.Context) error {
 
 	err := m.Tournament.PublishNext()
 	if err != nil && err != ErrPublishDisconnected {
-		m.Tournament.server.logger.Info("Publishing next match failed", zap.Error(err))
+		m.Tournament.server.log.Info("Publishing next match failed", zap.Error(err))
 	}
 
 	m.Tournament.Persist()
@@ -811,8 +811,7 @@ func NewMatchCommit(c CommitRequest) Round {
 			states[2].Shot,
 			states[3].Shot,
 		},
-		// ISO-8601 timestamp
-		time.Now().UTC().Format(time.RFC3339),
+		time.Now(),
 		false,
 	}
 
@@ -849,7 +848,7 @@ func NewAutoplayRound() Round {
 	r := Round{
 		[][]int{{0, 0}, {0, 0}, {0, 0}, {0, 0}},
 		[]bool{false, false, false, false},
-		time.Now().UTC().Format(time.RFC3339),
+		time.Now(),
 		false,
 	}
 
@@ -906,7 +905,6 @@ func (r *Round) Reset() {
 
 func (r *Round) asCommit() Commit {
 	return Commit{
-
 		P1up:   r.Kills[0][0],
 		P1down: r.Kills[0][1],
 		P1shot: r.Shots[0],

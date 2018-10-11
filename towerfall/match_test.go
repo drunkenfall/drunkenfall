@@ -1,15 +1,17 @@
 package towerfall
 
 import (
-	"fmt"
 	"log"
-	"math/rand"
 	"testing"
 	"time"
 
 	"github.com/drunkenfall/drunkenfall/faking"
 	"github.com/stretchr/testify/assert"
 )
+
+// People that have been used for a tournament. Used to make sure we
+// don't randomly grab one we already have grabbed
+var usedPeople []string
 
 // MockMatch makes a mock Match{} with a dummy Tournament{}
 func MockMatch(t *testing.T, s *Server, idx int, cat string) (m *Match) {
@@ -37,14 +39,24 @@ func MockMatch(t *testing.T, s *Server, idx int, cat string) (m *Match) {
 	return m
 }
 
-func testPlayer() Player {
-	return *NewPlayer(testPerson(rand.Int()))
+func testPlayer(s *Server) Player {
+	return *NewPlayer(testPerson(s))
 }
 
-func testPerson(i int) *Person {
+func testPerson(s *Server) *Person {
+	p, err := s.DB.GetRandomPerson(usedPeople)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	usedPeople = append(usedPeople, p.PersonID)
+	return p
+}
+
+func randomPerson() *Person {
 	return &Person{
-		PersonID: fmt.Sprintf("%d: %s", i, faking.FakeName()),
-		Name:     fmt.Sprintf("%d: %s", i, faking.FakeName()),
+		PersonID: faking.FakeName(),
+		Name:     faking.FakeName(),
 		Nick:     faking.FakeNick(),
 		ColorPreference: []string{
 			RandomColor(Colors),
@@ -60,7 +72,7 @@ func TestAddPlayer(t *testing.T) {
 
 	m := MockMatch(t, s, 0, "playoff")
 	m.Players = []Player{}
-	p := testPlayer()
+	p := testPlayer(s)
 
 	err := m.AddPlayer(p)
 	assert.Nil(err)
@@ -75,7 +87,7 @@ func TestAddFifthPlayer(t *testing.T) {
 
 	m := MockMatch(t, s, 1, "playoff")
 
-	p := testPlayer()
+	p := testPlayer(s)
 
 	err := m.AddPlayer(p)
 	assert.NotNil(err)
@@ -142,10 +154,10 @@ func TestCommitSweepPlayer1(t *testing.T) {
 	defer teardown()
 
 	m := MockMatch(t, s, 0, "playoff")
-	_ = m.AddPlayer(testPlayer())
-	_ = m.AddPlayer(testPlayer())
-	_ = m.AddPlayer(testPlayer())
-	_ = m.AddPlayer(testPlayer())
+	_ = m.AddPlayer(testPlayer(s))
+	_ = m.AddPlayer(testPlayer(s))
+	_ = m.AddPlayer(testPlayer(s))
+	_ = m.AddPlayer(testPlayer(s))
 
 	c := Round{
 		Kills: [][]int{
@@ -173,10 +185,10 @@ func TestCommitDoubleKillPlayer2(t *testing.T) {
 	defer teardown()
 
 	m := MockMatch(t, s, 0, "playoff")
-	_ = m.AddPlayer(testPlayer())
-	_ = m.AddPlayer(testPlayer())
-	_ = m.AddPlayer(testPlayer())
-	_ = m.AddPlayer(testPlayer())
+	_ = m.AddPlayer(testPlayer(s))
+	_ = m.AddPlayer(testPlayer(s))
+	_ = m.AddPlayer(testPlayer(s))
+	_ = m.AddPlayer(testPlayer(s))
 
 	c := Round{
 		Kills: [][]int{
@@ -204,10 +216,10 @@ func TestCommitSweepAndSuicidePlayer3(t *testing.T) {
 	defer teardown()
 
 	m := MockMatch(t, s, 0, "playoff")
-	_ = m.AddPlayer(testPlayer())
-	_ = m.AddPlayer(testPlayer())
-	_ = m.AddPlayer(testPlayer())
-	_ = m.AddPlayer(testPlayer())
+	_ = m.AddPlayer(testPlayer(s))
+	_ = m.AddPlayer(testPlayer(s))
+	_ = m.AddPlayer(testPlayer(s))
+	_ = m.AddPlayer(testPlayer(s))
 
 	c := Round{
 		Kills: [][]int{
@@ -237,10 +249,10 @@ func TestCommitSuicidePlayer4(t *testing.T) {
 	defer teardown()
 
 	m := MockMatch(t, s, 0, "playoff")
-	_ = m.AddPlayer(testPlayer())
-	_ = m.AddPlayer(testPlayer())
-	_ = m.AddPlayer(testPlayer())
-	_ = m.AddPlayer(testPlayer())
+	_ = m.AddPlayer(testPlayer(s))
+	_ = m.AddPlayer(testPlayer(s))
+	_ = m.AddPlayer(testPlayer(s))
+	_ = m.AddPlayer(testPlayer(s))
 
 	c := Round{
 		Kills: [][]int{
@@ -269,10 +281,10 @@ func TestCommitShotsForPlayer2and3(t *testing.T) {
 	defer teardown()
 
 	m := MockMatch(t, s, 0, "playoff")
-	_ = m.AddPlayer(testPlayer())
-	_ = m.AddPlayer(testPlayer())
-	_ = m.AddPlayer(testPlayer())
-	_ = m.AddPlayer(testPlayer())
+	_ = m.AddPlayer(testPlayer(s))
+	_ = m.AddPlayer(testPlayer(s))
+	_ = m.AddPlayer(testPlayer(s))
+	_ = m.AddPlayer(testPlayer(s))
 
 	c := Round{
 		Kills: [][]int{
@@ -301,10 +313,10 @@ func TestCommitSweepForPlayer1(t *testing.T) {
 	defer teardown()
 
 	m := MockMatch(t, s, 0, "playoff")
-	_ = m.AddPlayer(testPlayer())
-	_ = m.AddPlayer(testPlayer())
-	_ = m.AddPlayer(testPlayer())
-	_ = m.AddPlayer(testPlayer())
+	_ = m.AddPlayer(testPlayer(s))
+	_ = m.AddPlayer(testPlayer(s))
+	_ = m.AddPlayer(testPlayer(s))
+	_ = m.AddPlayer(testPlayer(s))
 
 	c := Round{
 		Kills: [][]int{
@@ -335,10 +347,10 @@ func TestCommitStoredOnMatch(t *testing.T) {
 	defer teardown()
 
 	m := MockMatch(t, s, 0, "playoff")
-	_ = m.AddPlayer(testPlayer())
-	_ = m.AddPlayer(testPlayer())
-	_ = m.AddPlayer(testPlayer())
-	_ = m.AddPlayer(testPlayer())
+	_ = m.AddPlayer(testPlayer(s))
+	_ = m.AddPlayer(testPlayer(s))
+	_ = m.AddPlayer(testPlayer(s))
+	_ = m.AddPlayer(testPlayer(s))
 
 	c := Round{
 		Kills: [][]int{
@@ -365,10 +377,10 @@ func TestCommitWithOnlyShotsNotStoredOnMatch(t *testing.T) {
 	defer teardown()
 
 	m := MockMatch(t, s, 0, "playoff")
-	_ = m.AddPlayer(testPlayer())
-	_ = m.AddPlayer(testPlayer())
-	_ = m.AddPlayer(testPlayer())
-	_ = m.AddPlayer(testPlayer())
+	_ = m.AddPlayer(testPlayer(s))
+	_ = m.AddPlayer(testPlayer(s))
+	_ = m.AddPlayer(testPlayer(s))
+	_ = m.AddPlayer(testPlayer(s))
 
 	c := Round{
 		Kills: [][]int{
@@ -844,5 +856,175 @@ func TestStartRound(t *testing.T) {
 		assert.Equal(t, Arrows{aSuperBomb, aBolt, aPrism}, m.Players[1].State.Arrows)
 		assert.Equal(t, Arrows{aNormal, aNormal, aNormal}, m.Players[2].State.Arrows)
 		assert.Equal(t, Arrows{aBomb, aBomb, aBomb}, m.Players[3].State.Arrows)
+	})
+}
+
+func TestHandleMessage(t *testing.T) {
+	s, teardown := MockServer(t)
+	defer teardown()
+
+	tm := testTournament(t, s, 12)
+	err := tm.StartTournament(nil)
+	assert.NoError(t, err)
+
+	t.Run("Kill", func(t *testing.T) {
+		m := tm.Matches[0]
+		t.Run("Player on player", func(t *testing.T) {
+			msg := Message{
+				Type: inKill,
+				Data: KillMessage{0, 1, rArrow},
+			}
+
+			err := m.handleMessage(msg)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			assert.Equal(t, false, m.Players[0].State.Alive)
+			assert.Equal(t, 1, m.Players[0].State.Killer)
+		})
+
+		t.Run("Suicide", func(t *testing.T) {
+			msg := Message{
+				Type: inKill,
+				Data: KillMessage{2, 2, rArrow},
+			}
+			err := m.handleMessage(msg)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			assert.Equal(t, false, m.Players[2].State.Alive)
+			assert.Equal(t, 2, m.Players[2].State.Killer)
+		})
+
+		t.Run("Environment kill", func(t *testing.T) {
+			msg := Message{
+				Type: inKill,
+				Data: KillMessage{3, EnvironmentKill, rSpikeBall},
+			}
+			err := m.handleMessage(msg)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			assert.Equal(t, false, m.Players[3].State.Alive)
+			assert.Equal(t, EnvironmentKill, m.Players[3].State.Killer)
+		})
+
+	})
+
+	t.Run("Round start", func(t *testing.T) {
+		m := tm.Matches[0]
+		t.Run("Reset", func(t *testing.T) {
+			msg := Message{
+				Type: inRoundStart,
+				Data: StartRoundMessage{
+					Arrows: []Arrows{
+						{aNormal, aNormal, aNormal},
+						{aNormal, aNormal, aNormal},
+						{aNormal, aNormal, aNormal},
+						{aNormal, aNormal, aNormal, aBomb},
+					},
+				},
+			}
+			err := m.handleMessage(msg)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			def := Arrows{aNormal, aNormal, aNormal}
+			assert.Equal(t, def, m.Players[0].State.Arrows)
+			assert.Equal(t, def, m.Players[1].State.Arrows)
+			assert.Equal(t, def, m.Players[2].State.Arrows)
+			assert.Equal(t, Arrows{aNormal, aNormal, aNormal, aBomb}, m.Players[3].State.Arrows)
+
+			assert.Equal(t, true, m.Players[0].State.Alive)
+			assert.Equal(t, true, m.Players[1].State.Alive)
+			assert.Equal(t, true, m.Players[2].State.Alive)
+			assert.Equal(t, true, m.Players[3].State.Alive)
+		})
+	})
+
+	t.Run("Round end", func(t *testing.T) {
+		m := tm.Matches[0]
+		assert.Equal(t, 0, len(m.Rounds))
+
+		t.Run("End", func(t *testing.T) {
+			msg := Message{
+				Type: inRoundEnd,
+			}
+			err := m.handleMessage(msg)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			assert.Equal(t, 1, len(m.Rounds))
+		})
+	})
+
+	t.Run("Player updates", func(t *testing.T) {
+		m := tm.Matches[0]
+
+		// TODO(thiderman): Since we test without websockets right now,
+		// the effects of these cannot be unit tested. However, we can
+		// test that handleMessage() does its thing.
+
+		t.Run("Shot", func(t *testing.T) {
+			msg := Message{
+				Type: inShot,
+				Data: ArrowMessage{
+					Player: 0,
+					Arrows: Arrows{aBomb, aNormal, aNormal},
+				},
+			}
+			err := m.handleMessage(msg)
+			if err != nil {
+				t.Fatal(err)
+			}
+		})
+
+		t.Run("Pickup", func(t *testing.T) {
+			msg := Message{
+				Type: inPickup,
+				Data: ArrowMessage{
+					Player: 0,
+					Arrows: Arrows{aNormal, aNormal},
+				},
+			}
+			err := m.handleMessage(msg)
+			if err != nil {
+				t.Fatal(err)
+			}
+		})
+
+		t.Run("Wings", func(t *testing.T) {
+			msg := Message{
+				Type: inWings,
+				Data: WingsMessage{
+					Player: 0,
+					State:  true,
+				},
+			}
+			err := m.handleMessage(msg)
+			if err != nil {
+				t.Fatal(err)
+			}
+		})
+
+		t.Run("Lava", func(t *testing.T) {
+			msg := Message{
+				Type: inOrbLava,
+				Data: LavaOrbMessage{
+					Player: 2,
+					State:  true,
+				},
+			}
+			err := m.handleMessage(msg)
+			if err != nil {
+				t.Fatal(err)
+			}
+		})
+
 	})
 }

@@ -59,6 +59,20 @@ func (d *Database) GetPerson(id string) (*Person, error) {
 	return &p, d.DB.Error
 }
 
+// GetRandomPerson gets a random Person{} from the DB
+func (d *Database) GetRandomPerson(used []string) (*Person, error) {
+	p := Person{}
+	q := d.DB.Order(gorm.Expr("random()"))
+
+	if len(used) != 0 {
+		q = q.Not("person_id", used)
+	}
+
+	q.First(&p)
+
+	return &p, d.DB.Error
+}
+
 // GetSafePerson gets a Person{} from the DB, while being absolutely
 // sure there will be no error.
 //
@@ -120,6 +134,21 @@ func (d *Database) GetCurrentTournament() (*Tournament, error) {
 		}
 	}
 	return &Tournament{}, errors.New("no tournament is running")
+}
+
+// GetMatch gets a match
+func (d *Database) GetMatch(id uint) (*Match, error) {
+	m := &Match{}
+	d.DB.First(m, id)
+
+	errs := d.DB.GetErrors()
+	if len(errs) != 0 {
+		for _, err := range errs {
+			d.log.Error("GetMatch error", zap.Error(err))
+		}
+		return m, errors.New("errors found")
+	}
+	return m, nil
 }
 
 // ClearTestTournaments deletes any tournament that doesn't begin with "DrunkenFall"
