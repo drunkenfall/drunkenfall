@@ -10,11 +10,10 @@ import (
 type Config struct {
 	Production bool `default:"true"`
 
-	DbPath         string `default:"data/dev.db"`
-	DbReader       string `default:"bolt"`
-	DbWriter       string `default:"bolt"`
-	DbPostgresConn string `default:"user=postgres dbname=drunkenfall sslmode=disable"`
-	DbVerbose      bool   `default:"false"`
+	DbPath    string `default:"data/dev.db"`
+	DbUser    string `default:"postgres"`
+	DbName    string `default:"drunkenfall"`
+	DbVerbose bool   `default:"false"`
 
 	// Pointing to the test app
 	FacebookID          string `default:"668534419991204"`

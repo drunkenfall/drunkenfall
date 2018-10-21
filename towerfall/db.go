@@ -4,9 +4,11 @@ import (
 	"encoding/json"
 	"log"
 
-	"github.com/jinzhu/gorm"
+	"github.com/go-pg/pg"
 	"go.uber.org/zap"
 )
+
+var globalDB *Database
 
 // LoadTournament loads a tournament from persisted JSON data
 func LoadTournament(data []byte, s *Server) (t *Tournament, err error) {
@@ -26,21 +28,19 @@ func LoadTournament(data []byte, s *Server) (t *Tournament, err error) {
 
 // NewDatabase sets up the database reader and writer
 func NewDatabase(c *Config) (*Database, error) {
-	var pg *gorm.DB
-	var err error
-
 	log, _ := zap.NewDevelopment()
 
-	connStr := c.DbPostgresConn
-	pg, err = gorm.Open("postgres", connStr)
-	if err != nil {
-		log.Fatal("postgres open error", zap.Error(err))
-	}
+	pg := pg.Connect(&pg.Options{
+		User:     c.DbUser,
+		Database: c.DbName,
+	})
 
 	db := &Database{
 		DB:  pg,
 		log: log,
 	}
+
+	globalDB = db
 
 	return db, nil
 }

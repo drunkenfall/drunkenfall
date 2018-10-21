@@ -161,29 +161,29 @@ func TestSortTiedPlayersByKills(t *testing.T) {
 	assert.Equal(ret[1], p1)
 }
 
-func TestSortRunnerups(t *testing.T) {
-	assert := assert.New(t)
-	p1 := emptyPlayer() // 10 points, 1 match
-	p2 := emptyPlayer() // 20 points, 2 Matches
-	p3 := emptyPlayer() // 16 points, 1 match
+// func TestSortRunnerups(t *testing.T) {
+// 	assert := assert.New(t)
+// 	p1 := emptyPlayer() // 10 points, 1 match
+// 	p2 := emptyPlayer() // 20 points, 2 Matches
+// 	p3 := emptyPlayer() // 16 points, 1 match
 
-	p1.Kills = 5
-	p1.Matches = 1
-	p1.Person.Nick = "second"
-	p2.Kills = 10
-	p2.Matches = 2
-	p2.Person.Nick = "last"
-	p3.Kills = 8
-	p3.Matches = 1
-	p3.Person.Nick = "first"
+// 	p1.Kills = 5
+// 	p1.Matches = 1
+// 	p1.Person.Nick = "second"
+// 	p2.Kills = 10
+// 	p2.Matches = 2
+// 	p2.Person.Nick = "last"
+// 	p3.Kills = 8
+// 	p3.Matches = 1
+// 	p3.Person.Nick = "first"
 
-	ps := []Player{p1, p2, p3}
-	ret := SortByRunnerup(ps)
+// 	ps := []Player{p1, p2, p3}
+// 	ret := SortByRunnerup(ps)
 
-	assert.Equal("first", ret[0].Name())
-	assert.Equal("second", ret[1].Name())
-	assert.Equal("last", ret[2].Name())
-}
+// 	assert.Equal("first", ret[0].Name())
+// 	assert.Equal("second", ret[1].Name())
+// 	assert.Equal("last", ret[2].Name())
+// }
 
 func TestTransformName(t *testing.T) {
 	t.Run("Two words, one space", func(t *testing.T) {

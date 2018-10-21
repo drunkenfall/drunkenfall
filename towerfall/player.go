@@ -10,7 +10,6 @@ import (
 
 	"github.com/deckarep/golang-set"
 	"github.com/fatih/camelcase"
-	"github.com/jinzhu/gorm"
 )
 
 // AllColors is a list of the available player colors
@@ -38,11 +37,10 @@ type ScoreData struct {
 
 // Player is a representation of one player in a match
 type Player struct {
-	gorm.Model
-
+	ID             uint `json:"id"`
 	MatchID        uint
-	PersonID       string      `gorm:"primary_key"`
-	Person         *Person     `json:"person" gorm:"-"`
+	PersonID       string      `sql:",pk"`
+	Person         *Person     `json:"person" sql:"-"`
 	Color          string      `json:"color"`
 	PreferredColor string      `json:"preferred_color"`
 	ArcherType     int         `json:"archer_type"`
@@ -50,19 +48,17 @@ type Player struct {
 	Sweeps         int         `json:"sweeps"`
 	Kills          int         `json:"kills"`
 	Self           int         `json:"self"`
-	Matches        int         `json:"matches"`
-	TotalScore     int         `json:"score"`
-	State          PlayerState `json:"state"`
-	Match          *Match      `json:"-" gorm:"-"`
+	State          PlayerState `json:"state" sql:"-"`
+	Match          *Match      `json:"-" sql:"-"`
 }
 
 // A PlayerSummary is a tournament-wide summary of the scores a player has
 type PlayerSummary struct {
-	gorm.Model
+	ID uint `json:"id"`
 
 	TournamentID uint
-	PersonID     string  `jsom:"id"`
-	Person       *Person `json:"person" gorm:"-"`
+	PersonID     string  `json:"person_id"`
+	Person       *Person `json:"person" sql:"-"`
 	Shots        int     `json:"shots"`
 	Sweeps       int     `json:"sweeps"`
 	Kills        int     `json:"kills"`
@@ -121,7 +117,8 @@ func NewPlayerSummary(ps *Person) *PlayerSummary {
 
 func (p *Player) String() string {
 	return fmt.Sprintf(
-		"<%s: %dsh %dsw %dk %ds>",
+		"<(%d) %s: %dsh %dsw %dk %ds>",
+		p.ID,
 		p.Name(),
 		p.Shots,
 		p.Sweeps,
@@ -310,7 +307,6 @@ func (p *Player) Reset() {
 	p.Sweeps = 0
 	p.Kills = 0
 	p.Self = 0
-	p.Matches = 0
 	p.State = NewPlayerState()
 }
 
@@ -400,7 +396,7 @@ func SortByKills(ps []Player) []Player {
 // This is almost exactly the same as score, but the number of matches a player
 // has played factors in, and players that have played less matches are sorted
 // favorably.
-type ByRunnerup []Player
+type ByRunnerup []PlayerSummary
 
 func (s ByRunnerup) Len() int {
 	return len(s)
@@ -420,7 +416,7 @@ func (s ByRunnerup) Less(i, j int) bool {
 }
 
 // SortByRunnerup returns a list in order of the kills the players have
-func SortByRunnerup(ps []Player) []Player {
+func SortByRunnerup(ps []PlayerSummary) []PlayerSummary {
 	sort.Sort(ByRunnerup(ps))
 	return ps
 }

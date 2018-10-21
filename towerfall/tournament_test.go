@@ -35,9 +35,11 @@ func testTournament(t *testing.T, server *Server, count int) (tm *Tournament) {
 	for i := 1; i <= count; i++ {
 		p := testPerson(server)
 		s := NewPlayer(p).Summary()
+
 		err := tm.AddPlayer(&s)
 		if err != nil {
 			t.Fatalf("adding player failed: %+v", err)
+			return
 		}
 
 		// XXX: If we don't add the person to the database anything that tries to

@@ -16,10 +16,10 @@ import (
 
 // A Person is someone having a role in the tournament
 type Person struct {
-	PersonID        string   `json:"id" gorm:"primary_key"`
+	PersonID        string   `json:"id" sql:",pk"`
 	Name            string   `json:"name"`
 	Nick            string   `json:"nick"`
-	ColorPreference []string `json:"color_preference" gorm:"-"`
+	ColorPreference []string `json:"color_preference" sql:"-"`
 	PreferredColor  string   `json:"preferred_color"`
 	ArcherType      int      `json:"archer_type"`
 	FacebookID      string   `json:"facebook_id"`
@@ -172,7 +172,7 @@ func (p *Person) Correct() {
 	if len(p.ColorPreference) == 0 {
 		// Grab a random color and insert it into the preference.
 		p.ColorPreference = append(p.ColorPreference, RandomColor(Colors))
-		log.Printf("Corrected color for %s", p)
+		// log.Printf("Corrected color for %s", p)
 	}
 }
 

@@ -1,25 +1,35 @@
 package towerfall
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"regexp"
 	"strings"
 	"testing"
+	"time"
 
-	"github.com/jinzhu/gorm"
+	"github.com/go-pg/pg"
 	"go.uber.org/zap"
 )
 
 func testDatabase(t *testing.T, c *Config) (*Database, func()) {
 	t.Helper()
 
-	pg, err := gorm.Open("postgres", "user=postgres dbname=test_playground sslmode=disable")
+	pgdb := pg.Connect(&pg.Options{
+		User:     "postgres",
+		Database: "test_drunkenfall",
+	})
 
 	if c.DbVerbose {
 		// t.Log("DRUNKENFALL_DBVERBOSE is set; enabling logger")
-		pg.LogMode(true)
+		pgdb.OnQueryProcessed(func(event *pg.QueryProcessedEvent) {
+			query, err := event.FormattedQuery()
+			if err != nil {
+				panic(err)
+			}
+
+			log.Printf("%s %s", time.Since(event.StartTime), query)
+		})
 	}
 
 	// If this is set, will reuse the same database for all the tests.
@@ -28,63 +38,64 @@ func testDatabase(t *testing.T, c *Config) (*Database, func()) {
 	if os.Getenv("DRUNKENFALL_DBFASTTEST") != "" {
 		zlog, _ := zap.NewDevelopment()
 		db := &Database{
-			DB:  pg,
-			log: zlog.With(zap.String("db", "test_read")),
+			DB:  pgdb,
+			log: zlog.With(zap.String("pgdb", "test_read")),
 		}
+		globalDB = db
 		return db, func() {}
-	}
-
-	if err != nil {
-		log.Fatalf("failed to open postgres session: %+v", err)
 	}
 
 	name := strings.ToLower(t.Name())
 	name = regexp.MustCompile("[^_a-zA-Z0-9]+").ReplaceAllString(name, "_")
 
-	err = pg.Exec("DROP DATABASE IF EXISTS " + name + "").Error
+	_, err := pgdb.Exec("DROP DATABASE IF EXISTS " + name + "")
 	if err != nil {
 		log.Fatalf("couldn't create database '%s': %+v", name, err)
 	}
 
-	err = pg.Exec("CREATE DATABASE " + name + " WITH TEMPLATE test_drunkenfall OWNER postgres").Error
-	errs := pg.GetErrors()
-	if len(errs) != 0 {
-		log.Fatal(errs)
-	}
+	_, err = pgdb.Exec("CREATE DATABASE " + name + " WITH TEMPLATE test_drunkenfall OWNER postgres")
 	if err != nil {
 		log.Fatalf("couldn't create database '%s': %+v", name, err)
 	}
 
-	err = pg.Close()
+	err = pgdb.Close()
 	if err != nil {
 		log.Fatalf("couldn't close database '%s': %+v", name, err)
 	}
 
-	str := fmt.Sprintf("user=postgres dbname=%s sslmode=disable", name)
-	pg, err = gorm.Open("postgres", str)
+	pgdb = pg.Connect(&pg.Options{
+		User:     "postgres",
+		Database: name,
+	})
 	if err != nil {
 		log.Fatalf("failed to open postgres session to '%s': %+v", name, err)
 	}
 
 	zlog, _ := zap.NewDevelopment()
 	db := &Database{
-		DB:  pg,
-		log: zlog.With(zap.String("db", "test_read")),
+		DB:  pgdb,
+		log: zlog.With(zap.String("pg", "test_read")),
 	}
 
+	globalDB = db
+
 	return db, func() {
-		err = pg.Close()
+		err = db.Close()
 		if err != nil {
 			log.Fatalf("couldn't close database '%s': %+v", name, err)
 		}
 
-		pg, err := gorm.Open("postgres", "user=postgres dbname=test_drunkenfall sslmode=disable")
-		err = pg.Exec("DROP DATABASE " + name + "").Error
+		pgdb := pg.Connect(&pg.Options{
+			User:     "postgres",
+			Database: "test_drunkenfall",
+		})
+
+		_, err = pgdb.Exec("DROP DATABASE " + name + "")
 		if err != nil {
 			log.Fatalf("couldn't drop database '%s': %+v", name, err)
 		}
 
-		err = pg.Close()
+		err = pgdb.Close()
 		if err != nil {
 			log.Fatalf("couldn't close database '%s': %+v", name, err)
 		}

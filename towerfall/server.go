@@ -824,7 +824,7 @@ func (s *Server) getTournament(c *gin.Context) *Tournament {
 		log.Printf("going for id in URL but none is there")
 		return nil
 	}
-	tm, err := s.DB.GetTournament(id, s)
+	tm, err := s.DB.GetTournament(id)
 	if err != nil {
 		log.Print("couldn't get tournament")
 		return nil

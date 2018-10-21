@@ -2,39 +2,69 @@ package towerfall
 
 import (
 	"errors"
+	"fmt"
 	"log"
 
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/postgres"
+	"github.com/go-pg/pg"
 	"go.uber.org/zap"
 )
 
 type Database struct {
 	Server *Server
-	DB     *gorm.DB
+	DB     *pg.DB
 	log    *zap.Logger
-}
-
-func (d *Database) setUp() error {
-	// d.DB.Exec("DROP TABLE tournaments; DROP TABLE matches; DROP TABLE players; DROP TABLE people; DROP TABLE commits; DROP TABLE messages;")
-	// d.DB.AutoMigrate(&Tournament{})
-	// d.DB.AutoMigrate(&PlayerSummary{})
-	// d.DB.AutoMigrate(&Match{})
-	// d.DB.AutoMigrate(&Player{})
-	// d.DB.AutoMigrate(&Person{})
-	// d.DB.AutoMigrate(&Commit{})
-	// d.DB.AutoMigrate(&Message{})
-	return nil
 }
 
 // SaveTournament stores the current state of the tournaments into the db
 func (d *Database) SaveTournament(t *Tournament) error {
-	d.DB.Save(t)
-	err := d.DB.Error
+	err := d.DB.Update(t)
 	if err != nil {
 		log.Fatal(err)
 	}
 	return nil
+}
+
+// SaveTournament stores the current state of the tournaments into the db
+func (d *Database) NewTournament(t *Tournament) error {
+	return d.DB.Insert(t)
+}
+
+// AddPlayer adds a player object to the tournament
+func (d *Database) AddPlayer(t *Tournament, ps *PlayerSummary) error {
+	ps.TournamentID = t.ID
+	return d.DB.Insert(ps)
+}
+
+// AddPlayerToMatch adds a player object to a match
+func (d *Database) AddPlayerToMatch(m *Match, p *Player) error {
+	p.MatchID = m.ID
+	return d.DB.Insert(p)
+}
+
+// AddMatch adds a match
+func (d *Database) AddMatch(t *Tournament, m *Match) error {
+	m.TournamentID = t.ID
+	return d.DB.Insert(m)
+}
+
+// AddCommit adds a commit on a match
+func (d *Database) AddCommit(m *Match, c *Commit) error {
+	c.MatchID = m.ID
+	return d.DB.Insert(c)
+}
+
+// StoreMessage stores a message for a match
+func (d *Database) StoreMessage(m *Match, msg *Message) error {
+	msg.MatchID = m.ID
+	return d.DB.Insert(msg)
+}
+
+// UpdatePlayer updates one player instance
+func (d *Database) UpdatePlayer(p *Player) error {
+	if p.ID == 0 {
+		panic(fmt.Sprintf("player id was zero: %+v", p))
+	}
+	return d.DB.Update(p)
 }
 
 // OverwriteTournament takes a new foreign Tournament{} object and replaces
@@ -47,30 +77,35 @@ func (d *Database) OverwriteTournament(t *Tournament) error {
 
 // SavePerson stores a person into the DB
 func (d *Database) SavePerson(p *Person) error {
-	d.DB.Save(p)
+	d.DB.Update(p)
 	return nil
 }
 
 // GetPerson gets a Person{} from the DB
 func (d *Database) GetPerson(id string) (*Person, error) {
-	p := Person{}
-	d.DB.Where("id = ?", id).First(&p)
+	p := Person{
+		PersonID: id,
+	}
+	err := d.DB.Select(&p)
 
-	return &p, d.DB.Error
+	return &p, err
 }
 
 // GetRandomPerson gets a random Person{} from the DB
 func (d *Database) GetRandomPerson(used []string) (*Person, error) {
 	p := Person{}
-	q := d.DB.Order(gorm.Expr("random()"))
+	q := d.DB.Model(&p).OrderExpr("random()")
 
 	if len(used) != 0 {
-		q = q.Not("person_id", used)
+		args := make([]interface{}, 0)
+		for _, u := range used {
+			args = append(args, u)
+		}
+		q = q.WhereIn("person_id NOT IN (?)", args...)
 	}
 
-	q.First(&p)
-
-	return &p, d.DB.Error
+	err := q.First()
+	return &p, err
 }
 
 // GetSafePerson gets a Person{} from the DB, while being absolutely
@@ -101,22 +136,17 @@ func (d *Database) GetPeople() ([]*Person, error) {
 	return ret, nil
 }
 
-// getTournament gets a tournament by ID
-func (d *Database) GetTournament(id string, s *Server) (*Tournament, error) {
-	return &Tournament{}, errors.New("tournament not found")
+// getTournament gets a tournament by slug
+func (d *Database) GetTournament(slug string) (*Tournament, error) {
+	t := Tournament{}
+	err := d.DB.Model(&t).Where("slug = ?", slug).First()
+	return &t, err
 }
 
 func (d *Database) GetTournaments() ([]*Tournament, error) {
 	ret := make([]*Tournament, 0)
-	d.DB.Find(&ret)
-	errs := d.DB.GetErrors()
-	if len(errs) != 0 {
-		for _, err := range errs {
-			d.log.Error("getTournament error", zap.Error(err))
-		}
-		return ret, errors.New("errors found")
-	}
-	return ret, nil
+	err := d.DB.Model(&ret).Select()
+	return ret, err
 }
 
 // GetCurrentTournament gets the currently running tournament.
@@ -138,17 +168,12 @@ func (d *Database) GetCurrentTournament() (*Tournament, error) {
 
 // GetMatch gets a match
 func (d *Database) GetMatch(id uint) (*Match, error) {
-	m := &Match{}
-	d.DB.First(m, id)
-
-	errs := d.DB.GetErrors()
-	if len(errs) != 0 {
-		for _, err := range errs {
-			d.log.Error("GetMatch error", zap.Error(err))
-		}
-		return m, errors.New("errors found")
+	m := &Match{
+		ID: id,
 	}
-	return m, nil
+
+	err := d.DB.Select(&m)
+	return m, err
 }
 
 // ClearTestTournaments deletes any tournament that doesn't begin with "DrunkenFall"

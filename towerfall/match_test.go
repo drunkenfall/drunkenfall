@@ -1,6 +1,7 @@
 package towerfall
 
 import (
+	"encoding/json"
 	"log"
 	"testing"
 	"time"
@@ -1026,5 +1027,107 @@ func TestHandleMessage(t *testing.T) {
 			}
 		})
 
+	})
+}
+
+func TestReplayMatch(t *testing.T) {
+	t.Run("Lock Stock first tryout", func(t *testing.T) {
+		s, teardown := MockServer(t)
+		defer teardown()
+
+		db := s.DB.DB
+		tm := testTournament(t, s, 14)
+		err := tm.StartTournament(nil)
+		if !assert.NoError(t, err) {
+			t.Fatal(err)
+		}
+
+		m := tm.Matches[0]
+
+		t.Run("Replay all messages", func(t *testing.T) {
+			// Grab the Lock Stock tournament
+			stock, err := s.DB.GetTournament("stock")
+
+			sm := Match{}
+			// Grab the first match from it
+			err = db.Model(&sm).Where("tournament_id = ?", stock.ID).First()
+			assert.NoError(t, err)
+
+			// Load all the messages from it
+			msgs := []*Message{}
+			err = db.Model(&msgs).Where("match_id = ?", sm.ID).Order("id").Select()
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			for _, msg := range msgs {
+				err = json.Unmarshal([]byte(msg.JSON), &msg.Data)
+				if err != nil {
+					t.Fatal(err)
+				}
+
+				msg.ID = 0 // Reset so that we can insert new ones for this match
+				err = m.handleMessage(*msg)
+				assert.NoError(t, err)
+			}
+		})
+
+		t.Run("Verify replayed messages", func(t *testing.T) {
+			assert.Equal(t, 573, len(m.Messages))
+			check, err := db.Model(&Message{}).Where("match_id = ?", m.ID).Count()
+			assert.NoError(t, err)
+			assert.Equal(t, 573, check)
+		})
+
+		t.Run("Verify round and commit state", func(t *testing.T) {
+			assert.Equal(t, 12, len(m.Rounds))
+			check, err := db.Model(&Commit{}).Where("match_id = ?", m.ID).Count()
+			assert.NoError(t, err)
+			assert.Equal(t, 12, check)
+		})
+
+		t.Run("Verify match state", func(t *testing.T) {
+			assert.NotZero(t, m.Started)
+			assert.NotZero(t, m.Ended)
+		})
+
+		// Finally check that the player stats are stored and that they
+		// are the same
+		t.Run("Verify player scores", func(t *testing.T) {
+			ps := []*Player{}
+			db.Model(&ps).Where("match_id = ?", m.ID).Order("id").Select()
+			if !assert.Equal(t, 4, len(ps)) {
+				return
+			}
+
+			t.Run("P1: 4 shots, 1 kills, 4 selfs", func(t *testing.T) {
+				assert.Equal(t, 4, ps[0].Shots)
+				assert.Equal(t, 0, ps[0].Sweeps)
+				assert.Equal(t, 1, ps[0].Kills)
+				assert.Equal(t, 4, ps[0].Self)
+			})
+
+			t.Run("P2: 2 shots, 10 kills, 1 self - winner", func(t *testing.T) {
+				assert.Equal(t, 2, ps[1].Shots)
+				assert.Equal(t, 0, ps[1].Sweeps)
+				assert.Equal(t, 10, ps[1].Kills)
+				assert.Equal(t, 1, ps[1].Self)
+			})
+
+			t.Run("P3: 1 shot, 1 sweep, 9 kills, no selfs", func(t *testing.T) {
+				assert.Equal(t, 1, ps[2].Shots)
+				assert.Equal(t, 1, ps[2].Sweeps)
+				assert.Equal(t, 9, ps[2].Kills)
+				assert.Equal(t, 0, ps[2].Self)
+			})
+
+			t.Run("P4: 2 shots, 6 kills, 2 selfs", func(t *testing.T) {
+				assert.Equal(t, 2, ps[3].Shots)
+				assert.Equal(t, 0, ps[3].Sweeps)
+				assert.Equal(t, 6, ps[3].Kills)
+				assert.Equal(t, 2, ps[3].Self)
+			})
+
+		})
 	})
 }

@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"log"
 	"time"
-
-	"github.com/jinzhu/gorm"
 )
 
 // JSONMessage defines a message to be returned to the frontend
@@ -82,11 +80,10 @@ type GamePlayer struct {
 }
 
 type Message struct {
-	gorm.Model
-
+	ID        uint
 	MatchID   uint
 	Type      string      `json:"type"`
-	Data      interface{} `json:"data" gorm:"-"`
+	Data      interface{} `json:"data" sql:"-"`
 	JSON      string      `json:"-"`
 	Timestamp time.Time   `json:"timestamp"`
 }

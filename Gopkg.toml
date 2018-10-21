@@ -90,5 +90,5 @@
   name = "github.com/fatih/camelcase"
 
 [[constraint]]
-  name = "github.com/jinzhu/gorm"
-  version = "1.9.1"
+  name = "github.com/go-pg/pg"
+  version = "6.15.0"
