@@ -28,6 +28,15 @@ var AllColors = []interface{}{
 // Colors is the definitive set of all the colors
 var Colors = mapset.NewSetFromSlice(AllColors)
 
+const scoreSweep = 57
+const scoreKill = 21
+const scoreSelf = scoreKill * -2
+
+const scoreWinner = 350
+const scoreSecond = 150
+const scoreThird = 75
+const scoreFourth = 30
+
 // ScoreData is a structured Key/Value pair list for scores
 type ScoreData struct {
 	Key    string
@@ -48,6 +57,8 @@ type Player struct {
 	Sweeps         int         `json:"sweeps"`
 	Kills          int         `json:"kills"`
 	Self           int         `json:"self"`
+	MatchScore     int         `json:"match_score"`
+	TotalScore     int         `json:"total_score"`
 	State          PlayerState `json:"state" sql:"-"`
 	Match          *Match      `json:"-" sql:"-"`
 }
@@ -147,30 +158,31 @@ func (p *Player) NumericColor() int {
 
 // Score calculates the score to determine runnerup positions.
 func (p *PlayerSummary) Score() (out int) {
-	// This algorithm is probably flawed, but at least it should be able to
-	// determine who is the most entertaining.
-	// When executed, a sweep is basically 14 points since scoring a sweep
-	// also comes with a shot and three kills.
+	out += p.Sweeps * scoreSweep
+	out += p.Kills * scoreKill
+	out += p.Self * scoreSelf
 
-	out += p.Sweeps * 5
-	out += p.Shots * 3
-	out += p.Kills * 2
-	out += p.Self
+	// Negative score is not allowed
+	if out <= 0 {
+		out = 0
+	}
 
 	return
 }
 
 // Score calculates the score to determine runnerup positions.
 func (p *Player) Score() (out int) {
-	// This algorithm is probably flawed, but at least it should be able to
-	// determine who is the most entertaining.
-	// When executed, a sweep is basically 14 points since scoring a sweep
-	// also comes with a shot and three kills.
+	out += p.Sweeps * scoreSweep
+	out += p.Kills * scoreKill
+	out += p.Self * scoreSelf
 
-	out += p.Sweeps * 5
-	out += p.Shots * 3
-	out += p.Kills * 2
-	out += p.Self
+	// Negative score is not allowed
+	if out <= 0 {
+		out = 0
+	}
+
+	// Match score is added afterwards so that no one is stuck on 0.
+	out += p.MatchScore
 
 	return
 }

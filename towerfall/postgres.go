@@ -64,6 +64,9 @@ func (d *Database) UpdatePlayer(p *Player) error {
 	if p.ID == 0 {
 		panic(fmt.Sprintf("player id was zero: %+v", p))
 	}
+
+	// Set the computed score on every update
+	p.TotalScore = p.Score()
 	return d.DB.Update(p)
 }
 

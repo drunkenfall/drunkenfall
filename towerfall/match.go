@@ -658,17 +658,27 @@ func (m *Match) End(c *gin.Context) error {
 		return errors.New("match already ended")
 	}
 
-	// XXX(thiderman): In certain test cases a Commit() might not have been run
-	// and therefore this might not have been set. Since the calculation is
-	// quick and has no side effects, it's easier to just add it here now. In
-	// the future, make the tests better.
-	ko := m.MakeKillOrder()
-	log.Printf("Kill order: %+v", ko)
+	// Give points based on performance
+	scores := []int{
+		scoreWinner,
+		scoreSecond,
+		scoreThird,
+		scoreFourth,
+	}
 
-	// Give the winner one last shot
-	winner := ko[0]
-	m.Players[winner].AddShot()
-	globalDB.UpdatePlayer(&m.Players[winner])
+	for x, k := range m.MakeKillOrder() {
+		// Give the winner a shot
+		if x == 0 {
+			m.Players[k].AddShot()
+		}
+
+		m.Players[k].MatchScore = scores[x]
+
+		err := globalDB.UpdatePlayer(&m.Players[k])
+		if err != nil {
+			return err
+		}
+	}
 
 	m.Ended = time.Now()
 	m.LogEvent(
