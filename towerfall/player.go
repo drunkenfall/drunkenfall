@@ -30,12 +30,13 @@ var Colors = mapset.NewSetFromSlice(AllColors)
 
 const scoreSweep = 57
 const scoreKill = 21
-const scoreSelf = scoreKill * -2
+const scoreSelf = -35 // Negative 1.66 times of a kill
 
 const scoreWinner = 350
 const scoreSecond = 150
-const scoreThird = 75
+const scoreThird = 80
 const scoreFourth = 30
+const finalMultiplier = 2.5
 
 // ScoreData is a structured Key/Value pair list for scores
 type ScoreData struct {

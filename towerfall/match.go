@@ -666,13 +666,19 @@ func (m *Match) End(c *gin.Context) error {
 		scoreFourth,
 	}
 
+	// Give more points if we're in the finals
+	multiplier := 1.0
+	if m.Kind == final {
+		multiplier = finalMultiplier
+	}
+
 	for x, k := range m.MakeKillOrder() {
 		// Give the winner a shot
 		if x == 0 {
 			m.Players[k].AddShot()
 		}
 
-		m.Players[k].MatchScore = scores[x]
+		m.Players[k].MatchScore = int(float64(scores[x]) * multiplier)
 
 		err := globalDB.UpdatePlayer(m, &m.Players[k])
 		if err != nil {
