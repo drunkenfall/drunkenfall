@@ -81,14 +81,44 @@ func (d *Database) StoreMessage(m *Match, msg *Message) error {
 }
 
 // UpdatePlayer updates one player instance
-func (d *Database) UpdatePlayer(p *Player) error {
+func (d *Database) UpdatePlayer(m *Match, p *Player) error {
 	if p.ID == 0 {
 		panic(fmt.Sprintf("player id was zero: %+v", p))
 	}
 
 	// Set the computed score on every update
 	p.TotalScore = p.Score()
-	return d.DB.Update(p)
+	err := d.DB.Update(p)
+	if err != nil {
+		return err
+	}
+
+	return d.UpdatePlayerSummary(m.Tournament, p)
+}
+
+// UpdatePlayerSummary updates the total player data for the tourmament
+func (d *Database) UpdatePlayerSummary(t *Tournament, p *Player) error {
+	query := `UPDATE player_summaries ps
+   SET (shots, sweeps, kills, self, matches, total_score)
+   =
+   (SELECT SUM(shots),
+           SUM(sweeps),
+           SUM(kills),
+           SUM(self),
+           COUNT(*),
+           SUM(total_score)
+      FROM players P
+      INNER JOIN matches M ON p.match_id = m.id
+      WHERE m.tournament_id = ?
+        AND person_id = ?)
+    WHERE person_id = ?
+      AND tournament_id = ?;`
+
+	_, err := d.DB.Exec(query, t.ID, p.PersonID, p.PersonID, t.ID)
+	if err != nil {
+		log.Printf("Summary update failed: %+v", err)
+	}
+	return err
 }
 
 // OverwriteTournament takes a new foreign Tournament{} object and replaces

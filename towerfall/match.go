@@ -456,7 +456,7 @@ func (m *Match) EndRound() error {
 
 			// This updates both the shot count and the sweep count (because
 			// kills == 3 catches the sweep as well)
-			globalDB.UpdatePlayer(&m.Players[i])
+			globalDB.UpdatePlayer(m, &m.Players[i])
 		}
 	}
 
@@ -587,7 +587,7 @@ func (m *Match) Kill(km KillMessage) error {
 			"cause", km.Cause,
 		)
 
-		return globalDB.UpdatePlayer(&m.Players[km.Player])
+		return globalDB.UpdatePlayer(m, &m.Players[km.Player])
 	} else if km.Killer == km.Player {
 		m.Players[km.Player].AddSelf()
 		m.currentRound.AddSelf(km.Player)
@@ -599,7 +599,7 @@ func (m *Match) Kill(km KillMessage) error {
 			"cause", km.Cause,
 		)
 
-		return globalDB.UpdatePlayer(&m.Players[km.Killer])
+		return globalDB.UpdatePlayer(m, &m.Players[km.Killer])
 	}
 
 	m.Players[km.Killer].AddKills(1)
@@ -612,7 +612,7 @@ func (m *Match) Kill(km KillMessage) error {
 		"cause", km.Cause,
 	)
 
-	return globalDB.UpdatePlayer(&m.Players[km.Killer])
+	return globalDB.UpdatePlayer(m, &m.Players[km.Killer])
 }
 
 // Start starts the match
@@ -674,7 +674,7 @@ func (m *Match) End(c *gin.Context) error {
 
 		m.Players[k].MatchScore = scores[x]
 
-		err := globalDB.UpdatePlayer(&m.Players[k])
+		err := globalDB.UpdatePlayer(m, &m.Players[k])
 		if err != nil {
 			return err
 		}

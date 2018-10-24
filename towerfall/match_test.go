@@ -1563,10 +1563,34 @@ func TestReplayLockStock(t *testing.T) {
 			})
 		})
 
-		t.Run("End state", func(t *testing.T) {
-			assert.NotZero(t, tm.Started)
-			assert.NotZero(t, tm.Ended)
-			// assert.Equal(t, 0, tm.db.persistcalls)
-		})
+	})
+
+	t.Run("End state", func(t *testing.T) {
+		assert.NotZero(t, tm.Started)
+		assert.NotZero(t, tm.Ended)
+		assert.Equal(t, 130, tm.db.persistcalls)
+	})
+
+	t.Run("End scores", func(t *testing.T) {
+		ps := []*PlayerSummary{}
+		db.Model(&ps).Where("tournament_id = ?", tm.ID).Order("total_score DESC").Select()
+		if !assert.Equal(t, len(tm.Players), len(ps)) {
+			return
+		}
+
+		assert.Equal(t, 1543, ps[0].TotalScore)
+		assert.Equal(t, 1298, ps[1].TotalScore)
+		assert.Equal(t, 1130, ps[2].TotalScore)
+		assert.Equal(t, 1043, ps[3].TotalScore)
+		assert.Equal(t, 872, ps[4].TotalScore)
+		assert.Equal(t, 656, ps[5].TotalScore)
+		assert.Equal(t, 531, ps[6].TotalScore)
+		assert.Equal(t, 432, ps[7].TotalScore)
+		assert.Equal(t, 375, ps[8].TotalScore)
+		assert.Equal(t, 201, ps[9].TotalScore)
+		assert.Equal(t, 114, ps[10].TotalScore)
+		assert.Equal(t, 114, ps[11].TotalScore)
+		assert.Equal(t, 72, ps[12].TotalScore)
+		assert.Equal(t, 30, ps[13].TotalScore)
 	})
 }
