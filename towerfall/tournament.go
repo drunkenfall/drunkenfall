@@ -426,7 +426,8 @@ func (t *Tournament) PopulateRunnerups(m *Match) error {
 	// p := r[i]
 	// m.AddPlayer(p)
 	// }
-	return errors.New("population of runnerups not implemented")
+	// return errors.New("population of runnerups not implemented")
+	return nil
 }
 
 // GetRunnerupPlayers gets the runnerups for this tournament
@@ -477,6 +478,7 @@ func (t *Tournament) UpdatePlayers() error {
 // MovePlayers moves the winner(s) of a Match into the next bracket of matches
 // or into the Runnerup bracket.
 func (t *Tournament) MovePlayers(m *Match) error {
+	log.Print("Moving players")
 	if m.Kind == playoff {
 		err := t.movePlayoffPlayers(m)
 		if err != nil {
@@ -489,6 +491,7 @@ func (t *Tournament) MovePlayers(m *Match) error {
 		if err != nil {
 			return err
 		}
+		log.Print("Detecting runnerups")
 		if nm.Kind == playoff && len(nm.Players) < 4 {
 			log.Printf("Setting runnerups for %s", nm)
 			err := t.PopulateRunnerups(nm)

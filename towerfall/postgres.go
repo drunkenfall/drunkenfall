@@ -10,13 +10,15 @@ import (
 )
 
 type Database struct {
-	Server *Server
-	DB     *pg.DB
-	log    *zap.Logger
+	Server       *Server
+	DB           *pg.DB
+	log          *zap.Logger
+	persistcalls int
 }
 
 // SaveTournament stores the current state of the tournaments into the db
 func (d *Database) SaveTournament(t *Tournament) error {
+	d.persistcalls++
 	err := d.DB.Update(t)
 	if err != nil {
 		log.Fatal(err)
@@ -38,6 +40,14 @@ func (d *Database) AddPlayer(t *Tournament, ps *PlayerSummary) error {
 // AddPlayerToMatch adds a player object to a match
 func (d *Database) AddPlayerToMatch(m *Match, p *Player) error {
 	p.MatchID = m.ID
+
+	// Reset the scores.
+	// TODO(thiderman): Replace this
+	p.Shots = 0
+	p.Sweeps = 0
+	p.Kills = 0
+	p.Self = 0
+	p.MatchScore = 0
 	return d.DB.Insert(p)
 }
 
@@ -56,7 +66,18 @@ func (d *Database) AddCommit(m *Match, c *Commit) error {
 // StoreMessage stores a message for a match
 func (d *Database) StoreMessage(m *Match, msg *Message) error {
 	msg.MatchID = m.ID
-	return d.DB.Insert(msg)
+
+	// Spin off as a goroutine, and print error if it fails; don't care
+	// what the caller thinks. Without this, this operation becomes
+	// crazy slow since we do it so often.
+	go func() {
+		err := d.DB.Insert(msg)
+		if err != nil {
+			log.Printf("Error when saving message: %+v", err)
+		}
+	}()
+
+	return nil
 }
 
 // UpdatePlayer updates one player instance

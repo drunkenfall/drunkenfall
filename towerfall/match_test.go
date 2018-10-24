@@ -1032,6 +1032,8 @@ func TestHandleMessage(t *testing.T) {
 }
 
 func replay(t *testing.T, db *pg.DB, m *Match, id int) {
+	t.Helper()
+
 	sm := Match{}
 	// Grab the first match from it
 	err := db.Model(&sm).Where("id = ?", id).First()
@@ -1052,11 +1054,46 @@ func replay(t *testing.T, db *pg.DB, m *Match, id int) {
 
 		msg.ID = 0 // Reset so that we can insert new ones for this match
 		err = m.handleMessage(*msg)
-		assert.NoError(t, err)
+		if !assert.NoError(t, err) {
+			log.Printf("ERROR: %+v", err)
+			t.Fatal(err)
+		}
 	}
 }
 
-func TestReplay(t *testing.T) {
+func TestReplayLockStock(t *testing.T) {
+	//  id | shots | sweeps | kills | self | match_score | total_score
+	// ----+-------+--------+-------+------+-------------+-------------
+	//  86 |     4 |      0 |     1 |    4 |           0 |           0
+	//  86 |     2 |      0 |    10 |    1 |           0 |           0
+	//  86 |     1 |      1 |     9 |    0 |           0 |           0
+	//  86 |     2 |      0 |     6 |    2 |           0 |           0
+	//  87 |     3 |      1 |     6 |    2 |           0 |           0
+	//  87 |     5 |      2 |    10 |    2 |           0 |           0
+	//  87 |     2 |      0 |     8 |    2 |           0 |           0
+	//  87 |     1 |      0 |     6 |    1 |           0 |           0
+	//  88 |     1 |      0 |     8 |    1 |           0 |           0
+	//  88 |     4 |      0 |    10 |    3 |           0 |           0
+	//  88 |     2 |      0 |     6 |    2 |           0 |           0
+	//  88 |     6 |      2 |     9 |    4 |           0 |           0
+	//  89 |     2 |      0 |     8 |    2 |           0 |           0
+	//  89 |     1 |      0 |     8 |    1 |           0 |           0
+	//  89 |     1 |      0 |    10 |    0 |           0 |          28
+	//  89 |     1 |      0 |     8 |    1 |           0 |          20
+	//  90 |     2 |      0 |     7 |    2 |           0 |           0
+	//  90 |     2 |      0 |    11 |    1 |           0 |          24
+	//  90 |     2 |      1 |    10 |    1 |           0 |           0
+	//  90 |     0 |      0 |     6 |    0 |           0 |           0
+	//  91 |     0 |      0 |     5 |    0 |           0 |           0
+	//  91 |     0 |      0 |     9 |    0 |           0 |           0
+	//  91 |     2 |      0 |    10 |    1 |           0 |          50
+	//  91 |     3 |      1 |     7 |    2 |           0 |          28
+	//  92 |     1 |      0 |    20 |    0 |           0 |          24
+	//  92 |     4 |      1 |    15 |    3 |           0 |           0
+	//  92 |     5 |      2 |    17 |    3 |           0 |          50
+	//  92 |     3 |      0 |    10 |    3 |           0 |           0
+	// (28 rows)
+
 	s, teardown := MockServer(t)
 	defer teardown()
 
@@ -1075,10 +1112,10 @@ func TestReplay(t *testing.T) {
 		})
 
 		t.Run("Messages", func(t *testing.T) {
-			assert.Equal(t, 573, len(m.Messages))
+			assert.Equal(t, 572, len(m.Messages))
 			check, err := db.Model(&Message{}).Where("match_id = ?", m.ID).Count()
 			assert.NoError(t, err)
-			assert.Equal(t, 573, check)
+			assert.Equal(t, 572, check)
 		})
 
 		t.Run("Rounds and commits", func(t *testing.T) {
@@ -1139,5 +1176,397 @@ func TestReplay(t *testing.T) {
 			})
 		})
 
+	})
+
+	t.Run("Tryout2", func(t *testing.T) {
+		m := tm.Matches[1]
+
+		t.Run("Replay all messages", func(t *testing.T) {
+			replay(t, db, m, 87)
+		})
+
+		t.Run("Messages", func(t *testing.T) {
+			assert.Equal(t, 628, len(m.Messages))
+			check, err := db.Model(&Message{}).Where("match_id = ?", m.ID).Count()
+			assert.NoError(t, err)
+			assert.Equal(t, 628, check)
+		})
+
+		t.Run("Rounds and commits", func(t *testing.T) {
+			assert.Equal(t, 13, len(m.Rounds))
+			check, err := db.Model(&Commit{}).Where("match_id = ?", m.ID).Count()
+			assert.NoError(t, err)
+			assert.Equal(t, 13, check)
+		})
+
+		t.Run("Match state", func(t *testing.T) {
+			assert.NotZero(t, m.Started)
+			assert.NotZero(t, m.Ended)
+		})
+
+		// Finally check that the player stats are stored and that they
+		// are the same
+		t.Run("Scores", func(t *testing.T) {
+			ps := []*Player{}
+			db.Model(&ps).Where("match_id = ?", m.ID).Order("id").Select()
+			if !assert.Equal(t, 4, len(ps)) {
+				return
+			}
+
+			t.Run("P1", func(t *testing.T) {
+				assert.Equal(t, 3, ps[0].Shots)
+				assert.Equal(t, 1, ps[0].Sweeps)
+				assert.Equal(t, 6, ps[0].Kills)
+				assert.Equal(t, 2, ps[0].Self)
+				assert.Equal(t, scoreThird, ps[0].MatchScore)
+				assert.Equal(t, 174, ps[0].Score())
+			})
+
+			t.Run("P2", func(t *testing.T) {
+				assert.Equal(t, 5, ps[1].Shots)
+				assert.Equal(t, 2, ps[1].Sweeps)
+				assert.Equal(t, 10, ps[1].Kills)
+				assert.Equal(t, 2, ps[1].Self)
+				assert.Equal(t, scoreWinner, ps[1].MatchScore)
+				assert.Equal(t, 590, ps[1].Score())
+			})
+
+			t.Run("P3", func(t *testing.T) {
+				assert.Equal(t, 2, ps[2].Shots)
+				assert.Equal(t, 0, ps[2].Sweeps)
+				assert.Equal(t, 8, ps[2].Kills)
+				assert.Equal(t, 2, ps[2].Self)
+				assert.Equal(t, scoreSecond, ps[2].MatchScore)
+				assert.Equal(t, 234, ps[2].Score())
+			})
+
+			t.Run("P4", func(t *testing.T) {
+				assert.Equal(t, 1, ps[3].Shots)
+				assert.Equal(t, 0, ps[3].Sweeps)
+				assert.Equal(t, 6, ps[3].Kills)
+				assert.Equal(t, 1, ps[3].Self)
+				assert.Equal(t, scoreFourth, ps[3].MatchScore)
+				assert.Equal(t, 114, ps[3].Score())
+			})
+		})
+
+	})
+
+	t.Run("Tryout3", func(t *testing.T) {
+		m := tm.Matches[2]
+
+		t.Run("Replay all messages", func(t *testing.T) {
+			replay(t, db, m, 88)
+		})
+
+		t.Run("Scores", func(t *testing.T) {
+			ps := []*Player{}
+			db.Model(&ps).Where("match_id = ?", m.ID).Order("id").Select()
+			if !assert.Equal(t, 4, len(ps)) {
+				return
+			}
+
+			// 88 |     1 |      0 |     8 |    1 |           0 |           0
+			// 88 |     4 |      0 |    10 |    3 |           0 |           0
+			// 88 |     2 |      0 |     6 |    2 |           0 |           0
+			// 88 |     6 |      2 |     9 |    4 |           0 |           0
+			t.Run("P1", func(t *testing.T) {
+				assert.Equal(t, 1, ps[0].Shots)
+				assert.Equal(t, 0, ps[0].Sweeps)
+				assert.Equal(t, 8, ps[0].Kills)
+				assert.Equal(t, 1, ps[0].Self)
+				assert.Equal(t, scoreThird, ps[0].MatchScore)
+				assert.Equal(t, 201, ps[0].Score())
+			})
+
+			t.Run("P2", func(t *testing.T) {
+				assert.Equal(t, 4, ps[1].Shots)
+				assert.Equal(t, 0, ps[1].Sweeps)
+				assert.Equal(t, 10, ps[1].Kills)
+				assert.Equal(t, 3, ps[1].Self)
+				assert.Equal(t, scoreWinner, ps[1].MatchScore)
+				assert.Equal(t, 434, ps[1].Score())
+			})
+
+			t.Run("P3", func(t *testing.T) {
+				assert.Equal(t, 2, ps[2].Shots)
+				assert.Equal(t, 0, ps[2].Sweeps)
+				assert.Equal(t, 6, ps[2].Kills)
+				assert.Equal(t, 2, ps[2].Self)
+				assert.Equal(t, scoreFourth, ps[2].MatchScore)
+				assert.Equal(t, 72, ps[2].Score())
+			})
+
+			t.Run("P4", func(t *testing.T) {
+				assert.Equal(t, 6, ps[3].Shots)
+				assert.Equal(t, 2, ps[3].Sweeps)
+				assert.Equal(t, 9, ps[3].Kills)
+				assert.Equal(t, 4, ps[3].Self)
+				assert.Equal(t, scoreSecond, ps[3].MatchScore)
+				assert.Equal(t, 285, ps[3].Score())
+			})
+		})
+
+	})
+
+	t.Run("Tryout4", func(t *testing.T) {
+		m := tm.Matches[3]
+
+		// Fake runnerups since that doesn't work right now
+		m.AddPlayer(tm.Matches[0].Players[3])
+		m.AddPlayer(tm.Matches[1].Players[0])
+
+		t.Run("Replay all messages", func(t *testing.T) {
+			replay(t, db, m, 89)
+		})
+
+		t.Run("Kill order", func(t *testing.T) {
+			assert.Equal(t, []int{2, 1, 3, 0}, m.MakeKillOrder())
+		})
+
+		t.Run("Scores", func(t *testing.T) {
+			ps := []*Player{}
+			db.Model(&ps).Where("match_id = ?", m.ID).Order("id").Select()
+			if !assert.Equal(t, 4, len(ps)) {
+				return
+			}
+
+			// 89 |     2 |      0 |     8 |    2 |           0 |           0
+			// 89 |     1 |      0 |     8 |    1 |           0 |           0
+			// 89 |     1 |      0 |    10 |    0 |           0 |          28
+			// 89 |     1 |      0 |     8 |    1 |           0 |          20
+			t.Run("P1", func(t *testing.T) {
+				assert.Equal(t, 2, ps[0].Shots)
+				assert.Equal(t, 0, ps[0].Sweeps)
+				assert.Equal(t, 8, ps[0].Kills)
+				assert.Equal(t, 2, ps[0].Self)
+				assert.Equal(t, scoreFourth, ps[0].MatchScore)
+				assert.Equal(t, 114, ps[0].Score())
+			})
+
+			t.Run("P2", func(t *testing.T) {
+				assert.Equal(t, 1, ps[1].Shots)
+				assert.Equal(t, 0, ps[1].Sweeps)
+				assert.Equal(t, 8, ps[1].Kills)
+				assert.Equal(t, 1, ps[1].Self)
+				assert.Equal(t, scoreSecond, ps[1].MatchScore)
+				assert.Equal(t, 276, ps[1].Score())
+			})
+
+			t.Run("P3", func(t *testing.T) {
+				assert.Equal(t, 1, ps[2].Shots)
+				assert.Equal(t, 0, ps[2].Sweeps)
+				assert.Equal(t, 10, ps[2].Kills)
+				assert.Equal(t, 0, ps[2].Self)
+				assert.Equal(t, scoreWinner, ps[2].MatchScore)
+				assert.Equal(t, 560, ps[2].Score())
+			})
+
+			t.Run("P4", func(t *testing.T) {
+				assert.Equal(t, 1, ps[3].Shots)
+				assert.Equal(t, 0, ps[3].Sweeps)
+				assert.Equal(t, 8, ps[3].Kills)
+				assert.Equal(t, 1, ps[3].Self)
+				assert.Equal(t, scoreThird, ps[3].MatchScore)
+				assert.Equal(t, 201, ps[3].Score())
+			})
+		})
+
+	})
+
+	t.Run("Semi1", func(t *testing.T) {
+		m := tm.Matches[4]
+
+		t.Run("Players moved correctly", func(t *testing.T) {
+			assert.Equal(t, tm.Matches[0].Players[1].PersonID, m.Players[0].PersonID)
+			assert.Equal(t, tm.Matches[1].Players[2].PersonID, m.Players[1].PersonID)
+			assert.Equal(t, tm.Matches[2].Players[1].PersonID, m.Players[2].PersonID)
+			assert.Equal(t, tm.Matches[3].Players[1].PersonID, m.Players[3].PersonID)
+		})
+
+		t.Run("Replay all messages", func(t *testing.T) {
+			replay(t, db, m, 90)
+		})
+
+		t.Run("Scores", func(t *testing.T) {
+			ps := []*Player{}
+			db.Model(&ps).Where("match_id = ?", m.ID).Order("id").Select()
+			if !assert.Equal(t, 4, len(ps)) {
+				return
+			}
+
+			//  90 |     2 |      0 |     7 |    2 |           0 |           0
+			//  90 |     2 |      0 |    11 |    1 |           0 |          24
+			//  90 |     2 |      1 |    10 |    1 |           0 |           0
+			//  90 |     0 |      0 |     6 |    0 |           0 |           0
+			t.Run("P1", func(t *testing.T) {
+				assert.Equal(t, 2, ps[0].Shots)
+				assert.Equal(t, 0, ps[0].Sweeps)
+				assert.Equal(t, 7, ps[0].Kills)
+				assert.Equal(t, 2, ps[0].Self)
+				assert.Equal(t, scoreThird, ps[0].MatchScore)
+				assert.Equal(t, 138, ps[0].Score())
+			})
+
+			t.Run("P2", func(t *testing.T) {
+				assert.Equal(t, 2, ps[1].Shots)
+				assert.Equal(t, 0, ps[1].Sweeps)
+				assert.Equal(t, 11, ps[1].Kills)
+				assert.Equal(t, 1, ps[1].Self)
+				assert.Equal(t, scoreWinner, ps[1].MatchScore)
+				assert.Equal(t, 539, ps[1].Score())
+			})
+
+			t.Run("P3", func(t *testing.T) {
+				assert.Equal(t, 2, ps[2].Shots)
+				assert.Equal(t, 1, ps[2].Sweeps)
+				assert.Equal(t, 10, ps[2].Kills)
+				assert.Equal(t, 1, ps[2].Self)
+				assert.Equal(t, scoreSecond, ps[2].MatchScore)
+				assert.Equal(t, 375, ps[2].Score())
+			})
+
+			t.Run("P4", func(t *testing.T) {
+				assert.Equal(t, 0, ps[3].Shots)
+				assert.Equal(t, 0, ps[3].Sweeps)
+				assert.Equal(t, 6, ps[3].Kills)
+				assert.Equal(t, 0, ps[3].Self)
+				assert.Equal(t, scoreFourth, ps[3].MatchScore)
+				assert.Equal(t, 156, ps[3].Score())
+			})
+		})
+
+	})
+
+	t.Run("Semi2", func(t *testing.T) {
+		m := tm.Matches[5]
+
+		t.Run("Players moved correctly", func(t *testing.T) {
+			assert.Equal(t, tm.Matches[0].Players[2].PersonID, m.Players[0].PersonID)
+			assert.Equal(t, tm.Matches[1].Players[1].PersonID, m.Players[1].PersonID)
+			assert.Equal(t, tm.Matches[2].Players[3].PersonID, m.Players[2].PersonID)
+			assert.Equal(t, tm.Matches[3].Players[2].PersonID, m.Players[3].PersonID)
+		})
+
+		t.Run("Replay all messages", func(t *testing.T) {
+			replay(t, db, m, 91)
+		})
+
+		t.Run("Scores", func(t *testing.T) {
+			ps := []*Player{}
+			db.Model(&ps).Where("match_id = ?", m.ID).Order("id").Select()
+			if !assert.Equal(t, 4, len(ps)) {
+				return
+			}
+
+			//  91 |     0 |      0 |     5 |    0 |           0 |           0
+			//  91 |     0 |      0 |     9 |    0 |           0 |           0
+			//  91 |     2 |      0 |    10 |    1 |           0 |          50
+			//  91 |     3 |      1 |     7 |    2 |           0 |          28
+			t.Run("P1", func(t *testing.T) {
+				assert.Equal(t, 0, ps[0].Shots)
+				assert.Equal(t, 0, ps[0].Sweeps)
+				assert.Equal(t, 5, ps[0].Kills)
+				assert.Equal(t, 0, ps[0].Self)
+				assert.Equal(t, scoreFourth, ps[0].MatchScore)
+				assert.Equal(t, 135, ps[0].Score())
+			})
+
+			t.Run("P2", func(t *testing.T) {
+				assert.Equal(t, 0, ps[1].Shots)
+				assert.Equal(t, 0, ps[1].Sweeps)
+				assert.Equal(t, 9, ps[1].Kills)
+				assert.Equal(t, 0, ps[1].Self)
+				assert.Equal(t, scoreSecond, ps[1].MatchScore)
+				assert.Equal(t, 339, ps[1].Score())
+			})
+
+			t.Run("P3", func(t *testing.T) {
+				assert.Equal(t, 2, ps[2].Shots)
+				assert.Equal(t, 0, ps[2].Sweeps)
+				assert.Equal(t, 10, ps[2].Kills)
+				assert.Equal(t, 1, ps[2].Self)
+				assert.Equal(t, scoreWinner, ps[2].MatchScore)
+				assert.Equal(t, 518, ps[2].Score())
+			})
+
+			t.Run("P4", func(t *testing.T) {
+				assert.Equal(t, 3, ps[3].Shots)
+				assert.Equal(t, 1, ps[3].Sweeps)
+				assert.Equal(t, 7, ps[3].Kills)
+				assert.Equal(t, 2, ps[3].Self)
+				assert.Equal(t, scoreThird, ps[3].MatchScore)
+				assert.Equal(t, 195, ps[3].Score())
+			})
+		})
+
+	})
+	t.Run("Fhphihnalhehehh", func(t *testing.T) {
+		m := tm.Matches[6]
+
+		t.Run("Players moved correctly", func(t *testing.T) {
+			assert.Equal(t, tm.Matches[4].Players[1].PersonID, m.Players[0].PersonID)
+			assert.Equal(t, tm.Matches[4].Players[2].PersonID, m.Players[1].PersonID)
+			assert.Equal(t, tm.Matches[5].Players[2].PersonID, m.Players[2].PersonID)
+			assert.Equal(t, tm.Matches[5].Players[1].PersonID, m.Players[3].PersonID)
+		})
+
+		t.Run("Replay all messages", func(t *testing.T) {
+			replay(t, db, m, 92)
+		})
+
+		t.Run("Scores", func(t *testing.T) {
+			ps := []*Player{}
+			db.Model(&ps).Where("match_id = ?", m.ID).Order("id").Select()
+			if !assert.Equal(t, 4, len(ps)) {
+				return
+			}
+
+			//  92 |     1 |      0 |    20 |    0 |           0 |          24
+			//  92 |     4 |      1 |    15 |    3 |           0 |           0
+			//  92 |     5 |      2 |    17 |    3 |           0 |          50
+			//  92 |     3 |      0 |    10 |    3 |           0 |           0
+			t.Run("P1", func(t *testing.T) {
+				assert.Equal(t, 1, ps[0].Shots)
+				assert.Equal(t, 0, ps[0].Sweeps)
+				assert.Equal(t, 20, ps[0].Kills)
+				assert.Equal(t, 0, ps[0].Self)
+				assert.Equal(t, scoreWinner, ps[0].MatchScore)
+				assert.Equal(t, 770, ps[0].Score())
+			})
+
+			t.Run("P2", func(t *testing.T) {
+				assert.Equal(t, 4, ps[1].Shots)
+				assert.Equal(t, 1, ps[1].Sweeps)
+				assert.Equal(t, 15, ps[1].Kills)
+				assert.Equal(t, 3, ps[1].Self)
+				assert.Equal(t, scoreThird, ps[1].MatchScore)
+				assert.Equal(t, 321, ps[1].Score())
+			})
+
+			t.Run("P3", func(t *testing.T) {
+				assert.Equal(t, 5, ps[2].Shots)
+				assert.Equal(t, 2, ps[2].Sweeps)
+				assert.Equal(t, 17, ps[2].Kills)
+				assert.Equal(t, 3, ps[2].Self)
+				assert.Equal(t, scoreSecond, ps[2].MatchScore)
+				assert.Equal(t, 495, ps[2].Score())
+			})
+
+			t.Run("P4", func(t *testing.T) {
+				assert.Equal(t, 3, ps[3].Shots)
+				assert.Equal(t, 0, ps[3].Sweeps)
+				assert.Equal(t, 10, ps[3].Kills)
+				assert.Equal(t, 3, ps[3].Self)
+				assert.Equal(t, scoreFourth, ps[3].MatchScore)
+				assert.Equal(t, 114, ps[3].Score())
+			})
+		})
+
+		t.Run("End state", func(t *testing.T) {
+			assert.NotZero(t, tm.Started)
+			assert.NotZero(t, tm.Ended)
+			// assert.Equal(t, 0, tm.db.persistcalls)
+		})
 	})
 }
