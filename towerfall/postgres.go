@@ -99,14 +99,15 @@ func (d *Database) UpdatePlayer(m *Match, p *Player) error {
 // UpdatePlayerSummary updates the total player data for the tourmament
 func (d *Database) UpdatePlayerSummary(t *Tournament, p *Player) error {
 	query := `UPDATE player_summaries ps
-   SET (shots, sweeps, kills, self, matches, total_score)
+   SET (shots, sweeps, kills, self, matches, total_score, skill_score)
    =
    (SELECT SUM(shots),
            SUM(sweeps),
            SUM(kills),
            SUM(self),
            COUNT(*),
-           SUM(total_score)
+           SUM(total_score),
+           (SUM(total_score) / COUNT(*))
       FROM players P
       INNER JOIN matches M ON p.match_id = m.id
       WHERE m.tournament_id = ?

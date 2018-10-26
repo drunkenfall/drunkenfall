@@ -1145,7 +1145,7 @@ func TestReplayLockStock(t *testing.T) {
 				assert.Equal(t, 1, ps[0].Kills)
 				assert.Equal(t, 4, ps[0].Self)
 				assert.Equal(t, scoreFourth, ps[0].MatchScore)
-				assert.Equal(t, 30, ps[0].Score())
+				assert.Equal(t, 210, ps[0].Score())
 			})
 
 			t.Run("P2: 2 shots, 10 kills, 1 self - winner", func(t *testing.T) {
@@ -1154,7 +1154,7 @@ func TestReplayLockStock(t *testing.T) {
 				assert.Equal(t, 10, ps[1].Kills)
 				assert.Equal(t, 1, ps[1].Self)
 				assert.Equal(t, scoreWinner, ps[1].MatchScore)
-				assert.Equal(t, 525, ps[1].Score())
+				assert.Equal(t, 3675, ps[1].Score())
 			})
 
 			t.Run("P3: 1 shot, 1 sweep, 9 kills, no selfs", func(t *testing.T) {
@@ -1163,7 +1163,7 @@ func TestReplayLockStock(t *testing.T) {
 				assert.Equal(t, 9, ps[2].Kills)
 				assert.Equal(t, 0, ps[2].Self)
 				assert.Equal(t, scoreSecond, ps[2].MatchScore)
-				assert.Equal(t, 317, ps[2].Score())
+				assert.Equal(t, 3052, ps[2].Score())
 			})
 
 			t.Run("P4: 2 shots, 6 kills, 2 selfs", func(t *testing.T) {
@@ -1172,7 +1172,7 @@ func TestReplayLockStock(t *testing.T) {
 				assert.Equal(t, 6, ps[3].Kills)
 				assert.Equal(t, 2, ps[3].Self)
 				assert.Equal(t, scoreThird, ps[3].MatchScore)
-				assert.Equal(t, 136, ps[3].Score())
+				assert.Equal(t, 882, ps[3].Score())
 			})
 		})
 
@@ -1219,7 +1219,7 @@ func TestReplayLockStock(t *testing.T) {
 				assert.Equal(t, 6, ps[0].Kills)
 				assert.Equal(t, 2, ps[0].Self)
 				assert.Equal(t, scoreThird, ps[0].MatchScore)
-				assert.Equal(t, 193, ps[0].Score())
+				assert.Equal(t, 1561, ps[0].Score())
 			})
 
 			t.Run("P2", func(t *testing.T) {
@@ -1228,7 +1228,7 @@ func TestReplayLockStock(t *testing.T) {
 				assert.Equal(t, 10, ps[1].Kills)
 				assert.Equal(t, 2, ps[1].Self)
 				assert.Equal(t, scoreWinner, ps[1].MatchScore)
-				assert.Equal(t, 604, ps[1].Score())
+				assert.Equal(t, 4788, ps[1].Score())
 			})
 
 			t.Run("P3", func(t *testing.T) {
@@ -1237,7 +1237,7 @@ func TestReplayLockStock(t *testing.T) {
 				assert.Equal(t, 8, ps[2].Kills)
 				assert.Equal(t, 2, ps[2].Self)
 				assert.Equal(t, scoreSecond, ps[2].MatchScore)
-				assert.Equal(t, 248, ps[2].Score())
+				assert.Equal(t, 1736, ps[2].Score())
 			})
 
 			t.Run("P4", func(t *testing.T) {
@@ -1246,7 +1246,7 @@ func TestReplayLockStock(t *testing.T) {
 				assert.Equal(t, 6, ps[3].Kills)
 				assert.Equal(t, 1, ps[3].Self)
 				assert.Equal(t, scoreFourth, ps[3].MatchScore)
-				assert.Equal(t, 121, ps[3].Score())
+				assert.Equal(t, 847, ps[3].Score())
 			})
 		})
 
@@ -1276,7 +1276,7 @@ func TestReplayLockStock(t *testing.T) {
 				assert.Equal(t, 8, ps[0].Kills)
 				assert.Equal(t, 1, ps[0].Self)
 				assert.Equal(t, scoreThird, ps[0].MatchScore)
-				assert.Equal(t, 213, ps[0].Score())
+				assert.Equal(t, 1421, ps[0].Score())
 			})
 
 			t.Run("P2", func(t *testing.T) {
@@ -1285,7 +1285,7 @@ func TestReplayLockStock(t *testing.T) {
 				assert.Equal(t, 10, ps[1].Kills)
 				assert.Equal(t, 3, ps[1].Self)
 				assert.Equal(t, scoreWinner, ps[1].MatchScore)
-				assert.Equal(t, 455, ps[1].Score())
+				assert.Equal(t, 3185, ps[1].Score())
 			})
 
 			t.Run("P3", func(t *testing.T) {
@@ -1294,7 +1294,7 @@ func TestReplayLockStock(t *testing.T) {
 				assert.Equal(t, 6, ps[2].Kills)
 				assert.Equal(t, 2, ps[2].Self)
 				assert.Equal(t, scoreFourth, ps[2].MatchScore)
-				assert.Equal(t, 86, ps[2].Score())
+				assert.Equal(t, 602, ps[2].Score())
 			})
 
 			t.Run("P4", func(t *testing.T) {
@@ -1303,7 +1303,7 @@ func TestReplayLockStock(t *testing.T) {
 				assert.Equal(t, 9, ps[3].Kills)
 				assert.Equal(t, 4, ps[3].Self)
 				assert.Equal(t, scoreSecond, ps[3].MatchScore)
-				assert.Equal(t, 313, ps[3].Score())
+				assert.Equal(t, 2751, ps[3].Score())
 			})
 		})
 
@@ -1341,7 +1341,7 @@ func TestReplayLockStock(t *testing.T) {
 				assert.Equal(t, 8, ps[0].Kills)
 				assert.Equal(t, 2, ps[0].Self)
 				assert.Equal(t, scoreFourth, ps[0].MatchScore)
-				assert.Equal(t, 128, ps[0].Score())
+				assert.Equal(t, 896, ps[0].Score())
 			})
 
 			t.Run("P2", func(t *testing.T) {
@@ -1350,7 +1350,7 @@ func TestReplayLockStock(t *testing.T) {
 				assert.Equal(t, 8, ps[1].Kills)
 				assert.Equal(t, 1, ps[1].Self)
 				assert.Equal(t, scoreSecond, ps[1].MatchScore)
-				assert.Equal(t, 283, ps[1].Score())
+				assert.Equal(t, 1981, ps[1].Score())
 			})
 
 			t.Run("P3", func(t *testing.T) {
@@ -1359,7 +1359,7 @@ func TestReplayLockStock(t *testing.T) {
 				assert.Equal(t, 10, ps[2].Kills)
 				assert.Equal(t, 0, ps[2].Self)
 				assert.Equal(t, scoreWinner, ps[2].MatchScore)
-				assert.Equal(t, 560, ps[2].Score())
+				assert.Equal(t, 3920, ps[2].Score())
 			})
 
 			t.Run("P4", func(t *testing.T) {
@@ -1368,7 +1368,7 @@ func TestReplayLockStock(t *testing.T) {
 				assert.Equal(t, 8, ps[3].Kills)
 				assert.Equal(t, 1, ps[3].Self)
 				assert.Equal(t, scoreThird, ps[3].MatchScore)
-				assert.Equal(t, 213, ps[3].Score())
+				assert.Equal(t, 1421, ps[3].Score())
 			})
 		})
 
@@ -1405,7 +1405,7 @@ func TestReplayLockStock(t *testing.T) {
 				assert.Equal(t, 7, ps[0].Kills)
 				assert.Equal(t, 2, ps[0].Self)
 				assert.Equal(t, scoreThird, ps[0].MatchScore)
-				assert.Equal(t, 157, ps[0].Score())
+				assert.Equal(t, 1029, ps[0].Score())
 			})
 
 			t.Run("P2", func(t *testing.T) {
@@ -1414,7 +1414,7 @@ func TestReplayLockStock(t *testing.T) {
 				assert.Equal(t, 11, ps[1].Kills)
 				assert.Equal(t, 1, ps[1].Self)
 				assert.Equal(t, scoreWinner, ps[1].MatchScore)
-				assert.Equal(t, 546, ps[1].Score())
+				assert.Equal(t, 3822, ps[1].Score())
 			})
 
 			t.Run("P3", func(t *testing.T) {
@@ -1423,7 +1423,7 @@ func TestReplayLockStock(t *testing.T) {
 				assert.Equal(t, 10, ps[2].Kills)
 				assert.Equal(t, 1, ps[2].Self)
 				assert.Equal(t, scoreSecond, ps[2].MatchScore)
-				assert.Equal(t, 382, ps[2].Score())
+				assert.Equal(t, 2954, ps[2].Score())
 			})
 
 			t.Run("P4", func(t *testing.T) {
@@ -1432,7 +1432,7 @@ func TestReplayLockStock(t *testing.T) {
 				assert.Equal(t, 6, ps[3].Kills)
 				assert.Equal(t, 0, ps[3].Self)
 				assert.Equal(t, scoreFourth, ps[3].MatchScore)
-				assert.Equal(t, 156, ps[3].Score())
+				assert.Equal(t, 1092, ps[3].Score())
 			})
 		})
 
@@ -1469,7 +1469,7 @@ func TestReplayLockStock(t *testing.T) {
 				assert.Equal(t, 5, ps[0].Kills)
 				assert.Equal(t, 0, ps[0].Self)
 				assert.Equal(t, scoreFourth, ps[0].MatchScore)
-				assert.Equal(t, 135, ps[0].Score())
+				assert.Equal(t, 945, ps[0].Score())
 			})
 
 			t.Run("P2", func(t *testing.T) {
@@ -1478,7 +1478,7 @@ func TestReplayLockStock(t *testing.T) {
 				assert.Equal(t, 9, ps[1].Kills)
 				assert.Equal(t, 0, ps[1].Self)
 				assert.Equal(t, scoreSecond, ps[1].MatchScore)
-				assert.Equal(t, 339, ps[1].Score())
+				assert.Equal(t, 2373, ps[1].Score())
 			})
 
 			t.Run("P3", func(t *testing.T) {
@@ -1487,7 +1487,7 @@ func TestReplayLockStock(t *testing.T) {
 				assert.Equal(t, 10, ps[2].Kills)
 				assert.Equal(t, 1, ps[2].Self)
 				assert.Equal(t, scoreWinner, ps[2].MatchScore)
-				assert.Equal(t, 525, ps[2].Score())
+				assert.Equal(t, 3675, ps[2].Score())
 			})
 
 			t.Run("P4", func(t *testing.T) {
@@ -1496,7 +1496,7 @@ func TestReplayLockStock(t *testing.T) {
 				assert.Equal(t, 7, ps[3].Kills)
 				assert.Equal(t, 2, ps[3].Self)
 				assert.Equal(t, scoreThird, ps[3].MatchScore)
-				assert.Equal(t, 214, ps[3].Score())
+				assert.Equal(t, 1708, ps[3].Score())
 			})
 		})
 
@@ -1532,7 +1532,7 @@ func TestReplayLockStock(t *testing.T) {
 				assert.Equal(t, 20, ps[0].Kills)
 				assert.Equal(t, 0, ps[0].Self)
 				assert.Equal(t, int(float64(scoreWinner)*finalMultiplier), ps[0].MatchScore)
-				assert.Equal(t, 1295, ps[0].Score())
+				assert.Equal(t, 9065, ps[0].Score())
 			})
 
 			t.Run("P2", func(t *testing.T) {
@@ -1541,7 +1541,7 @@ func TestReplayLockStock(t *testing.T) {
 				assert.Equal(t, 15, ps[1].Kills)
 				assert.Equal(t, 3, ps[1].Self)
 				assert.Equal(t, int(float64(scoreThird)*finalMultiplier), ps[1].MatchScore)
-				assert.Equal(t, 467, ps[1].Score())
+				assert.Equal(t, 3374, ps[1].Score())
 			})
 
 			t.Run("P3", func(t *testing.T) {
@@ -1550,7 +1550,7 @@ func TestReplayLockStock(t *testing.T) {
 				assert.Equal(t, 17, ps[2].Kills)
 				assert.Equal(t, 3, ps[2].Self)
 				assert.Equal(t, int(float64(scoreSecond)*finalMultiplier), ps[2].MatchScore)
-				assert.Equal(t, 741, ps[2].Score())
+				assert.Equal(t, 5747, ps[2].Score())
 			})
 
 			t.Run("P4", func(t *testing.T) {
@@ -1559,7 +1559,7 @@ func TestReplayLockStock(t *testing.T) {
 				assert.Equal(t, 10, ps[3].Kills)
 				assert.Equal(t, 3, ps[3].Self)
 				assert.Equal(t, int(float64(scoreFourth)*finalMultiplier), ps[3].MatchScore)
-				assert.Equal(t, 180, ps[3].Score())
+				assert.Equal(t, 1260, ps[3].Score())
 			})
 		})
 
@@ -1578,19 +1578,44 @@ func TestReplayLockStock(t *testing.T) {
 			return
 		}
 
-		assert.Equal(t, 2089, ps[0].TotalScore)
-		assert.Equal(t, 1579, ps[1].TotalScore)
-		assert.Equal(t, 1304, ps[2].TotalScore)
-		assert.Equal(t, 1123, ps[3].TotalScore)
-		assert.Equal(t, 910, ps[4].TotalScore)
-		assert.Equal(t, 682, ps[5].TotalScore)
-		assert.Equal(t, 531, ps[6].TotalScore)
-		assert.Equal(t, 439, ps[7].TotalScore)
-		assert.Equal(t, 406, ps[8].TotalScore)
-		assert.Equal(t, 213, ps[9].TotalScore)
-		assert.Equal(t, 128, ps[10].TotalScore)
-		assert.Equal(t, 121, ps[11].TotalScore)
-		assert.Equal(t, 86, ps[12].TotalScore)
-		assert.Equal(t, 30, ps[13].TotalScore)
+		assert.Equal(t, 14623, ps[0].TotalScore)
+		assert.Equal(t, 12173, ps[1].TotalScore)
+		assert.Equal(t, 9513, ps[2].TotalScore)
+		assert.Equal(t, 8421, ps[3].TotalScore)
+		assert.Equal(t, 6510, ps[4].TotalScore)
+		assert.Equal(t, 4704, ps[5].TotalScore)
+		assert.Equal(t, 3997, ps[6].TotalScore)
+		assert.Equal(t, 3073, ps[7].TotalScore)
+		assert.Equal(t, 2982, ps[8].TotalScore)
+		assert.Equal(t, 1421, ps[9].TotalScore)
+		assert.Equal(t, 896, ps[10].TotalScore)
+		assert.Equal(t, 847, ps[11].TotalScore)
+		assert.Equal(t, 602, ps[12].TotalScore)
+		assert.Equal(t, 210, ps[13].TotalScore)
+
+	})
+
+	t.Run("Averages", func(t *testing.T) {
+		ps := []*PlayerSummary{}
+		db.Model(&ps).Where("tournament_id = ?", tm.ID).Order("total_score DESC").Select()
+		if !assert.Equal(t, len(tm.Players), len(ps)) {
+			return
+		}
+
+		assert.Equal(t, 4874, ps[0].SkillScore)
+		assert.Equal(t, 4057, ps[1].SkillScore)
+		assert.Equal(t, 3171, ps[2].SkillScore)
+		assert.Equal(t, 2807, ps[3].SkillScore)
+		assert.Equal(t, 2170, ps[4].SkillScore)
+		assert.Equal(t, 2352, ps[5].SkillScore)
+		assert.Equal(t, 1998, ps[6].SkillScore)
+		assert.Equal(t, 1536, ps[7].SkillScore)
+		assert.Equal(t, 1491, ps[8].SkillScore)
+		assert.Equal(t, 1421, ps[9].SkillScore)
+		assert.Equal(t, 896, ps[10].SkillScore)
+		assert.Equal(t, 847, ps[11].SkillScore)
+		assert.Equal(t, 602, ps[12].SkillScore)
+		assert.Equal(t, 210, ps[13].SkillScore)
+
 	})
 }

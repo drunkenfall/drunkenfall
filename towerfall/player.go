@@ -28,14 +28,14 @@ var AllColors = []interface{}{
 // Colors is the definitive set of all the colors
 var Colors = mapset.NewSetFromSlice(AllColors)
 
-const scoreSweep = 57
-const scoreKill = 21
-const scoreSelf = -35 // Negative 1.66 times of a kill
-
-const scoreWinner = 350
-const scoreSecond = 150
-const scoreThird = 80
-const scoreFourth = 30
+const scoreMultiplier = 7
+const scoreSweep = (97 * scoreMultiplier)
+const scoreKill = (21 * scoreMultiplier)
+const scoreSelf = (-35 * scoreMultiplier) // Negative 1.66 times of a kill
+const scoreWinner = (350 * scoreMultiplier)
+const scoreSecond = (150 * scoreMultiplier)
+const scoreThird = (70 * scoreMultiplier)
+const scoreFourth = (30 * scoreMultiplier)
 const finalMultiplier = 2.5
 
 // ScoreData is a structured Key/Value pair list for scores
@@ -77,6 +77,7 @@ type PlayerSummary struct {
 	Self         int     `json:"self"`
 	Matches      int     `json:"matches"`
 	TotalScore   int     `json:"score"`
+	SkillScore   int     `json:"skill_score"`
 }
 
 type PlayerState struct {
