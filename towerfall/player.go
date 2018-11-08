@@ -4,12 +4,9 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
-	"regexp"
 	"sort"
-	"strings"
 
 	"github.com/deckarep/golang-set"
-	"github.com/fatih/camelcase"
 )
 
 // AllColors is a list of the available player colors
@@ -62,6 +59,7 @@ type Player struct {
 	TotalScore     int         `json:"total_score"`
 	State          PlayerState `json:"state" sql:"-"`
 	Match          *Match      `json:"-" sql:"-"`
+	DisplayNames   []string    `sql:",array"`
 }
 
 // A PlayerSummary is a tournament-wide summary of the scores a player has
@@ -447,127 +445,6 @@ func AvailableColors(m *Match) mapset.Set {
 	colors := mapset.NewSetFromSlice(AllColors)
 	ret := colors.Difference(m.presentColors)
 	return ret
-}
-
-// transformName
-func transformName(name string) (string, string) {
-	name = strings.TrimSpace(name)
-
-	rxp := regexp.MustCompile("[^0-9A-Za-z()]+")
-	// Run it twice so that double spaces are removed
-	name = rxp.ReplaceAllString(name, " ")
-	name = rxp.ReplaceAllString(name, " ")
-
-	if strings.Contains(name, " ") {
-		spl := strings.Split(name, " ")
-
-		if len(spl) == 2 {
-			// Perfect - two spaces; just do it!
-			return spl[0], spl[1]
-		}
-
-		if (spl[0]) == "Mr" {
-			return spl[1], spl[2]
-		}
-
-		if len(spl) == 3 {
-			// Sigh.
-			if strings.HasPrefix(spl[2], "(") {
-				return spl[0], spl[1]
-			}
-
-			front := fmt.Sprintf("%s %s", spl[0], spl[1])
-			back := fmt.Sprintf("%s %s", spl[1], spl[2])
-			if len(front) >= len(spl[2]) {
-				return front, spl[2]
-			} else {
-				return spl[0], back
-			}
-		}
-	}
-
-	spl := camelcase.Split(name)
-	if len(spl) > 1 {
-		// Oh noes, CamelCase!
-		if len(spl) == 2 {
-			return spl[0], spl[1]
-		}
-
-		if spl[0] == "The" {
-			return fmt.Sprintf("%s %s", spl[0], spl[1]), spl[2]
-		}
-	}
-
-	prefixes := []string{
-		"The",
-		"El Grande",
-		"Sweet",
-		"Big",
-		"Strong",
-		"Boss",
-		"Master",
-		"Vicious",
-		"Vengeful",
-		"Sassy",
-		"Gay",
-		"Yaaas",
-		"Epic",
-		"Grandmaster",
-		"Ser",
-		"Jarl of",
-		"Bishop",
-		"Lady",
-		"Lord",
-		"Duke",
-		"Their Majesty",
-		"Royal",
-		"Brother",
-		"Sister",
-		"Governor",
-		"Papa",
-		"Monsieur",
-		"Madamoiselle",
-		"1337",
-		"Motherfuckin",
-		"Wannabe",
-		"Call Me",
-		"Mr.",
-		"Ms.",
-	}
-
-	suffixes := []string{
-		"The Great",
-		"The Not So Great",
-		"K?",
-		"AS FUCK",
-		"The Goon",
-		"The Fucker",
-		"Fuck Yeah",
-		"for the win",
-		"for the lulz",
-		"The Supreme",
-		"Yaaaas",
-		"The Fabulous",
-		"The Gay",
-		"The Unicorn",
-		"The Wannabe",
-		"The Usurper",
-		"Esq.",
-		"2000",
-		"The Idiot",
-		"The Drunk",
-		"The Sober",
-		"Is Dead",
-		"Is Lame",
-		"Sucks",
-		"The Homeless",
-	}
-
-	// One-namer! Add a prefix or a suffix; 50% distrib
-	if rand.Intn(100) >= 50 {
-		return prefixes[rand.Intn(len(prefixes))], name
-	}
-	return name, suffixes[rand.Intn(len(suffixes))]
 }
 
 // Reset resets the stats on a PlayerSummary to 0
