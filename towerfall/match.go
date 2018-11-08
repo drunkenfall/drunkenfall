@@ -733,14 +733,14 @@ func (m *Match) Reset() error {
 }
 
 // Autoplay runs through the entire match simulating real play
-func (m *Match) Autoplay() {
+func (m *Match) Autoplay() error {
 	if !m.IsStarted() {
 		m.Start(nil)
 	}
 	for !m.CanEnd() {
 		m.Commit(NewAutoplayRound())
 	}
-	m.End(nil)
+	return m.End(nil)
 }
 
 // SetTime sets the scheduled time based on the Pause attribute
