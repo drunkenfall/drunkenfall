@@ -199,8 +199,18 @@ func (p *Player) Summary() PlayerSummary {
 	}
 }
 
-// Player resturns a Player{} object from the summary
+// Player returns a new Player{} object from the summary
 func (p *PlayerSummary) Player() Player {
+	// TODO(thiderman): It would be better to always make sure that the
+	// person object is set
+	if p.Person == nil {
+		var err error
+		p.Person, err = globalDB.GetPerson(p.PersonID)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
 	return *NewPlayer(p.Person)
 }
 
@@ -420,7 +430,7 @@ func (s ByRunnerup) Swap(i, j int) {
 }
 func (s ByRunnerup) Less(i, j int) bool {
 	if s[i].Matches == s[j].Matches {
-		// Same as by kills
+		// Higher is better - if you have a high score you'll play again
 		return s[i].Score() > s[j].Score()
 	}
 	// Lower is better - the ones that have not played should be at the top
