@@ -57,13 +57,10 @@ func testPerson(s *Server) *Person {
 
 func randomPerson() *Person {
 	return &Person{
-		PersonID: faking.FakeName(),
-		Name:     faking.FakeName(),
-		Nick:     faking.FakeNick(),
-		ColorPreference: []string{
-			RandomColor(Colors),
-			RandomColor(Colors),
-		},
+		PersonID:       faking.FakeName(),
+		Name:           faking.FakeName(),
+		Nick:           faking.FakeNick(),
+		PreferredColor: RandomColor(Colors),
 	}
 }
 
@@ -1098,7 +1095,32 @@ func TestReplayLockStock(t *testing.T) {
 	defer teardown()
 
 	db := s.DB.DB
-	tm := testTournament(t, s, 14)
+	tm := testTournament(t, s, 0)
+
+	ids := []string{
+		"2316298658399263",
+		"10160764154475012",
+		"10154542569541289",
+		"10160309716400054",
+		"10160969636925217",
+		"10153943465786915",
+		"1279099058796903",
+		"10156829856779238",
+		"10153964695568099",
+		"1308346815842239",
+		"10156062370636832",
+		"10155017292347007",
+		"10155849790765189",
+		"10153861129901027",
+	}
+
+	for _, id := range ids {
+		p, _ := s.DB.GetPerson(id)
+		log.Printf("%s: %s", p.Nick, p.PreferredColor)
+		s := NewPlayer(p).Summary()
+		tm.AddPlayer(&s)
+	}
+
 	err := tm.StartTournament(nil)
 	if !assert.NoError(t, err) {
 		t.Fatal(err)

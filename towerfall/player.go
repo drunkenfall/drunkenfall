@@ -93,12 +93,15 @@ type PlayerState struct {
 // NewPlayer returns a new instance of a player
 func NewPlayer(ps *Person) *Player {
 	p := &Player{
-		PersonID:   ps.PersonID,
-		Person:     ps,
-		ArcherType: ps.ArcherType,
-		State:      NewPlayerState(),
+		PersonID:       ps.PersonID,
+		Person:         ps,
+		ArcherType:     ps.ArcherType,
+		State:          NewPlayerState(),
+		PreferredColor: ps.PreferredColor,
+		DisplayNames:   ps.DisplayNames,
 	}
-	if len(ps.ColorPreference) > 0 {
+
+	if p.PreferredColor != "" {
 		p.PreferredColor = ps.PreferredColor
 	} else {
 		p.PreferredColor = RandomColor(Colors)

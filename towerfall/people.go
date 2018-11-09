@@ -16,16 +16,16 @@ import (
 
 // A Person is someone having a role in the tournament
 type Person struct {
-	PersonID        string   `json:"id" sql:",pk"`
-	Name            string   `json:"name"`
-	Nick            string   `json:"nick"`
-	ColorPreference []string `json:"color_preference" sql:"-"`
-	PreferredColor  string   `json:"preferred_color"`
-	ArcherType      int      `json:"archer_type"`
-	FacebookID      string   `json:"facebook_id"`
-	AvatarURL       string   `json:"avatar_url"`
-	Userlevel       int      `json:"userlevel"`
-	Disabled        bool     `json:"disabled"`
+	PersonID       string   `json:"id" sql:",pk"`
+	Name           string   `json:"name"`
+	Nick           string   `json:"nick"`
+	PreferredColor string   `json:"preferred_color"`
+	ArcherType     int      `json:"archer_type"`
+	FacebookID     string   `json:"facebook_id"`
+	AvatarURL      string   `json:"avatar_url"`
+	Userlevel      int      `json:"userlevel"`
+	Disabled       bool     `json:"disabled"`
+	DisplayNames   []string `sql:",array"`
 }
 
 // Credits represents the data structure needed to display the credits
@@ -154,7 +154,7 @@ func (p *Person) UpdatePerson(r *SettingsPostRequest) {
 	p.Name = r.Name
 	p.Nick = r.Nick
 	p.ArcherType = r.ArcherType
-	p.ColorPreference = []string{r.Color}
+	p.PreferredColor = r.Color
 }
 
 // Correct sets a name and a color if they are missing
@@ -169,10 +169,10 @@ func (p *Person) Correct() {
 		log.Printf("Corrected nick for %s", p)
 	}
 
-	if len(p.ColorPreference) == 0 {
-		// Grab a random color and insert it into the preference.
-		p.ColorPreference = append(p.ColorPreference, RandomColor(Colors))
-		// log.Printf("Corrected color for %s", p)
+	if p.PreferredColor == "" {
+		// Grab a random color
+		p.PreferredColor = RandomColor(Colors)
+		log.Printf("Corrected color for %s", p)
 	}
 }
 

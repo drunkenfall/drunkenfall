@@ -821,11 +821,11 @@ func SetupFakeTournament(c *gin.Context, s *Server, req *NewRequest) *Tournament
 	// Fake between 14 and max_players players
 	for i := 0; i < rand.Intn(18)+14; i++ {
 		ps := &Person{
-			PersonID:        faking.FakeName(),
-			Name:            faking.FakeName(),
-			Nick:            faking.FakeNick(),
-			AvatarURL:       faking.FakeAvatar(),
-			ColorPreference: []string{RandomColor(Colors)},
+			PersonID:       faking.FakeName(),
+			Name:           faking.FakeName(),
+			Nick:           faking.FakeNick(),
+			AvatarURL:      faking.FakeAvatar(),
+			PreferredColor: RandomColor(Colors),
 		}
 		p := NewPlayer(ps)
 		sum := p.Summary()
