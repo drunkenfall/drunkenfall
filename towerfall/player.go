@@ -240,27 +240,6 @@ func (p *Player) URL() string {
 	return out
 }
 
-// Classes returns the CSS color classes for the player
-func (p *Player) Classes() string {
-	if p.Match != nil && p.Match.IsEnded() {
-		ps := ByScore(p.Match.Players)
-		if ps[0].Name() == p.Name() {
-			// Always gold for the winner
-			return "gold"
-		} else if ps[1].Name() == p.Name() {
-			// Silver for the second, unless there is a short amount of playoffs
-			if p.Match.Kind != playoff || len(p.Match.Tournament.Matches)-3 <= 4 {
-				return "silver"
-			}
-		} else if ps[2].Name() == p.Name() && p.Match.Kind == final {
-			return "bronze"
-		}
-
-		return "out"
-	}
-	return p.PreferredColor
-}
-
 // Index returns the index in the current match
 func (p *Player) Index() int {
 	if p.Match != nil {
