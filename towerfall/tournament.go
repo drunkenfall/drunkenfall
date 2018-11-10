@@ -45,19 +45,17 @@ type Tournament struct {
 // CurrentMatch holds the pointers needed to find the current match
 type CurrentMatch int
 
-const minPlayers = 8
-const maxPlayers = 32
+const minPlayers = 12
 const matchLength = 10
 const finalLength = 20
 
 // NewTournament returns a completely new Tournament
 func NewTournament(name, id, cover string, scheduledStart time.Time, c *gin.Context, server *Server) (*Tournament, error) {
 	t := Tournament{
-		Name:      name,
-		Slug:      id,
-		Opened:    time.Now(),
-		Scheduled: scheduledStart,
-		// Levels:      NewLevels(),
+		Name:        name,
+		Slug:        id,
+		Opened:      time.Now(),
+		Scheduled:   scheduledStart,
 		Cover:       cover,
 		Length:      matchLength,
 		FinalLength: finalLength,
@@ -65,7 +63,7 @@ func NewTournament(name, id, cover string, scheduledStart time.Time, c *gin.Cont
 		server:      server,
 	}
 
-	t.SetMatchPointers()
+	// t.SetMatchPointers()
 	t.LogEvent(
 		"new_tournament", "{name} ({id}) created",
 		"name", name,
@@ -271,34 +269,28 @@ func (t *Tournament) ShufflePlayers() error {
 // StartTournament will generate the tournament.
 func (t *Tournament) StartTournament(c *gin.Context) error {
 	ps := len(t.Players)
-	if ps < minPlayers || ps > maxPlayers {
-		return fmt.Errorf("tournament needs %d or more players and %d or less, got %d", minPlayers, maxPlayers, ps)
+	if ps < minPlayers {
+		return fmt.Errorf("tournament needs %d or more players, got %d", minPlayers, ps)
 	}
 
 	if t.IsRunning() {
 		return errors.New("tournament is already running")
 	}
 
-	// If there are only eight players, we should skip doing playoffs and
-	// just do the semi and the finals. Everything above that needs
-	// playoff matches.
-	if ps != minPlayers {
-		// If there are more than eight then we add more playoffs until
-		// every player gets to play in the playoffs once.
-		for i := 0; i < ps; i += 4 {
-			match := NewMatch(t, playoff)
-			t.Matches = append(t.Matches, match)
+	// Set the two first matches
+	m1 := NewMatch(t, qualifying)
+	t.Matches = append(t.Matches, m1)
+
+	m2 := NewMatch(t, qualifying)
+	t.Matches = append(t.Matches, m2)
+
+	// Add the first 8 players, in modulated joining order (first to
+	// first match, second to second, third to first etc)
+	for i, p := range t.Players[0:8] {
+		err := t.Matches[i%2].AddPlayer(p.Player())
+		if err != nil {
+			return err
 		}
-	}
-
-	// Set the semis and the final
-	t.Matches = append(t.Matches, NewMatch(t, semi))
-	t.Matches = append(t.Matches, NewMatch(t, semi))
-	t.Matches = append(t.Matches, NewMatch(t, final))
-
-	err := t.ShufflePlayers()
-	if err != nil {
-		return err
 	}
 
 	t.Started = time.Now()
@@ -309,7 +301,7 @@ func (t *Tournament) StartTournament(c *gin.Context) error {
 		"start", "Tournament started",
 		"person", PersonFromSession(t.server, c))
 
-	err = t.PublishNext()
+	err := t.PublishNext()
 	if err != nil && err != ErrPublishDisconnected {
 		return err
 	}
@@ -432,13 +424,14 @@ func (t *Tournament) PopulateRunnerups(m *Match) error {
 // GetRunnerupPlayers gets the runnerups for this tournament
 //
 // The returned list is sorted descending by score.
+// XXX(thiderman): Should be removed in favor of GetRunnerups()
 func (t *Tournament) GetRunnerupPlayers() ([]PlayerSummary, error) {
 	var ret []PlayerSummary
 
-	err := t.UpdatePlayers()
-	if err != nil {
-		return ret, err
-	}
+	// err := t.UpdatePlayers()
+	// if err != nil {
+	// 	return ret, err
+	// }
 
 	rs := len(t.Runnerups)
 	p := make([]PlayerSummary, 0, rs)
@@ -451,6 +444,14 @@ func (t *Tournament) GetRunnerupPlayers() ([]PlayerSummary, error) {
 	}
 	ret = SortByRunnerup(p)
 	return ret, nil
+}
+
+// GetRunnerups gets the runnerups for this tournament
+//
+// The returned list is sorted descending by matches and ascending by
+// score.
+func (t *Tournament) GetRunnerups() ([]*PlayerSummary, error) {
+	return t.db.GetRunnerups(t)
 }
 
 // UpdatePlayers updates all the player objects with their scores from
@@ -477,36 +478,28 @@ func (t *Tournament) UpdatePlayers() error {
 // MovePlayers moves the winner(s) of a Match into the next bracket of matches
 // or into the Runnerup bracket.
 func (t *Tournament) MovePlayers(m *Match) error {
-	log.Print("Moving players")
-	if m.Kind == playoff {
-		err := t.movePlayoffPlayers(m)
+	if m.Kind == qualifying {
+		log.Print("Scheduling the next match")
+
+		nm := NewMatch(t, qualifying)
+		t.Matches = append(t.Matches, nm)
+		rups, err := t.GetRunnerups()
 		if err != nil {
 			return err
 		}
 
-		// If the next match is also a playoff and does not have enough players,
-		// fill it up with runnerups.
-		nm, err := t.NextMatch()
-		if err != nil {
-			return err
+		// The runnerups are in order for the next match - add them
+		for _, p := range rups {
+			nm.AddPlayer(p.Player())
 		}
-		log.Print("Detecting runnerups")
-		if nm.Kind == playoff && len(nm.Players) < 4 {
-			log.Printf("Setting runnerups for %s", nm)
-			err := t.PopulateRunnerups(nm)
-			if err != nil {
-				return err
-			}
-		}
+
+		return nil
 	}
 
-	// For the semis, just place the winner and silver into the final
-	if m.Kind == semi {
-		for i, p := range SortByKills(m.Players) {
-			if i < 2 {
-				t.Matches[len(t.Matches)-1].AddPlayer(p)
-			}
-		}
+	// For the playoffs, just place the winner into the final
+	if m.Kind == playoff {
+		p := SortByKills(m.Players)[0]
+		t.Matches[len(t.Matches)-1].AddPlayer(p)
 	}
 
 	return nil
@@ -664,22 +657,8 @@ func (t *Tournament) NextMatch() (*Match, error) {
 	if !t.IsRunning() {
 		return nil, errors.New("tournament not running")
 	}
-	// If the first match hasn't ended yet, we can still consider the
-	// next match to be the first one.
-	if !t.Matches[0].IsStarted() {
-		log.Print("Returning first match as next match")
-		return t.Matches[0], nil
-	}
 
-	next := t.Current + 1
-	if int(next) >= len(t.Matches) {
-		log.Println("Match index out of bounds - returning final")
-		return t.Matches[len(t.Matches)-1], nil
-	}
-
-	m := t.Matches[next]
-	log.Printf("Returning %d as next match", m.Index)
-	return m, nil
+	return t.db.NextMatch(t)
 }
 
 // AwardMedals places the winning players in the Winners position
@@ -709,16 +688,13 @@ func (t *Tournament) IsOpen() bool {
 
 // IsJoinable returns boolean true if the tournament is joinable
 func (t *Tournament) IsJoinable() bool {
-	if len(t.Players) >= maxPlayers {
-		return false
-	}
 	return t.IsOpen() && t.Started.IsZero()
 }
 
 // IsStartable returns boolean true if the tournament can be started
 func (t *Tournament) IsStartable() bool {
 	p := len(t.Players)
-	return t.IsOpen() && t.Started.IsZero() && p >= 16 && p <= maxPlayers
+	return t.IsOpen() && t.Started.IsZero() && p >= minPlayers
 }
 
 // IsRunning returns boolean true if the tournament is running or not
@@ -728,9 +704,6 @@ func (t *Tournament) IsRunning() bool {
 
 // CanJoin checks if a player is allowed to join or is already in the tournament
 func (t *Tournament) CanJoin(ps *Person) error {
-	if len(t.Players) >= maxPlayers {
-		return errors.New("tournament is full")
-	}
 	for _, p := range t.Players {
 		if p.Person.Nick == ps.Nick {
 			return errors.New("already in tournament")

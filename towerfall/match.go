@@ -15,9 +15,9 @@ import (
 )
 
 const (
-	playoff = "playoff"
-	semi    = "semi"
-	final   = "final"
+	qualifying = "qualifying"
+	playoff    = "playoff"
+	final      = "final"
 )
 
 var ErrPublishIncompleteMatch = errors.New("cannot publish match without four players")
@@ -37,7 +37,7 @@ type Match struct {
 	Players      []Player      `json:"players"`
 	Casters      []*Person     `json:"casters" sql:"-"`
 	Kind         string        `json:"kind"`
-	Index        int           `json:"index"`
+	Index        int           `json:"index" sql:",notnull"`
 	Length       int           `json:"length"`
 	Pause        time.Duration `json:"pause"`
 	Scheduled    time.Time     `json:"scheduled"`
@@ -92,7 +92,6 @@ func NewMatch(t *Tournament, kind string) *Match {
 		Length:     t.Length,
 		Pause:      time.Minute * 5,
 		Rounds:     make([]Round, 0),
-		Ruleset:    "A",
 		currentRound: Round{
 			Kills: [][]int{{0, 0}, {0, 0}, {0, 0}, {0, 0}},
 			Shots: []bool{false, false, false, false},
@@ -103,10 +102,7 @@ func NewMatch(t *Tournament, kind string) *Match {
 	// Finals are longer <3
 	if kind == final {
 		m.Length = t.FinalLength
-		m.Ruleset = "B"
 	}
-
-	m.Level = m.getRandomLevel()
 
 	err := t.db.AddMatch(t, &m)
 	if err != nil {
@@ -139,8 +135,9 @@ func (m *Match) String() string {
 	}
 
 	return fmt.Sprintf(
-		"<(%d) %s: %s - %s>",
+		"<(%d)[%d] %s: %s - %s>",
 		m.ID,
+		m.Index,
 		name,
 		strings.Join(names, " / "),
 		tempo,
@@ -632,12 +629,12 @@ func (m *Match) Start(c *gin.Context) error {
 	m.Casters = m.Tournament.Casters
 
 	// Increment the current match, but only if we're not at the first.
-	if m.Index != 0 {
-		log.Printf("Increasing current from %d", m.Tournament.Current)
-		m.Tournament.Current++
-	} else {
-		log.Print("Not increasing current when starting first match")
-	}
+	// if m.Index != 0 {
+	// 	log.Printf("Increasing current from %d", m.Tournament.Current)
+	// 	m.Tournament.Current++
+	// } else {
+	// 	log.Print("Not increasing current when starting first match")
+	// }
 
 	m.Started = time.Now()
 	m.LogEvent(
@@ -645,7 +642,7 @@ func (m *Match) Start(c *gin.Context) error {
 		"match", m.Title(),
 		"person", PersonFromSession(m.Tournament.server, c))
 
-	return m.Tournament.Persist()
+	return globalDB.SaveMatch(m)
 }
 
 // End signals that the match has ended
@@ -687,6 +684,11 @@ func (m *Match) End(c *gin.Context) error {
 	}
 
 	m.Ended = time.Now()
+	err := globalDB.SaveMatch(m)
+	if err != nil {
+		return err
+	}
+
 	m.LogEvent(
 		"ended", "{match} ended",
 		"match", m.Title(),
@@ -702,12 +704,11 @@ func (m *Match) End(c *gin.Context) error {
 		}
 	}
 
-	err := m.Tournament.PublishNext()
+	err = m.Tournament.PublishNext()
 	if err != nil && err != ErrPublishDisconnected {
 		m.Tournament.server.log.Info("Publishing next match failed", zap.Error(err))
 	}
 
-	m.Tournament.Persist()
 	return nil
 }
 
@@ -735,7 +736,11 @@ func (m *Match) Reset() error {
 // Autoplay runs through the entire match simulating real play
 func (m *Match) Autoplay() error {
 	if !m.IsStarted() {
-		m.Start(nil)
+		err := m.Start(nil)
+		if err != nil {
+			log.Printf("Failed to start match: %+v", err)
+			return err
+		}
 	}
 	for !m.CanEnd() {
 		m.Commit(NewAutoplayRound())
@@ -912,11 +917,6 @@ func NewAutoplayRound() Round {
 		// 10% of the time - accidental self
 		if rand.Intn(10)%10 == 0 {
 			r.Kills[x][1] = -1
-		}
-
-		// 10% of the time - shot from the judges
-		if rand.Intn(10)%10 == 0 {
-			r.Shots[x] = true
 		}
 	}
 

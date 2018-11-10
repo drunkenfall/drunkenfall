@@ -27,9 +27,9 @@ func MockMatch(t *testing.T, s *Server, idx int, cat string) (m *Match) {
 	offset := 0
 
 	switch cat {
-	case playoff:
+	case qualifying:
 		m = tm.Matches[offset+idx]
-	case semi:
+	case playoff:
 		offset = len(tm.Matches) - 3
 		m = tm.Matches[offset+idx]
 	case final:
@@ -1116,7 +1116,6 @@ func TestReplayLockStock(t *testing.T) {
 
 	for _, id := range ids {
 		p, _ := s.DB.GetPerson(id)
-		log.Printf("%s: %s", p.Nick, p.PreferredColor)
 		s := NewPlayer(p).Summary()
 		tm.AddPlayer(&s)
 	}

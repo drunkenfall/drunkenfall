@@ -1,11 +1,11 @@
 package towerfall
 
 import (
-	"errors"
 	"fmt"
 	"log"
 
 	"github.com/go-pg/pg"
+	"github.com/pkg/errors"
 	"go.uber.org/zap"
 )
 
@@ -55,6 +55,15 @@ func (d *Database) AddPlayerToMatch(m *Match, p *Player) error {
 func (d *Database) AddMatch(t *Tournament, m *Match) error {
 	m.TournamentID = t.ID
 	return d.DB.Insert(m)
+}
+
+// SaveMatch saves a match
+func (d *Database) SaveMatch(m *Match) error {
+	err := d.DB.Update(m)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	return nil
 }
 
 // AddCommit adds a commit on a match
@@ -111,6 +120,7 @@ func (d *Database) UpdatePlayerSummary(t *Tournament, p *Player) error {
       FROM players P
       INNER JOIN matches M ON p.match_id = m.id
       WHERE m.tournament_id = ?
+        AND m.started IS NOT NULL
         AND person_id = ?)
     WHERE person_id = ?
       AND tournament_id = ?;`
@@ -229,6 +239,44 @@ func (d *Database) GetMatch(id uint) (*Match, error) {
 
 	err := d.DB.Select(&m)
 	return m, err
+}
+
+// NextMatch the next playable match of a tournament
+func (d *Database) NextMatch(t *Tournament) (*Match, error) {
+	m := Match{
+		Tournament: t,
+	}
+
+	q := t.db.DB.Model(&m).Where("tournament_id = ? AND started IS NULL", t.ID)
+	q = q.Order("id").Limit(1)
+
+	err := q.Select()
+	if err != nil {
+		return nil, err
+	}
+
+	ps := []Player{}
+	q = t.db.DB.Model(&ps).Where("match_id = ?", m.ID)
+	err = q.Select()
+	m.Players = ps
+
+	return &m, err
+}
+
+// GetRunnerups gets the next four runnerups, excluding those already
+// booked to matches
+func (d *Database) GetRunnerups(t *Tournament) ([]*PlayerSummary, error) {
+	ps := []*Player{}
+	subq := d.DB.Model(&ps).Column("person_id").Join("INNER JOIN matches m on m.id = match_id")
+	subq = subq.Where("m.ended IS NULL").Where("m.tournament_id = ?", t.ID)
+
+	ret := []*PlayerSummary{}
+	q := d.DB.Model(&ret).Where("tournament_id = ?", t.ID)
+	q = q.Where("person_id NOT IN (?)", subq)
+	q = q.Order("matches ASC", "skill_score DESC").Limit(4)
+
+	err := q.Select()
+	return ret, err
 }
 
 // ClearTestTournaments deletes any tournament that doesn't begin with "DrunkenFall"

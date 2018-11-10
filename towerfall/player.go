@@ -48,15 +48,16 @@ type Player struct {
 	MatchID        uint
 	PersonID       string      `sql:",pk"`
 	Person         *Person     `json:"person" sql:"-"`
+	Nick           string      `json:"nick"`
 	Color          string      `json:"color"`
 	PreferredColor string      `json:"preferred_color"`
-	ArcherType     int         `json:"archer_type"`
-	Shots          int         `json:"shots"`
-	Sweeps         int         `json:"sweeps"`
-	Kills          int         `json:"kills"`
-	Self           int         `json:"self"`
-	MatchScore     int         `json:"match_score"`
-	TotalScore     int         `json:"total_score"`
+	ArcherType     int         `json:"archer_type" sql:",notnull"`
+	Shots          int         `json:"shots" sql:",notnull"`
+	Sweeps         int         `json:"sweeps" sql:",notnull"`
+	Kills          int         `json:"kills" sql:",notnull"`
+	Self           int         `json:"self" sql:",notnull"`
+	MatchScore     int         `json:"match_score" sql:",notnull"`
+	TotalScore     int         `json:"total_score" sql:",notnull"`
 	State          PlayerState `json:"state" sql:"-"`
 	Match          *Match      `json:"-" sql:"-"`
 	DisplayNames   []string    `sql:",array"`
@@ -69,13 +70,13 @@ type PlayerSummary struct {
 	TournamentID uint
 	PersonID     string  `json:"person_id"`
 	Person       *Person `json:"person" sql:"-"`
-	Shots        int     `json:"shots"`
-	Sweeps       int     `json:"sweeps"`
-	Kills        int     `json:"kills"`
-	Self         int     `json:"self"`
-	Matches      int     `json:"matches"`
-	TotalScore   int     `json:"score"`
-	SkillScore   int     `json:"skill_score"`
+	Shots        int     `json:"shots" sql:",notnull"`
+	Sweeps       int     `json:"sweeps" sql:",notnull"`
+	Kills        int     `json:"kills" sql:",notnull"`
+	Self         int     `json:"self" sql:",notnull"`
+	Matches      int     `json:"matches" sql:",notnull"`
+	TotalScore   int     `json:"score" sql:",notnull"`
+	SkillScore   int     `json:"skill_score" sql:",notnull"`
 }
 
 type PlayerState struct {
@@ -87,7 +88,7 @@ type PlayerState struct {
 	Speed     bool   `json:"speed"`
 	Alive     bool   `json:"alive"`
 	Lava      bool   `json:"lava"`
-	Killer    int    `json:"killer"`
+	Killer    int    `json:"killer" sql:",notnull"`
 }
 
 // NewPlayer returns a new instance of a player
@@ -95,6 +96,7 @@ func NewPlayer(ps *Person) *Player {
 	p := &Player{
 		PersonID:       ps.PersonID,
 		Person:         ps,
+		Nick:           ps.Nick,
 		ArcherType:     ps.ArcherType,
 		State:          NewPlayerState(),
 		PreferredColor: ps.PreferredColor,
@@ -133,7 +135,7 @@ func (p *Player) String() string {
 	return fmt.Sprintf(
 		"<(%d) %s: %dsh %dsw %dk %ds>",
 		p.ID,
-		p.Name(),
+		p.Nick,
 		p.Shots,
 		p.Sweeps,
 		p.Kills,
@@ -143,7 +145,7 @@ func (p *Player) String() string {
 
 // Name returns the nickname
 func (p *Player) Name() string {
-	return p.Person.Nick
+	return p.Nick
 }
 
 // NumericColor is the numeric representation of the color the player has
@@ -155,7 +157,7 @@ func (p *Player) NumericColor() int {
 	}
 
 	// No color was found - this is a bug. Return default.
-	log.Printf("Player '%s' did not match a color for '%s'", p.Name(), p.Color)
+	log.Printf("Player '%s' did not match a color for '%s'", p.Nick, p.Color)
 	return 0
 }
 
@@ -244,7 +246,7 @@ func (p *Player) URL() string {
 func (p *Player) Index() int {
 	if p.Match != nil {
 		for i, o := range p.Match.Players {
-			if p.Name() == o.Name() {
+			if p.Nick == o.Name() {
 				return i
 			}
 		}
@@ -254,31 +256,26 @@ func (p *Player) Index() int {
 
 // AddShot increases the shot count
 func (p *Player) AddShot() {
-	log.Printf("Adding shot to %s", p.Name())
 	p.Shots++
 }
 
 // RemoveShot decreases the shot count
 // Fails silently if shots are zero.
 func (p *Player) RemoveShot() {
-
 	if p.Shots == 0 {
-		log.Printf("Not removing shot from %s; already at zero", p.Name())
+		log.Printf("Not removing shot from %s; already at zero", p.Nick)
 		return
 	}
-	log.Printf("Removing shot from %s", p.Name())
 	p.Shots--
 }
 
 // AddSweep increases the sweep count
 func (p *Player) AddSweep() {
-	log.Printf("Adding sweep to %s", p.Name())
 	p.Sweeps++
 }
 
 // AddKills increases the kill count and adds a sweep if necessary
 func (p *Player) AddKills(kills int) {
-	log.Printf("Adding %d kills to %s", kills, p.Name())
 	p.Kills += kills
 	if kills == 3 {
 		p.AddSweep()
@@ -286,19 +283,17 @@ func (p *Player) AddKills(kills int) {
 }
 
 // RemoveKill decreases the kill count
-// Fails silently if kills are zero.
+// Doesn't to anything if kills are at zero.
 func (p *Player) RemoveKill() {
 	if p.Kills == 0 {
-		log.Printf("Not removing kill from %s; already at zero", p.Name())
+		log.Printf("Not removing kill from %s; already at zero", p.Nick)
 		return
 	}
-	log.Printf("Removing kill from %s", p.Name())
 	p.Kills--
 }
 
 // AddSelf increases the self count and decreases the kill
 func (p *Player) AddSelf() {
-	log.Printf("Adding self to %s", p.Name())
 	p.Self++
 	p.RemoveKill()
 }
