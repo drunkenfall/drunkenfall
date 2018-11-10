@@ -114,4 +114,10 @@ reset-db:
 
 .PHONY: reset-test-db
 reset-test-db:
+	psql --host localhost --user postgres -c "DROP DATABASE test_drunkenfall"
+	psql --host localhost --user postgres -c "CREATE DATABASE test_drunkenfall"
 	psql --host localhost --user postgres test_drunkenfall < test-db.sql
+
+.PHONY: make-test-db
+make-test-db:
+	pg_dump --user postgres --host localhost drunkenfall > test-db.sql
