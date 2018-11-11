@@ -465,6 +465,25 @@ func (p *PlayerSummary) Update(other PlayerSummary) {
 	// log.Printf("Updated player: %d, %d", p.TotalScore, p.Matches)
 }
 
+// DividePlayoffPlayers divides the playoff players into four buckets based
+// on their score
+//
+// The input is expected to be sorted with score descending
+func DividePlayoffPlayers(ps []*PlayerSummary) ([][]*PlayerSummary, error) {
+	ret := [][]*PlayerSummary{
+		[]*PlayerSummary{},
+		[]*PlayerSummary{},
+		[]*PlayerSummary{},
+		[]*PlayerSummary{},
+	}
+
+	for x, p := range ps {
+		ret[x%4] = append(ret[x%4], p)
+	}
+
+	return ret, nil
+}
+
 // FinalMultiplier returns the multiplier used for the winner scores
 // in the final
 //

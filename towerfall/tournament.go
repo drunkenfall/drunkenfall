@@ -18,21 +18,22 @@ var ErrPublishDisconnected = errors.New("not connected; will not publish")
 
 // Tournament is the main container of data for this app.
 type Tournament struct {
-	ID        uint             `json:"tournament_id"`
-	Name      string           `json:"name"`
-	Slug      string           `json:"id"`
-	Players   []PlayerSummary  `json:"players"` // See getTournamentPlayerObject()
-	Winners   []Player         `json:"-" sql:"-"`
-	Runnerups []*PlayerSummary `json:"runnerups" sql:"-"`
-	Casters   []*Person        `json:"casters" sql:"-"`
-	Matches   []*Match         `json:"matches"`
-	Current   CurrentMatch     `json:"current"`
-	Opened    time.Time        `json:"opened"`
-	Scheduled time.Time        `json:"scheduled"`
-	Started   time.Time        `json:"started"`
-	Ended     time.Time        `json:"ended"`
-	Events    []*Event         `json:"events" sql:"-"`
-	Color     string           `json:"color"`
+	ID            uint             `json:"tournament_id"`
+	Name          string           `json:"name"`
+	Slug          string           `json:"id"`
+	Players       []PlayerSummary  `json:"players"`
+	Winners       []Player         `json:"-" sql:"-"`
+	Runnerups     []*PlayerSummary `json:"runnerups" sql:"-"`
+	Casters       []*Person        `json:"casters" sql:"-"`
+	Matches       []*Match         `json:"matches"`
+	Current       CurrentMatch     `json:"current"`
+	Opened        time.Time        `json:"opened"`
+	Scheduled     time.Time        `json:"scheduled"`
+	Started       time.Time        `json:"started"`
+	QualifyingEnd time.Time        `json:"qualifying_end"`
+	Ended         time.Time        `json:"ended"`
+	Events        []*Event         `json:"events" sql:"-"`
+	Color         string           `json:"color"`
 	// Levels      Levels       `json:"levels"`
 	Cover       string `json:"cover"`
 	Length      int    `json:"length"`
@@ -287,9 +288,10 @@ func (t *Tournament) StartTournament(c *gin.Context) error {
 	// Add the first 8 players, in modulated joining order (first to
 	// first match, second to second, third to first etc)
 	for i, p := range t.Players[0:8] {
-		err := t.Matches[i%2].AddPlayer(p.Player())
+		ps := p.Player()
+		err := t.Matches[i%2].AddPlayer(ps)
 		if err != nil {
-			return err
+			return errors.WithStack(err)
 		}
 	}
 
@@ -305,6 +307,12 @@ func (t *Tournament) StartTournament(c *gin.Context) error {
 	if err != nil && err != ErrPublishDisconnected {
 		return err
 	}
+	return t.Persist()
+}
+
+// EndQualifyingRounds marks when the qualifying rounds end
+func (t *Tournament) EndQualifyingRounds(ts time.Time) error {
+	t.QualifyingEnd = ts
 	return t.Persist()
 }
 
@@ -436,7 +444,7 @@ func (t *Tournament) GetRunnerupPlayers() ([]PlayerSummary, error) {
 	rs := len(t.Runnerups)
 	p := make([]PlayerSummary, 0, rs)
 	for _, r := range t.Runnerups {
-		tp, err := t.getTournamentPlayerObject(r.Person)
+		tp, err := t.GetPlayerSummary(r.Person)
 		if err != nil {
 			return ret, err
 		}
@@ -464,7 +472,7 @@ func (t *Tournament) UpdatePlayers() error {
 
 	for _, m := range t.Matches {
 		for _, p := range m.Players {
-			tp, err := t.getTournamentPlayerObject(p.Person)
+			tp, err := t.GetPlayerSummary(p.Person)
 			if err != nil {
 				return err
 			}
@@ -479,21 +487,33 @@ func (t *Tournament) UpdatePlayers() error {
 // or into the Runnerup bracket.
 func (t *Tournament) MovePlayers(m *Match) error {
 	if m.Kind == qualifying {
-		log.Print("Scheduling the next match")
+		// If we have not yet set the qualifying end, we will keep making
+		// matches and we have not passed it
+		if t.QualifyingEnd.IsZero() || time.Now().Before(t.QualifyingEnd) {
+			log.Print("Scheduling the next match")
 
-		nm := NewMatch(t, qualifying)
-		t.Matches = append(t.Matches, nm)
-		rups, err := t.GetRunnerups()
+			nm := NewMatch(t, qualifying)
+			t.Matches = append(t.Matches, nm)
+			rups, err := t.GetRunnerups()
+			if err != nil {
+				return err
+			}
+
+			// The runnerups are in order for the next match - add them
+			for _, p := range rups {
+				nm.AddPlayer(p.Player())
+			}
+
+			return nil
+		}
+
+		done, err := t.db.QualifyingMatchesDone(t)
 		if err != nil {
-			return err
+			return errors.WithStack(err)
 		}
-
-		// The runnerups are in order for the next match - add them
-		for _, p := range rups {
-			nm.AddPlayer(p.Player())
+		if done {
+			t.ScheduleEndgame()
 		}
-
-		return nil
 	}
 
 	// For the playoffs, just place the winner into the final
@@ -505,62 +525,6 @@ func (t *Tournament) MovePlayers(m *Match) error {
 	return nil
 }
 
-func (t *Tournament) movePlayoffPlayers(m *Match) error {
-	ps := SortByKills(m.Players)
-	for i := 0; i < len(ps); i++ {
-		p := ps[i]
-		// If we are in a four-match playoff, both the winner and the second-place
-		// are to be sent to the semis.
-		// If there are more than four matches, just send the winner
-		if len(t.Matches)-3 <= 4 && i < 2 || i == 0 {
-			// This spreads the winners into the semis so that the winners do not
-			// face off immediately in the semis
-			offset := len(t.Matches) - 3 + ((i + m.Index) % 2)
-			log.Printf(
-				"Moving %s (pos %d in match %d) to %s",
-				p.Person.Name,
-				i,
-				m.Index,
-				t.Matches[offset].Title(),
-			)
-			err := t.Matches[offset].AddPlayer(p)
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			// If the player is also inside of the runnerups, move them from the
-			// runnerup roster since they now have advanced to the finals. This
-			// only happens for players that win the runnerup rounds.
-			// XXX(thiderman): Not checking the error because the error just
-			// means that the player was _not_ removed, which is fine here.
-			_ = t.removeFromRunnerups(p.Person)
-			// if err != nil {
-			// 	log.Fatal(err)
-			// }
-		} else {
-			// For everyone else, add them into the Runnerup bracket unless they are
-			// already in there.
-			found := false
-			for j := 0; j < len(t.Runnerups); j++ {
-				r := t.Runnerups[j]
-				if r.PersonID == p.Person.PersonID {
-					found = true
-					break
-				}
-			}
-			if !found {
-				tp, err := t.getTournamentPlayerObject(p.Person)
-				if err != nil {
-					return err
-				}
-				t.Runnerups = append(t.Runnerups, tp)
-			}
-		}
-	}
-
-	return t.UpdateRunnerups()
-}
-
 // UpdateRunnerups updates the runnerup list
 func (t *Tournament) UpdateRunnerups() error {
 	// Get the runnerups and sort them into the Runnerup array
@@ -570,13 +534,53 @@ func (t *Tournament) UpdateRunnerups() error {
 	}
 	t.Runnerups = make([]*PlayerSummary, 0)
 	for _, p := range ps {
-		tp, err := t.getTournamentPlayerObject(p.Person)
+		tp, err := t.GetPlayerSummary(p.Person)
 		if err != nil {
 			return err
 		}
 		t.Runnerups = append(t.Runnerups, tp)
 	}
 	t.Persist()
+
+	return nil
+}
+
+// ScheduleEndgame makes the playoff matches and the final
+func (t *Tournament) ScheduleEndgame() error {
+	log.Print("Scheduling endgame")
+
+	// Get sorted list of players that made it to the playoffs
+	players, err := t.db.GetPlayoffPlayers(t)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	lp := len(players)
+	if lp != 16 {
+		return errors.New(fmt.Sprintf("Needed 16 players, got %d", lp))
+	}
+
+	// Bucket the players for inclusion in the playoffs
+	buckets, err := DividePlayoffPlayers(players)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	// Add four playoff matches
+	for x := 0; x < 4; x++ {
+		m := NewMatch(t, playoff)
+
+		// Add players to the match
+		for _, p := range buckets[x] {
+			m.AddPlayer(p.Player())
+		}
+
+		t.Matches = append(t.Matches, m)
+	}
+
+	// Add the final, without players for now
+	m := NewMatch(t, final)
+	t.Matches = append(t.Matches, m)
 
 	return nil
 }
@@ -808,22 +812,9 @@ func SetupFakeTournament(c *gin.Context, s *Server, req *NewRequest) *Tournament
 	return t
 }
 
-// getTournamentPlayerObject returns the tournament-wide player object.
-//
-// The need for this distinction is that the ones that are stored in t.Players
-// have scores from all the matches they have participated in, whereas the
-// ones started in m.Players are local to that match only. This is also why
-// the Match objects don't have pointers to their Player objects.
-func (t *Tournament) getTournamentPlayerObject(ps *Person) (p *PlayerSummary, err error) {
-	for i := range t.Players {
-		p := &t.Players[i]
-		if ps.PersonID == p.Person.PersonID {
-			return p, nil
-		}
-	}
-
-	err = fmt.Errorf("no player found for %s", ps)
-	return
+// GetPlayerSummary returns the tournament-wide player object.
+func (t *Tournament) GetPlayerSummary(ps *Person) (*PlayerSummary, error) {
+	return t.db.GetPlayerSummary(t, ps.PersonID)
 }
 
 func (t *Tournament) removeFromRunnerups(p *Person) error {
