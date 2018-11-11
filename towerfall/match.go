@@ -236,7 +236,7 @@ func (m *Match) UpdatePlayer(p Player) error {
 			m.Players[i] = p
 		}
 	}
-	return nil
+	return globalDB.UpdatePlayer(m, &p)
 }
 
 // CorrectFuckingColorConflicts corrects color conflicts :@ 😠
