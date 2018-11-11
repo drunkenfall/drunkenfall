@@ -160,7 +160,7 @@ func (d *Database) GetPerson(id string) (*Person, error) {
 // GetRandomPerson gets a random Person{} from the DB
 func (d *Database) GetRandomPerson(used []string) (*Person, error) {
 	p := Person{}
-	q := d.DB.Model(&p).OrderExpr("random()")
+	q := d.DB.Model(&p).Where("NOT disabled").OrderExpr("random()")
 
 	if len(used) != 0 {
 		args := make([]interface{}, 0)
