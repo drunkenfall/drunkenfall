@@ -242,6 +242,30 @@ func (d *Database) GetMatch(id uint) (*Match, error) {
 	return m, err
 }
 
+// GetMatches gets a slice of matches based on a kind
+func (d *Database) GetMatches(t *Tournament, kind string) ([]*Match, error) {
+	ret := []*Match{}
+
+	q := d.DB.Model(&ret).Where("kind = ?", kind)
+	q = q.Where("tournament_id = ?", t.ID).Order("id")
+	err := q.Select(&ret)
+
+	// XXX(thiderman): This should use the ORM relational things to not
+	// do subqueries
+	for x := range ret {
+		ps := []Player{}
+		q = t.db.DB.Model(&ps).Where("match_id = ?", ret[x].ID)
+		err = q.Select()
+		if err != nil {
+			return ret, err
+		}
+
+		ret[x].Players = ps
+	}
+
+	return ret, err
+}
+
 // NextMatch the next playable match of a tournament
 func (d *Database) NextMatch(t *Tournament) (*Match, error) {
 	m := Match{
@@ -264,6 +288,25 @@ func (d *Database) NextMatch(t *Tournament) (*Match, error) {
 	return &m, err
 }
 
+// QualifyingMatchesDone returns if we're done with the qualifiers
+func (d *Database) QualifyingMatchesDone(t *Tournament) (bool, error) {
+	m := Match{
+		Tournament: t,
+	}
+
+	// Get the count of the matches that have not ended
+	q := t.db.DB.Model(&m).Where("tournament_id = ?", t.ID)
+	q = q.Where("ended IS NULL")
+	q = q.Where("kind = ?", qualifying)
+
+	out, err := q.Count()
+	if err != nil {
+		return false, err
+	}
+
+	return out == 0, err
+}
+
 // GetRunnerups gets the next four runnerups, excluding those already
 // booked to matches
 func (d *Database) GetRunnerups(t *Tournament) ([]*PlayerSummary, error) {
@@ -278,6 +321,30 @@ func (d *Database) GetRunnerups(t *Tournament) ([]*PlayerSummary, error) {
 
 	err := q.Select()
 	return ret, err
+}
+
+// GetPlayoffPlayers gets the sixteen players that made it to the playoffs
+func (d *Database) GetPlayoffPlayers(t *Tournament) ([]*PlayerSummary, error) {
+	ret := []*PlayerSummary{}
+	q := d.DB.Model(&ret).Where("tournament_id = ?", t.ID)
+	q = q.Order("skill_score DESC").Limit(16)
+
+	err := q.Select()
+	return ret, err
+}
+
+// GetPlayerSummary gets a single player summary for a tourmanent
+func (d *Database) GetPlayerSummary(t *Tournament, pid string) (*PlayerSummary, error) {
+	ret := PlayerSummary{}
+	q := d.DB.Model(&ret).Where("person_id = ?", pid)
+	q = q.Where("tournament_id = ?", t.ID)
+	err := q.Select(&ret)
+	if err != nil {
+		return nil, err
+	}
+
+	ret.Person, err = d.GetPerson(pid)
+	return &ret, err
 }
 
 // ClearTestTournaments deletes any tournament that doesn't begin with "DrunkenFall"
