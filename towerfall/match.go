@@ -678,7 +678,8 @@ func (m *Match) End(c *gin.Context) error {
 	// Give more points if we're in the finals
 	multiplier := 1.0
 	if m.Kind == final {
-		multiplier = finalMultiplier
+		multiplier = FinalMultiplier(len(m.Tournament.Matches))
+		log.Printf("Setting final multiplier to be %.2f", multiplier)
 	}
 
 	for x, k := range m.MakeKillOrder() {

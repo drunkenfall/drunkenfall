@@ -3,6 +3,7 @@ package towerfall
 import (
 	"fmt"
 	"log"
+	"math"
 	"math/rand"
 	"sort"
 
@@ -34,7 +35,9 @@ const scoreWinner = (350 * scoreMultiplier)
 const scoreSecond = (150 * scoreMultiplier)
 const scoreThird = (70 * scoreMultiplier)
 const scoreFourth = (30 * scoreMultiplier)
+
 const finalMultiplier = 2.5
+const finalExponential = 1.05
 
 // ScoreData is a structured Key/Value pair list for scores
 type ScoreData struct {
@@ -460,4 +463,21 @@ func (p *PlayerSummary) Update(other PlayerSummary) {
 	// as if a match.
 	p.Matches++
 	// log.Printf("Updated player: %d, %d", p.TotalScore, p.Matches)
+}
+
+// FinalMultiplier returns the multiplier used for the winner scores
+// in the final
+//
+// The longer at tournament lasts, the more points you'll get for
+// winning the final.
+func FinalMultiplier(numMatches int) float64 {
+	// We only count extra when there has been more than 16 matches
+	x := numMatches - 16
+
+	// If there haven't been, just return the default
+	if x <= 0 {
+		return finalMultiplier
+	}
+
+	return finalMultiplier * math.Pow(finalExponential, float64(x))
 }
