@@ -99,8 +99,8 @@ func NewMatch(t *Tournament, kind string) *Match {
 	}
 	m.presentColors = mapset.NewSet()
 
-	// Finals are longer <3
-	if kind == final {
+	// Finals are longer, and so are playoffs
+	if kind == final || kind == playoff {
 		m.Length = t.FinalLength
 	}
 
