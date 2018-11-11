@@ -17,7 +17,7 @@ var usedPeople []string
 
 // MockMatch makes a mock Match{} with a dummy Tournament{}
 func MockMatch(t *testing.T, s *Server, idx int, cat string) (m *Match) {
-	tm := testTournament(t, s, 8)
+	tm := testTournament(t, s, minPlayers)
 	tm.SetMatchPointers()
 	err := tm.StartTournament(nil)
 	if err != nil {
@@ -421,9 +421,6 @@ func TestCorrectColorConflictsNoScores(t *testing.T) {
 	assert.Equal("blue", m.Players[2].Person.PreferredColor)
 	assert.Equal("red", m.Players[3].Color)
 	assert.Equal("red", m.Players[3].Person.PreferredColor)
-
-	// Just one event - nothing started or ended
-	assert.Equal(1, len(m.Events))
 }
 
 func TestCorrectColorConflictsUserLevels(t *testing.T) {
@@ -525,10 +522,10 @@ func TestCorrectColorConflictsNoScoresDoubleConflict(t *testing.T) {
 	m.Tournament.Players[2].Person.PreferredColor = "blue"
 	m.Tournament.Players[3].Person.PreferredColor = "blue"
 
-	assert.Nil(m.AddPlayer(m.Tournament.Players[0].Player()))
-	assert.Nil(m.AddPlayer(m.Tournament.Players[1].Player()))
-	assert.Nil(m.AddPlayer(m.Tournament.Players[2].Player()))
-	assert.Nil(m.AddPlayer(m.Tournament.Players[3].Player()))
+	assert.NoError(m.AddPlayer(m.Tournament.Players[0].Player()))
+	assert.NoError(m.AddPlayer(m.Tournament.Players[1].Player()))
+	assert.NoError(m.AddPlayer(m.Tournament.Players[2].Player()))
+	assert.NoError(m.AddPlayer(m.Tournament.Players[3].Player()))
 
 	assert.Equal("green", m.Players[0].Color)
 	assert.Equal("green", m.Players[0].Person.PreferredColor)
@@ -538,8 +535,6 @@ func TestCorrectColorConflictsNoScoresDoubleConflict(t *testing.T) {
 	assert.Equal("blue", m.Players[2].Person.PreferredColor)
 	assert.NotEqual("blue", m.Players[3].Color)
 	assert.Equal("blue", m.Players[3].Person.PreferredColor)
-
-	assert.Equal(2, len(m.Events))
 }
 
 func TestCorrectColorConflictsWithScoresDoubleConflict(t *testing.T) {

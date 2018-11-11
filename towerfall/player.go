@@ -7,6 +7,7 @@ import (
 	"sort"
 
 	"github.com/deckarep/golang-set"
+	"github.com/pkg/errors"
 )
 
 // AllColors is a list of the available player colors
@@ -325,7 +326,7 @@ func (s ByColorConflict) Less(i, j int) bool {
 	if s[i].Person.Userlevel != s[j].Person.Userlevel {
 		return s[i].Person.Userlevel > s[j].Person.Userlevel
 	}
-	return s[i].TotalScore > s[j].TotalScore
+	return s[i].SkillScore > s[j].SkillScore
 }
 
 // ByScore is a sort.Interface that sorts players by their score
@@ -351,9 +352,9 @@ func SortByColorConflicts(m *Match, ps []Person) (tmp []PlayerSummary, err error
 	tmp = make([]PlayerSummary, len(ps))
 	for i, p := range ps {
 		// TODO(thiderman): This is not very elegant and should be replaced.
-		tp, err = m.Tournament.getTournamentPlayerObject(&p)
+		tp, err = m.Tournament.GetPlayerSummary(&p)
 		if err != nil {
-			return
+			return tmp, errors.WithStack(err)
 		}
 		tmp[i] = *tp
 	}

@@ -1,7 +1,6 @@
 package towerfall
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"math/rand"
@@ -11,6 +10,7 @@ import (
 	"github.com/deckarep/golang-set"
 	"github.com/gin-gonic/gin"
 	"github.com/mitchellh/mapstructure"
+	"github.com/pkg/errors"
 	"go.uber.org/zap"
 )
 
@@ -222,6 +222,7 @@ func (m *Match) AddPlayer(p Player) error {
 	// If we're adding the fourth player, it's time to correct the conflicts
 	if len(m.Players) == 4 && len(m.presentColors.ToSlice()) != 4 {
 		if err := m.CorrectFuckingColorConflicts(); err != nil {
+			log.Print("Correcting color conflicts failed")
 			return err
 		}
 	}
@@ -248,6 +249,16 @@ func (m *Match) CorrectFuckingColorConflicts() error {
 		c := color.(string)
 		for _, p := range m.Players {
 			if p.PreferredColor == c {
+				// XXX(thiderman): Ugh, this sucks, but it makes the cases
+				// where the Person isn't loaded work
+				if p.Person == nil {
+					var err error
+					p.Person, err = m.Tournament.db.GetPerson(p.PersonID)
+					if err != nil {
+						return errors.WithStack(err)
+					}
+				}
+
 				pairs[c] = append(pairs[c], *p.Person)
 			}
 		}
@@ -262,7 +273,7 @@ func (m *Match) CorrectFuckingColorConflicts() error {
 			// highest score keep their color.
 			ps, err := SortByColorConflicts(m, pair)
 			if err != nil {
-				return err
+				return errors.WithStack(err)
 			}
 
 			for _, p := range ps[1:] {
@@ -285,16 +296,17 @@ func (m *Match) CorrectFuckingColorConflicts() error {
 				// p.Reset()
 
 				if err := m.UpdatePlayer(player); err != nil {
-					return err
+					return errors.WithStack(err)
 				}
 
-				m.LogEvent(
-					"color_conflict",
-					"{nick} corrected from {preferred} to {new}", // Unfortunately we cannot reuse person from below..
-					"nick", player.Person.Nick,
-					"preferred", player.PreferredColor,
-					"new", new,
-					"person", player.Person)
+				log.Printf("%s corrected from %s to %s", player.Nick, player.PreferredColor, new)
+				// m.LogEvent(
+				// 	"color_conflict",
+				// 	"{nick} corrected from {preferred} to {new}", // Unfortunately we cannot reuse person from below..
+				// 	"nick", player.Person.Nick,
+				// 	"preferred", player.PreferredColor,
+				// 	"new", new,
+				// 	"person", player.Person)
 
 			}
 		}
