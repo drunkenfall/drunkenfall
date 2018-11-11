@@ -48,6 +48,7 @@ func (d *Database) AddPlayerToMatch(m *Match, p *Player) error {
 	p.Kills = 0
 	p.Self = 0
 	p.MatchScore = 0
+	p.TotalScore = 0
 	return d.DB.Insert(p)
 }
 
