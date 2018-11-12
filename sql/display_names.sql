@@ -7,7 +7,7 @@
 --
 -- Assumes that player nicks are only allowed a maximum of one space
 -- and that input validation handles those cases.
-CREATE OR REPLACE FUNCTION display_names(nick TEXT) RETURNS TABLE (words TEXT []) AS $$
+CREATE OR REPLACE FUNCTION display_names(tid INTEGER, nick TEXT) RETURNS TABLE (words TEXT []) AS $$
   DECLARE clean_nick TEXT;
   DECLARE other TEXT;
   BEGIN
@@ -21,11 +21,11 @@ CREATE OR REPLACE FUNCTION display_names(nick TEXT) RETURNS TABLE (words TEXT []
       -- If we have one word only, randomly add a prefix or a suffix
       IF random() * 100 >= 50 THEN
         -- Prefix
-        SELECT NAME FROM NAMES n WHERE n.prefix = TRUE ORDER BY random() LIMIT 1 INTO other;
+        SELECT random_name FROM random_name(tid, TRUE) INTO other;
         RETURN QUERY SELECT ARRAY[other, clean_nick];
       ELSE
         -- Suffix
-        SELECT NAME FROM NAMES n WHERE n.prefix = FALSE ORDER BY random() LIMIT 1 INTO other;
+        SELECT random_name FROM random_name(tid, FALSE) INTO other;
         RETURN QUERY SELECT ARRAY[clean_nick, other];
       END IF;
     END IF;
@@ -38,8 +38,10 @@ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION player_insert() RETURNS trigger AS $$
   DECLARE nick TEXT;
   DECLARE dn TEXT [];
+  DECLARE tid INTEGER;
   BEGIN
     -- First grab the existing data from the person
+    SELECT m.tournament_id FROM matches M WHERE id = NEW.match_id INTO tid;
     SELECT p.nick FROM people p WHERE p.person_id = NEW.person_id INTO nick;
     SELECT display_names FROM people WHERE person_id = NEW.person_id INTO dn;
 
@@ -48,7 +50,7 @@ CREATE OR REPLACE FUNCTION player_insert() RETURNS trigger AS $$
       NEW.display_names = dn;
     ELSE
       -- If not, grab random ones
-      NEW.display_names = display_names(nick);
+      NEW.display_names = display_names(tid, nick);
     END IF;
 
     RETURN NEW;
@@ -56,3 +58,48 @@ CREATE OR REPLACE FUNCTION player_insert() RETURNS trigger AS $$
 LANGUAGE plpgsql;
 
 CREATE TRIGGER on_player_set_display_names BEFORE INSERT ON players FOR EACH ROW EXECUTE PROCEDURE player_insert();
+
+-- Fisher-Yates for name prefixes and suffixes. See `random_level` in
+-- levels.sql for a more in-depth explanation of what's going on.
+CREATE OR REPLACE FUNCTION random_name(tid INTEGER, aprefix bool) RETURNS text AS $$
+ DECLARE nid INTEGER;
+ DECLARE remaining SMALLINT;
+
+ BEGIN
+   SELECT COUNT(*)
+     FROM tournament_names tn
+    INNER JOIN names n ON n.id = tn.name_id
+    WHERE tournament_id = tid
+      AND n.prefix = aprefix
+     INTO remaining;
+
+   IF remaining = 0 THEN
+     INSERT INTO tournament_names (tournament_id, name_id)
+          SELECT tid, n.id FROM names n
+           WHERE n.prefix = aprefix
+           ORDER BY random();
+   END IF;
+
+   DELETE FROM tournament_names tn
+         WHERE id IN (
+               SELECT tn.id FROM tournament_names tn
+                INNER JOIN names n ON n.id = tn.name_id
+                WHERE tn.tournament_id = tid
+                  AND n.prefix = aprefix
+             ORDER BY tn.id
+                LIMIT 1
+         )
+         RETURNING tn.name_id
+   INTO nid;
+
+   RETURN (SELECT name FROM names WHERE id = nid);
+ END;$$
+LANGUAGE plpgsql;
+
+-- ALTER TABLE NAMES ADD COLUMN ID SERIAL PRIMARY KEY;
+-- CREATE TABLE tournament_names (
+--     ID SERIAL PRIMARY KEY,
+--     tournament_id INTEGER REFERENCES tournaments(ID) ON DELETE CASCADE,
+--     name_id INTEGER REFERENCES names(ID)
+-- );
+-- CREATE INDEX tournament_id_idx ON tournament_names(tournament_id);
