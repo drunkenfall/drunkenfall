@@ -5,7 +5,6 @@
 /towerfall/test/*
 *.db
 *.log
-*.sql
 *.json
 /*.env
 /vendor
