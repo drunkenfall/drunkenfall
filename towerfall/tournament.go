@@ -20,19 +20,19 @@ var ErrPublishDisconnected = errors.New("not connected; will not publish")
 type Tournament struct {
 	ID            uint             `json:"tournament_id"`
 	Name          string           `json:"name"`
-	Slug          string           `json:"id"`
-	Players       []PlayerSummary  `json:"players"`
+	Slug          string           `json:"slug"`
+	Players       []PlayerSummary  `json:"-"`
 	Winners       []Player         `json:"-" sql:"-"`
-	Runnerups     []*PlayerSummary `json:"runnerups" sql:"-"`
-	Casters       []*Person        `json:"casters" sql:"-"`
-	Matches       []*Match         `json:"matches"`
-	Current       CurrentMatch     `json:"current"`
+	Runnerups     []*PlayerSummary `json:"-" sql:"-"`
+	Casters       []*Person        `json:"-" sql:"-"`
+	Matches       []*Match         `json:"-"`
+	Current       CurrentMatch     `json:"-"`
 	Opened        time.Time        `json:"opened"`
 	Scheduled     time.Time        `json:"scheduled"`
 	Started       time.Time        `json:"started"`
 	QualifyingEnd time.Time        `json:"qualifying_end"`
 	Ended         time.Time        `json:"ended"`
-	Events        []*Event         `json:"events" sql:"-"`
+	Events        []*Event         `json:"-" sql:"-"`
 	Color         string           `json:"color"`
 	// Levels      Levels       `json:"levels"`
 	Cover       string `json:"cover"`

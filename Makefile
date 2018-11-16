@@ -74,8 +74,11 @@ lint: install-linter
 npm: js/package.json
 	cd js; npm install
 
-npm-start: npm
+npm-start:
 	cd js; PORT=42002 npm run dev
+
+npm-sass:
+	cd js; npm rebuild node-sass
 
 npm-dist: npm
 	cd js; npm run build

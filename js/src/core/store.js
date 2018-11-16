@@ -28,7 +28,7 @@ const store = new Vuex.Store({ // eslint-disable-line
     updateAll (state, data) {
       let ts = {}
       _.forEach(data.tournaments, (t) => {
-        ts[t.id] = Tournament.fromObject(t)
+        ts[t.slug] = Tournament.fromObject(t)
       })
       state.tournaments = ts
       state.tournamentsLoaded = true

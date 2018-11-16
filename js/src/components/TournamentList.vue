@@ -142,6 +142,7 @@ p {
 
     .cover {
       width: 100%;
+      min-height: 232px;
       background-color: rgba(0,0,0,0.5);
     }
 
