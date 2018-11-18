@@ -82,9 +82,9 @@ LANGUAGE plpgsql;
 
 CREATE TRIGGER on_match_insert_ruleset BEFORE INSERT ON matches FOR EACH ROW EXECUTE PROCEDURE match_insert();
 
--- CREATE TABLE tournament_levels (
---     ID SERIAL PRIMARY KEY,
---     tournament_id INTEGER REFERENCES tournaments(ID) ON DELETE CASCADE,
---     level_id INTEGER REFERENCES levels(ID)
--- );
--- CREATE INDEX tournament_levels_tournament_id ON tournament_levels(tournament_id);
+CREATE TABLE tournament_levels (
+    ID SERIAL PRIMARY KEY,
+    tournament_id INTEGER REFERENCES tournaments(ID) ON DELETE CASCADE,
+    level_id INTEGER REFERENCES levels(ID)
+);
+CREATE INDEX tournament_levels_tournament_id ON tournament_levels(tournament_id);

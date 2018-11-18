@@ -96,10 +96,10 @@ CREATE OR REPLACE FUNCTION random_name(tid INTEGER, aprefix bool) RETURNS text A
  END;$$
 LANGUAGE plpgsql;
 
--- ALTER TABLE NAMES ADD COLUMN ID SERIAL PRIMARY KEY;
--- CREATE TABLE tournament_names (
---     ID SERIAL PRIMARY KEY,
---     tournament_id INTEGER REFERENCES tournaments(ID) ON DELETE CASCADE,
---     name_id INTEGER REFERENCES names(ID)
--- );
--- CREATE INDEX tournament_id_idx ON tournament_names(tournament_id);
+ALTER TABLE NAMES ADD COLUMN ID SERIAL PRIMARY KEY;
+CREATE TABLE tournament_names (
+    ID SERIAL PRIMARY KEY,
+    tournament_id INTEGER REFERENCES tournaments(ID) ON DELETE CASCADE,
+    name_id INTEGER REFERENCES names(ID)
+);
+CREATE INDEX tournament_id_idx ON tournament_names(tournament_id);
