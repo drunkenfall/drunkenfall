@@ -106,7 +106,7 @@ var DrunkenFallMixin = {
       let ts = _.filter(this.tournaments, (t) => {
         return t.scheduled.year() === moment().year() && !t.isTest
       })
-      return _.sortBy(ts, 'scheduled')
+      return _.reverse(_.sortBy(ts, 'scheduled'))
     },
     user () {
       return this.$store.state.user
