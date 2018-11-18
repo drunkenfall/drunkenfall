@@ -99,7 +99,11 @@ download-caddy:
 
 .PHONY: caddy
 caddy: download-caddy
-	sudo /home/thiderman/bin/caddy
+	sudo $(GOPATH)/bin/caddy
+
+.PHONY: caddy-local
+caddy-local: download-caddy
+	sudo $(GOPATH)/bin/caddy -conf Caddyfile.local
 
 .PHONY: postgres
 postgres:
