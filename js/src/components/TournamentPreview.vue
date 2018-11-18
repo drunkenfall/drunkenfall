@@ -32,7 +32,7 @@
 
     <div class="players">
       <transition-group name="list" tag="div">
-        <div v-for="player in tournament.players" v-bind:key="player.person.id" class="player">
+        <div v-for="player in playerSummaries" v-bind:key="player.person.id" class="player">
           <img :alt="player.person.nick" :src="player.avatar"/>
         </div>
       </transition-group>
@@ -53,8 +53,6 @@
         </strong>
       </div>
     </div>
-
-
   </div>
 </template>
 
@@ -94,16 +92,6 @@ export default {
     isJoined () {
       return this.tournament.playerJoined(this.user)
     },
-    tournament () {
-      if (this.runningTournament) {
-        return this.runningTournament
-      }
-
-      let up = this.upcomingTournament
-      if (up) {
-        return up
-      }
-    },
   },
 
   watch: {
@@ -116,14 +104,30 @@ export default {
   },
 
   created () {
+    let $vue = this
     this.api = this.$resource("/api", {}, {
       join: { method: "GET", url: "/api/tournaments/{id}/join/" },
     })
+
+    console.log(this.tournament)
 
     if (this.tournament.isToday) {
       console.log("starting clock")
       this.countdown.start(this.tournament.scheduled)
     }
+
+    let id = this.tournament.id
+    this.$http.get(`/api/tournaments/${id}/players/`).then(function (res) {
+      let data = JSON.parse(res.data)
+      console.log(data)
+      this.$store.commit('setPlayerSummaries', {
+        tid: id,
+        player_summaries: data.player_summaries,
+      })
+    }, function (res) {
+      $vue.$alert("Getting players failed. See console.")
+      console.error(res)
+    })
   }
 }
 </script>

@@ -25,7 +25,7 @@ type Person struct {
 	AvatarURL      string   `json:"avatar_url"`
 	Userlevel      int      `json:"userlevel"`
 	Disabled       bool     `json:"disabled"`
-	DisplayNames   []string `sql:",array"`
+	DisplayNames   []string `sql:",array" json:"display_names"`
 }
 
 // Credits represents the data structure needed to display the credits

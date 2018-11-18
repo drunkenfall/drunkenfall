@@ -71,7 +71,7 @@ type Player struct {
 type PlayerSummary struct {
 	ID uint `json:"id"`
 
-	TournamentID uint
+	TournamentID uint    `json:"-"`
 	PersonID     string  `json:"person_id"`
 	Person       *Person `json:"person" sql:"-"`
 	Shots        int     `json:"shots" sql:",notnull"`

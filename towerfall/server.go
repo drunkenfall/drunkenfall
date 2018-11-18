@@ -100,7 +100,10 @@ func NewServer(config *Config, db *Database) *Server {
 	s.router = s.BuildRouter(s.ws)
 
 	// Add zap logging
-	s.log, _ = zap.NewDevelopment()
+	s.log, err = zap.NewDevelopment()
+	if err != nil {
+		log.Fatal(err)
+	}
 	s.router.Use(ginzap.Ginzap(s.log, time.RFC3339, true))
 
 	// Add the Rabbit publisher
@@ -326,6 +329,46 @@ func (s *Server) AutoplayTournamentHandler(c *gin.Context) {
 	tm := s.getTournament(c)
 	tm.AutoplaySection()
 	c.JSON(http.StatusOK, gin.H{"redirect": tm.URL()})
+}
+
+// PlayerSummariesHandler returns the players for a tournament
+func (s *Server) PlayerSummariesHandler(c *gin.Context) {
+	tm := s.getTournament(c)
+
+	tlog := s.log.With(
+		zap.String("path", c.Request.URL.Path),
+		zap.String("tournament", tm.Slug),
+	)
+
+	ps, err := s.DB.GetPlayerSummaries(tm)
+	if err != nil {
+		tlog.Info("Could not get summaries", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "could not get summaries"})
+		return
+	}
+
+	if len(ps) == 0 {
+		c.JSON(http.StatusOK, gin.H{"player_summaries": ps})
+		return
+	}
+
+	ids := []string{}
+	for _, p := range ps {
+		ids = append(ids, p.PersonID)
+	}
+
+	p, err := s.DB.GetPeopleById(ids...)
+	if err != nil {
+		tlog.Info("Could not get people", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "could not get people"})
+		return
+	}
+
+	for x, y := range p {
+		ps[x].Person = y
+	}
+
+	c.JSON(http.StatusOK, gin.H{"player_summaries": ps})
 }
 
 // StartPlayHandler sends a message to the game that it is time to
@@ -735,6 +778,7 @@ func (s *Server) BuildRouter(ws *melody.Melody) *gin.Engine {
 	api.POST("/tournaments/", s.NewHandler)
 
 	t := api.Group("/tournaments/:id")
+	t.GET("/players/", s.PlayerSummariesHandler)
 	t.GET("/autoplay/", s.AutoplayTournamentHandler)
 	t.GET("/credits/", s.CreditsHandler)
 	t.GET("/join/", s.JoinHandler)
@@ -792,13 +836,14 @@ func (s *Server) SendWebsocketUpdate(kind string, data interface{}) error {
 
 // DisableWebsocketUpdates... disables websocket updates.
 func (s *Server) DisableWebsocketUpdates() {
-	s.log.Info("Disabling websocket broadcast")
+	// log.Printf("%+v", s)
+	// s.log.Info("Disabling websocket broadcast")
 	broadcasting = false
 }
 
 // EnableWebsocketUpdates... enables websocket updates.
 func (s *Server) EnableWebsocketUpdates() {
-	s.log.Info("Enabling websocket broadcast")
+	// s.log.Info("Enabling websocket broadcast")
 	broadcasting = true
 }
 
@@ -826,7 +871,7 @@ func (s *Server) getTournament(c *gin.Context) *Tournament {
 	}
 	tm, err := s.DB.GetTournament(id)
 	if err != nil {
-		log.Print("couldn't get tournament")
+		log.Printf("couldn't get tournament: %+v", err)
 		return nil
 	}
 	return tm

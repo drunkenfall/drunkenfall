@@ -2,6 +2,7 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 
 import Person from '../models/Person.js'
+import Player from '../models/Player.js'
 import Stats from '../models/Stats.js'
 import {Credits as CreditsModel} from '../models/Credits.js'
 import Tournament from '../models/Tournament.js'
@@ -18,6 +19,7 @@ const store = new Vuex.Store({ // eslint-disable-line
     userLoaded: false,
     stats: undefined,
     people: undefined,
+    playerSummaries: {},
     credits: {},
     socket: {
       isConnected: false,
@@ -28,7 +30,7 @@ const store = new Vuex.Store({ // eslint-disable-line
     updateAll (state, data) {
       let ts = {}
       _.forEach(data.tournaments, (t) => {
-        ts[t.slug] = Tournament.fromObject(t)
+        ts[t.id] = Tournament.fromObject(t)
       })
       state.tournaments = ts
       state.tournamentsLoaded = true
@@ -41,6 +43,11 @@ const store = new Vuex.Store({ // eslint-disable-line
       let t = state.tournaments[data.tournament]
       t.matches[data.match].players[data.player].state = data.state
       Vue.set(state.tournaments, t.id, t)
+    },
+    setPlayerSummaries (state, data) {
+      Vue.set(state.playerSummaries, data.tid, _.map(data.player_summaries, (p) => {
+        return Player.fromObject(p)
+      }))
     },
     setUser (state, user) {
       state.user = user
@@ -102,6 +109,9 @@ const store = new Vuex.Store({ // eslint-disable-line
   getters: {
     getTournament: (state, getters) => (id) => {
       return state.tournaments[id]
+    },
+    playerSummaries: (state, getters) => (id) => {
+      return state.playerSummaries[id]
     },
     upcoming: state => {
       return _.filter(_.sortBy(state.tournaments, 'scheduled'), 'isUpcoming')

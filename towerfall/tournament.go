@@ -18,9 +18,9 @@ var ErrPublishDisconnected = errors.New("not connected; will not publish")
 
 // Tournament is the main container of data for this app.
 type Tournament struct {
-	ID            uint             `json:"tournament_id"`
+	ID            uint             `json:"dbid"`
 	Name          string           `json:"name"`
-	Slug          string           `json:"slug"`
+	Slug          string           `json:"id"`
 	Players       []PlayerSummary  `json:"-"`
 	Winners       []Player         `json:"-" sql:"-"`
 	Runnerups     []*PlayerSummary `json:"-" sql:"-"`
@@ -344,15 +344,10 @@ func (t *Tournament) Reshuffle(c *gin.Context) error {
 func (t *Tournament) UsurpTournament() error {
 	t.server.DisableWebsocketUpdates()
 
-	// t.db.LoadPeople()
-	// rand.Seed(time.Now().UnixNano())
-	// for x := 0; x < 8; x++ {
-	// 	p := NewPlayer(t.db.People[rand.Intn(len(t.db.People))])
-	// 	err := t.AddPlayer(p)
-	// 	if err != nil {
-	// 		x--
-	// 	}
-	// }
+	err := t.db.UsurpTournament(t, 8)
+	if err != nil {
+		return err
+	}
 
 	t.server.EnableWebsocketUpdates()
 	t.server.SendWebsocketUpdate("tournament", t)

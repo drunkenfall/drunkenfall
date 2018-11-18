@@ -2,7 +2,7 @@ import store from '../core/store'
 import { isGoZeroDateOrFalsy } from '../util/date.js'
 import moment from 'moment'
 import Event from './Event.js'
-import Player from './Player.js'
+// import Player from './Player.js'
 import Person from './Person.js'
 import Match from './Match.js'
 import _ from 'lodash'
@@ -20,8 +20,8 @@ export default class Tournament {
 
     t.matches = _.map(t.matches, (m) => { return Match.fromObject(m, t) })
 
-    t.players = _.map(t.players, Player.fromObject)
-    t.runnerups = _.map(t.runnerups, Person.fromObject)
+    // t.players = _.map(t.players, Player.fromObject)
+    // t.runnerups = _.map(t.runnerups, Person.fromObject)
 
     t.casters = _.map(t.casters, Person.fromObject)
 
@@ -124,22 +124,23 @@ export default class Tournament {
   }
 
   get isUsurpable () {
-    return this.players.length < 32
+    return true
+    // return this.players.length < 32
   }
 
-  get shouldBackfill () {
-    let c = this.currentMatch
-    if (!c) {
-      return false
-    }
+  // get shouldBackfill () {
+  //   let c = this.currentMatch
+  //   if (!c) {
+  //     return false
+  //   }
 
-    let ps = _.sumBy(this.semis, (m) => { return m.players.length })
+  //   let ps = _.sumBy(this.semis, (m) => { return m.players.length })
 
-    if (c.kind === 'semi' && ps < 8) {
-      return true
-    }
-    return false
-  }
+  //   if (c.kind === 'semi' && ps < 8) {
+  //     return true
+  //   }
+  //   return false
+  // }
 
   get currentMatch () {
     return this.matches[this.current]

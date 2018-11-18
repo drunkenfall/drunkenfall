@@ -117,6 +117,9 @@ var DrunkenFallMixin = {
     people () {
       return this.$store.state.people
     },
+    playerSummaries () {
+      return this.$store.getters.playerSummaries(this.tournament.id)
+    },
     combatants () {
       return _.sortBy(_.filter(this.stats, (p) => {
         return p.total.score > 0

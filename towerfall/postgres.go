@@ -196,22 +196,34 @@ func (d *Database) DisablePerson(id string) error {
 	return nil
 }
 
-// LoadPeople loads the people from the database
+// GetPeople loads the people from the database
 func (d *Database) GetPeople() ([]*Person, error) {
 	ret := make([]*Person, 0)
 	return ret, nil
 }
 
+// GetPeopleInTournament gets the Person objects for the players that
+// have joined a tournament
+func (d *Database) GetPeopleById(ids ...string) ([]*Person, error) {
+	ret := make([]*Person, 0)
+	err := d.DB.Model(&ret).Where("person_id IN (?)", pg.In(ids)).Select()
+	return ret, err
+}
+
 // getTournament gets a tournament by slug
 func (d *Database) GetTournament(slug string) (*Tournament, error) {
-	t := Tournament{}
+	t := Tournament{
+		db:     d,
+		server: d.Server,
+	}
+
 	err := d.DB.Model(&t).Where("slug = ?", slug).First()
 	return &t, err
 }
 
 func (d *Database) GetTournaments() ([]*Tournament, error) {
 	ret := make([]*Tournament, 0)
-	err := d.DB.Model(&ret).Select()
+	err := d.DB.Model(&ret).Order("scheduled DESC").Select()
 	return ret, err
 }
 
@@ -345,6 +357,34 @@ func (d *Database) GetPlayerSummary(t *Tournament, pid string) (*PlayerSummary, 
 
 	ret.Person, err = d.GetPerson(pid)
 	return &ret, err
+}
+
+// GetPlayerSummaries gets all player summaries for a tourmanent
+func (d *Database) GetPlayerSummaries(t *Tournament) ([]*PlayerSummary, error) {
+	ret := []*PlayerSummary{}
+	err := d.DB.Model(&ret).Where("tournament_id = ?", t.ID).Select(&ret)
+	if err != nil {
+		return nil, err
+	}
+
+	return ret, err
+}
+
+// UsurpTournament adds testing players
+func (d *Database) UsurpTournament(t *Tournament, x int) error {
+	query := `INSERT INTO player_summaries (tournament_id, person_id)
+  SELECT ?, person_id FROM people
+   WHERE NOT disabled
+     AND person_id NOT IN (
+         SELECT person_id FROM player_summaries
+          WHERE tournament_id = ?)
+   ORDER BY random() LIMIT ?;`
+
+	_, err := d.DB.Exec(query, t.ID, t.ID, x)
+	if err != nil {
+		log.Printf("Usurping failed: %+v", err)
+	}
+	return nil
 }
 
 // ClearTestTournaments deletes any tournament that doesn't begin with "DrunkenFall"
