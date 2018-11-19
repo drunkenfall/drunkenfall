@@ -66,7 +66,7 @@ func TestAddPlayer(t *testing.T) {
 	s, teardown := MockServer(t)
 	defer teardown()
 
-	m := MockMatch(t, s, 0, "playoff")
+	m := MockMatch(t, s, 0, qualifying)
 	m.Players = []Player{}
 	p := testPlayer(s)
 
@@ -81,7 +81,7 @@ func TestAddFifthPlayer(t *testing.T) {
 	s, teardown := MockServer(t)
 	defer teardown()
 
-	m := MockMatch(t, s, 1, "playoff")
+	m := MockMatch(t, s, 1, qualifying)
 
 	p := testPlayer(s)
 
@@ -95,7 +95,7 @@ func TestStartAlreadyStartedMatch(t *testing.T) {
 	s, teardown := MockServer(t)
 	defer teardown()
 
-	m := MockMatch(t, s, 1, "playoff")
+	m := MockMatch(t, s, 1, qualifying)
 	m.Started = time.Now()
 
 	err := m.Start(nil)
@@ -107,7 +107,7 @@ func TestStart(t *testing.T) {
 	s, teardown := MockServer(t)
 	defer teardown()
 
-	m := MockMatch(t, s, 1, "playoff")
+	m := MockMatch(t, s, 1, qualifying)
 
 	err := m.Start(nil)
 	assert.Nil(err)
@@ -119,7 +119,7 @@ func TestEndGivesShotToWinner(t *testing.T) {
 	s, teardown := MockServer(t)
 	defer teardown()
 
-	m := MockMatch(t, s, 1, "playoff")
+	m := MockMatch(t, s, 1, qualifying)
 
 	err := m.Start(nil)
 	assert.Nil(err)
@@ -136,7 +136,7 @@ func TestEndAlreadyEndedMatch(t *testing.T) {
 	s, teardown := MockServer(t)
 	defer teardown()
 
-	m := MockMatch(t, s, 1, "playoff")
+	m := MockMatch(t, s, 1, qualifying)
 	m.Ended = time.Now()
 
 	err := m.End(nil)
@@ -149,7 +149,7 @@ func TestCommitSweepPlayer1(t *testing.T) {
 	s, teardown := MockServer(t)
 	defer teardown()
 
-	m := MockMatch(t, s, 0, "playoff")
+	m := MockMatch(t, s, 0, qualifying)
 	_ = m.AddPlayer(testPlayer(s))
 	_ = m.AddPlayer(testPlayer(s))
 	_ = m.AddPlayer(testPlayer(s))
@@ -180,7 +180,7 @@ func TestCommitDoubleKillPlayer2(t *testing.T) {
 	s, teardown := MockServer(t)
 	defer teardown()
 
-	m := MockMatch(t, s, 0, "playoff")
+	m := MockMatch(t, s, 0, qualifying)
 	_ = m.AddPlayer(testPlayer(s))
 	_ = m.AddPlayer(testPlayer(s))
 	_ = m.AddPlayer(testPlayer(s))
@@ -211,7 +211,7 @@ func TestCommitSweepAndSuicidePlayer3(t *testing.T) {
 	s, teardown := MockServer(t)
 	defer teardown()
 
-	m := MockMatch(t, s, 0, "playoff")
+	m := MockMatch(t, s, 0, qualifying)
 	_ = m.AddPlayer(testPlayer(s))
 	_ = m.AddPlayer(testPlayer(s))
 	_ = m.AddPlayer(testPlayer(s))
@@ -244,7 +244,7 @@ func TestCommitSuicidePlayer4(t *testing.T) {
 	s, teardown := MockServer(t)
 	defer teardown()
 
-	m := MockMatch(t, s, 0, "playoff")
+	m := MockMatch(t, s, 0, qualifying)
 	_ = m.AddPlayer(testPlayer(s))
 	_ = m.AddPlayer(testPlayer(s))
 	_ = m.AddPlayer(testPlayer(s))
@@ -276,7 +276,7 @@ func TestCommitShotsForPlayer2and3(t *testing.T) {
 	s, teardown := MockServer(t)
 	defer teardown()
 
-	m := MockMatch(t, s, 0, "playoff")
+	m := MockMatch(t, s, 0, qualifying)
 	_ = m.AddPlayer(testPlayer(s))
 	_ = m.AddPlayer(testPlayer(s))
 	_ = m.AddPlayer(testPlayer(s))
@@ -308,7 +308,7 @@ func TestCommitSweepForPlayer1(t *testing.T) {
 	s, teardown := MockServer(t)
 	defer teardown()
 
-	m := MockMatch(t, s, 0, "playoff")
+	m := MockMatch(t, s, 0, qualifying)
 	_ = m.AddPlayer(testPlayer(s))
 	_ = m.AddPlayer(testPlayer(s))
 	_ = m.AddPlayer(testPlayer(s))
@@ -342,7 +342,7 @@ func TestCommitStoredOnMatch(t *testing.T) {
 	s, teardown := MockServer(t)
 	defer teardown()
 
-	m := MockMatch(t, s, 0, "playoff")
+	m := MockMatch(t, s, 0, qualifying)
 	_ = m.AddPlayer(testPlayer(s))
 	_ = m.AddPlayer(testPlayer(s))
 	_ = m.AddPlayer(testPlayer(s))
@@ -372,7 +372,7 @@ func TestCommitWithOnlyShotsNotStoredOnMatch(t *testing.T) {
 	s, teardown := MockServer(t)
 	defer teardown()
 
-	m := MockMatch(t, s, 0, "playoff")
+	m := MockMatch(t, s, 0, qualifying)
 	_ = m.AddPlayer(testPlayer(s))
 	_ = m.AddPlayer(testPlayer(s))
 	_ = m.AddPlayer(testPlayer(s))
@@ -558,7 +558,7 @@ func TestMakeKillOrder(t *testing.T) {
 	s, teardown := MockServer(t)
 	defer teardown()
 
-	m := MockMatch(t, s, 0, "playoff")
+	m := MockMatch(t, s, 0, qualifying)
 
 	m.Players[0].AddKills(1)
 	m.Players[1].AddKills(4)
@@ -612,7 +612,7 @@ func TestKill(t *testing.T) {
 		s, teardown := MockServer(t)
 		defer teardown()
 
-		m := MockMatch(t, s, 0, playoff)
+		m := MockMatch(t, s, 0, qualifying)
 
 		km := KillMessage{1, 2, rArrow}
 		err := m.Kill(km)
@@ -623,7 +623,7 @@ func TestKill(t *testing.T) {
 		s, teardown := MockServer(t)
 		defer teardown()
 
-		m := MockMatch(t, s, 0, playoff)
+		m := MockMatch(t, s, 0, qualifying)
 
 		km := KillMessage{1, EnvironmentKill, rExplosion}
 		err := m.Kill(km)
@@ -635,7 +635,7 @@ func TestKill(t *testing.T) {
 		s, teardown := MockServer(t)
 		defer teardown()
 
-		m := MockMatch(t, s, 0, playoff)
+		m := MockMatch(t, s, 0, qualifying)
 
 		km := KillMessage{1, 1, rCurse}
 		err := m.Kill(km)
@@ -649,7 +649,7 @@ func TestLavaOrb(t *testing.T) {
 		s, teardown := MockServer(t)
 		defer teardown()
 
-		m := MockMatch(t, s, 0, playoff)
+		m := MockMatch(t, s, 0, qualifying)
 
 		lm := LavaOrbMessage{0, true}
 		err := m.LavaOrb(lm)
@@ -661,7 +661,7 @@ func TestLavaOrb(t *testing.T) {
 		s, teardown := MockServer(t)
 		defer teardown()
 
-		m := MockMatch(t, s, 0, playoff)
+		m := MockMatch(t, s, 0, qualifying)
 
 		lm := LavaOrbMessage{0, false}
 		err := m.LavaOrb(lm)
@@ -675,7 +675,7 @@ func TestShield(t *testing.T) {
 		s, teardown := MockServer(t)
 		defer teardown()
 
-		m := MockMatch(t, s, 0, playoff)
+		m := MockMatch(t, s, 0, qualifying)
 
 		sm := ShieldMessage{0, true}
 		err := m.ShieldUpdate(sm)
@@ -687,7 +687,7 @@ func TestShield(t *testing.T) {
 		s, teardown := MockServer(t)
 		defer teardown()
 
-		m := MockMatch(t, s, 0, playoff)
+		m := MockMatch(t, s, 0, qualifying)
 		m.Players[0].State.Shield = true
 
 		sm := ShieldMessage{0, false}
@@ -702,7 +702,7 @@ func TestWings(t *testing.T) {
 		s, teardown := MockServer(t)
 		defer teardown()
 
-		m := MockMatch(t, s, 0, playoff)
+		m := MockMatch(t, s, 0, qualifying)
 
 		wm := WingsMessage{0, true}
 		err := m.WingsUpdate(wm)
@@ -714,7 +714,7 @@ func TestWings(t *testing.T) {
 		s, teardown := MockServer(t)
 		defer teardown()
 
-		m := MockMatch(t, s, 0, playoff)
+		m := MockMatch(t, s, 0, qualifying)
 		m.Players[0].State.Wings = true
 
 		wm := WingsMessage{0, false}
@@ -729,7 +729,7 @@ func TestArrow(t *testing.T) {
 		s, teardown := MockServer(t)
 		defer teardown()
 
-		m := MockMatch(t, s, 0, playoff)
+		m := MockMatch(t, s, 0, qualifying)
 
 		wm := ArrowMessage{3, Arrows{aNormal, aPrism, aPrism}}
 		err := m.ArrowUpdate(wm)
