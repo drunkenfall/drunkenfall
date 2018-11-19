@@ -93,10 +93,10 @@ func NewSnapshot(s *Server) CompleteSnapshot {
 		}
 
 		// Only do the winner calculations if someone actually won
-		if !t.Ended.IsZero() && len(t.Winners) > 0 {
-			winner := t.Winners[0].Person.PersonID
-			ss[winner].Tournaments[tid].Wins++
-		}
+		// if !t.Ended.IsZero() && len(t.Winners) > 0 {
+		// 	winner := t.Winners[0].Person.PersonID
+		// 	ss[winner].Tournaments[tid].Wins++
+		// }
 	}
 
 	// Summarize the per-tournament data points into the totals

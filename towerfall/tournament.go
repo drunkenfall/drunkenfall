@@ -20,7 +20,6 @@ type Tournament struct {
 	Name          string           `json:"name"`
 	Slug          string           `json:"id"`
 	Players       []PlayerSummary  `json:"-"`
-	Winners       []Player         `json:"-" sql:"-"`
 	Runnerups     []*PlayerSummary `json:"-" sql:"-"`
 	Casters       []*Person        `json:"-" sql:"-"`
 	Matches       []*Match         `json:"-"`
@@ -407,21 +406,6 @@ func (t *Tournament) NextMatch() (*Match, error) {
 	}
 
 	return t.db.NextMatch(t)
-}
-
-// AwardMedals places the winning players in the Winners position
-func (t *Tournament) AwardMedals(c *gin.Context, m *Match) error {
-	if m.Kind != final {
-		return errors.New("awarding medals outside of the final")
-	}
-
-	ps := SortByKills(m.Players)
-	t.Winners = ps[0:3]
-
-	t.Ended = time.Now()
-	t.Persist()
-
-	return nil
 }
 
 // IsRunning returns boolean true if the tournament is running or not
