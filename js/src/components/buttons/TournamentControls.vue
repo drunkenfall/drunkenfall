@@ -13,18 +13,10 @@
       :icon="'play'"
       :label="'Next match'" />
 
-    <button-link v-if="user.isJudge"
-      :to="{ name: 'log', params: { tournament: tournament.id }}"
-      :icon="'book'" :label="'Log'" />
-
     <button-link v-if="user.isProducer"
       :cls="{disabled: tournament.isEnded}"
       :to="{ name: 'participants', params: { tournament: tournament.id }}"
       :icon="'users'" :iconClass="{ warning: tournament.isStarted }" :label="'Players'" />
-
-    <button-link v-if="user.isProducer"
-      :to="{ name: 'edit', params: { tournament: tournament.id }}"
-      :icon="'pencil'" :iconClass="'danger'" :label="'Edit'" />
 
     <button-link v-if="user.isProducer && tournament.isEnded"
       :to="{ name: 'credits', params: { tournament: tournament.id }}"
@@ -36,18 +28,6 @@
       :to="{ name: 'casters', params: { tournament: tournament.id }}"
       :icon="'microphone'"
       :label="'Set casters'" />
-
-    <!-- <button-link v-if="user.isCommentator && tournament.shouldBackfill"
-    :to="{ name: 'runnerups', params: { tournament: tournament.id }}"
-    :iconClass="'positive'"
-    :icon="'cloud-upload'"
-    :label="'Backfill semis'" />
-    -->
-    <button-link v-if="user.isProducer && tournament.canShuffle"
-        :func="reshuffle"
-        :iconClass="'warning'"
-        :icon="'random'"
-        :label="'Reshuffle'" />
 
       <button-link v-if="user.isProducer && tournament.isTest && tournament.canStart"
         :func="usurp"
@@ -110,14 +90,6 @@ export default {
         console.error(err)
       })
     },
-    reshuffle () {
-      this.api.reshuffle({ id: this.tournament.id }).then((res) => {
-        console.debug("reshuffle response:", res)
-      }, (err) => {
-        this.$alert("Reshuffle failed. See console.")
-        console.error(err)
-      })
-    },
     next () {
       this.$router.push({name: "match", params: {
         "match": this.tournament.next
@@ -137,7 +109,6 @@ export default {
     this.api = this.$resource("/api/", {}, {
       startTournament: { method: "GET", url: `${root}/start/` },
       next: { method: "GET", url: `${root}/next/` },
-      reshuffle: { method: "GET", url: `${root}/reshuffle/` },
       usurp: { method: "GET", url: `${root}/usurp/` },
       autoplay: { method: "GET", url: `${root}/autoplay/` },
     })

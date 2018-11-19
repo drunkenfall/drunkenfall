@@ -234,30 +234,6 @@ func (p *Player) ScoreData() []ScoreData {
 	return sd
 }
 
-// URL returns the URL to this player
-//
-// Used for action URLs
-func (p *Player) URL() string {
-	out := fmt.Sprintf(
-		"%s/%d",
-		p.Match.URL(),
-		p.Index(),
-	)
-	return out
-}
-
-// Index returns the index in the current match
-func (p *Player) Index() int {
-	if p.Match != nil {
-		for i, o := range p.Match.Players {
-			if p.Nick == o.Name() {
-				return i
-			}
-		}
-	}
-	return -1
-}
-
 // AddShot increases the shot count
 func (p *Player) AddShot() {
 	p.Shots++
@@ -311,11 +287,6 @@ func (p *Player) Reset() {
 	p.Kills = 0
 	p.Self = 0
 	p.State = NewPlayerState()
-}
-
-// HTML renders the HTML of a player
-func (p *Player) HTML() (out string) {
-	return
 }
 
 // ByColorConflict is a sort.Interface that sorts players by their score
@@ -392,36 +363,6 @@ func SortByKills(ps []Player) []Player {
 	copy(tmp, ps)
 	sort.Sort(ByKills(tmp))
 	return tmp
-}
-
-// ByRunnerup is a sort.Interface that sorts players by their runnerup status
-//
-// This is almost exactly the same as score, but the number of matches a player
-// has played factors in, and players that have played less matches are sorted
-// favorably.
-type ByRunnerup []PlayerSummary
-
-func (s ByRunnerup) Len() int {
-	return len(s)
-
-}
-func (s ByRunnerup) Swap(i, j int) {
-	s[i], s[j] = s[j], s[i]
-
-}
-func (s ByRunnerup) Less(i, j int) bool {
-	if s[i].Matches == s[j].Matches {
-		// Higher is better - if you have a high score you'll play again
-		return s[i].Score() > s[j].Score()
-	}
-	// Lower is better - the ones that have not played should be at the top
-	return s[i].Matches < s[j].Matches
-}
-
-// SortByRunnerup returns a list in order of the kills the players have
-func SortByRunnerup(ps []PlayerSummary) []PlayerSummary {
-	sort.Sort(ByRunnerup(ps))
-	return ps
 }
 
 // RandomColor returns a random color from the ColorList

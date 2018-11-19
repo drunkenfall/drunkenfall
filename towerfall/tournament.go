@@ -4,11 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"math/rand"
+	"sort"
 	"time"
 
-	"github.com/deckarep/golang-set"
-	"github.com/drunkenfall/drunkenfall/faking"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
@@ -32,7 +30,6 @@ type Tournament struct {
 	Started       time.Time        `json:"started"`
 	QualifyingEnd time.Time        `json:"qualifying_end"`
 	Ended         time.Time        `json:"ended"`
-	Events        []*Event         `json:"-" sql:"-"`
 	Color         string           `json:"color"`
 	// Levels      Levels       `json:"levels"`
 	Cover       string `json:"cover"`
@@ -63,13 +60,6 @@ func NewTournament(name, id, cover string, scheduledStart time.Time, c *gin.Cont
 		db:          server.DB,
 		server:      server,
 	}
-
-	// t.SetMatchPointers()
-	t.LogEvent(
-		"new_tournament", "{name} ({id}) created",
-		"name", name,
-		"id", id,
-		"person", PersonFromSession(t.server, c))
 
 	err := t.db.NewTournament(&t)
 	return &t, err
@@ -162,16 +152,6 @@ func (t *Tournament) URL() string {
 	return out
 }
 
-// LogEvent makes an event and stores it on the tournament object
-func (t *Tournament) LogEvent(kind, message string, items ...interface{}) {
-	ev, err := NewEvent(kind, message, items...)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	t.Events = append(t.Events, ev)
-}
-
 // AddPlayer adds a player into the tournament
 func (t *Tournament) AddPlayer(p *PlayerSummary) error {
 	p.Person.Correct()
@@ -189,30 +169,7 @@ func (t *Tournament) AddPlayer(p *PlayerSummary) error {
 		t.Runnerups = append(t.Runnerups, p)
 	}
 
-	t.LogEvent(
-		"player_join", "{nick} has joined",
-		"nick", p.Person.Nick,
-		"person", p.Person)
-
 	return t.db.AddPlayer(t, p)
-}
-
-func (t *Tournament) removePlayer(p Player) error {
-	for i := 0; i < len(t.Players); i++ {
-		r := t.Players[i]
-		if r.Person.PersonID == p.Person.PersonID {
-			t.Players = append(t.Players[:i], t.Players[i+1:]...)
-			break
-		}
-	}
-
-	t.LogEvent(
-		"player_remove", "{nick} has left",
-		"nick", p.Person.Nick,
-		"person", p.Person)
-
-	err := t.Persist()
-	return err
 }
 
 // TogglePlayer toggles a player in a tournament
@@ -242,29 +199,6 @@ func (t *Tournament) SetCasters(ids []string) {
 	}
 
 	t.Persist()
-}
-
-// ShufflePlayers will position players into matches
-func (t *Tournament) ShufflePlayers() error {
-	// Shuffle all the players
-	slice := t.Players
-	for i := range slice {
-		j := rand.Intn(i + 1)
-		slice[i], slice[j] = slice[j], slice[i]
-	}
-
-	// Loop the players and set them into the matches. This exhausts the
-	// list before it leaves the playoffs.
-	for i, p := range slice {
-		m := t.Matches[i/4]
-		pla := *NewPlayer(p.Person)
-		err := m.AddPlayer(pla)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
 }
 
 // StartTournament will generate the tournament.
@@ -299,9 +233,6 @@ func (t *Tournament) StartTournament(c *gin.Context) error {
 
 	// Get the first match and set the scheduled date to be now.
 	t.Matches[0].SetTime(c, 0)
-	t.LogEvent(
-		"start", "Tournament started",
-		"person", PersonFromSession(t.server, c))
 
 	err := t.PublishNext()
 	if err != nil && err != ErrPublishDisconnected {
@@ -316,40 +247,12 @@ func (t *Tournament) EndQualifyingRounds(ts time.Time) error {
 	return t.Persist()
 }
 
-// Reshuffle shuffles the players of an already started tournament
-func (t *Tournament) Reshuffle(c *gin.Context) error {
-	if !t.IsRunning() || t.Matches[0].IsStarted() {
-		return errors.New("cannot reshuffle")
-	}
-
-	// First we need to clear the player slots in the matches.
-	for x := 0; x < len(t.Matches)-3; x++ {
-		t.Matches[x].Players = nil
-		t.Matches[x].presentColors = mapset.NewSet()
-	}
-
-	err := t.ShufflePlayers()
-	if err != nil {
-		return err
-	}
-
-	t.LogEvent(
-		"reshuffle", "Players reshuffled",
-		"person", PersonFromSession(t.server, c))
-
-	return t.Persist()
-}
-
 // UsurpTournament adds a batch of eight random players
 func (t *Tournament) UsurpTournament() error {
-	t.server.DisableWebsocketUpdates()
-
 	err := t.db.UsurpTournament(t, 8)
 	if err != nil {
 		return err
 	}
-
-	t.server.EnableWebsocketUpdates()
 	t.server.SendWebsocketUpdate("tournament", t)
 	return nil
 }
@@ -360,8 +263,6 @@ func (t *Tournament) UsurpTournament() error {
 // E.g. if we're in the playoffs, they will all be finished and we're
 // left at semi 1.
 func (t *Tournament) AutoplaySection() {
-	t.server.DisableWebsocketUpdates()
-
 	if !t.IsRunning() {
 		t.StartTournament(nil)
 	}
@@ -380,73 +281,7 @@ func (t *Tournament) AutoplaySection() {
 		m = t.Matches[t.Current]
 	}
 
-	if kind == playoff {
-		needed := t.BackfillsNeeded()
-		if needed > 0 {
-			ids := make([]string, needed)
-			for x := 0; x < needed; x++ {
-				ids[x] = t.Runnerups[x].PersonID
-			}
-			t.BackfillSemis(nil, ids)
-		}
-	}
-
-	t.server.EnableWebsocketUpdates()
 	t.server.SendWebsocketUpdate("tournament", t)
-}
-
-// MatchIndex returns the index of the match
-func (t *Tournament) MatchIndex(m *Match) int {
-	var x int
-	var o *Match
-
-	for x, o = range t.Matches {
-		if o == m {
-			break
-		}
-	}
-
-	return x
-}
-
-// PopulateRunnerups fills a match with the runnerups with best scores
-func (t *Tournament) PopulateRunnerups(m *Match) error {
-	_, err := t.GetRunnerupPlayers()
-	if err != nil {
-		return err
-	}
-
-	// for i := 0; len(m.Players) < 4; i++ {
-	// p := r[i]
-	// m.AddPlayer(p)
-	// }
-	// return errors.New("population of runnerups not implemented")
-	return nil
-}
-
-// GetRunnerupPlayers gets the runnerups for this tournament
-//
-// The returned list is sorted descending by score.
-// XXX(thiderman): Should be removed in favor of GetRunnerups()
-func (t *Tournament) GetRunnerupPlayers() ([]PlayerSummary, error) {
-	var ret []PlayerSummary
-
-	// err := t.UpdatePlayers()
-	// if err != nil {
-	// 	return ret, err
-	// }
-
-	rs := len(t.Runnerups)
-	p := make([]PlayerSummary, 0, rs)
-	for _, r := range t.Runnerups {
-		tp, err := t.GetPlayerSummary(r.Person)
-		if err != nil {
-			return ret, err
-		}
-		p = append(p, *tp)
-	}
-	ret = SortByRunnerup(p)
-	return ret, nil
 }
 
 // GetRunnerups gets the runnerups for this tournament
@@ -455,27 +290,6 @@ func (t *Tournament) GetRunnerupPlayers() ([]PlayerSummary, error) {
 // score.
 func (t *Tournament) GetRunnerups() ([]*PlayerSummary, error) {
 	return t.db.GetRunnerups(t)
-}
-
-// UpdatePlayers updates all the player objects with their scores from
-// all the matches they have participated in.
-func (t *Tournament) UpdatePlayers() error {
-	// Make sure all players have their score reset to nothing
-	for i := range t.Players {
-		t.Players[i].Reset()
-	}
-
-	for _, m := range t.Matches {
-		for _, p := range m.Players {
-			tp, err := t.GetPlayerSummary(p.Person)
-			if err != nil {
-				return err
-			}
-			tp.Update(p.Summary())
-		}
-	}
-
-	return nil
 }
 
 // MovePlayers moves the winner(s) of a Match into the next bracket of matches
@@ -520,26 +334,6 @@ func (t *Tournament) MovePlayers(m *Match) error {
 	return nil
 }
 
-// UpdateRunnerups updates the runnerup list
-func (t *Tournament) UpdateRunnerups() error {
-	// Get the runnerups and sort them into the Runnerup array
-	ps, err := t.GetRunnerupPlayers()
-	if err != nil {
-		return err
-	}
-	t.Runnerups = make([]*PlayerSummary, 0)
-	for _, p := range ps {
-		tp, err := t.GetPlayerSummary(p.Person)
-		if err != nil {
-			return err
-		}
-		t.Runnerups = append(t.Runnerups, tp)
-	}
-	t.Persist()
-
-	return nil
-}
-
 // ScheduleEndgame makes the playoff matches and the final
 func (t *Tournament) ScheduleEndgame() error {
 	log.Print("Scheduling endgame")
@@ -580,77 +374,6 @@ func (t *Tournament) ScheduleEndgame() error {
 	return nil
 }
 
-// BackfillSemis takes a few Person IDs and shuffles those into the remaining slots
-// of the semi matches
-func (t *Tournament) BackfillSemis(c *gin.Context, ids []string) error {
-	// If we're on the last playoff, we should backfill the semis with runnerups
-	// until they have have full seats.
-	// The amount of players needed; 8 minus the current amount
-	offset := len(t.Matches) - 3
-	semiPlayers := t.BackfillsNeeded()
-	if len(ids) != semiPlayers {
-		return fmt.Errorf("Need %d players, got %d", semiPlayers, len(ids))
-	}
-
-	publish := true
-	if semiPlayers == 1 {
-		// If we only have one player to add, that means that the previous
-		// match already has four players and therefore the update message
-		// has already been sent
-		publish = false
-	}
-
-	added := make([]*Person, semiPlayers)
-	for x, id := range ids {
-		index := 0
-		if len(t.Matches[offset].Players) == 4 {
-			index = 1
-		}
-
-		ps, err := t.db.GetPerson(id)
-		if err != nil {
-			return errors.WithStack(err)
-		}
-
-		// p, err := t.getTournamentPlayerObject(ps)
-		// if err != nil {
-		// 	return errors.WithStack(err)
-		// }
-
-		t.Matches[offset+index].AddPlayer(*NewPlayer(ps))
-		added[x] = ps
-		err = t.removeFromRunnerups(ps)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-	}
-
-	// If we haven't already sent a message about the next match to the
-	// game, it is high time to do so!
-	if publish {
-		err := t.PublishNext()
-		if err != nil && err != ErrPublishDisconnected {
-			t.server.log.Info("Publishing next match failed", zap.Error(err))
-		}
-	}
-
-	t.LogEvent(
-		"backfill_semi", "Backfilling {count} semi players",
-		"count", semiPlayers,
-		"players", added,
-		"person", PersonFromSession(t.server, c))
-
-	return t.Persist()
-}
-
-// BackfillsNeeded returns the number of players needed to be backfilled
-func (t *Tournament) BackfillsNeeded() int {
-	offset := len(t.Matches) - 3
-	semiPlayers := 8 - (len(t.Matches[offset].Players) + len(t.Matches[offset+1].Players))
-	return semiPlayers
-}
-
 // NextMatch returns the next match
 func (t *Tournament) NextMatch() (*Match, error) {
 	if !t.IsRunning() {
@@ -669,31 +392,10 @@ func (t *Tournament) AwardMedals(c *gin.Context, m *Match) error {
 	ps := SortByKills(m.Players)
 	t.Winners = ps[0:3]
 
-	t.LogEvent(
-		"tournament_end",
-		"Tournament finished",
-		"person", PersonFromSession(t.server, c))
-
 	t.Ended = time.Now()
 	t.Persist()
 
 	return nil
-}
-
-// IsOpen returns boolean true if the tournament is open for registration
-func (t *Tournament) IsOpen() bool {
-	return !t.Opened.IsZero()
-}
-
-// IsJoinable returns boolean true if the tournament is joinable
-func (t *Tournament) IsJoinable() bool {
-	return t.IsOpen() && t.Started.IsZero()
-}
-
-// IsStartable returns boolean true if the tournament can be started
-func (t *Tournament) IsStartable() bool {
-	p := len(t.Players)
-	return t.IsOpen() && t.Started.IsZero() && p >= minPlayers
 }
 
 // IsRunning returns boolean true if the tournament is running or not
@@ -708,25 +410,6 @@ func (t *Tournament) CanJoin(ps *Person) error {
 			return errors.New("already in tournament")
 		}
 	}
-	return nil
-}
-
-// SetMatchPointers loops over all matches in the tournament and sets the tournament reference
-//
-// When loading tournaments from the database, these references will not be set.
-// This also sets *Match pointers for Player objects.
-func (t *Tournament) SetMatchPointers() error {
-	var m *Match
-
-	for i := range t.Matches {
-		m = t.Matches[i]
-		m.presentColors = mapset.NewSet()
-		m.Tournament = t
-		for j := range m.Players {
-			m.Players[j].Match = m
-		}
-	}
-
 	return nil
 }
 
@@ -779,46 +462,28 @@ func (t *Tournament) ArchersHarmed() int {
 	return ret
 }
 
-// SetupFakeTournament creates a fake tournament
-func SetupFakeTournament(c *gin.Context, s *Server, req *NewRequest) *Tournament {
-	title, id := req.Name, req.ID
-
-	t, err := NewTournament(title, id, "", time.Now().Add(time.Hour), c, s)
-	if err != nil {
-		// TODO this is the least we can do
-		log.Printf("error creating tournament: %v", err)
-	}
-
-	// Fake between 14 and max_players players
-	for i := 0; i < rand.Intn(18)+14; i++ {
-		ps := &Person{
-			PersonID:       faking.FakeName(),
-			Name:           faking.FakeName(),
-			Nick:           faking.FakeNick(),
-			AvatarURL:      faking.FakeAvatar(),
-			PreferredColor: RandomColor(Colors),
-		}
-		p := NewPlayer(ps)
-		sum := p.Summary()
-		t.AddPlayer(&sum)
-	}
-
-	t.Persist()
-	return t
-}
-
 // GetPlayerSummary returns the tournament-wide player object.
 func (t *Tournament) GetPlayerSummary(ps *Person) (*PlayerSummary, error) {
 	return t.db.GetPlayerSummary(t, ps.PersonID)
 }
 
-func (t *Tournament) removeFromRunnerups(p *Person) error {
-	for j := 0; j < len(t.Runnerups); j++ {
-		r := t.Runnerups[j]
-		if r.PersonID == p.PersonID {
-			t.Runnerups = append(t.Runnerups[:j], t.Runnerups[j+1:]...)
-			return nil
-		}
-	}
-	return nil
+// ByScheduleDate is a sort.Interface that sorts tournaments according
+// to when they were scheduled.
+type ByScheduleDate []*Tournament
+
+func (s ByScheduleDate) Len() int {
+	return len(s)
+}
+func (s ByScheduleDate) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+
+}
+func (s ByScheduleDate) Less(i, j int) bool {
+	return s[i].Scheduled.Before(s[j].Scheduled)
+}
+
+// SortByScheduleDate returns a list in order of schedule date
+func SortByScheduleDate(ps []*Tournament) []*Tournament {
+	sort.Sort(ByScheduleDate(ps))
+	return ps
 }

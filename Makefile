@@ -10,19 +10,6 @@ LDFLAGS = -ldflags "-X main.version=${VERSION} -X main.buildtime=${BUILDTIME}"
 
 export GOPATH := $(shell go env GOPATH)
 # export PATH := $(GOPATH)/bin:$(PATH)
-# gotype is disabled since it seems pointless and also produces 250 errors
-# about not finding dependencies that definitely exists.
-LINTER_ARGS = -j 4 \
-  --enable-gc \
-  --enable=gofmt \
-  --enable=misspell \
-  --enable=unparam \
-  --enable=unused \
-  --disable=errcheck \
-  --disable=gotype \
-  --deadline=10m \
-  --tests
-
 .DEFAULT_GOAL: all
 
 .PHONY: clean clobber download install install-linter test cover race lint npm npm-dist caddy
@@ -56,8 +43,7 @@ install:
 	go install -v ${LDFLAGS} ./...
 
 install-linter:
-	go get -v -u github.com/alecthomas/gometalinter
-	gometalinter --install
+	curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(GOPATH)/bin v1.12.2
 
 test:
 	GIN_MODE=test go test -v ./towerfall -failfast
@@ -68,8 +54,8 @@ cover:
 race:
 	go test -race -v ./...
 
-lint: install-linter
-	gometalinter $(LINTER_ARGS) $(SOURCEDIR)
+lint:
+	golangci-lint run
 
 npm: js/package.json
 	cd js; npm install

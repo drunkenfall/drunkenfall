@@ -140,6 +140,8 @@ func (s *Server) NewHandler(c *gin.Context) {
 		return
 	}
 
+	s.SendWebsocketUpdate("tournament", t)
+
 	idlog.Info("Tournament created", zap.String("name", t.Name))
 	c.JSON(http.StatusOK, gin.H{"redirect": t.URL()})
 }
@@ -168,100 +170,6 @@ func (s *Server) JoinHandler(c *gin.Context) {
 	tm := s.getTournament(c)
 	ps := PersonFromSession(s, c)
 	tm.TogglePlayer(ps.PersonID)
-	c.JSON(http.StatusOK, gin.H{"redirect": tm.URL()})
-}
-
-// EditHandler shows the tournament view and handles tournaments
-func (s *Server) EditHandler(c *gin.Context) {
-	plog := s.log.With(zap.String("path", c.Request.URL.Path))
-
-	if !HasPermission(c, PermissionProducer) {
-		plog.Info("Permission denied")
-		c.JSON(http.StatusForbidden, gin.H{"message": "You need to be very hax to edit a tournament"})
-		return
-	}
-
-	ps := PersonFromSession(s, c)
-	pslog := plog.With(zap.String("person", ps.PersonID))
-
-	data, err := ioutil.ReadAll(c.Request.Body)
-	if err != nil {
-		pslog.Error("Couldn't read body", zap.Error(err))
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	t, err := LoadTournament(data, s)
-	if err != nil {
-		pslog.Error("Couldn't load tournaments", zap.Error(err))
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	tlog := pslog.With(zap.String("tournament", t.Slug))
-
-	err = s.DB.OverwriteTournament(t)
-	if err != nil {
-		tlog.Error("Couldn't overwrite tournament", zap.Error(err))
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	err = t.Persist()
-	if err != nil {
-		tlog.Error("Persisting failed", zap.Error(err))
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	tlog.Info("Tournament edited")
-	c.JSON(http.StatusOK, gin.H{"redirect": t.URL()})
-
-}
-
-// BackfillSemisHandler inserts players into the semis
-func (s *Server) BackfillSemisHandler(c *gin.Context) {
-	tm := s.getTournament(c)
-	tlog := s.log.With(
-		zap.String("path", c.Request.URL.Path),
-		zap.String("tournament", tm.Slug),
-	)
-
-	data, err := ioutil.ReadAll(c.Request.Body)
-	if err != nil {
-		tlog.Error("Couldn't read body", zap.Error(err))
-		c.JSON(http.StatusForbidden, gin.H{"message": err.Error()})
-		return
-	}
-
-	spl := strings.Split(string(data), ",")
-	err = tm.BackfillSemis(c, spl)
-
-	if err != nil {
-		tlog.Error("Couldn't backfill", zap.Error(err))
-		c.JSON(http.StatusForbidden, gin.H{"message": err.Error()})
-		return
-	}
-
-	tlog.Info("Tournament backfilled")
-	c.JSON(http.StatusOK, gin.H{"redirect": tm.URL()})
-}
-
-// ReshuffleHandler reshuffles the player order of the tournament
-func (s *Server) ReshuffleHandler(c *gin.Context) {
-	tm := s.getTournament(c)
-	tlog := s.log.With(
-		zap.String("path", c.Request.URL.Path),
-		zap.String("tournament", tm.Slug),
-	)
-
-	err := tm.Reshuffle(c)
-	if err != nil {
-		tlog.Info("Couldn't reshuffle", zap.Error(err))
-		c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
-		return
-	}
-
-	tlog.Info("Tournament reshuffled")
 	c.JSON(http.StatusOK, gin.H{"redirect": tm.URL()})
 }
 
@@ -430,42 +338,6 @@ func (s *Server) MatchHandler(c *gin.Context) {
 		"action":  action,
 		"message": "Done",
 	})
-}
-
-// MatchCommitHandler commits a single round of a match
-func (s *Server) MatchCommitHandler(c *gin.Context) {
-	var req CommitRequest
-	plog := s.log.With(zap.String("path", c.Request.URL.Path))
-
-	err := c.BindJSON(&req)
-	if err != nil {
-		plog.Info("Couldn't get CommitRequest")
-		c.JSON(http.StatusBadRequest, gin.H{
-			"message": "Couldn't get CommitRequest",
-			"error":   err.Error(),
-		})
-		return
-	}
-
-	commit := NewMatchCommit(req)
-	m, err := s.getMatch(c)
-
-	if err != nil {
-		plog.Info("Couldn't get match")
-		c.JSON(http.StatusBadRequest, gin.H{
-			"message": "Couldn't get match",
-			"error":   err.Error(),
-		})
-		return
-	}
-
-	m.Commit(commit)
-	plog.Info(
-		"Match committed",
-		zap.String("tournament", m.Tournament.Slug),
-		zap.Int("match", m.Index),
-	)
-	c.JSON(http.StatusOK, gin.H{"message": "Done"})
 }
 
 // ClearTournamentHandler removes all test tournaments
@@ -782,20 +654,15 @@ func (s *Server) BuildRouter(ws *melody.Melody) *gin.Engine {
 	t.GET("/autoplay/", s.AutoplayTournamentHandler)
 	t.GET("/credits/", s.CreditsHandler)
 	t.GET("/join/", s.JoinHandler)
-	t.GET("/reshuffle/", s.ReshuffleHandler)
 	t.GET("/time/:time", s.SetTimeHandler)
 	t.GET("/toggle/:person", s.ToggleHandler)
 	t.GET("/usurp/", s.UsurpTournamentHandler)
 	t.GET("/start/", s.StartTournamentHandler)
 
 	t.POST("/play/", s.StartPlayHandler)
-	t.POST("/backfill/", s.BackfillSemisHandler)
 	t.POST("/casters/", s.CastersHandler)
-	t.POST("/edit/", s.EditHandler)
 
 	m := t.Group("/match/:index")
-
-	m.POST("/", s.MatchCommitHandler)
 	m.POST("/:action/", s.MatchHandler)
 
 	return router

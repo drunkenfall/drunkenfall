@@ -59,7 +59,10 @@ func (s *Server) handleFacebookLogin(c *gin.Context) {
 
 func (s *Server) handleFacebookCallback(c *gin.Context) {
 	var cb facebookCallback
-	c.Bind(&cb)
+	err := c.Bind(&cb)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	if cb.State != oauthStateString {
 		fmt.Printf("invalid oauth state, expected '%s', got '%s'\n", oauthStateString, cb.State)

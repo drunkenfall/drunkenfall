@@ -1,8 +1,6 @@
 package towerfall
 
 import (
-	"encoding/json"
-	"log"
 	"time"
 )
 
@@ -88,17 +86,10 @@ type Message struct {
 	Timestamp time.Time   `json:"timestamp"`
 }
 
-func (m *Message) serialize() {
-	out, err := json.Marshal(&m.Data)
-	if err != nil {
-		log.Fatal(err)
-	}
-	m.JSON = string(out)
-}
-
 const EnvironmentKill = -1
 
 // Kill reasons
+// nolint
 const (
 	rArrow = iota
 	rExplosion
@@ -116,6 +107,7 @@ const (
 )
 
 // Arrows
+// nolint
 const (
 	aNormal = iota
 	aBomb
@@ -131,6 +123,7 @@ const (
 )
 
 // Message types
+// nolint
 const (
 	inKill       = "kill"
 	inRoundStart = "round_start"

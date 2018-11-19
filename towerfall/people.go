@@ -46,6 +46,7 @@ const (
 
 // Archer types. These decide which version of the character you are
 // playing as. Secret is selectable but never used.
+// nolint
 const (
 	atNormal = iota
 	atAlternate

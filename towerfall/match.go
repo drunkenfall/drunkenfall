@@ -43,7 +43,6 @@ type Match struct {
 	Scheduled    time.Time     `json:"scheduled"`
 	Started      time.Time     `json:"started"`
 	Ended        time.Time     `json:"ended"`
-	Events       []*Event      `json:"events" sql:"-"`
 	// KillOrder     []int         `json:"kill_order"`
 	Rounds        []Round `json:"commits" sql:"-"`
 	Commits       []Commit
@@ -175,16 +174,6 @@ func (m *Match) URL() string {
 // realLevel returns the level name string that the game expects
 func (m *Match) realLevel() string {
 	return realNames[m.Level]
-}
-
-// LogEvent makes an event and stores it on the tournament object
-func (m *Match) LogEvent(kind, message string, items ...interface{}) {
-	ev, err := NewEvent(kind, message, items...)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	m.Events = append(m.Events, ev)
 }
 
 // AddPlayer adds a player to the match
@@ -512,20 +501,6 @@ func (m *Match) ArrowUpdate(am ArrowMessage) error {
 // ShieldUpdate updates the shield state for a player
 func (m *Match) ShieldUpdate(sm ShieldMessage) error {
 	m.Players[sm.Player].State.Shield = sm.State
-	if sm.State {
-		m.LogEvent(
-			"shield", "{player} gets a shield",
-			"player", m.Players[sm.Player].Name(),
-			"person", m.Players[sm.Player].Person,
-		)
-	} else {
-		m.LogEvent(
-			"shield_off", "{player}'s shield breaks",
-			"player", m.Players[sm.Player].Name(),
-			"person", m.Players[sm.Player].Person,
-		)
-	}
-
 	if !m.currentRound.started {
 		// log.Print("Skipping update of non-started round")
 		return nil
@@ -537,20 +512,6 @@ func (m *Match) ShieldUpdate(sm ShieldMessage) error {
 // WingsUpdate updates the wings state for a player
 func (m *Match) WingsUpdate(wm WingsMessage) error {
 	m.Players[wm.Player].State.Wings = wm.State
-	if wm.State {
-		m.LogEvent(
-			"wings", "{player} grows wings",
-			"player", m.Players[wm.Player].Name(),
-			"person", m.Players[wm.Player].Person,
-		)
-	} else {
-		m.LogEvent(
-			"wings_off", "{player} flies no more",
-			"player", m.Players[wm.Player].Name(),
-			"person", m.Players[wm.Player].Person,
-		)
-	}
-
 	if !m.currentRound.started {
 		// log.Print("Skipping update of non-started round")
 		return nil
@@ -562,20 +523,6 @@ func (m *Match) WingsUpdate(wm WingsMessage) error {
 // LavaOrb sets or unsets the lava for a player
 func (m *Match) LavaOrb(lm LavaOrbMessage) error {
 	m.Players[lm.Player].State.Lava = lm.State
-
-	if lm.State {
-		m.LogEvent(
-			"lava", "{player} set the map on fire",
-			"player", m.Players[lm.Player].Name(),
-			"person", m.Players[lm.Player].Person,
-		)
-	} else {
-		m.LogEvent(
-			"lava_off", "{player}'s fire sizzles away",
-			"player", m.Players[lm.Player].Name(),
-			"person", m.Players[lm.Player].Person,
-		)
-	}
 
 	return m.sendPlayerUpdate(lm.Player)
 }
@@ -589,38 +536,16 @@ func (m *Match) Kill(km KillMessage) error {
 		m.Players[km.Player].AddSelf()
 		m.currentRound.AddSelf(km.Player)
 
-		m.LogEvent(
-			"kill_environ", "{player} was killed by the environment via {cause}",
-			"player", m.Players[km.Player].Name(),
-			"person", m.Players[km.Player].Person,
-			"cause", km.Cause,
-		)
-
 		return globalDB.UpdatePlayer(m, &m.Players[km.Player])
 	} else if km.Killer == km.Player {
 		m.Players[km.Player].AddSelf()
 		m.currentRound.AddSelf(km.Player)
-
-		m.LogEvent(
-			"suicide", "{player} committed suicide via {cause}",
-			"player", m.Players[km.Player].Name(),
-			"person", m.Players[km.Player].Person,
-			"cause", km.Cause,
-		)
 
 		return globalDB.UpdatePlayer(m, &m.Players[km.Killer])
 	}
 
 	m.Players[km.Killer].AddKills(1)
 	m.currentRound.AddKill(km.Killer)
-	m.LogEvent(
-		"kill", "{killer} killed {player} with {cause}",
-		"killer", m.Players[km.Killer].Name(),
-		"player", m.Players[km.Player].Name(),
-		"person", m.Players[km.Killer].Person,
-		"cause", km.Cause,
-	)
-
 	return globalDB.UpdatePlayer(m, &m.Players[km.Killer])
 }
 
@@ -649,11 +574,6 @@ func (m *Match) Start(c *gin.Context) error {
 	// }
 
 	m.Started = time.Now()
-	m.LogEvent(
-		"started", "{match} started",
-		"match", m.Title(),
-		"person", PersonFromSession(m.Tournament.server, c))
-
 	return globalDB.SaveMatch(m)
 }
 
@@ -701,11 +621,6 @@ func (m *Match) End(c *gin.Context) error {
 	if err != nil {
 		return err
 	}
-
-	m.LogEvent(
-		"ended", "{match} ended",
-		"match", m.Title(),
-		"person", PersonFromSession(m.Tournament.server, c))
 
 	if m.Kind == final {
 		if err := m.Tournament.AwardMedals(c, m); err != nil {
@@ -764,12 +679,6 @@ func (m *Match) Autoplay() error {
 // SetTime sets the scheduled time based on the Pause attribute
 func (m *Match) SetTime(c *gin.Context, minutes int) {
 	m.Scheduled = time.Now().Add(time.Minute * time.Duration(minutes))
-
-	m.LogEvent(
-		"time_set", "{match} scheduled in {minutes}m",
-		"minutes", minutes,
-		"match", m.Title(),
-		"person", PersonFromSession(m.Tournament.server, c))
 	m.Tournament.Persist()
 }
 
@@ -848,12 +757,6 @@ func (m *Match) ArchersHarmed() int {
 // Duration returns how long the match took
 func (m *Match) Duration() time.Duration {
 	return m.Ended.Sub(m.Started)
-}
-
-func (m *Match) getRandomLevel() string {
-	// l := m.tournament.Levels[m.Kind]
-	// return l[m.Index%len(l)]
-	return "cataclysm"
 }
 
 // NewMatchCommit makes a new MatchCommit object from a CommitRequest

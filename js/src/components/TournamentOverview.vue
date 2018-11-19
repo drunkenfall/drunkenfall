@@ -25,37 +25,10 @@
         <div class="clear"></div>
       </div>
     </div>
-
-    <div class="category playoffs">
-      <h2>Playoffs</h2>
-      <div class="matches">
-        <template v-for="m in tournament.playoffs">
-          <match-overview :match="m" :class="'match ' + m.kind"></match-overview>
-        </template>
-      </div>
-      <div class="clear"></div>
-    </div>
-
-    <div class="category semis">
-      <h2>Semi-finals</h2>
-      <div class="matches">
-        <template v-for="m in tournament.semis">
-          <match-overview :match="m" :class="'match ' + m.kind"></match-overview>
-        </template>
-      </div>
-      <div class="clear"></div>
-    </div>
-    <div class="category final">
-      <h2>Final</h2>
-      <div class="matches">
-        <match-overview :match="tournament.final" class="match final"></match-overview>
-      </div>
-    </div>
   </div>
 </template>
 
 <script>
-import MatchOverview from './MatchOverview'
 import DrunkenFallMixin from "../mixin"
 import TournamentControls from "./buttons/TournamentControls"
 import _ from 'lodash'
@@ -65,7 +38,6 @@ export default {
   mixins: [DrunkenFallMixin],
 
   components: {
-    MatchOverview,
     TournamentControls,
   },
 
