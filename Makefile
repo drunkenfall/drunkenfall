@@ -46,7 +46,7 @@ install-linter:
 	curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(GOPATH)/bin v1.12.2
 
 test:
-	GIN_MODE=test go test -v ./towerfall -failfast
+	GIN_MODE=test go test -v ./towerfall
 
 cover:
 	go test -coverprofile=cover.out ./...
