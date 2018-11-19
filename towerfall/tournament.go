@@ -191,14 +191,14 @@ func (t *Tournament) TogglePlayer(id string) error {
 }
 
 // SetCasters resets the casters to the input people
-func (t *Tournament) SetCasters(ids []string) {
+func (t *Tournament) SetCasters(ids []string) error {
 	t.Casters = make([]*Person, 0)
 	for _, id := range ids {
 		ps, _ := t.db.GetPerson(id)
 		t.Casters = append(t.Casters, ps)
 	}
 
-	t.Persist()
+	return t.Persist()
 }
 
 // StartTournament will generate the tournament.
@@ -232,9 +232,12 @@ func (t *Tournament) StartTournament(c *gin.Context) error {
 	t.Started = time.Now()
 
 	// Get the first match and set the scheduled date to be now.
-	t.Matches[0].SetTime(c, 0)
+	err := t.Matches[0].SetTime(c, 0)
+	if err != nil {
+		return err
+	}
 
-	err := t.PublishNext()
+	err = t.PublishNext()
 	if err != nil && err != ErrPublishDisconnected {
 		return err
 	}
@@ -253,8 +256,13 @@ func (t *Tournament) UsurpTournament() error {
 	if err != nil {
 		return err
 	}
-	t.server.SendWebsocketUpdate("tournament", t)
-	return nil
+
+	err = t.server.SendWebsocketUpdate("tournament", t)
+	if err != nil {
+		t.server.log.Error("Sending websocket update failed")
+	}
+
+	return err
 }
 
 // AutoplaySection runs through all the matches in the current section
@@ -262,16 +270,22 @@ func (t *Tournament) UsurpTournament() error {
 //
 // E.g. if we're in the playoffs, they will all be finished and we're
 // left at semi 1.
-func (t *Tournament) AutoplaySection() {
+func (t *Tournament) AutoplaySection() error {
 	if !t.IsRunning() {
-		t.StartTournament(nil)
+		err := t.StartTournament(nil)
+		if err != nil {
+			return err
+		}
 	}
 
 	m := t.Matches[t.Current]
 	kind := m.Kind
 
 	for kind == m.Kind {
-		m.Autoplay()
+		err := m.Autoplay()
+		if err != nil {
+			return err
+		}
 
 		if int(t.Current) == len(t.Matches) {
 			// If we just finished the finals, then we should just exit
@@ -281,7 +295,7 @@ func (t *Tournament) AutoplaySection() {
 		m = t.Matches[t.Current]
 	}
 
-	t.server.SendWebsocketUpdate("tournament", t)
+	return t.server.SendWebsocketUpdate("tournament", t)
 }
 
 // GetRunnerups gets the runnerups for this tournament
@@ -310,7 +324,10 @@ func (t *Tournament) MovePlayers(m *Match) error {
 
 			// The runnerups are in order for the next match - add them
 			for _, p := range rups {
-				nm.AddPlayer(p.Player())
+				err = nm.AddPlayer(p.Player())
+				if err != nil {
+					return errors.WithStack(err)
+				}
 			}
 
 			return nil
@@ -321,14 +338,20 @@ func (t *Tournament) MovePlayers(m *Match) error {
 			return errors.WithStack(err)
 		}
 		if done {
-			t.ScheduleEndgame()
+			err = t.ScheduleEndgame()
+			if err != nil {
+				return errors.WithStack(err)
+			}
 		}
 	}
 
 	// For the playoffs, just place the winner into the final
 	if m.Kind == playoff {
 		p := SortByKills(m.Players)[0]
-		t.Matches[len(t.Matches)-1].AddPlayer(p)
+		err := t.Matches[len(t.Matches)-1].AddPlayer(p)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -361,7 +384,10 @@ func (t *Tournament) ScheduleEndgame() error {
 
 		// Add players to the match
 		for _, p := range buckets[x] {
-			m.AddPlayer(p.Player())
+			err = m.AddPlayer(p.Player())
+			if err != nil {
+				return err
+			}
 		}
 
 		t.Matches = append(t.Matches, m)

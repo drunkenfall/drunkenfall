@@ -27,7 +27,7 @@ func NewPublisher(conf *Config) (*Publisher, error) {
 
 	p.ch, err = p.conn.Channel()
 	if err != nil {
-		errors.New("Failed to open publishing channel")
+		return &p, errors.New("Failed to open publishing channel")
 	}
 
 	p.outgoing, err = p.ch.QueueDeclare(
@@ -39,7 +39,7 @@ func NewPublisher(conf *Config) (*Publisher, error) {
 		nil,                      // arguments
 	)
 	if err != nil {
-		errors.New("Failed to declare the outgoing queue")
+		return &p, errors.New("Failed to declare the outgoing queue")
 	}
 
 	return &p, err

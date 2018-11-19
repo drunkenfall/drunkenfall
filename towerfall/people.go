@@ -87,7 +87,7 @@ func (p *Person) Score() *ScoreSummary {
 }
 
 // CreateFromFacebook adds a new player via Facebook login
-func CreateFromFacebook(s *Server, req *FacebookAuthResponse) *Person {
+func CreateFromFacebook(s *Server, req *FacebookAuthResponse) (*Person, error) {
 	p := &Person{
 		PersonID:   req.ID,
 		FacebookID: req.ID,
@@ -97,9 +97,8 @@ func CreateFromFacebook(s *Server, req *FacebookAuthResponse) *Person {
 
 	p.PrefillNickname()
 
-	s.DB.SavePerson(p)
-
-	return p
+	err := s.DB.SavePerson(p)
+	return p, err
 }
 
 // PrefillNickname makes a suggestion to the nick based on the person
@@ -212,9 +211,7 @@ func (p *Person) RemoveCookies(c *gin.Context) error {
 	session := sessions.Default(c)
 	session.Delete("user")
 	session.Delete("userlevel")
-	session.Save()
-
-	return nil
+	return session.Save()
 }
 
 // PersonFromSession returns the Person{} object attached to the session

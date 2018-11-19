@@ -454,7 +454,10 @@ func (m *Match) EndRound() error {
 
 			// This updates both the shot count and the sweep count (because
 			// kills == 3 catches the sweep as well)
-			globalDB.UpdatePlayer(m, &m.Players[i])
+			err := globalDB.UpdatePlayer(m, &m.Players[i])
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -622,11 +625,7 @@ func (m *Match) End(c *gin.Context) error {
 		return err
 	}
 
-	if m.Kind == final {
-		if err := m.Tournament.AwardMedals(c, m); err != nil {
-			return err
-		}
-	} else {
+	if m.Kind != final {
 		if err := m.Tournament.MovePlayers(m); err != nil {
 			return err
 		}
@@ -677,9 +676,9 @@ func (m *Match) Autoplay() error {
 }
 
 // SetTime sets the scheduled time based on the Pause attribute
-func (m *Match) SetTime(c *gin.Context, minutes int) {
+func (m *Match) SetTime(c *gin.Context, minutes int) error {
 	m.Scheduled = time.Now().Add(time.Minute * time.Duration(minutes))
-	m.Tournament.Persist()
+	return globalDB.SaveMatch(m)
 }
 
 // IsStarted returns boolean whether the match has started or not

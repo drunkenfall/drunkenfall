@@ -118,7 +118,10 @@ func (s *Server) handleFacebookCallback(c *gin.Context) {
 		return
 	}
 
-	p := CreateFromFacebook(s, req)
+	p, err := CreateFromFacebook(s, req)
+	if err != nil {
+		log.Fatal(err)
+	}
 	err = p.StoreCookies(c)
 	if err != nil {
 		log.Fatal(err)

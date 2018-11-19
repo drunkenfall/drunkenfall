@@ -140,7 +140,12 @@ func (s *Server) NewHandler(c *gin.Context) {
 		return
 	}
 
-	s.SendWebsocketUpdate("tournament", t)
+	err = s.SendWebsocketUpdate("tournament", t)
+	if err != nil {
+		idlog.Info("Sending websocket update failed", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Couldn't publish websocket"})
+		return
+	}
 
 	idlog.Info("Tournament created", zap.String("name", t.Name))
 	c.JSON(http.StatusOK, gin.H{"redirect": t.URL()})
@@ -169,7 +174,11 @@ func (s *Server) JoinHandler(c *gin.Context) {
 
 	tm := s.getTournament(c)
 	ps := PersonFromSession(s, c)
-	tm.TogglePlayer(ps.PersonID)
+	err := tm.TogglePlayer(ps.PersonID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 	c.JSON(http.StatusOK, gin.H{"redirect": tm.URL()})
 }
 
@@ -235,7 +244,13 @@ func (s *Server) UsurpTournamentHandler(c *gin.Context) {
 // AutoplayTournamentHandler plays a section of the tournament automatically
 func (s *Server) AutoplayTournamentHandler(c *gin.Context) {
 	tm := s.getTournament(c)
-	tm.AutoplaySection()
+
+	err := tm.AutoplaySection()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"redirect": tm.URL()})
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{"redirect": tm.URL()})
 }
 
@@ -283,7 +298,12 @@ func (s *Server) PlayerSummariesHandler(c *gin.Context) {
 // start doing whatever is next.
 func (s *Server) StartPlayHandler(c *gin.Context) {
 	s.log.Info("sending start_play")
-	s.publisher.Publish(gStartPlay, StartPlayMessage{})
+	err := s.publisher.Publish(gStartPlay, StartPlayMessage{})
+	if err != nil {
+		s.log.Info("Publishing failed", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{"sent": false})
+		return
+	}
 	c.JSON(http.StatusOK, gin.H{"sent": true})
 }
 
@@ -426,7 +446,13 @@ func (s *Server) SetTimeHandler(c *gin.Context) {
 		return
 	}
 
-	m.SetTime(c, x)
+	err = m.SetTime(c, x)
+	if err != nil {
+		mlog.Error("Couldn't set time", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Database error setting time"})
+		return
+	}
+
 	mlog.Info("Time set", zap.Int("minutes", x))
 	c.JSON(http.StatusOK, gin.H{"redirect": m.URL()})
 }
@@ -470,7 +496,13 @@ func (s *Server) CastersHandler(c *gin.Context) {
 		return
 	}
 
-	tm.SetCasters(spl)
+	err = tm.SetCasters(spl)
+	if err != nil {
+		clog.Error("Setting casters failed", zap.Error(err))
+		c.JSON(http.StatusForbidden, gin.H{"message": "Setting casters failed"})
+		return
+	}
+
 	clog.Info("Casters set")
 	c.JSON(http.StatusOK, gin.H{"message": "Done"})
 }
@@ -502,7 +534,13 @@ func (s *Server) DisableHandler(c *gin.Context) {
 		return
 	}
 
-	s.DB.DisablePerson(id)
+	err := s.DB.DisablePerson(id)
+	if err != nil {
+		plog.Error("couldn't get people", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "disable failed"})
+		return
+	}
+
 	plog.Info("Person disabled", zap.String("person", id))
 
 	ps, err := s.DB.GetPeople()
@@ -518,13 +556,19 @@ func (s *Server) DisableHandler(c *gin.Context) {
 // LogoutHandler logs out the user
 func (s *Server) LogoutHandler(c *gin.Context) {
 	p := PersonFromSession(s, c)
-
-	p.RemoveCookies(c)
-	s.log.Info(
-		"User logged out",
+	plog := s.log.With(
 		zap.String("path", c.Request.URL.Path),
 		zap.String("user", p.PersonID),
 	)
+
+	err := p.RemoveCookies(c)
+	if err != nil {
+		plog.Error("Removing cookies failed", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Logout failed (?)"})
+		return
+	}
+
+	plog.Info("User logged out")
 	c.JSON(http.StatusOK, gin.H{"message": "Done"})
 }
 
@@ -548,9 +592,19 @@ func (s *Server) SettingsHandler(c *gin.Context) {
 	}
 
 	p.UpdatePerson(&req)
-	s.DB.SavePerson(p)
+	err = s.DB.SavePerson(p)
+	if err != nil {
+		plog.Error("Saving failed", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Database failed"})
+		return
+	}
 
-	_ = p.StoreCookies(c)
+	err = p.StoreCookies(c)
+	if err != nil {
+		plog.Error("Setting cookies failed", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Cookies failed"})
+		return
+	}
 
 	plog.Info("Person saved", zap.String("person", p.PersonID))
 	c.JSON(http.StatusOK, gin.H{"person": p})
@@ -632,12 +686,19 @@ func (s *Server) BuildRouter(ws *melody.Melody) *gin.Engine {
 	// Websockets are auth free
 	api.GET("/auto-updater", func(c *gin.Context) {
 		s.log.Info("Websocket setup")
-		ws.HandleRequest(c.Writer, c.Request)
+
+		err := ws.HandleRequest(c.Writer, c.Request)
+		if err != nil {
+			s.log.Error("Handling websocket setup failed", zap.Error(err))
+		}
 	})
 
 	ws.HandleMessage(func(ms *melody.Session, msg []byte) {
 		s.log.Info("Websocket message", zap.String("message", string(msg)))
-		ws.Broadcast(msg)
+		err := ws.Broadcast(msg)
+		if err != nil {
+			s.log.Error("Handling websocket message failed", zap.Error(err))
+		}
 	})
 
 	// Protected routes - everything past this point requires that you
@@ -695,7 +756,11 @@ func (s *Server) SendWebsocketUpdate(kind string, data interface{}) error {
 			return
 		}
 
-		s.ws.Broadcast(out)
+		err = s.ws.Broadcast(out)
+		if err != nil {
+			s.log.Error("Broadcast failed", zap.Error(err))
+			return
+		}
 	}(kind, data)
 
 	return nil
