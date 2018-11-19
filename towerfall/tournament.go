@@ -30,13 +30,12 @@ type Tournament struct {
 	QualifyingEnd time.Time        `json:"qualifying_end"`
 	Ended         time.Time        `json:"ended"`
 	Color         string           `json:"color"`
-	// Levels      Levels       `json:"levels"`
-	Cover       string `json:"cover"`
-	Length      int    `json:"length"`
-	FinalLength int    `json:"final_length"`
-	connected   bool
-	db          *Database
-	server      *Server
+	Cover         string           `json:"cover"`
+	Length        int              `json:"length"`
+	FinalLength   int              `json:"final_length"`
+	connected     bool
+	db            *Database
+	server        *Server
 }
 
 // CurrentMatch holds the pointers needed to find the current match
