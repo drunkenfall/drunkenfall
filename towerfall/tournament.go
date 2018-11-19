@@ -245,6 +245,12 @@ func (t *Tournament) StartTournament(c *gin.Context) error {
 	return t.Persist()
 }
 
+// End marks the end of the tournament
+func (t *Tournament) End() error {
+	t.Ended = time.Now()
+	return t.Persist()
+}
+
 // EndQualifyingRounds marks when the qualifying rounds end
 func (t *Tournament) EndQualifyingRounds(ts time.Time) error {
 	t.QualifyingEnd = ts

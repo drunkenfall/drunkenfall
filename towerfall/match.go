@@ -625,7 +625,11 @@ func (m *Match) End(c *gin.Context) error {
 		return err
 	}
 
-	if m.Kind != final {
+	if m.Kind == final {
+		if err := m.Tournament.End(); err != nil {
+			return err
+		}
+	} else {
 		if err := m.Tournament.MovePlayers(m); err != nil {
 			return err
 		}
