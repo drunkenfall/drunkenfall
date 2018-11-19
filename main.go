@@ -14,6 +14,7 @@ func main() {
 
 	// Load the configuration
 	config := towerfall.ParseConfig()
+	config.Print()
 
 	// Instantiate the database
 	db, err := towerfall.NewDatabase(config)

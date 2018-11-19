@@ -92,7 +92,9 @@ func (t *Tournament) Persist() error {
 // match is started, so t.NextMatch() can always safely be used.
 func (t *Tournament) PublishNext() error {
 	if !t.connected {
-		t.server.log.Info("Not publishing disconnected tournament")
+		if t.server.config.Production {
+			t.server.log.Info("Not publishing disconnected tournament")
+		}
 		return ErrPublishDisconnected
 	}
 

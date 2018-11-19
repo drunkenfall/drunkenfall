@@ -39,8 +39,12 @@ func ParseConfig() *Config {
 	}
 
 	c.parseOauth()
-	c.log.Info("Configuration loaded", zap.Any("config", c))
 	return &c
+}
+
+// Print prints a visualization of what's going on
+func (c *Config) Print() {
+	c.log.Info("Configuration loaded", zap.Any("config", c))
 }
 
 func (c *Config) parseOauth() {
