@@ -127,7 +127,7 @@ func (d *Database) UpdatePlayer(m *Match, p *Player) error {
 	return d.UpdatePlayerSummary(m.Tournament, p)
 }
 
-// UpdatePlayerSummary updates the total player data for the tourmament
+// UpdatePlayerSummary updates the total player data for the tournament
 func (d *Database) UpdatePlayerSummary(t *Tournament, p *Player) error {
 	query := `UPDATE player_summaries ps
    SET (shots, sweeps, kills, self, matches, total_score, skill_score)

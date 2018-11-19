@@ -295,7 +295,7 @@ func TestFullTournament(t *testing.T) {
 		runTestMatch(t, tm, matches+6, false)
 	})
 
-	t.Run("Torunament end state", func(t *testing.T) {
+	t.Run("Tournament end state", func(t *testing.T) {
 		t.Run("End is set", func(t *testing.T) {
 			assert.NotZero(t, tm.Ended)
 		})

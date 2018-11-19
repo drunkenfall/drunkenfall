@@ -1,4 +1,4 @@
--- Show the total scores of a tourmament
+-- Show the total scores of a tournament
 CREATE OR REPLACE FUNCTION overview(tid INTEGER) RETURNS
   TABLE(ID INTEGER, tournament_id integer, nick text, shots smallint, sweeps SMALLINT, kills smallint, self smallint, matches SMALLINT, total_score INTEGER, skill_score INTEGER) AS $$
   BEGIN

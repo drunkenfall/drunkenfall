@@ -30,7 +30,7 @@
 
       <div class="achievement">
         <div class="title">🐕 Underdog</div>
-        <div class="commentary">Lost playoffs, still won tourmament</div>
+        <div class="commentary">Lost playoffs, still won tournament</div>
       </div>
 
       <div class="achievement">

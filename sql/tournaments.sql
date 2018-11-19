@@ -1,4 +1,4 @@
--- Clean up the join tables for levels and nicknames once a tourmament
+-- Clean up the join tables for levels and nicknames once a tournament
 -- is done
 CREATE OR REPLACE FUNCTION cleanup_after_tournament() RETURNS TRIGGER AS $$
  BEGIN
