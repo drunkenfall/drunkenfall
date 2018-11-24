@@ -288,7 +288,7 @@ func (s *Server) PlayerSummariesHandler(c *gin.Context) {
 	}
 
 	for x, y := range p {
-		ps[x].cachedPerson = y
+		ps[x].CachedPerson = y
 	}
 
 	c.JSON(http.StatusOK, gin.H{"player_summaries": ps})

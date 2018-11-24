@@ -406,7 +406,7 @@ func (d *Database) GetPlayerSummary(t *Tournament, pid string) (*PlayerSummary, 
 		return nil, err
 	}
 
-	ret.cachedPerson, err = d.GetPerson(pid)
+	ret.CachedPerson, err = d.GetPerson(pid)
 	return &ret, err
 }
 

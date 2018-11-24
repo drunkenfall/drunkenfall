@@ -64,23 +64,23 @@ type Player struct {
 	State          PlayerState `json:"state" sql:"-"`
 	Match          *Match      `json:"-" sql:"-"`
 	DisplayNames   []string    `sql:",array"`
-	cachedPerson   *Person
+	CachedPerson   *Person     `json:"person" sql:"-"`
 }
 
 // A PlayerSummary is a tournament-wide summary of the scores a player has
 type PlayerSummary struct {
 	ID uint `json:"id"`
 
-	TournamentID uint   `json:"-"`
-	PersonID     string `json:"person_id"`
-	Shots        int    `json:"shots" sql:",notnull"`
-	Sweeps       int    `json:"sweeps" sql:",notnull"`
-	Kills        int    `json:"kills" sql:",notnull"`
-	Self         int    `json:"self" sql:",notnull"`
-	Matches      int    `json:"matches" sql:",notnull"`
-	TotalScore   int    `json:"score" sql:",notnull"`
-	SkillScore   int    `json:"skill_score" sql:",notnull"`
-	cachedPerson *Person
+	TournamentID uint    `json:"-"`
+	PersonID     string  `json:"person_id"`
+	Shots        int     `json:"shots" sql:",notnull"`
+	Sweeps       int     `json:"sweeps" sql:",notnull"`
+	Kills        int     `json:"kills" sql:",notnull"`
+	Self         int     `json:"self" sql:",notnull"`
+	Matches      int     `json:"matches" sql:",notnull"`
+	TotalScore   int     `json:"score" sql:",notnull"`
+	SkillScore   int     `json:"skill_score" sql:",notnull"`
+	CachedPerson *Person `json:"person" sql:"-"`
 }
 
 type PlayerState struct {
@@ -99,7 +99,7 @@ type PlayerState struct {
 func NewPlayer(ps *Person) *Player {
 	p := &Player{
 		PersonID:       ps.PersonID,
-		cachedPerson:   ps,
+		CachedPerson:   ps,
 		Nick:           ps.Nick,
 		ArcherType:     ps.ArcherType,
 		State:          NewPlayerState(),
@@ -130,7 +130,7 @@ func NewPlayerState() PlayerState {
 func NewPlayerSummary(ps *Person) *PlayerSummary {
 	p := &PlayerSummary{
 		PersonID:     ps.PersonID,
-		cachedPerson: ps,
+		CachedPerson: ps,
 	}
 	return p
 }
@@ -200,7 +200,7 @@ func (p *Player) Score() (out int) {
 func (p *Player) Summary() PlayerSummary {
 	return PlayerSummary{
 		PersonID:     p.PersonID,
-		cachedPerson: p.getPerson(),
+		CachedPerson: p.getPerson(),
 		Shots:        p.Shots,
 		Sweeps:       p.Sweeps,
 		Kills:        p.Kills,
@@ -401,13 +401,13 @@ func (p *PlayerSummary) Update(other PlayerSummary) {
 func (p *PlayerSummary) getPerson() *Person {
 	var err error
 
-	if p.cachedPerson == nil {
-		p.cachedPerson, err = globalDB.GetPerson(p.PersonID)
+	if p.CachedPerson == nil {
+		p.CachedPerson, err = globalDB.GetPerson(p.PersonID)
 		if err != nil {
 			log.Fatal(err)
 		}
 	}
-	return p.cachedPerson
+	return p.CachedPerson
 }
 
 // getPerson gets the person object, and grabs it from the database if
@@ -415,13 +415,13 @@ func (p *PlayerSummary) getPerson() *Person {
 func (p *Player) getPerson() *Person {
 	var err error
 
-	if p.cachedPerson == nil {
-		p.cachedPerson, err = globalDB.GetPerson(p.PersonID)
+	if p.CachedPerson == nil {
+		p.CachedPerson, err = globalDB.GetPerson(p.PersonID)
 		if err != nil {
 			log.Fatal(err)
 		}
 	}
-	return p.cachedPerson
+	return p.CachedPerson
 }
 
 // DividePlayoffPlayers divides the playoff players into four buckets based
