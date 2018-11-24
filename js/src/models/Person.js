@@ -18,10 +18,10 @@ export default class Person {
   }
 
   get color () {
-    if (!this.color_preference) {
+    if (!this.preferred_color) {
       return ""
     }
-    return this.color_preference[0]
+    return this.preferred_color
   }
 
   get displayName () {
