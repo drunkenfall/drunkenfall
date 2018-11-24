@@ -116,7 +116,12 @@ func (l *Listener) handle(t *Tournament, body []byte) error {
 	}
 
 	// If it wasn't, then it's about a match
-	err = t.Matches[t.Current].handleMessage(msg)
+	m, err := t.CurrentMatch()
+	if err != nil {
+		l.log.Info("Couldn't find current match", zap.Error(err))
+	}
+
+	err = m.handleMessage(msg)
 	if err != nil {
 		l.log.Info("Match handle failed", zap.Error(err))
 		return err

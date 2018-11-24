@@ -23,7 +23,6 @@ type Tournament struct {
 	Runnerups     []*PlayerSummary `json:"-" sql:"-"`
 	Casters       []*Person        `json:"-" sql:"-"`
 	Matches       []*Match         `json:"-"`
-	Current       CurrentMatch     `json:"-"`
 	Opened        time.Time        `json:"opened"`
 	Scheduled     time.Time        `json:"scheduled"`
 	Started       time.Time        `json:"started"`
@@ -37,9 +36,6 @@ type Tournament struct {
 	db            *Database
 	server        *Server
 }
-
-// CurrentMatch holds the pointers needed to find the current match
-type CurrentMatch int
 
 const minPlayers = 12
 const matchLength = 10
@@ -284,7 +280,11 @@ func (t *Tournament) AutoplaySection() error {
 		}
 	}
 
-	m := t.Matches[t.Current]
+	m, err := t.CurrentMatch()
+	if err != nil {
+		return err
+	}
+
 	kind := m.Kind
 
 	for kind == m.Kind {
@@ -293,12 +293,15 @@ func (t *Tournament) AutoplaySection() error {
 			return err
 		}
 
-		if int(t.Current) == len(t.Matches) {
+		if kind == final {
 			// If we just finished the finals, then we should just exit
 			break
 		}
 
-		m = t.Matches[t.Current]
+		m, err = t.CurrentMatch()
+		if err != nil {
+			return err
+		}
 	}
 
 	return t.server.SendWebsocketUpdate("tournament", t)
@@ -413,6 +416,11 @@ func (t *Tournament) NextMatch() (*Match, error) {
 	}
 
 	return t.db.NextMatch(t)
+}
+
+// CurrentMatch returns the current match
+func (t *Tournament) CurrentMatch() (*Match, error) {
+	return t.db.CurrentMatch(t)
 }
 
 // IsRunning returns boolean true if the tournament is running or not

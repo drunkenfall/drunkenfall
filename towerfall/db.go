@@ -320,6 +320,37 @@ func (d *Database) NextMatch(t *Tournament) (*Match, error) {
 	return &m, err
 }
 
+// CurrentMatch the currently running match
+func (d *Database) CurrentMatch(t *Tournament) (*Match, error) {
+	m := Match{
+		Tournament: t,
+	}
+
+	q := t.db.DB.Model(&m).Where("tournament_id = ? AND ended IS NULL", t.ID)
+	q = q.Order("id").Limit(1)
+
+	err := q.Select()
+	if err != nil {
+		return nil, err
+	}
+
+	ps := []Player{}
+	q = t.db.DB.Model(&ps).Where("match_id = ?", m.ID)
+	err = q.Select()
+	m.Players = ps
+
+	return &m, err
+}
+
+// MatchMessages returns the messages from a match
+func (d *Database) MatchMessages(m *Match) ([]*Message, error) {
+	msgs := []*Message{}
+	q := d.DB.Model(&msgs).Where("match_id = ?", m.ID)
+	err := q.Select()
+
+	return msgs, errors.WithStack(err)
+}
+
 // QualifyingMatchesDone returns if we're done with the qualifiers
 func (d *Database) QualifyingMatchesDone(t *Tournament) (bool, error) {
 	m := Match{

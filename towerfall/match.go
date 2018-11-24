@@ -656,12 +656,7 @@ func (m *Match) Reset() error {
 	// And reset the start time
 	m.Started = time.Time{}
 
-	// Also decrease the Current. It was bumped on match start, and
-	// since we reset it's going to be too high and whatever calls for
-	// the next match will go to the one after the one that was reset.
-	m.Tournament.Current--
-
-	return m.Tournament.Persist()
+	return globalDB.SaveMatch(m)
 }
 
 // Autoplay runs through the entire match simulating real play
