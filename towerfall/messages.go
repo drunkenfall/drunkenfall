@@ -50,12 +50,17 @@ type MatchUpdateMessage struct {
 // have indicated that the next round can start
 type StartPlayMessage struct{}
 
+// TournamentCompleteMessage is sent to the game whenever one of the shot girls
+// have indicated that the next round can start
+type TournamentCompleteMessage struct{}
+
 // Constant strings for use as kinds when communicating with the game
 const (
 	gMatch      = "match"
 	gConnect    = "game_connected"
 	gDisconnect = "game_disconnected"
 	gStartPlay  = "start_play"
+	gComplete   = "tournament_complete"
 )
 
 // GameMatchMessage is the message sent to the game about the

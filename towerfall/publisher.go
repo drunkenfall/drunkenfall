@@ -70,3 +70,8 @@ func (p *Publisher) Publish(kind string, data interface{}) error {
 		})
 	return err
 }
+
+// SendTournamentComplete sends the tournament ended message
+func (p *Publisher) SendTournamentComplete(t *Tournament) error {
+	return p.Publish(gComplete, TournamentCompleteMessage{})
+}

@@ -243,6 +243,12 @@ func (t *Tournament) StartTournament(c *gin.Context) error {
 // End marks the end of the tournament
 func (t *Tournament) End() error {
 	t.Ended = time.Now()
+
+	err := t.server.publisher.SendTournamentComplete(t)
+	if err != nil {
+		return err
+	}
+
 	return t.Persist()
 }
 
