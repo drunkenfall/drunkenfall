@@ -18,6 +18,7 @@ const (
 	qualifying = "qualifying"
 	playoff    = "playoff"
 	final      = "final"
+	special    = "kind"
 )
 
 var ErrPublishIncompleteMatch = errors.New("cannot publish match without four players")
@@ -238,17 +239,7 @@ func (m *Match) CorrectFuckingColorConflicts() error {
 		c := color.(string)
 		for _, p := range m.Players {
 			if p.PreferredColor == c {
-				// XXX(thiderman): Ugh, this sucks, but it makes the cases
-				// where the Person isn't loaded work
-				if p.Person == nil {
-					var err error
-					p.Person, err = m.Tournament.db.GetPerson(p.PersonID)
-					if err != nil {
-						return errors.WithStack(err)
-					}
-				}
-
-				pairs[c] = append(pairs[c], *p.Person)
+				pairs[c] = append(pairs[c], *p.getPerson())
 			}
 		}
 	}

@@ -115,7 +115,7 @@ func (t *Tournament) PublishNext() error {
 			TopName:    p.DisplayNames[0],
 			BottomName: p.DisplayNames[1],
 			Color:      p.NumericColor(),
-			ArcherType: p.Person.ArcherType,
+			ArcherType: p.getPerson().ArcherType,
 		}
 		msg.Players = append(msg.Players, gp)
 	}
@@ -150,9 +150,9 @@ func (t *Tournament) URL() string {
 
 // AddPlayer adds a player into the tournament
 func (t *Tournament) AddPlayer(p *PlayerSummary) error {
-	p.Person.Correct()
+	p.getPerson().Correct()
 
-	if err := t.CanJoin(p.Person); err != nil {
+	if err := t.CanJoin(p.getPerson()); err != nil {
 		log.Print(err)
 		return err
 	}
@@ -431,7 +431,7 @@ func (t *Tournament) IsRunning() bool {
 // CanJoin checks if a player is allowed to join or is already in the tournament
 func (t *Tournament) CanJoin(ps *Person) error {
 	for _, p := range t.Players {
-		if p.Person.Nick == ps.Nick {
+		if p.getPerson().Nick == ps.Nick {
 			return errors.New("already in tournament")
 		}
 	}
