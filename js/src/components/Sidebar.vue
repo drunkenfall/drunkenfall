@@ -3,7 +3,7 @@
   <div id="sidebar" :class="{visible: hamburgerActive}">
     <router-link :to="dispatchLink" class="logo">
       <div>
-        <img alt="" src="/static/img/oem.svg"/>
+        <img :class="{ded: !isConnected}" alt="One-Eye" src="/static/img/oem.svg"/>
       </div>
     </router-link>
 
@@ -167,6 +167,15 @@ export default {
       padding: 1em;
       width: 50%;
       margin: 0px auto;
+
+      img {
+        transition: 1s;
+
+        &.ded {
+          -webkit-filter: grayscale(100%) brightness(75%);
+          filter: grayscale(100%) brightness(75%);
+        }
+      }
     }
 
     .blocks {

@@ -193,7 +193,19 @@ var DrunkenFallMixin = {
       // If the fullscreen GET parameter is set, we should _not_ show
       // the sidebar at all.
       return this.$route.query.fullscreen === undefined
-    }
+    },
+    // If we are to mark One-Eye as disconnected or not depending on
+    // the websocket status
+    isConnected () {
+      if (!this.$store.state.tournamentsLoaded) {
+        // If we haven't loaded any tournaments yet, we're probably
+        // still setting up the websockets. If so, return a fake true
+        // so that we don't flicker for the first few milliseconds.
+        return true
+      }
+
+      return this.$store.getters.isConnected
+    },
   },
   watch: {
     tournament (val, old) {

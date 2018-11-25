@@ -144,6 +144,9 @@ const store = new Vuex.Store({ // eslint-disable-line
       }
       return state.people.find(p => p.id === id)
     },
+    isConnected: state => {
+      return state.socket.isConnected
+    },
   }
 })
 

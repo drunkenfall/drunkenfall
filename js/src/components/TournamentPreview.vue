@@ -119,7 +119,6 @@ export default {
     let id = this.tournament.id
     this.$http.get(`/api/tournaments/${id}/players/`).then(function (res) {
       let data = JSON.parse(res.data)
-      console.log(data)
       this.$store.commit('setPlayerSummaries', {
         tid: id,
         player_summaries: data.player_summaries,
