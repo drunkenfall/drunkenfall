@@ -4,7 +4,7 @@
     <div class="people on">
       <div v-for="person in on" class="person">
         <img @click="toggle" :id="person.id" :alt="person.nick" :src="person.avatar"/>
-        <p>{{person.name.split(" ")[0]}}</p>
+        <p>{{person.firstName}}</p>
       </div>
     </div>
 
@@ -12,7 +12,7 @@
     <div class="people off">
       <div v-for="person in off" class="person">
         <img @click="toggle" :id="person.id" :alt="person.nick" :src="person.avatar"/>
-        <p>{{person.name.split(" ")[0]}}</p>
+        <p>{{person.firstName}}</p>
       </div>
     </div>
   </div>
