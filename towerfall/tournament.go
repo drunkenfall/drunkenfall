@@ -22,7 +22,7 @@ type Tournament struct {
 	ID            uint             `json:"dbid"`
 	Name          string           `json:"name"`
 	Slug          string           `json:"id"`
-	Players       []PlayerSummary  `json:"-"`
+	Players       []PlayerSummary  `json:"players"`
 	Runnerups     []*PlayerSummary `json:"-" sql:"-"`
 	Casters       []*Person        `json:"-" sql:"-"`
 	Matches       []*Match         `json:"-"`
@@ -118,7 +118,7 @@ func (t *Tournament) PublishNext() error {
 			TopName:    p.DisplayNames[0],
 			BottomName: p.DisplayNames[1],
 			Color:      p.NumericColor(),
-			ArcherType: p.getPerson().ArcherType,
+			ArcherType: p.Person.ArcherType,
 		}
 		msg.Players = append(msg.Players, gp)
 	}
@@ -153,9 +153,9 @@ func (t *Tournament) URL() string {
 
 // AddPlayer adds a player into the tournament
 func (t *Tournament) AddPlayer(p *PlayerSummary) error {
-	p.getPerson().Correct()
+	p.Person.Correct()
 
-	if t.IsInTournament(p.getPerson()) {
+	if t.IsInTournament(p.Person) {
 		return ErrAlreadyInTournament
 	}
 

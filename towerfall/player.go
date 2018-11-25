@@ -51,6 +51,7 @@ type Player struct {
 	ID             uint `json:"id"`
 	MatchID        uint
 	PersonID       string      `sql:",pk"`
+	Person         *Person     `json:"person"`
 	Nick           string      `json:"nick"`
 	Color          string      `json:"color"`
 	PreferredColor string      `json:"preferred_color"`
@@ -64,7 +65,6 @@ type Player struct {
 	State          PlayerState `json:"state" sql:"-"`
 	Match          *Match      `json:"-" sql:"-"`
 	DisplayNames   []string    `sql:",array"`
-	CachedPerson   *Person     `json:"person" sql:"-"`
 }
 
 // A PlayerSummary is a tournament-wide summary of the scores a player has
@@ -73,6 +73,7 @@ type PlayerSummary struct {
 
 	TournamentID uint    `json:"-"`
 	PersonID     string  `json:"person_id"`
+	Person       *Person `json:"person"`
 	Shots        int     `json:"shots" sql:",notnull"`
 	Sweeps       int     `json:"sweeps" sql:",notnull"`
 	Kills        int     `json:"kills" sql:",notnull"`
@@ -80,7 +81,6 @@ type PlayerSummary struct {
 	Matches      int     `json:"matches" sql:",notnull"`
 	TotalScore   int     `json:"score" sql:",notnull"`
 	SkillScore   int     `json:"skill_score" sql:",notnull"`
-	CachedPerson *Person `json:"person" sql:"-"`
 }
 
 type PlayerState struct {
@@ -99,7 +99,7 @@ type PlayerState struct {
 func NewPlayer(ps *Person) *Player {
 	p := &Player{
 		PersonID:       ps.PersonID,
-		CachedPerson:   ps,
+		Person:         ps,
 		Nick:           ps.Nick,
 		ArcherType:     ps.ArcherType,
 		State:          NewPlayerState(),
@@ -129,8 +129,8 @@ func NewPlayerState() PlayerState {
 // NewPlayerSummary returns a new instance of a tournament player
 func NewPlayerSummary(ps *Person) *PlayerSummary {
 	p := &PlayerSummary{
-		PersonID:     ps.PersonID,
-		CachedPerson: ps,
+		PersonID: ps.PersonID,
+		Person:   ps,
 	}
 	return p
 }
@@ -199,18 +199,18 @@ func (p *Player) Score() (out int) {
 // Summary resturns a Summary{} object for the player
 func (p *Player) Summary() PlayerSummary {
 	return PlayerSummary{
-		PersonID:     p.PersonID,
-		CachedPerson: p.getPerson(),
-		Shots:        p.Shots,
-		Sweeps:       p.Sweeps,
-		Kills:        p.Kills,
-		Self:         p.Self,
+		PersonID: p.PersonID,
+		Person:   p.Person,
+		Shots:    p.Shots,
+		Sweeps:   p.Sweeps,
+		Kills:    p.Kills,
+		Self:     p.Self,
 	}
 }
 
 // Player returns a new Player{} object from the summary
 func (p *PlayerSummary) Player() Player {
-	return *NewPlayer(p.getPerson())
+	return *NewPlayer(p.Person)
 }
 
 // ScoreData returns this players set of ScoreData
@@ -287,8 +287,8 @@ func (s ByColorConflict) Len() int { return len(s) }
 func (s ByColorConflict) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
 
 func (s ByColorConflict) Less(i, j int) bool {
-	if s[i].getPerson().Userlevel != s[j].getPerson().Userlevel {
-		return s[i].getPerson().Userlevel > s[j].getPerson().Userlevel
+	if s[i].Person.Userlevel != s[j].Person.Userlevel {
+		return s[i].Person.Userlevel > s[j].Person.Userlevel
 	}
 	return s[i].SkillScore > s[j].SkillScore
 }
@@ -394,34 +394,6 @@ func (p *PlayerSummary) Update(other PlayerSummary) {
 	// as if a match.
 	p.Matches++
 	// log.Printf("Updated player: %d, %d", p.TotalScore, p.Matches)
-}
-
-// getPerson gets the person object, and grabs it from the database if
-// it isn't set yet
-func (p *PlayerSummary) getPerson() *Person {
-	var err error
-
-	if p.CachedPerson == nil {
-		p.CachedPerson, err = globalDB.GetPerson(p.PersonID)
-		if err != nil {
-			log.Fatal(err)
-		}
-	}
-	return p.CachedPerson
-}
-
-// getPerson gets the person object, and grabs it from the database if
-// it isn't set yet
-func (p *Player) getPerson() *Person {
-	var err error
-
-	if p.CachedPerson == nil {
-		p.CachedPerson, err = globalDB.GetPerson(p.PersonID)
-		if err != nil {
-			log.Fatal(err)
-		}
-	}
-	return p.CachedPerson
 }
 
 // DividePlayoffPlayers divides the playoff players into four buckets based

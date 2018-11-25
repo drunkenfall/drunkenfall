@@ -20,16 +20,28 @@ type Database struct {
 
 // NewDatabase sets up the database reader and writer
 func NewDatabase(c *Config) (*Database, error) {
-	log, _ := zap.NewDevelopment()
+	zlog, _ := zap.NewDevelopment()
 
-	pg := pg.Connect(&pg.Options{
+	pgdb := pg.Connect(&pg.Options{
 		User:     c.DbUser,
 		Database: c.DbName,
 	})
 
 	db := &Database{
-		DB:  pg,
-		log: log,
+		DB:  pgdb,
+		log: zlog,
+	}
+
+	if c.DbVerbose {
+		zlog.Info("DRUNKENFALL_DBVERBOSE is set; enabling logger")
+		pgdb.OnQueryProcessed(func(event *pg.QueryProcessedEvent) {
+			query, err := event.FormattedQuery()
+			if err != nil {
+				panic(err)
+			}
+
+			log.Printf(query)
+		})
 	}
 
 	globalDB = db
@@ -235,7 +247,8 @@ func (d *Database) DisablePerson(id string) error {
 // GetPeople loads the people from the database
 func (d *Database) GetPeople() ([]*Person, error) {
 	ret := make([]*Person, 0)
-	return ret, nil
+	err := d.DB.Model(&ret).Where("NOT disabled").Select()
+	return ret, err
 }
 
 // GetPeopleInTournament gets the Person objects for the players that
@@ -294,22 +307,9 @@ func (d *Database) GetMatch(id uint) (*Match, error) {
 func (d *Database) GetMatches(t *Tournament, kind string) ([]*Match, error) {
 	ret := []*Match{}
 
-	q := d.DB.Model(&ret).Where("kind = ?", kind)
-	q = q.Where("tournament_id = ?", t.ID).Order("id")
+	q := d.DB.Model(&ret).Column("match.*", "Players")
+	q = q.Where("kind = ?", kind).Where("tournament_id = ?", t.ID).Order("id")
 	err := q.Select(&ret)
-
-	// XXX(thiderman): This should use the ORM relational things to not
-	// do subqueries
-	for x := range ret {
-		ps := []Player{}
-		q = t.db.DB.Model(&ps).Where("match_id = ?", ret[x].ID)
-		err = q.Select()
-		if err != nil {
-			return ret, err
-		}
-
-		ret[x].Players = ps
-	}
 
 	return ret, err
 }
@@ -415,21 +415,18 @@ func (d *Database) GetPlayoffPlayers(t *Tournament) ([]*PlayerSummary, error) {
 // GetPlayerSummary gets a single player summary for a tourmanent
 func (d *Database) GetPlayerSummary(t *Tournament, pid string) (*PlayerSummary, error) {
 	ret := PlayerSummary{}
-	q := d.DB.Model(&ret).Where("person_id = ?", pid)
-	q = q.Where("tournament_id = ?", t.ID)
-	err := q.Select(&ret)
-	if err != nil {
-		return nil, err
-	}
+	q := d.DB.Model(&ret).Column("player_summary.*", "Person")
+	q = q.Where("player_summary.person_id = ?", pid).Where("tournament_id = ?", t.ID)
 
-	ret.CachedPerson, err = d.GetPerson(pid)
+	err := q.Select(&ret)
 	return &ret, err
 }
 
 // GetPlayerSummaries gets all player summaries for a tourmanent
 func (d *Database) GetPlayerSummaries(t *Tournament) ([]*PlayerSummary, error) {
 	ret := []*PlayerSummary{}
-	err := d.DB.Model(&ret).Where("tournament_id = ?", t.ID).Select(&ret)
+	q := d.DB.Model(&ret).Column("player_summary.*", "Person")
+	err := q.Where("player_summary.tournament_id = ?", t.ID).Order("id ASC").Select(&ret)
 	if err != nil {
 		return nil, err
 	}
@@ -451,7 +448,7 @@ func (d *Database) UsurpTournament(t *Tournament, x int) error {
 	if err != nil {
 		log.Printf("Usurping failed: %+v", err)
 	}
-	return nil
+	return err
 }
 
 // ClearTestTournaments deletes any tournament that doesn't begin with "DrunkenFall"

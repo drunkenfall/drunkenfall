@@ -64,15 +64,15 @@ func NewSnapshot(s *Server) CompleteSnapshot {
 		tid := t.Slug
 		for _, m := range t.Matches {
 			for _, p := range m.Players {
-				if p.CachedPerson == nil {
+				if p.Person == nil {
 					continue
 				}
 
-				pid := p.CachedPerson.PersonID
+				pid := p.Person.PersonID
 				if _, ok := ss[pid]; !ok {
-					fmt.Println("Snapshot not set for player", p.CachedPerson)
-					ss[p.CachedPerson.PersonID] = &Snapshot{
-						Person:      p.CachedPerson,
+					fmt.Println("Snapshot not set for player", p.Person)
+					ss[p.Person.PersonID] = &Snapshot{
+						Person:      p.Person,
 						Tournaments: make(map[string]*PlayerSnapshot),
 					}
 				}

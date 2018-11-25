@@ -239,7 +239,7 @@ func (m *Match) CorrectFuckingColorConflicts() error {
 		c := color.(string)
 		for _, p := range m.Players {
 			if p.PreferredColor == c {
-				pairs[c] = append(pairs[c], *p.getPerson())
+				pairs[c] = append(pairs[c], *p.Person)
 			}
 		}
 	}

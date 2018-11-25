@@ -21,7 +21,7 @@ func testDatabase(t *testing.T, c *Config) (*Database, func()) {
 	})
 
 	if c.DbVerbose {
-		// t.Log("DRUNKENFALL_DBVERBOSE is set; enabling logger")
+		t.Log("DRUNKENFALL_DBVERBOSE is set; enabling logger")
 		pgdb.OnQueryProcessed(func(event *pg.QueryProcessedEvent) {
 			query, err := event.FormattedQuery()
 			if err != nil {
