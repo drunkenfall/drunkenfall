@@ -1,7 +1,6 @@
 package towerfall
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -26,18 +25,6 @@ var (
 	CookieStoreName = "user-session"
 	CookieStoreKey  = []byte("dtf")
 )
-
-// Determines whether websocket updates should be sent or not.
-// This is set to false by the Autoplay functions since they spam with
-// hundreds of updates that are pointless. It is also reset to true
-// once the Autoplay is over.
-var broadcasting = true
-
-// Message is the data to send back
-type websocketMessage struct {
-	Type string      `json:"type"`
-	Data interface{} `json:"data"`
-}
 
 // Server is an abstraction that runs a web interface
 type Server struct {
@@ -288,7 +275,7 @@ func (s *Server) PlayerSummariesHandler(c *gin.Context) {
 	}
 
 	for x, y := range p {
-		ps[x].CachedPerson = y
+		ps[x].Person = y
 	}
 
 	c.JSON(http.StatusOK, gin.H{"player_summaries": ps})
@@ -402,6 +389,11 @@ func (s *Server) ToggleHandler(c *gin.Context) {
 			"error":   err.Error(),
 		})
 		return
+	}
+
+	err = s.SendPlayerSummariesUpdate(t)
+	if err != nil {
+		pslog.Error("Could send player summary update", zap.Error(err))
 	}
 
 	pslog.Info("Player toggled")
@@ -732,51 +724,6 @@ func (s *Server) BuildRouter(ws *melody.Melody) *gin.Engine {
 // Serve serves forever
 func (s *Server) Serve() error {
 	return s.router.Run(fmt.Sprintf(":%d", s.config.Port))
-}
-
-// SendWebsocketUpdate sends an update to all listening sockets
-func (s *Server) SendWebsocketUpdate(kind string, data interface{}) error {
-	if !broadcasting {
-		return nil
-	}
-
-	// TODO(thiderman): Is it safe to just off this as a goroutine?
-	// There is a situation where a certain test (TestLavaOrb) makes the
-	// tests hang repeatedly if this is not a goroutine. This is extra
-	// weird since hundreds of other messages have been sent before that.
-	go func(kind string, data interface{}) {
-		msg := websocketMessage{
-			Type: kind,
-			Data: data,
-		}
-
-		out, err := json.Marshal(msg)
-		if err != nil {
-			s.log.Warn("cannot marshal", zap.Error(err))
-			return
-		}
-
-		err = s.ws.Broadcast(out)
-		if err != nil {
-			s.log.Error("Broadcast failed", zap.Error(err))
-			return
-		}
-	}(kind, data)
-
-	return nil
-}
-
-// DisableWebsocketUpdates... disables websocket updates.
-func (s *Server) DisableWebsocketUpdates() {
-	// log.Printf("%+v", s)
-	// s.log.Info("Disabling websocket broadcast")
-	broadcasting = false
-}
-
-// EnableWebsocketUpdates... enables websocket updates.
-func (s *Server) EnableWebsocketUpdates() {
-	// s.log.Info("Enabling websocket broadcast")
-	broadcasting = true
 }
 
 func (s *Server) getMatch(c *gin.Context) (*Match, error) {
