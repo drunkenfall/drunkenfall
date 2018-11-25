@@ -19,22 +19,21 @@ var (
 
 // Tournament is the main container of data for this app.
 type Tournament struct {
-	ID            uint             `json:"dbid"`
-	Name          string           `json:"name"`
-	Slug          string           `json:"id"`
-	Players       []PlayerSummary  `json:"players"`
-	Runnerups     []*PlayerSummary `json:"-" sql:"-"`
-	Casters       []*Person        `json:"-" sql:"-"`
-	Matches       []*Match         `json:"-"`
-	Opened        time.Time        `json:"opened"`
-	Scheduled     time.Time        `json:"scheduled"`
-	Started       time.Time        `json:"started"`
-	QualifyingEnd time.Time        `json:"qualifying_end"`
-	Ended         time.Time        `json:"ended"`
-	Color         string           `json:"color"`
-	Cover         string           `json:"cover"`
-	Length        int              `json:"length"`
-	FinalLength   int              `json:"final_length"`
+	ID            uint            `json:"dbid"`
+	Name          string          `json:"name"`
+	Slug          string          `json:"id"`
+	Players       []PlayerSummary `json:"players"`
+	Casters       []*Person       `json:"-" sql:"-"`
+	Matches       []*Match        `json:"-"`
+	Opened        time.Time       `json:"opened"`
+	Scheduled     time.Time       `json:"scheduled"`
+	Started       time.Time       `json:"started"`
+	QualifyingEnd time.Time       `json:"qualifying_end"`
+	Ended         time.Time       `json:"ended"`
+	Color         string          `json:"color"`
+	Cover         string          `json:"cover"`
+	Length        int             `json:"length"`
+	FinalLength   int             `json:"final_length"`
 	connected     bool
 	db            *Database
 	server        *Server
@@ -160,13 +159,6 @@ func (t *Tournament) AddPlayer(p *PlayerSummary) error {
 	}
 
 	t.Players = append(t.Players, *p)
-
-	// If the tournament is already started, just add the player into the
-	// runnerups so that they will be placed at the end immediately.
-	if !t.Started.IsZero() {
-		t.Runnerups = append(t.Runnerups, p)
-	}
-
 	return t.db.AddPlayer(t, p)
 }
 
