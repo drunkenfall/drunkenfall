@@ -12,7 +12,10 @@ import (
 	"go.uber.org/zap"
 )
 
-var ErrPublishDisconnected = errors.New("not connected; will not publish")
+var (
+	ErrPublishDisconnected = errors.New("not connected; will not publish")
+	ErrAlreadyInTournament = errors.New("already in tournament")
+)
 
 // Tournament is the main container of data for this app.
 type Tournament struct {
@@ -152,9 +155,8 @@ func (t *Tournament) URL() string {
 func (t *Tournament) AddPlayer(p *PlayerSummary) error {
 	p.getPerson().Correct()
 
-	if err := t.CanJoin(p.getPerson()); err != nil {
-		log.Print(err)
-		return err
+	if t.IsInTournament(p.getPerson()) {
+		return ErrAlreadyInTournament
 	}
 
 	t.Players = append(t.Players, *p)
@@ -170,20 +172,22 @@ func (t *Tournament) AddPlayer(p *PlayerSummary) error {
 
 // TogglePlayer toggles a player in a tournament
 func (t *Tournament) TogglePlayer(id string) error {
-	// FIXME(thiderman): Adapt this so it works again
-	ps, _ := t.db.GetPerson(id)
-	// p, err := t.getTournamentPlayerObject(ps)
+	p, err := t.db.GetPerson(id)
+	if err != nil {
+		return err
+	}
 
-	// if err != nil {
-	// If there is an error, the player is not in the tournament and we should add them
-	p := NewPlayerSummary(ps)
-	err := t.AddPlayer(p)
-	// return err
-	// }
+	// If the player is already in the tournament, it is time to remove them
+	if t.IsInTournament(p) {
+		ps, err := t.db.GetPlayerSummary(t, id)
+		if err != nil {
+			return err
+		}
+		return t.db.RemovePlayer(ps)
+	}
 
-	// If there was no error, the player is in the tournament and we should remove them!
-	// err = t.removePlayer(*p)
-	return err
+	ps := NewPlayerSummary(p)
+	return t.AddPlayer(ps)
 }
 
 // SetCasters resets the casters to the input people
@@ -434,14 +438,14 @@ func (t *Tournament) IsRunning() bool {
 	return !t.Started.IsZero() && t.Ended.IsZero()
 }
 
-// CanJoin checks if a player is allowed to join or is already in the tournament
-func (t *Tournament) CanJoin(ps *Person) error {
-	for _, p := range t.Players {
-		if p.getPerson().Nick == ps.Nick {
-			return errors.New("already in tournament")
-		}
+// IsInTournament checks if a player is allowed to join or is already in the tournament
+func (t *Tournament) IsInTournament(ps *Person) bool {
+	in, err := t.db.IsInTournament(t, ps)
+	if err != nil {
+		log.Printf("Getting tournament state failed: %+v", err)
+		return false
 	}
-	return nil
+	return in
 }
 
 // GetCredits returns the credits object needed to display the credits roll.

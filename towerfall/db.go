@@ -58,6 +58,11 @@ func (d *Database) AddPlayer(t *Tournament, ps *PlayerSummary) error {
 	return d.DB.Insert(ps)
 }
 
+// RemovePlayer removes a player from a tourmament
+func (d *Database) RemovePlayer(ps *PlayerSummary) error {
+	return d.DB.Delete(ps)
+}
+
 // AddPlayerToMatch adds a player object to a match
 func (d *Database) AddPlayerToMatch(m *Match, p *Player) error {
 	p.MatchID = m.ID
@@ -77,6 +82,17 @@ func (d *Database) AddPlayerToMatch(m *Match, p *Player) error {
 func (d *Database) AddMatch(t *Tournament, m *Match) error {
 	m.TournamentID = t.ID
 	return d.DB.Insert(m)
+}
+
+// IsInTournament returns if the player is in the tournament or not
+func (d *Database) IsInTournament(t *Tournament, p *Person) (bool, error) {
+	q := d.DB.Model(&PlayerSummary{}).Where("tournament_id = ?", t.ID)
+	count, err := q.Where("person_id = ?", p.PersonID).Count()
+	if err != nil {
+		return false, err
+	}
+
+	return count == 1, nil
 }
 
 // SaveMatch saves a match

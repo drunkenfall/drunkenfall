@@ -1,4 +1,3 @@
-import _ from 'lodash'
 import Person from '../models/Person.js'
 
 const middleware = (router) =>
@@ -44,14 +43,10 @@ router.beforeEach((to, from, next) => {
     }
 
     if (!router.app.$store.state.stats) {
-      router.app.$http.get('/api/people/stats/').then(response => {
+      router.app.$http.get('/api/people/').then(response => {
+        // TODO(thiderman): Re-add stats
         let data = JSON.parse(response.data)
-        router.app.$store.commit('setStats', data)
-        // Since the stats also contain the profiles, we can use this
-        // data to populate those as well!
-        router.app.$store.commit('setPeople', _.map(data, (s) => {
-          return s.person
-        }))
+        router.app.$store.commit('setPeople', data.people)
       }, response => {
         console.log("Failed getting stats", response)
       })

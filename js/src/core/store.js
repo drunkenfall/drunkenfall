@@ -80,21 +80,37 @@ const store = new Vuex.Store({ // eslint-disable-line
 
     SOCKET_ONMESSAGE (state, res) {
       let data = res.data
-      if (res.type === 'all') {
-        let ts = {}
-        _.forEach(data.tournaments, (t) => {
-          ts[t.id] = Tournament.fromObject(t)
-        })
-        state.tournaments = ts
-      } else if (res.type === 'tournament') {
-        let t = Tournament.fromObject(data)
-        Vue.set(state.tournaments, t.id, t)
-      } else if (res.type === 'player') {
-        let t = state.tournaments[data.tournament]
-        t.matches[data.match].players[data.player].state = data.state
-        Vue.set(state.tournaments, t.id, t)
-      } else {
-        console.log('Unknown websocket update:', res)
+      let t
+
+      switch (res.type) {
+        case 'all':
+          let ts = {}
+          _.forEach(data.tournaments, (t) => {
+            ts[t.id] = Tournament.fromObject(t)
+          })
+          state.tournaments = ts
+          break
+
+        case 'tournament':
+          t = Tournament.fromObject(data)
+          Vue.set(state.tournaments, t.id, t)
+          break
+
+        case 'player':
+          t = state.tournaments[data.tournament]
+          t.matches[data.match].players[data.player].state = data.state
+          Vue.set(state.tournaments, t.id, t)
+          break
+
+        case 'player_summaries':
+          let ps = _.map(data.player_summaries, (p) => {
+            return Player.fromObject(p)
+          })
+          Vue.set(state.playerSummaries, data.tournament_id, ps)
+          break
+
+        default:
+          console.error('Unknown websocket update:', res)
       }
     },
 
