@@ -59,6 +59,6 @@ const kekkonen = `
 // Kekkonen kekkonen
 func Kekkonen() {
 	// Kekkonen
-	fmt.Println(kekkonen)
+	// fmt.Println(kekkonen)
 	fmt.Printf("\n\n                DrunkenFall %s (%s)\n\n\n", version, buildtime)
 }
