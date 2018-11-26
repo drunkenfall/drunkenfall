@@ -266,7 +266,7 @@ func (t *Tournament) UsurpTournament() error {
 		return err
 	}
 
-	err = t.server.SendWebsocketUpdate("tournament", t)
+	err = t.server.SendPlayerSummariesUpdate(t)
 	if err != nil {
 		t.server.log.Error("Sending websocket update failed")
 	}
