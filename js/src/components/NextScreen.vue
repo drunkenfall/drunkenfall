@@ -86,7 +86,7 @@ export default {
       return this.runningTournament
     },
     match () {
-      return this.tournament.upcomingMatch
+      return this.tournament.nextMatch
     },
   },
 

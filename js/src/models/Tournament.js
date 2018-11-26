@@ -149,12 +149,9 @@ export default class Tournament {
   // This is supposed to be used when you need the next match before
   // it is started. It returns the upcoming match if the current one
   // is ended.
-  get upcomingMatch () {
-    let m = this.matches[this.current]
-    if (m.isEnded) {
-      return this.matches[this.current + 1]
-    }
-    return m
+  get nextMatch () {
+    let n = _.first(_.filter(this.matches, 'canStart'))
+    return n
   }
 
   get playoffs () {

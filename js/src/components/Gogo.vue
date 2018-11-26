@@ -31,7 +31,7 @@ export default {
 
   computed: {
     match () {
-      return this.tournament.upcomingMatch
+      return this.tournament.nextMatch
     }
   },
 
