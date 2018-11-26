@@ -1,4 +1,5 @@
 <template>
+
 <div v-if="tournament && match && user && user.isJudge">
   <headful :title="match.title + ' / Round ' + round"></headful>
   <div class="content">
@@ -12,8 +13,32 @@
       </div>
       <div class="clear"></div>
     </a>
+
+    <div class="subheader" v-if="user.isCommentator && tournament.nextMatch && !tournament.isEnded">
+      <div v-if="!tournament.nextMatch.isScheduled">
+        <p>
+          Pause until
+          <span>{{tournament.nextMatch.title}}</span>
+        </p>
+        <div class="links">
+          <a @click="setTime(10)">10 min</a>
+          <a @click="setTime(7)">7 min</a>
+          <a @click="setTime(5)">5 min</a>
+          <a @click="setTime(3)">3 min</a>
+        </div>
+        <div class="clear"></div>
+      </div>
+      <div v-if="tournament.nextMatch.isScheduled">
+        <p class="center">
+          <span>{{tournament.nextMatch.title}}</span> scheduled at
+          {{tournament.nextMatch.scheduled.format("HH:mm")}}
+        </p>
+        <div class="clear"></div>
+      </div>
+    </div>
   </div>
 </div>
+
 </template>
 
 <script>
@@ -53,7 +78,16 @@ export default {
         $vue.$alert("Starting failed. See console.")
         console.error(res)
       })
-    }
+    },
+    setTime (x) {
+      let $vue = this
+      this.api.setTime({ id: this.tournament.id, time: x }).then((res) => {
+        console.debug("settime response:", res)
+      }, (err) => {
+        $vue.$alert("Setting time failed. See console.")
+        console.error(err)
+      })
+    },
   },
 
   created () {
@@ -61,6 +95,7 @@ export default {
 
     this.api = this.$resource("/api", {}, {
       play: { method: "POST", url: "/api/tournaments/{id}/play/" },
+      setTime: { method: "GET", url: "/api/tournaments/{id}/time/{time}" },
     })
   },
 }
@@ -92,6 +127,67 @@ export default {
     &.disabled {
       background-color: $bg-disabled;
       color: $fg-disabled;
+    }
+  }
+}
+
+.subheader {
+  @include subheading();
+  width: 80%;
+
+  @media screen and ($desktop: $desktop-width) {
+    p {
+      float: left;
+    }
+    .links {
+      float: right;
+      a {
+        float: right;
+      }
+    }
+  }
+  @media screen and ($device: $device-width) {
+    & {
+      text-align: center;
+      padding: 0.5em;
+    }
+    .links {
+      a:last-child {
+        margin-bottom: 1em;
+      }
+    }
+  }
+
+  margin: 30px auto;
+  background-color: $bg-default;
+  box-shadow: 2px 2px 3px rgba(0,0,0,0.3);
+  text-shadow: 2px 2px 3px rgba(0,0,0,0.5);
+
+  p {
+    font-size: 2em;
+    padding: 0.3em 0.5em;
+
+    span {
+      text-transform: capitalize;
+    }
+  }
+
+  .links {
+    a, .action {
+      @include button();
+      margin: 15px  !important;
+      background-color: $button-bg;
+      border-left: 3px solid $accent;
+      color: $fg-default;
+      display: block;
+      font-weight: bold;
+      padding: 7px 30px;
+      text-align: center;
+      text-decoration: none;
+      margin: 10px auto;
+      min-width: 60px;
+
+      padding: 0.5em 0.7em;
     }
   }
 }

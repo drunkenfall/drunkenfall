@@ -3,29 +3,8 @@
   <headful :title="tournament.subtitle + ' - DrunkenFall'"></headful>
   <tournament-controls />
 
-  <div class="subheader" v-if="user.isCommentator && tournament.upcomingMatch && !tournament.isEnded">
-    <div v-if="!tournament.upcomingMatch.isScheduled">
-      <p>
-        Pause until
-          <span>{{tournament.upcomingMatch.title}}</span>
-        </p>
-        <div class="links">
-          <a @click="setTime(10)">10 min</a>
-          <a @click="setTime(7)">7 min</a>
-          <a @click="setTime(5)">5 min</a>
-          <a @click="setTime(3)">3 min</a>
-        </div>
-        <div class="clear"></div>
-      </div>
-      <div v-if="tournament.upcomingMatch.isScheduled">
-        <p class="center">
-          <span>{{tournament.upcomingMatch.title}}</span> scheduled at
-          {{tournament.upcomingMatch.scheduled.format("HH:mm")}}
-        </p>
-        <div class="clear"></div>
-      </div>
-    </div>
-  </div>
+
+</div>
 </template>
 
 <script>
@@ -90,12 +69,6 @@ export default {
     usurp () {
       this.tournament.usurp()
     },
-  },
-
-  created () {
-    this.api = this.$resource("/api", {}, {
-      setTime: { method: "GET", url: "/api/tournaments/{id}/time/{time}" },
-    })
   },
 }
 </script>
@@ -188,65 +161,6 @@ export default {
   }
 }
 
-.subheader {
-  @include subheading();
-  width: 80%;
 
-  @media screen and ($desktop: $desktop-width) {
-    p {
-      float: left;
-    }
-    .links {
-      float: right;
-      a {
-        float: right;
-      }
-    }
-  }
-  @media screen and ($device: $device-width) {
-    & {
-      text-align: center;
-      padding: 0.5em;
-    }
-    .links {
-      a:last-child {
-        margin-bottom: 1em;
-      }
-    }
-  }
-
-  margin: 30px auto;
-  background-color: $bg-default;
-  box-shadow: 2px 2px 3px rgba(0,0,0,0.3);
-  text-shadow: 2px 2px 3px rgba(0,0,0,0.5);
-
-  p {
-    font-size: 2em;
-    padding: 0.3em 0.5em;
-
-    span {
-      text-transform: capitalize;
-    }
-  }
-
-  .links {
-    a, .action {
-      @include button();
-      margin: 15px  !important;
-      background-color: $button-bg;
-      border-left: 3px solid $accent;
-      color: $fg-default;
-      display: block;
-      font-weight: bold;
-      padding: 7px 30px;
-      text-align: center;
-      text-decoration: none;
-      margin: 10px auto;
-      min-width: 60px;
-
-      padding: 0.5em 0.7em;
-    }
-  }
-}
 
 </style>
