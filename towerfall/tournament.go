@@ -24,7 +24,7 @@ type Tournament struct {
 	Slug          string          `json:"id"`
 	Players       []PlayerSummary `json:"players"`
 	Casters       []*Person       `json:"-" sql:"-"`
-	Matches       []*Match        `json:"-"`
+	Matches       []*Match        `json:"matches"`
 	Opened        time.Time       `json:"opened"`
 	Scheduled     time.Time       `json:"scheduled"`
 	Started       time.Time       `json:"started"`

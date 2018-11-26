@@ -31,8 +31,8 @@ var ErrPublishIncompleteMatch = errors.New("cannot publish match without four pl
 // Match.Commits is a list of one commit per round and represents the
 // changeset of what happened in the match.
 type Match struct {
-	ID           uint `json:"id"`
-	TournamentID uint
+	ID           uint          `json:"dbid"`
+	TournamentID uint          `json:"tournament_id"`
 	Tournament   *Tournament   `json:"-" sql:"-"`
 	Players      []Player      `json:"players"`
 	Casters      []*Person     `json:"casters" sql:"-"`
@@ -44,8 +44,8 @@ type Match struct {
 	Started      time.Time     `json:"started"`
 	Ended        time.Time     `json:"ended"`
 	// KillOrder     []int         `json:"kill_order"`
-	Rounds        []Round `json:"commits" sql:"-"`
-	Commits       []Commit
+	Rounds        []Round   `json:"-" sql:"-"`
+	Commits       []Commit  `json:"commits"`
 	Messages      []Message `json:"messages"`
 	Level         string    `json:"level"`
 	Ruleset       string    `json:"ruleset"`
