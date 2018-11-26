@@ -2,7 +2,7 @@ import store from '../core/store'
 import { isGoZeroDateOrFalsy } from '../util/date.js'
 import moment from 'moment'
 import Event from './Event.js'
-// import Player from './Player.js'
+import Player from './Player.js'
 import Person from './Person.js'
 import Match from './Match.js'
 import _ from 'lodash'
@@ -20,7 +20,7 @@ export default class Tournament {
 
     t.matches = _.map(t.matches, (m) => { return Match.fromObject(m, t) })
 
-    // t.players = _.map(t.players, Player.fromObject)
+    t.players = _.map(t.players, Player.fromObject)
     // t.runnerups = _.map(t.runnerups, Person.fromObject)
 
     t.casters = _.map(t.casters, Person.fromObject)
