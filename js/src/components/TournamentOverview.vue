@@ -22,7 +22,7 @@ export default {
 
   computed: {
     canParticipants () {
-      return this.tournament.currentMatch.kind === 'playoff'
+      return this.tournament.currentMatch.kind === 'qualifying'
     },
     runnerups () {
       let t = this.tournament
