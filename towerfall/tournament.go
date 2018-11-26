@@ -213,7 +213,12 @@ func (t *Tournament) StartTournament(c *gin.Context) error {
 
 	// Add the first 8 players, in modulated joining order (first to
 	// first match, second to second, third to first etc)
-	for i, p := range t.Players[0:8] {
+	players, err := t.db.GetPlayerSummaries(t)
+	if err != nil {
+		return err
+	}
+
+	for i, p := range players[0:8] {
 		ps := p.Player()
 		err := t.Matches[i%2].AddPlayer(ps)
 		if err != nil {
@@ -224,7 +229,7 @@ func (t *Tournament) StartTournament(c *gin.Context) error {
 	t.Started = time.Now()
 
 	// Get the first match and set the scheduled date to be now.
-	err := t.Matches[0].SetTime(c, 0)
+	err = t.Matches[0].SetTime(c, 0)
 	if err != nil {
 		return err
 	}
