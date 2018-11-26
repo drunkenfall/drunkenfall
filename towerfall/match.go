@@ -134,8 +134,8 @@ func (m *Match) AddPlayer(p Player) error {
 	// Add all the previous players' colors.
 	// This is to fix a bug with the presentColors map if the app has been
 	// restarted. They cannot be added multiple times anyway.
-	for _, p := range m.Players {
-		m.presentColors.Add(p.Color)
+	for _, x := range m.Players {
+		m.presentColors.Add(x.Color)
 	}
 
 	p.Color = p.PreferredColor
