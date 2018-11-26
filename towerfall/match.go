@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
-	"strings"
 	"time"
 
 	"github.com/deckarep/golang-set"
@@ -109,57 +108,6 @@ func NewMatch(t *Tournament, kind string) *Match {
 		log.Fatal(err)
 	}
 	return &m
-}
-
-func (m *Match) String() string {
-	var tempo string
-	var name string
-
-	if !m.IsStarted() {
-		tempo = "not started"
-	} else if m.IsEnded() {
-		tempo = "ended"
-	} else {
-		tempo = "playing"
-	}
-
-	if m.Kind == final {
-		name = "Final"
-	} else {
-		name = fmt.Sprintf("%s %d", strings.Title(m.Kind), m.Index+1)
-	}
-
-	names := make([]string, 0, len(m.Players))
-	for _, p := range m.Players {
-		names = append(names, p.Name())
-	}
-
-	return fmt.Sprintf(
-		"<(%d)[%d] %s: %s - %s>",
-		m.ID,
-		m.Index,
-		name,
-		strings.Join(names, " / "),
-		tempo,
-	)
-}
-
-// Title returns a title string
-func (m *Match) Title() string {
-	l := 2
-	if m.Kind == final {
-		return "Final"
-	} else if m.Kind == playoff {
-		l = len(m.Tournament.Matches) - 3
-	}
-
-	out := fmt.Sprintf(
-		"%s %d/%d",
-		strings.Title(m.Kind),
-		m.Index+1,
-		l,
-	)
-	return out
 }
 
 // URL builds the URL to the match
