@@ -1,5 +1,5 @@
 <template>
-<div class="sidebar-buttons" v-if="user && user.isJudge && showSidebar">
+<div class="sidebar-buttons" v-if="tournament && user && user.isJudge && showSidebar">
   <div class="links">
     <button-link v-if="tournament.canStart && user.isCommentator"
       :func="start"
@@ -99,7 +99,7 @@ export default {
 
   computed: {
     autoplayLabel () {
-      return `Autoplay ${this.nextMatch.kind}s`
+      return `Autoplay ${this.tournament.nextMatch.kind}s`
     }
   },
 
