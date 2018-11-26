@@ -143,7 +143,9 @@ export default class Tournament {
   // }
 
   get currentMatch () {
-    return this.matches[this.current]
+    let started = _.filter(this.matches, 'isStarted')
+    let c = _.first(_.filter(started, (m) => !m.isEnded))
+    return c
   }
 
   // This is supposed to be used when you need the next match before
