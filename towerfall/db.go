@@ -11,6 +11,8 @@ import (
 
 var globalDB *Database
 
+var ErrNoTourmamentRunning = errors.New("no tournament is running")
+
 type Database struct {
 	Server       *Server
 	DB           *pg.DB
@@ -40,7 +42,7 @@ func NewDatabase(c *Config) (*Database, error) {
 				panic(err)
 			}
 
-			log.Printf(query)
+			log.Print(query)
 		})
 	}
 
@@ -266,31 +268,27 @@ func (d *Database) GetTournament(slug string) (*Tournament, error) {
 		server: d.Server,
 	}
 
-	err := d.DB.Model(&t).Where("slug = ?", slug).First()
+	q := d.DB.Model(&t).Column("tournament.*", "Matches", "Players")
+	err := q.Where("slug = ?", slug).First()
 	return &t, err
 }
 
 func (d *Database) GetTournaments() ([]*Tournament, error) {
 	ret := make([]*Tournament, 0)
-	err := d.DB.Model(&ret).Order("scheduled DESC").Select()
+	q := d.DB.Model(&ret).Column("tournament.*", "Matches", "Players")
+	err := q.Order("scheduled DESC").Select()
 	return ret, err
 }
 
-// GetCurrentTournament gets the currently running tournament.
-//
-// Returns the first matching one, so if there are multiple they will
-// be shadowed.
+// GetCurrentTournament gets the currently running tournament
 func (d *Database) GetCurrentTournament() (*Tournament, error) {
-	ts, err := d.GetTournaments()
-	if err != nil {
-		return &Tournament{}, err
+	t := Tournament{
+		db:     d,
+		server: d.Server,
 	}
-	for _, t := range SortByScheduleDate(ts) {
-		if t.IsRunning() {
-			return t, nil
-		}
-	}
-	return &Tournament{}, errors.New("no tournament is running")
+
+	err := d.DB.Model(&t).Where("started IS NOT NULL").Where("ended IS NULL").Order("scheduled").First()
+	return &t, err
 }
 
 // GetMatch gets a match
