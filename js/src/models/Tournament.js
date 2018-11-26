@@ -157,12 +157,14 @@ export default class Tournament {
   }
 
   get playoffs () {
-    return _.slice(this.matches, 0, this.matches.length - 3)
+    throw new Error("call to non-ported tournament.playoffs()")
+    // return _.slice(this.matches, 0, this.matches.length - 3)
   }
 
   get semis () {
-    let l = this.matches.length
-    return _.slice(this.matches, l - 3, l - 1)
+    throw new Error("call to non-ported tournament.semis()")
+    // let l = this.matches.length
+    // return _.slice(this.matches, l - 3, l - 1)
   }
 
   get final () {
