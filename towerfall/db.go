@@ -262,14 +262,14 @@ func (d *Database) GetPeopleById(ids ...string) ([]*Person, error) {
 }
 
 // getTournament gets a tournament by slug
-func (d *Database) GetTournament(slug string) (*Tournament, error) {
+func (d *Database) GetTournament(id uint) (*Tournament, error) {
 	t := Tournament{
 		db:     d,
 		server: d.Server,
 	}
 
 	q := d.DB.Model(&t).Column("tournament.*", "Matches", "Players")
-	err := q.Where("slug = ?", slug).First()
+	err := q.Where("id = ?", id).First()
 	return &t, err
 }
 
@@ -306,7 +306,12 @@ func (d *Database) GetMatches(t *Tournament, kind string) ([]*Match, error) {
 	ret := []*Match{}
 
 	q := d.DB.Model(&ret).Column("match.*", "Players")
-	q = q.Where("kind = ?", kind).Where("tournament_id = ?", t.ID).Order("id")
+
+	if kind != "all" {
+		q = q.Where("kind = ?", kind)
+	}
+
+	q = q.Where("tournament_id = ?", t.ID).Order("id ASC")
 	err := q.Select(&ret)
 
 	return ret, err
