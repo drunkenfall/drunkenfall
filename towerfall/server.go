@@ -296,20 +296,32 @@ func (s *Server) PlayerSummariesHandler(c *gin.Context) {
 		return
 	}
 
-	ids := []string{}
-	for _, p := range ps {
-		ids = append(ids, p.PersonID)
-	}
+	c.JSON(http.StatusOK, gin.H{"player_summaries": ps})
+}
 
-	p, err := s.DB.GetPeopleById(ids...)
+// RunnerupsHandler returns the current runnerups for a tournament
+func (s *Server) RunnerupsHandler(c *gin.Context) {
+	tm, err := s.getTournament(c)
 	if err != nil {
-		tlog.Info("Could not get people", zap.Error(err))
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "could not get people"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	for x, y := range p {
-		ps[x].Person = y
+	tlog := s.log.With(
+		zap.String("path", c.Request.URL.Path),
+		zap.String("tournament", tm.Slug),
+	)
+
+	ps, err := s.DB.GetAllRunnerups(tm)
+	if err != nil {
+		tlog.Info("Could not get summaries", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "could not get summaries"})
+		return
+	}
+
+	if len(ps) == 0 {
+		c.JSON(http.StatusOK, gin.H{"player_summaries": ps})
+		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"player_summaries": ps})
@@ -379,6 +391,34 @@ func (s *Server) MatchHandler(c *gin.Context) {
 		"action":  action,
 		"message": "Done",
 	})
+}
+
+// MatchesHandler is the common function for match operations.
+func (s *Server) MatchesHandler(c *gin.Context) {
+	tm, err := s.getTournament(c)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	tlog := s.log.With(
+		zap.String("path", c.Request.URL.Path),
+		zap.String("tournament", tm.Slug),
+	)
+	tlog.Info("Getting matches...")
+
+	ms, err := s.DB.GetMatches(tm, "all")
+
+	if err != nil {
+		tlog.Error("Couldn't get matches", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Couldn't get matches",
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"matches": ms})
 }
 
 // ClearTournamentHandler removes all test tournaments
@@ -753,6 +793,7 @@ func (s *Server) BuildRouter(ws *melody.Melody) *gin.Engine {
 
 	t := api.Group("/tournaments/:id")
 	t.GET("/players/", s.PlayerSummariesHandler)
+	t.GET("/runnerups/", s.RunnerupsHandler)
 	t.GET("/autoplay/", s.AutoplayTournamentHandler)
 	t.GET("/credits/", s.CreditsHandler)
 	t.GET("/join/", s.JoinHandler)
@@ -760,6 +801,7 @@ func (s *Server) BuildRouter(ws *melody.Melody) *gin.Engine {
 	t.GET("/toggle/:person", s.ToggleHandler)
 	t.GET("/usurp/", s.UsurpTournamentHandler)
 	t.GET("/start/", s.StartTournamentHandler)
+	t.GET("/matches/", s.MatchesHandler)
 
 	t.POST("/play/", s.StartPlayHandler)
 	t.POST("/casters/", s.CastersHandler)

@@ -3,6 +3,7 @@ import Vuex from 'vuex'
 
 import Person from '../models/Person.js'
 import Player from '../models/Player.js'
+import Match from '../models/Match.js'
 import Stats from '../models/Stats.js'
 import {Credits as CreditsModel} from '../models/Credits.js'
 import Tournament from '../models/Tournament.js'
@@ -20,6 +21,8 @@ const store = new Vuex.Store({ // eslint-disable-line
     stats: undefined,
     people: undefined,
     playerSummaries: {},
+    runnerups: {},
+    matches: {},
     credits: {},
     socket: {
       isConnected: false,
@@ -49,6 +52,16 @@ const store = new Vuex.Store({ // eslint-disable-line
         return Player.fromObject(p)
       }))
     },
+    setRunnerups (state, data) {
+      Vue.set(state.runnerups, data.tid, _.map(data.player_summaries, (p) => {
+        return Player.fromObject(p)
+      }))
+    },
+    setMatches (state, data) {
+      Vue.set(state.matches, data.tid, _.map(data.matches, (m) => {
+        return Match.fromObject(m)
+      }))
+    },
     setUser (state, user) {
       state.user = user
       state.userLoaded = true
@@ -63,9 +76,10 @@ const store = new Vuex.Store({ // eslint-disable-line
       state.stats = Stats.fromObject(stats)
     },
     setPeople (state, data) {
-      state.people = _.map(data, (p) => {
-        return Person.fromObject(p)
-      })
+      state.people = data.reduce((c, p) => {
+        c[p.id] = Person.fromObject(p)
+        return c
+      }, {})
     },
     SOCKET_ONOPEN (state, event) {
       state.socket.isConnected = true
@@ -129,6 +143,9 @@ const store = new Vuex.Store({ // eslint-disable-line
     playerSummaries: (state, getters) => (id) => {
       return state.playerSummaries[id]
     },
+    runnerups: (state, getters) => (id) => {
+      return state.runnerups[id]
+    },
     upcoming: state => {
       return _.filter(_.sortBy(state.tournaments, 'scheduled'), 'isUpcoming')
     },
@@ -138,11 +155,18 @@ const store = new Vuex.Store({ // eslint-disable-line
     latest: state => {
       return _.reverse(_.filter(_.sortBy(state.tournaments, 'scheduled'), 'isEnded'))[0]
     },
-    getPerson: (state, getters) => (id) => {
-      if (!state.people) {
-        return undefined
+    matchPlayers: (state, getters) => (tid, idx) => {
+      let t = state.matches[tid]
+      if (!t) {
+        return
       }
-      return state.people.find(p => p.id === id)
+
+      let ret = t.find(m => m.index === idx)
+      return ret.players
+    },
+    getPerson: (state, getters) => (id) => {
+      console.log("getting person", id)
+      return state.people[id]
     },
     isConnected: state => {
       return state.socket.isConnected

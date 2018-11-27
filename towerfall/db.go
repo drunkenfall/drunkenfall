@@ -405,6 +405,15 @@ func (d *Database) GetRunnerups(t *Tournament) ([]*PlayerSummary, error) {
 	return ret, err
 }
 
+// GetAllRunnerups gets all the runnerups that aren't already booked
+// into matches
+func (d *Database) GetAllRunnerups(t *Tournament) ([]*PlayerSummary, error) {
+	ps := []*PlayerSummary{}
+	q := `SELECT * FROM player_summaries WHERE id IN (SELECT id FROM runnerups(?))`
+	_, err := d.DB.Query(&ps, q, t.ID)
+	return ps, err
+}
+
 // GetPlayoffPlayers gets the sixteen players that made it to the playoffs
 func (d *Database) GetPlayoffPlayers(t *Tournament) ([]*PlayerSummary, error) {
 	ret := []*PlayerSummary{}

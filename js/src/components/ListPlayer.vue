@@ -6,11 +6,7 @@
     </div>
 
     <div class="name">
-      <span :class="player.color">{{player.nick}}</span>
-    </div>
-
-    <div class="points">
-      {{player.total_score}} pts
+      <span :class="color">{{player.person.nick}}</span>
     </div>
   </div>
 
@@ -18,7 +14,7 @@
 
 <script>
 export default {
-  name: 'Player',
+  name: 'ListPlayer',
 
   props: {
     player: Object,
@@ -33,6 +29,9 @@ export default {
     display_name () {
       return this.player.person.nick
     },
+    color () {
+      return this.player.color || this.player.person.preferred_color
+    }
   },
   created () {
     this.player.person = this.$store.getters.getPerson(this.player.person_id)
@@ -49,6 +48,7 @@ export default {
   flex-grow: 1;
   flex-basis: 0;
   background-color: $bg-default-alt;
+  padding: 0.5em 0em;
 
   .avatar {
     display: flex;
@@ -59,8 +59,8 @@ export default {
 
     img {
       display: inline-block;
-      height: 11vh;
-      width:  11vh;
+      height: 3vh;
+      width:  3vh;
       object-fit: cover;
       border-radius: 100%;
     }
@@ -68,14 +68,8 @@ export default {
   .name {
     display: flex;
     align-items: center;
-    font-size: 6.5vh;
+    font-size: 4vh;
     flex-grow: 1;
-  }
-  .points {
-    display: flex;
-    align-items: center;
-    font-size: 5vh;
-    padding-right: 1em;
   }
 }
 

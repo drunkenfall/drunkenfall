@@ -142,6 +142,9 @@ var DrunkenFallMixin = {
       }
       return this.tournament.matches[this.$route.params.match]
     },
+    matchesLoaded () {
+      return this.$store.state.matches.length !== 0
+    },
     currentMatch () {
       // TODO(thiderman): This needs to be written as the kind that
       // does not change until the next match is started, as per to be
