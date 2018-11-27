@@ -2,7 +2,7 @@
 
 <div v-if="tournament && matchesLoaded" class="main">
   <headful :title="tournament.subtitle + ' - DrunkenFall'"></headful>
-  <!-- <tournament-controls /> -->
+  <tournament-controls />
 
   <div class="overview">
     <div class="ongoing">

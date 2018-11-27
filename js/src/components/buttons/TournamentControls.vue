@@ -47,8 +47,6 @@
         :to="{ name: 'judge', params: { tournament: tournament.id }, query: {fullscreen: 'youhavelostthegame'}}"
         :iconClass="'positive'"
         :icon="'beer'" :label="'Judge'" />
-
-      <div class="maybe-clear"></div>
     </div>
   </div>
 </template>
