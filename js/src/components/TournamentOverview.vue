@@ -112,7 +112,7 @@ export default {
   }
 
   .ongoing {
-    flex-basis: 50%;
+    flex-basis: 60%;
 
     display: flex;
     flex-direction: column;
@@ -131,7 +131,7 @@ export default {
   }
 
   .players {
-    flex-basis: 25%;
+    flex-basis: 35%;
   }
 }
 
