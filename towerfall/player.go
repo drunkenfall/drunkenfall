@@ -48,9 +48,9 @@ type ScoreData struct {
 
 // Player is a representation of one player in a match
 type Player struct {
-	ID             uint `json:"id"`
-	MatchID        uint
-	PersonID       string      `sql:",pk"`
+	ID             uint        `json:"id"`
+	MatchID        uint        `json:"match_id"`
+	PersonID       string      `sql:",pk" json:"person_id"`
 	Person         *Person     `json:"person"`
 	Nick           string      `json:"nick"`
 	Color          string      `json:"color"`
@@ -64,7 +64,7 @@ type Player struct {
 	TotalScore     int         `json:"total_score" sql:",notnull"`
 	State          PlayerState `json:"state" sql:"-"`
 	Match          *Match      `json:"-" sql:"-"`
-	DisplayNames   []string    `sql:",array"`
+	DisplayNames   []string    `sql:",array" json:"display_names"`
 }
 
 // A PlayerSummary is a tournament-wide summary of the scores a player has

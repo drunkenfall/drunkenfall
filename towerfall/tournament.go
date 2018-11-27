@@ -19,9 +19,9 @@ var (
 
 // Tournament is the main container of data for this app.
 type Tournament struct {
-	ID            uint            `json:"dbid"`
+	ID            uint            `json:"id"`
 	Name          string          `json:"name"`
-	Slug          string          `json:"id"`
+	Slug          string          `json:"slug"`
 	Players       []PlayerSummary `json:"players"`
 	Casters       []*Person       `json:"-" sql:"-"`
 	Matches       []*Match        `json:"matches"`

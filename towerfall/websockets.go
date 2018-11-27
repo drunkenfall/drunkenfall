@@ -24,7 +24,7 @@ type websocketMessage struct {
 }
 
 type wsPlayerSummaries struct {
-	TournamentID    string           `json:"tournament_id"`
+	TournamentID    uint             `json:"tournament_id"`
 	PlayerSummaries []*PlayerSummary `json:"player_summaries"`
 }
 
@@ -81,7 +81,7 @@ func (s *Server) SendPlayerSummariesUpdate(t *Tournament) error {
 	}
 
 	return s.SendWebsocketUpdate(wPlayerSummaries, wsPlayerSummaries{
-		TournamentID:    t.Slug,
+		TournamentID:    t.ID,
 		PlayerSummaries: summaries,
 	})
 }
