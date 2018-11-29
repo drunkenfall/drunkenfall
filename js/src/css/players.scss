@@ -44,12 +44,12 @@ $red-bg: #6d1e17;
 $red-bg-darker: hsla(5,65%,19%,1);
 $red-bg-darkest: #380d09;
 
-h1.green, span.green, p.green    {color: $green;}
-h1.blue, span.blue, p.blue       {color: $blue;}
-h1.pink, span.pink, p.pink       {color: $pink;}
-h1.orange, span.orange, p.orange {color: $orange;}
-h1.white, span.white, p.white    {color: $white;}
-h1.yellow, span.yellow, p.yellow {color: $yellow;}
-h1.cyan, span.cyan, p.cyan       {color: $cyan;}
-h1.purple, span.purple, p.purple {color: $purple;}
-h1.red, span.red, p.red          {color: $red;}
+h1.green, span.green, p.green    {color: $green; text-shadow: 1px 1px 1px rgba(0,0,0,0.3);}
+h1.blue, span.blue, p.blue       {color: $blue; text-shadow: 1px 1px 1px rgba(0,0,0,0.3);}
+h1.pink, span.pink, p.pink       {color: $pink; text-shadow: 1px 1px 1px rgba(0,0,0,0.3);}
+h1.orange, span.orange, p.orange {color: $orange; text-shadow: 1px 1px 1px rgba(0,0,0,0.3);}
+h1.white, span.white, p.white    {color: $white; text-shadow: 1px 1px 1px rgba(0,0,0,0.3);}
+h1.yellow, span.yellow, p.yellow {color: $yellow; text-shadow: 1px 1px 1px rgba(0,0,0,0.3);}
+h1.cyan, span.cyan, p.cyan       {color: $cyan; text-shadow: 1px 1px 1px rgba(0,0,0,0.3);}
+h1.purple, span.purple, p.purple {color: $purple; text-shadow: 1px 1px 1px rgba(0,0,0,0.3);}
+h1.red, span.red, p.red          {color: $red; text-shadow: 1px 1px 1px rgba(0,0,0,0.3);}
