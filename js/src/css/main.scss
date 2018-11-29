@@ -63,6 +63,9 @@ body, html {
   // transition: margin-left 0.5s ease-in-out;
   display: flex;
   flex-grow: 1;
+  > * {
+    flex-grow: 1;
+  }
 }
 
 body.red-pulse {
@@ -250,12 +253,12 @@ form {
   }
 
   a, input {
+    display: flex;
     position: relative;
     background-color: $button-bg;
     text-shadow: 2px 2px 2px rgba(0,0,0,0.3);
     // text-align: center;
     font-weight: bold;
-    display: block;
     margin-bottom: 0.5em;
     transition: 0.3s;
 
@@ -343,6 +346,7 @@ form {
     .icon {
       opacity: 1;
       transition: 0.2s;
+      min-width: 2.75em;
     }
 
     > div {
