@@ -1,8 +1,6 @@
 <template>
 <div v-if="userLoaded && user.isProducer && tournaments">
   <headful title="Superpowers - DrunkenFall"></headful>
-  <h1>Superpowers</h1>
-
   <div class="section">
     <h2>Tournaments</h2>
     <div class="links">
