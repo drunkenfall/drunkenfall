@@ -143,7 +143,7 @@ var DrunkenFallMixin = {
       return this.tournament.matches[this.$route.params.match]
     },
     matchesLoaded () {
-      return this.$store.state.matches.length !== 0
+      return Object.keys(this.$store.state.matches).length !== 0
     },
     currentMatch () {
       // TODO(thiderman): This needs to be written as the kind that

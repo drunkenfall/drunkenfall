@@ -1,12 +1,12 @@
 <template>
 
-  <div class="player" v-if="player.person">
+  <div class="player" v-if="person">
     <div class="avatar">
-      <img :alt="player.nick" :src="player.person.avatar"/>
+      <img :alt="player.nick" :src="person.avatar"/>
     </div>
 
     <div class="name">
-      <span :class="color">{{player.person.nick}}</span>
+      <span :class="color">{{person.nick}}</span>
     </div>
   </div>
 
@@ -27,16 +27,15 @@ export default {
       return this.player.avatar
     },
     display_name () {
-      return this.player.person.nick
+      return this.person.nick
     },
     color () {
-      return this.player.color || this.player.person.preferred_color
+      return this.player.color || this.person.preferred_color
+    },
+    person () {
+      return this.$store.getters.getPerson(this.player.person_id)
     }
   },
-  created () {
-    this.player.person = this.$store.getters.getPerson(this.player.person_id)
-    console.log(this)
-  }
 }
 </script>
 

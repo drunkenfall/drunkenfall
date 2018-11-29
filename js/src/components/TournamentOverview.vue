@@ -8,7 +8,7 @@
     <div class="ongoing">
       <h1>Next up!</h1>
 
-      <match :match="tournament.nextMatch" class="match"></match>
+      <match :match="match" class="match"></match>
 
       <div class="logo">
         <img :class="{ded: !isConnected}" alt="One-Eye" src="/static/img/oem.svg"/>
@@ -17,7 +17,7 @@
 
     <div class="players">
       <h1>Next scheduled</h1>
-      <template v-for="(p, x) in tournament.nextNextMatch.players">
+      <template v-for="(p, x) in nextMatch.players">
         <list-player :player="p" :match="tournament.nextNextMatch" :index="x"></list-player>
       </template>
 
@@ -63,6 +63,15 @@ export default {
     },
   },
 
+  computed: {
+    match () {
+      return this.tournament.nextMatch
+    },
+    nextMatch () {
+      return this.tournament.nextNextMatch
+    },
+  },
+
   created () {
     let $vue = this
     let id = this.tournament.id
@@ -72,6 +81,17 @@ export default {
       this.$store.commit('setMatches', {
         tid: id,
         matches: data.matches,
+      })
+    }, function (res) {
+      $vue.$alert("Getting players failed. See console.")
+      console.error(res)
+    })
+
+    this.$http.get(`/api/tournaments/${id}/players/`).then(function (res) {
+      let data = JSON.parse(res.data)
+      this.$store.commit('setPlayerSummaries', {
+        tid: id,
+        player_summaries: data.player_summaries,
       })
     }, function (res) {
       $vue.$alert("Getting players failed. See console.")

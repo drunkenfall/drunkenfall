@@ -210,6 +210,14 @@ func (p *Player) Summary() PlayerSummary {
 
 // Player returns a new Player{} object from the summary
 func (p *PlayerSummary) Player() Player {
+	if p.Person == nil {
+		var err error
+		p.Person, err = globalDB.GetPerson(p.PersonID)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
 	return *NewPlayer(p.Person)
 }
 

@@ -4,7 +4,6 @@ import moment from 'moment'
 import Event from './Event.js'
 import Player from './Player.js'
 import Person from './Person.js'
-import Match from './Match.js'
 import _ from 'lodash'
 
 export default class Tournament {
@@ -18,13 +17,7 @@ export default class Tournament {
     t.started = moment(t.started)
     t.ended = moment(t.ended)
 
-    t.matches = _.sortBy(
-      _.map(t.matches, (m) => { return Match.fromObject(m, t) }),
-      'id'
-    )
-
     t.players = _.map(t.players, Player.fromObject)
-
     t.casters = _.map(t.casters, Person.fromObject)
 
     let events = t.events
@@ -81,6 +74,10 @@ export default class Tournament {
     return !this.name.startsWith('DrunkenFall')
   }
 
+  get matches () {
+    return store.getters.getMatches(this.id)
+  }
+
   get betweenMatches () {
     if (this.isEnded) {
       return false
@@ -117,32 +114,10 @@ export default class Tournament {
     return this.isStarted && !this.isEnded
   }
 
-  get canShuffle () {
-    // We can only shuffle after the tournament has started (otherwise
-    // technically no matches exists, so nothing can be shuffled
-    // into), and before the first match has been started.
-    // let match = Match.fromObject(this.matches[0], this)
-    return this.isStarted && !this.matches[0].isStarted
-  }
-
   get isUsurpable () {
     return true
     // return this.players.length < 32
   }
-
-  // get shouldBackfill () {
-  //   let c = this.currentMatch
-  //   if (!c) {
-  //     return false
-  //   }
-
-  //   let ps = _.sumBy(this.semis, (m) => { return m.players.length })
-
-  //   if (c.kind === 'semi' && ps < 8) {
-  //     return true
-  //   }
-  //   return false
-  // }
 
   get currentMatch () {
     let started = _.filter(this.matches, 'isStarted')

@@ -1,8 +1,8 @@
 <template>
 
-  <div class="player" v-if="player.person">
+  <div class="player">
     <div class="avatar">
-      <img :alt="player.nick" :src="player.person.avatar"/>
+      <img :alt="player.nick" :src="person.avatar"/>
     </div>
 
     <div class="name">
@@ -10,19 +10,21 @@
     </div>
 
     <div class="points">
-      {{player.total_score}} pts
+      {{summary.score}} pts, {{summary.matches}}m
     </div>
   </div>
 
 </template>
 
 <script>
+import DrunkenFallMixin from "../mixin"
+
 export default {
   name: 'Player',
+  mixins: [DrunkenFallMixin],
 
   props: {
     player: Object,
-    match: {},
     index: 0
   },
 
@@ -30,14 +32,16 @@ export default {
     avatar () {
       return this.player.avatar
     },
-    display_name () {
-      return this.player.person.nick
+    person () {
+      return this.$store.getters.getPerson(this.player.person_id)
+    },
+    summary () {
+      return this.$store.getters.getPlayerSummary(
+        this.tournament.id,
+        this.player.person_id,
+      )
     },
   },
-  created () {
-    this.player.person = this.$store.getters.getPerson(this.player.person_id)
-    console.log(this)
-  }
 }
 </script>
 

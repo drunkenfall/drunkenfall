@@ -579,7 +579,8 @@ func (m *Match) End(c *gin.Context) error {
 		m.Tournament.server.log.Info("Publishing next match failed", zap.Error(err))
 	}
 
-	return nil
+	// Lastly, send updates about all the things that the interface needs
+	return m.Tournament.server.SendMatchEndUpdate(m.Tournament)
 }
 
 // Reset resets all the player scores to zero and removes all the commits

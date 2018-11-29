@@ -94,7 +94,7 @@ const store = new Vuex.Store({ // eslint-disable-line
 
     SOCKET_ONMESSAGE (state, res) {
       let data = res.data
-      let t
+      let t, ps
 
       switch (res.type) {
         case 'all':
@@ -117,10 +117,24 @@ const store = new Vuex.Store({ // eslint-disable-line
           break
 
         case 'player_summaries':
-          let ps = _.map(data.player_summaries, (p) => {
+          ps = _.map(data.player_summaries, (p) => {
             return Player.fromObject(p)
           })
           Vue.set(state.playerSummaries, data.tournament_id, ps)
+          break
+
+        case 'runnerups':
+          ps = _.map(data.runnerups, (p) => {
+            return Player.fromObject(p)
+          })
+          Vue.set(state.runnerups, data.tournament_id, ps)
+          break
+
+        case 'matches':
+          let ms = _.map(data.matches, (m) => {
+            return Match.fromObject(m)
+          })
+          Vue.set(state.matches, data.tournament_id, ms)
           break
 
         default:
@@ -161,12 +175,17 @@ const store = new Vuex.Store({ // eslint-disable-line
         return
       }
 
-      let ret = t.find(m => m.index === idx)
-      return ret.players
+      let m = t.find(m => m.index === idx)
+      return _.sortBy(m.players, "id")
     },
     getPerson: (state, getters) => (id) => {
-      console.log("getting person", id)
       return state.people[id]
+    },
+    getPlayerSummary: (state, getters) => (tid, id) => {
+      return state.playerSummaries[tid].find(s => s.person_id === id)
+    },
+    getMatches: (state, getters) => (id) => {
+      return state.matches[id]
     },
     isConnected: state => {
       return state.socket.isConnected

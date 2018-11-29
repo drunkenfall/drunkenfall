@@ -17,6 +17,7 @@ export default class Match {
     // m.players = _.map(m.players, Player.fromObject)
 
     m.endScore = m.length
+    m.commits = []
 
     // TODO(thiderman): There used to be this weird bug where some
     // matches are created without a length. This circumvents this in
@@ -59,7 +60,7 @@ export default class Match {
   }
 
   set players (v) {
-    this._players = v
+    this._players = _.sortBy(v, "id")
   }
 
   get relativeIndex () {

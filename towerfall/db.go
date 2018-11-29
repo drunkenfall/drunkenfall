@@ -409,7 +409,9 @@ func (d *Database) GetRunnerups(t *Tournament) ([]*PlayerSummary, error) {
 // into matches
 func (d *Database) GetAllRunnerups(t *Tournament) ([]*PlayerSummary, error) {
 	ps := []*PlayerSummary{}
-	q := `SELECT * FROM player_summaries WHERE id IN (SELECT id FROM runnerups(?))`
+	q := `SELECT * FROM player_summaries
+                WHERE id IN (SELECT id FROM runnerups(?))
+             ORDER BY matches ASC, skill_score DESC`
 	_, err := d.DB.Query(&ps, q, t.ID)
 	return ps, err
 }
@@ -465,9 +467,6 @@ func (d *Database) UsurpTournament(t *Tournament, x int) error {
 
 // ClearTestTournaments deletes any tournament that doesn't begin with "DrunkenFall"
 func (d *Database) ClearTestTournaments() error {
-	log.Print("Not sending full update; not implemented")
-	// d.Server.SendWebsocketUpdate("all", d.asMap())
-
 	return nil
 }
 

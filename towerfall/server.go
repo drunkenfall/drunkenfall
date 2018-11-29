@@ -254,15 +254,21 @@ func (s *Server) UsurpTournamentHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"redirect": tm.URL()})
 }
 
-// AutoplayTournamentHandler plays a section of the tournament automatically
-func (s *Server) AutoplayTournamentHandler(c *gin.Context) {
+// AutoplayMatchHandler plays a single match automatically
+func (s *Server) AutoplayMatchHandler(c *gin.Context) {
 	tm, err := s.getTournament(c)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	err = tm.AutoplaySection()
+	m, err := tm.NextMatch()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"redirect": tm.URL()})
+		return
+	}
+
+	err = m.Autoplay()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"redirect": tm.URL()})
 		return
@@ -794,7 +800,7 @@ func (s *Server) BuildRouter(ws *melody.Melody) *gin.Engine {
 	t := api.Group("/tournaments/:id")
 	t.GET("/players/", s.PlayerSummariesHandler)
 	t.GET("/runnerups/", s.RunnerupsHandler)
-	t.GET("/autoplay/", s.AutoplayTournamentHandler)
+	t.GET("/autoplay/", s.AutoplayMatchHandler)
 	t.GET("/credits/", s.CreditsHandler)
 	t.GET("/join/", s.JoinHandler)
 	t.GET("/time/:time", s.SetTimeHandler)
