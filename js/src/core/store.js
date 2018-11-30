@@ -94,7 +94,7 @@ const store = new Vuex.Store({ // eslint-disable-line
 
     SOCKET_ONMESSAGE (state, res) {
       let data = res.data
-      let t, ps
+      let t, ps, ms
 
       switch (res.type) {
         case 'all':
@@ -131,10 +131,31 @@ const store = new Vuex.Store({ // eslint-disable-line
           break
 
         case 'matches':
-          let ms = _.map(data.matches, (m) => {
+          ms = _.map(data.matches, (m) => {
             return Match.fromObject(m)
           })
           Vue.set(state.matches, data.tournament_id, ms)
+          break
+
+        case 'match_end':
+          t = Tournament.fromObject(data.tournament)
+
+          ms = _.map(data.matches, (m) => {
+            return Match.fromObject(m)
+          })
+
+          ps = _.map(data.player_summaries, (p) => {
+            return Player.fromObject(p)
+          })
+
+          let rups = _.map(data.runnerups, (p) => {
+            return Player.fromObject(p)
+          })
+
+          Vue.set(state.tournaments, t.id, t)
+          Vue.set(state.runnerups, t.id, rups)
+          Vue.set(state.matches, t.id, ms)
+          Vue.set(state.playerSummaries, t.id, ps)
           break
 
         default:

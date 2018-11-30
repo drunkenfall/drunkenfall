@@ -11,6 +11,7 @@ const (
 	wPlayerSummaries = "player_summaries"
 	wRunnerups       = "runnerups"
 	wMatch           = "matches"
+	wMatchEnd        = "match_end"
 )
 
 // Determines whether websocket updates should be sent or not.
@@ -38,6 +39,14 @@ type wsRunnerups struct {
 type wsMatches struct {
 	TournamentID uint     `json:"tournament_id"`
 	Matches      []*Match `json:"matches"`
+}
+
+type wsMatchEnd struct {
+	TournamentID    uint             `json:"tournament_id"`
+	Tournament      *Tournament      `json:"tournament"`
+	Runnerups       []*PlayerSummary `json:"runnerups"`
+	PlayerSummaries []*PlayerSummary `json:"player_summaries"`
+	Matches         []*Match         `json:"matches"`
 }
 
 // DisableWebsocketUpdates... disables websocket updates.
@@ -129,21 +138,26 @@ func (s *Server) SendMatchEndUpdate(t *Tournament) error {
 	var err error
 	s.log.Info("Sending match end update", zap.Uint("tid", t.ID))
 
-	err = s.SendMatchesUpdate(t)
+	ms, err := s.DB.GetMatches(t, "all")
 	if err != nil {
 		return err
 	}
 
-	err = s.SendRunnerupsUpdate(t)
+	runnerups, err := s.DB.GetAllRunnerups(t)
 	if err != nil {
 		return err
 	}
 
-	err = s.SendPlayerSummariesUpdate(t)
+	summaries, err := s.DB.GetPlayerSummaries(t)
 	if err != nil {
 		return err
 	}
 
-	// ...then send the full tournament
-	return s.SendWebsocketUpdate("tournament", t)
+	return s.SendWebsocketUpdate(wMatchEnd, wsMatchEnd{
+		TournamentID:    t.ID,
+		Tournament:      t,
+		Matches:         ms,
+		Runnerups:       runnerups,
+		PlayerSummaries: summaries,
+	})
 }
