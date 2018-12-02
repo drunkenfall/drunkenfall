@@ -136,7 +136,7 @@ func (t *Tournament) JSON() (out []byte, err error) {
 
 // URL returns the URL for the tournament
 func (t *Tournament) URL() string {
-	out := fmt.Sprintf("/%s/", t.Slug)
+	out := fmt.Sprintf("/%d/", t.ID)
 	return out
 }
 

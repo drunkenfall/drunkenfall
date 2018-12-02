@@ -98,7 +98,9 @@ export default {
       }
 
       this.$http.post('/api/tournaments/', payload).then((res) => {
-        this.$router.push({name: "tournament", params: {tournament: $vue.id}})
+        console.log(res)
+        let j = JSON.parse(res.data)
+        this.$router.push({name: "tournament", params: {tournament: j.id}})
       }, (res) => {
         $vue.$alert("Creating failed. See console.")
         console.error(res)

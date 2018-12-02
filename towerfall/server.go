@@ -139,7 +139,7 @@ func (s *Server) NewHandler(c *gin.Context) {
 	}
 
 	idlog.Info("Tournament created", zap.String("name", t.Name))
-	c.JSON(http.StatusOK, gin.H{"redirect": t.URL()})
+	c.JSON(http.StatusOK, gin.H{"id": t.ID})
 }
 
 // TournamentHandler returns the current state of the tournament
