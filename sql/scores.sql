@@ -8,7 +8,7 @@ CREATE OR REPLACE FUNCTION scores(tid INTEGER) RETURNS
     INNER JOIN matches m ON p.match_id = m.ID
     INNER JOIN people ps ON p.person_id = ps.person_id
    WHERE m.tournament_id = tid
-   ORDER BY m.id);
+   ORDER BY m.id, p.id);
   END $$
 LANGUAGE plpgsql;
 
