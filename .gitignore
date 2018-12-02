@@ -11,4 +11,4 @@
 
 towerfall/migrations/*/in/*
 towerfall/migrations/*/out/*
-/data/test-db.sql
+*test-db.sql
