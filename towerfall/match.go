@@ -131,15 +131,7 @@ func (m *Match) AddPlayer(p Player) error {
 		return errors.New("cannot add fifth player")
 	}
 
-	// Add all the previous players' colors.
-	// This is to fix a bug with the presentColors map if the app has been
-	// restarted. They cannot be added multiple times anyway.
-	for _, x := range m.Players {
-		m.presentColors.Add(x.Color)
-	}
-
 	p.Color = p.PreferredColor
-	m.presentColors.Add(p.Color)
 
 	// Also set the match pointer
 	p.Match = m
@@ -157,11 +149,22 @@ func (m *Match) AddPlayer(p Player) error {
 
 	m.Players = append(m.Players, p)
 
-	// If we're adding the fourth player, it's time to correct the conflicts
-	if len(m.Players) == 4 && len(m.presentColors.ToSlice()) != 4 {
-		if err := m.CorrectFuckingColorConflicts(); err != nil {
-			log.Print("Correcting color conflicts failed")
-			return err
+	// If we're adding the fourth player, it's time to check if there
+	// are conflicts to correct
+	if len(m.Players) == 4 {
+		// Add all the previous players' colors.
+		// This is to fix a bug with the presentColors map if the app has been
+		// restarted. They cannot be added multiple times anyway.
+		m.presentColors = mapset.NewSet()
+		for _, x := range m.Players {
+			m.presentColors.Add(x.Color)
+		}
+
+		if len(m.presentColors.ToSlice()) != 4 {
+			if err := m.CorrectFuckingColorConflicts(); err != nil {
+				log.Print("Correcting color conflicts failed")
+				return err
+			}
 		}
 	}
 
@@ -181,18 +184,28 @@ func (m *Match) UpdatePlayer(p Player) error {
 // CorrectFuckingColorConflicts corrects color conflicts :@ 😠
 func (m *Match) CorrectFuckingColorConflicts() error {
 	var player Player
+	var err error
 	// Make a map of conflicting players keyed on the color
 	pairs := make(map[string][]Person)
 	for _, color := range m.presentColors.ToSlice() {
 		c := color.(string)
 		for _, p := range m.Players {
 			if p.PreferredColor == c {
+				if p.Person == nil {
+					// TODO(thiderman): At some points it seems that the person
+					// object isn't loaded. Since this function is rarely
+					// called, I'm fine with just doing a re-grab of the person
+					// from the databas.
+					p.Person, err = globalDB.GetPerson(p.PersonID)
+					if err != nil {
+						return err
+					}
+				}
 				pairs[c] = append(pairs[c], *p.Person)
 			}
 		}
 	}
 
-	// Loop over the colors and
 	for _, pair := range pairs {
 		// If there are two or more players in the group, there is a conflict and
 		// they need to be corrected.
@@ -218,11 +231,6 @@ func (m *Match) CorrectFuckingColorConflicts() error {
 				}
 
 				player.Color = new
-
-				// Since we are using the tournament level Player object, the compound
-				// scores from all other matches are currently on it. Reset that.
-				// p.Reset()
-
 				if err := m.UpdatePlayer(player); err != nil {
 					return errors.WithStack(err)
 				}

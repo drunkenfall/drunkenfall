@@ -317,6 +317,18 @@ func (d *Database) GetMatches(t *Tournament, kind string) ([]*Match, error) {
 	return ret, err
 }
 
+// GetFinal get the final of a tournament
+func (d *Database) GetFinal(t *Tournament) (*Match, error) {
+	ret := Match{
+		Tournament: t,
+	}
+
+	q := d.DB.Model(&ret).Column("match.*", "Players")
+	err := q.Where("tournament_id = ?", t.ID).Where("kind = ?", "final").First()
+
+	return &ret, err
+}
+
 // NextMatch the next playable match of a tournament
 func (d *Database) NextMatch(t *Tournament) (*Match, error) {
 	m := Match{
@@ -414,6 +426,23 @@ func (d *Database) GetAllRunnerups(t *Tournament) ([]*PlayerSummary, error) {
              ORDER BY matches ASC, skill_score DESC`
 	_, err := d.DB.Query(&ps, q, t.ID)
 	return ps, err
+}
+
+// GetWinner gets the winner of the match
+func (d *Database) GetWinner(m *Match) (*Player, error) {
+	p := Player{}
+	q := d.DB.Model(&p).Where("match_id = ?", m.ID).Order("kills DESC")
+	q = q.Column("player.*", "Person").Limit(1)
+	err := q.Select()
+	if err != nil {
+		return nil, err
+	}
+
+	if &p == nil {
+		return nil, errors.New("player was nil")
+	}
+
+	return &p, nil
 }
 
 // GetPlayoffPlayers gets the sixteen players that made it to the playoffs

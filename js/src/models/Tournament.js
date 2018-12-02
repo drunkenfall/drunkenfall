@@ -16,6 +16,7 @@ export default class Tournament {
     t.scheduled = moment(t.scheduled)
     t.started = moment(t.started)
     t.ended = moment(t.ended)
+    t.qualifyingEnded = moment(t.qualifying_end)
 
     t.players = _.map(t.players, Player.fromObject)
     t.casters = _.map(t.casters, Person.fromObject)
@@ -155,5 +156,9 @@ export default class Tournament {
 
   get final () {
     return this.matches[this.matches.length - 1]
+  }
+
+  get qualifyingOpen () {
+    return isGoZeroDateOrFalsy(this.qualifyingEnded)
   }
 }

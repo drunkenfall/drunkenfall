@@ -71,6 +71,10 @@ type FakeNameResponse struct {
 	Numeral string `json:"numeral"`
 }
 
+type EndQualifyingRequest struct {
+	Time time.Time `json:"time"`
+}
+
 func init() {
 	// To get line numbers in log output
 	log.SetFlags(log.LstdFlags | log.Lshortfile | log.Lmicroseconds)
@@ -539,6 +543,34 @@ func (s *Server) SetTimeHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"redirect": m.URL()})
 }
 
+// EndQualifyingHandler sets the cutoff time for the qualifying rounds
+func (s *Server) EndQualifyingHandler(c *gin.Context) {
+	var req EndQualifyingRequest
+
+	plog := s.log.With(zap.String("path", c.Request.URL.Path))
+
+	tm, err := s.getTournament(c)
+	if err != nil {
+		plog.Error("Couldn't get tournament", zap.Error(err))
+	}
+
+	err = c.BindJSON(&req)
+	if err != nil {
+		plog.Error("Bind failed", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Cannot JSON"})
+	}
+
+	err = tm.EndQualifyingRounds(req.Time)
+	if err != nil {
+		plog.Error("Couldn't set time")
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Couldn't set time"})
+		return
+	}
+
+	plog.Info("Qualifying rounds set to end", zap.Time("end", req.Time))
+	c.JSON(http.StatusOK, gin.H{"ok": "thank"})
+}
+
 // PeopleHandler returns a list of all the players registered in the app
 func (s *Server) PeopleHandler(c *gin.Context) {
 	plog := s.log.With(zap.String("path", c.Request.URL.Path))
@@ -804,6 +836,7 @@ func (s *Server) BuildRouter(ws *melody.Melody) *gin.Engine {
 	t.GET("/credits/", s.CreditsHandler)
 	t.GET("/join/", s.JoinHandler)
 	t.GET("/time/:time", s.SetTimeHandler)
+	t.POST("/endqualifying/", s.EndQualifyingHandler)
 	t.GET("/toggle/:person", s.ToggleHandler)
 	t.GET("/usurp/", s.UsurpTournamentHandler)
 	t.GET("/start/", s.StartTournamentHandler)

@@ -29,26 +29,33 @@
       :icon="'microphone'"
       :label="'Set casters'" />
 
-      <button-link v-if="user.isProducer && tournament.isTest && tournament.canStart"
-        :func="usurp"
-        :cls="{ disabled: !tournament.isUsurpable}"
-        :iconClass="'warning'"
-        :icon="'user-plus'"
-        :label="'Add testing players'"
-        :tooltip="'Tournament is full.'" />
+    <button-link v-if="user.isProducer && tournament.isTest && tournament.canStart"
+      :func="usurp"
+      :cls="{ disabled: !tournament.isUsurpable}"
+      :iconClass="'warning'"
+      :icon="'user-plus'"
+      :label="'Add testing players'"
+      :tooltip="'Tournament is full.'" />
 
-      <button-link v-if="user.isProducer && tournament.isTest && tournament.isRunning"
-        :func="autoplay"
-        :iconClass="'warning'"
-        :icon="'forward'"
-        :label="autoplayLabel" />
+    <button-link v-if="user.isProducer && tournament.isTest && tournament.isRunning"
+      :func="autoplay"
+      :iconClass="'warning'"
+      :icon="'forward'"
+      :label="autoplayLabel" />
 
-      <button-link v-if="user.isJudge && !tournament.isEnded"
-        :to="{ name: 'judge', params: { tournament: tournament.id }, query: {fullscreen: 'youhavelostthegame'}}"
-        :iconClass="'positive'"
-        :icon="'beer'" :label="'Judge'" />
-    </div>
+    <button-link v-if="user.isJudge && !tournament.isEnded"
+      :to="{ name: 'judge', params: { tournament: tournament.id }, query: {fullscreen: 'youhavelostthegame'}}"
+      :iconClass="'positive'"
+      :icon="'beer'" :label="'Judge'" />
+
+    <button-link v-if="user.isJudge && !tournament.isEnded"
+      :to="{ name: 'endqualifying', params: { tournament: tournament.id }}"
+      :iconClass="'warning'"
+      :icon="'fire'" :label="'End Qualifying'" />
+
   </div>
+</div>
+
 </template>
 
 <script>
@@ -97,7 +104,7 @@ export default {
 
   computed: {
     autoplayLabel () {
-      return `Autoplay ${this.tournament.nextMatch.kind}s`
+      return `Autoplay ${this.tournament.nextMatch.title}`
     }
   },
 

@@ -61,16 +61,6 @@ func NewTournament(name, id, cover string, scheduledStart time.Time, c *gin.Cont
 	return &t, err
 }
 
-// Semi returns one of the two semi matches
-func (t *Tournament) Semi(index int) *Match {
-	return t.Matches[len(t.Matches)-3+index]
-}
-
-// Final returns the final match
-func (t *Tournament) Final() *Match {
-	return t.Matches[len(t.Matches)-1]
-}
-
 // Persist tells the database to save this tournament to disk
 func (t *Tournament) Persist() error {
 	if t.db == nil {
@@ -363,8 +353,17 @@ func (t *Tournament) MovePlayers(m *Match) error {
 
 	// For the playoffs, just place the winner into the final
 	if m.Kind == playoff {
-		p := SortByKills(m.Players)[0]
-		err := t.Matches[len(t.Matches)-1].AddPlayer(p)
+		p, err := t.db.GetWinner(m)
+		if err != nil {
+			return err
+		}
+
+		f, err := t.db.GetFinal(t)
+		if err != nil {
+			return err
+		}
+
+		err = f.AddPlayer(*p)
 		if err != nil {
 			return err
 		}

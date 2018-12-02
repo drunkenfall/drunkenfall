@@ -15,16 +15,19 @@
       </div>
     </div>
 
-    <div class="players">
-      <h1>Next scheduled</h1>
+    <div class="players" v-if="nextMatch">
+      <h1 v-if="tournament.qualifyingOpen">Next scheduled</h1>
+      <h1 v-else>Last qualifying</h1>
       <template v-for="(p, x) in nextMatch.players">
         <list-player :player="p" :match="tournament.nextNextMatch" :index="x"></list-player>
       </template>
 
-      <h1>In queue</h1>
-      <template v-for="(p, x) in tournament.runnerups">
-        <list-player :player="p" :index="x"></list-player>
-      </template>
+      <div class="active" v-if="tournament.qualifyingOpen">
+        <h1>In queue</h1>
+        <template v-for="(p, x) in tournament.runnerups">
+          <list-player :player="p" :index="x"></list-player>
+        </template>
+      </div>
     </div>
   </div>
 </div>

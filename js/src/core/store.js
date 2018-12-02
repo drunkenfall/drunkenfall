@@ -203,7 +203,12 @@ const store = new Vuex.Store({ // eslint-disable-line
       return state.people[id]
     },
     getPlayerSummary: (state, getters) => (tid, id) => {
-      return state.playerSummaries[tid].find(s => s.person_id === id)
+      let ps = state.playerSummaries[tid]
+      if (ps === undefined) {
+        console.log("player summaries undefined", ps)
+        return
+      }
+      return ps.find(s => s.person_id === id)
     },
     getMatches: (state, getters) => (id) => {
       return state.matches[id]

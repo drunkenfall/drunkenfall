@@ -1,6 +1,6 @@
 <template>
 
-  <div class="player">
+  <div class="player" v-if="summary">
     <div class="avatar">
       <img :alt="player.nick" :src="person.avatar"/>
     </div>
