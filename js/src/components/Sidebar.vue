@@ -1,63 +1,63 @@
 <template>
-<div v-if="showSidebar">
-  <div id="sidebar" :class="{visible: hamburgerActive}">
-    <router-link :to="dispatchLink" class="logo">
-      <div>
-        <img :class="{ded: !isConnected}" alt="One-Eye" src="/static/img/oem.svg"/>
-      </div>
+
+<div id="sidebar" :class="{visible: hamburgerActive}" v-if="showSidebar">
+  <router-link :to="dispatchLink" class="logo">
+    <div>
+      <img :class="{ded: !isConnected}" alt="One-Eye" src="/static/img/oem.svg"/>
+    </div>
+  </router-link>
+
+  <div @click="toggle" class="hamburger">
+    <icon name="bars" />
+  </div>
+
+  <div class="blocks" @click="toggle" :class="{visible: hamburgerActive}">
+    <router-link class="action" :to="{ name: 'tournaments'}">
+      <div class="icon">🔥</div>
+      <p>Tournaments</p>
     </router-link>
 
-    <div @click="toggle" class="hamburger">
-      <icon name="bars" />
-    </div>
+    <router-link class="action" :to="{ name: 'archers'}">
+      <div class="icon">🏹</div>
+      <p>Archers</p>
+    </router-link>
 
-    <div class="blocks" @click="toggle" :class="{visible: hamburgerActive}">
-      <router-link class="action" :to="{ name: 'tournaments'}">
-        <div class="icon">🔥</div>
-        <p>Tournaments</p>
-      </router-link>
-
-      <router-link class="action" :to="{ name: 'archers'}">
-        <div class="icon">🏹</div>
-        <p>Archers</p>
-      </router-link>
-
-      <router-link v-if="user.isProducer" class="action" :to="{ name: 'admin'}">
-        <div class="icon">💪</div>
-        <p>Superpowers</p>
-      </router-link>
-    </div>
-
-    <div v-if="userLoaded && user.authenticated" class="user">
-      <div class="controls">
-        <div @click="settings" class="settings">
-          <icon name="cog"></icon>
-        </div>
-        <img @click="settings" :alt="user.firstName" :src="user.avatar"/>
-
-        <div @click="logout" class="logout">
-          <icon name="sign-out"></icon>
-        </div>
-      </div>
-
-      <h1 id="sidebar-username" :class="user.color">{{user.nick}}</h1>
-    </div>
-
-    <div v-if="!viewing(['facebook']) && userLoaded && !user.authenticated" class="content facebook">
-      <div class="links">
-        <a href="/api/facebook/login">
-          <div class="icon">
-            <icon name="facebook"></icon>
-          </div>
-          <p>Sign in</p>
-          <div class="clear"></div>
-        </a>
-      </div>
-    </div>
-
-    <div class="clear"></div>
+    <router-link v-if="user.isProducer" class="action" :to="{ name: 'admin'}">
+      <div class="icon">💪</div>
+      <p>Superpowers</p>
+    </router-link>
   </div>
+
+  <div v-if="userLoaded && user.authenticated" class="user">
+    <div class="controls">
+      <div @click="settings" class="settings">
+        <icon name="cog"></icon>
+      </div>
+      <img @click="settings" :alt="user.firstName" :src="user.avatar"/>
+
+      <div @click="logout" class="logout">
+        <icon name="sign-out"></icon>
+      </div>
+    </div>
+
+    <h1 id="sidebar-username" :class="user.color">{{user.nick}}</h1>
+  </div>
+
+  <div v-if="!viewing(['facebook']) && userLoaded && !user.authenticated" class="content facebook">
+    <div class="links">
+      <a href="/api/facebook/login">
+        <div class="icon">
+          <icon name="facebook"></icon>
+        </div>
+        <p>Sign in</p>
+        <div class="clear"></div>
+      </a>
+    </div>
+  </div>
+
+  <div class="clear"></div>
 </div>
+
 </template>
 
 <script>
@@ -146,6 +146,7 @@ export default {
 
   display: flex;
   flex-direction: column;
+  flex-grow: 1;
   justify-content: space-between;
   align-items: space-between;
 

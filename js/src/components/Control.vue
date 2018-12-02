@@ -2,6 +2,8 @@
 
 <div v-if="tournament && match && user && user.isJudge">
   <headful :title="match.title + ' / Round ' + round"></headful>
+  <tournament-controls />
+
   <div class="content">
     <p class="title">
       {{match.title}} - Round {{round}} @ {{match.levelTitle}}
@@ -43,10 +45,14 @@
 
 <script>
 import DrunkenFallMixin from "../mixin"
+import TournamentControls from "./buttons/TournamentControls"
 
 export default {
-  name: 'GogoInterface',
+  name: 'Control',
   mixins: [DrunkenFallMixin],
+  components: {
+    TournamentControls,
+  },
 
   data () {
     return {
@@ -91,8 +97,7 @@ export default {
   },
 
   created () {
-    document.getElementsByTagName("body")[0].className = "scroll-less sidebar-less"
-
+    // document.getElementsByTagName("body")[0].className = "scroll-less sidebar-less"
     this.api = this.$resource("/api", {}, {
       play: { method: "POST", url: "/api/tournaments/{id}/play/" },
       setTime: { method: "GET", url: "/api/tournaments/{id}/time/{time}" },

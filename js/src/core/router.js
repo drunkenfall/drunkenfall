@@ -8,7 +8,7 @@ import Casters from '../components/Caster.vue'
 import Credits from '../components/Credits.vue'
 import Disable from '../components/Disable.vue'
 import EndQualifying from '../components/EndQualifying'
-import GogoInterface from '../components/Gogo.vue'
+import Control from '../components/Control.vue'
 import HUD from '../components/Hud.vue'
 import Join from '../components/Join.vue'
 import New from '../components/New.vue'
@@ -109,9 +109,9 @@ var router = new Router({
       component: NextScreen
     },
     {
-      path: '/tournaments/:tournament/judge/',
-      name: 'judge',
-      component: GogoInterface
+      path: '/tournaments/:tournament/control/',
+      name: 'control',
+      component: Control
     },
     {
       path: '/tournaments/:tournament/endqualifying/',

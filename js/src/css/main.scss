@@ -47,6 +47,8 @@ body, html {
   height: 100%;
   transition: 0.3s ease-in-out;
   display: flex;
+  flex-direction: column;
+  flex-grow: 1;
 }
 
 .fade-enter-active, .fade-leave-active {
