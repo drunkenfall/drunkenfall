@@ -181,6 +181,13 @@ func (s *Server) JoinHandler(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
+	err = s.SendPlayerSummariesUpdate(tm)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{"redirect": tm.URL()})
 }
 

@@ -40,9 +40,7 @@ export default class Tournament {
   }
 
   playerJoined (person) {
-    let p = _.find(this.players, function (p) {
-      return p.person.id === person.id
-    })
+    let p = store.getters.getPlayerSummary(this.id, person.id)
     return p !== undefined
   }
 
