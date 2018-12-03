@@ -5,7 +5,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/drunkenfall/drunkenfall/faking"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -50,15 +49,6 @@ func testPerson(s *Server) *Person {
 
 	usedPeople = append(usedPeople, p.PersonID)
 	return p
-}
-
-func randomPerson() *Person {
-	return &Person{
-		PersonID:       faking.FakeName(),
-		Name:           faking.FakeName(),
-		Nick:           faking.FakeNick(),
-		PreferredColor: RandomColor(Colors),
-	}
 }
 
 func TestAddPlayer(t *testing.T) {
