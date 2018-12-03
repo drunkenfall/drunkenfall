@@ -1,6 +1,8 @@
 <template>
   <div v-if="tournament">
     <headful :title="tournament.subtitle + ' / Casters - DrunkenFall'"></headful>
+    <tournament-controls />
+
     <h2>Casters ({{inCast.length}} / 2)</h2>
     <div class="players joined">
       <div v-for="person in inCast" class="player">
@@ -32,10 +34,14 @@
 <script>
 import _ from 'lodash'
 import DrunkenFallMixin from "../mixin"
+import TournamentControls from "./buttons/TournamentControls"
 
 export default {
   name: 'Casters',
   mixins: [DrunkenFallMixin],
+  components: {
+    TournamentControls,
+  },
 
   data () {
     return {

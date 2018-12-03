@@ -1,17 +1,19 @@
 <template>
 <div class="sidebar-buttons" v-if="tournament && user && user.isJudge && showSidebar">
   <div class="links">
+    <button-link
+      :to="{ name: 'tournament', params: { tournament: tournament.id }}"
+      :icon="'home'" :label="'Back'" />
+
+    <button-link v-if="!tournament.isEnded"
+      :to="{ name: 'control', params: { tournament: tournament.id }}"
+      :icon="'balance-scale'" :label="'Judge'" />
+
     <button-link v-if="tournament.canStart && user.isCommentator"
       :func="start"
       :iconClass="'positive'"
       :icon="'play'"
       :label="'Start tournament'" />
-
-    <button-link v-if="user.isJudge &&tournament.isRunning && !tournament.shouldBackfill"
-      :func="next"
-      :iconClass="'positive'"
-      :icon="'play'"
-      :label="'Next match'" />
 
     <button-link v-if="user.isProducer"
       :cls="{disabled: tournament.isEnded}"
@@ -29,6 +31,11 @@
       :icon="'microphone'"
       :label="'Set casters'" />
 
+    <button-link v-if="user.isJudge && !tournament.isEnded"
+      :to="{ name: 'endqualifying', params: { tournament: tournament.id }}"
+      :iconClass="'warning'"
+      :icon="'fire'" :label="'End Qualifying'" />
+
     <button-link v-if="user.isProducer && tournament.isTest && tournament.canStart"
       :func="usurp"
       :cls="{ disabled: !tournament.isUsurpable}"
@@ -42,16 +49,6 @@
       :iconClass="'warning'"
       :icon="'forward'"
       :label="autoplayLabel" />
-
-    <button-link v-if="user.isJudge && !tournament.isEnded"
-      :to="{ name: 'control', params: { tournament: tournament.id }}"
-      :iconClass="'positive'"
-      :icon="'beer'" :label="'Judge'" />
-
-    <button-link v-if="user.isJudge && !tournament.isEnded"
-      :to="{ name: 'endqualifying', params: { tournament: tournament.id }}"
-      :iconClass="'warning'"
-      :icon="'fire'" :label="'End Qualifying'" />
 
   </div>
 </div>

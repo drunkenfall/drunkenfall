@@ -146,7 +146,7 @@ export default {
 
   display: flex;
   flex-direction: column;
-  flex-grow: 1;
+  /* flex-grow: 1; */
   justify-content: space-between;
   align-items: space-between;
 

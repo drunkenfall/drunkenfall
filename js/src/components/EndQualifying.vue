@@ -1,6 +1,8 @@
 <template>
+<div v-if="tournament">
+  <headful :title="'End qualifying'"></headful>
+  <tournament-controls />
 
-<div>
   <h1>End qualifying</h1>
   <div class="time">
     <input name="time" type="time" v-model="time"/>
@@ -12,11 +14,15 @@
 
 <script>
 import DrunkenFallMixin from "../mixin"
+import TournamentControls from "./buttons/TournamentControls"
 import moment from 'moment'
 
 export default {
   name: 'EndQualifying',
   mixins: [DrunkenFallMixin],
+  components: {
+    TournamentControls,
+  },
 
   data () {
     return {
@@ -44,6 +50,8 @@ export default {
   },
 
   created () {
+    this.loadAll()
+
     this.api = this.$resource("/api", {}, {
       submit: { method: "POST", url: "/api/tournaments/{id}/endqualifying/" },
     })

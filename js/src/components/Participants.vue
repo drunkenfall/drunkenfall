@@ -1,6 +1,8 @@
 <template>
   <div v-if="tournament">
     <headful :title="tournament.subtitle + ' / Players - DrunkenFall'"></headful>
+    <tournament-controls />
+
     <player-toggle
       :on="joined" :onLabel="'In for the showdown! |o/'"
       :off="notJoined" :offLabel="'Booooooo 😧'"
@@ -12,13 +14,15 @@
 <script>
 import _ from 'lodash'
 import DrunkenFallMixin from "../mixin"
+import TournamentControls from "./buttons/TournamentControls"
 import PlayerToggle from "./players/PlayerToggle.vue"
 
 export default {
   name: 'Participants',
   mixins: [DrunkenFallMixin],
   components: {
-    PlayerToggle
+    PlayerToggle,
+    TournamentControls,
   },
 
   methods: {

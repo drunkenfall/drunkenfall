@@ -69,6 +69,44 @@ var DrunkenFallMixin = {
     lavaOrbImage () {
       return `/static/img/arrows/lavaOrb.png`
     },
+    loadAll () {
+      let $vue = this
+      let id = this.$route.params.tournament
+
+      this.$http.get(`/api/tournaments/${id}/matches/`).then(function (res) {
+        let data = JSON.parse(res.data)
+        this.$store.commit('setMatches', {
+          tid: id,
+          matches: data.matches,
+        })
+      }, function (res) {
+        $vue.$alert("Getting players failed. See console.")
+        console.error(res)
+      })
+
+      this.$http.get(`/api/tournaments/${id}/players/`).then(function (res) {
+        let data = JSON.parse(res.data)
+        this.$store.commit('setPlayerSummaries', {
+          tid: id,
+          player_summaries: data.player_summaries,
+        })
+      }, function (res) {
+        $vue.$alert("Getting players failed. See console.")
+        console.error(res)
+      })
+
+      this.$http.get(`/api/tournaments/${id}/runnerups/`).then(function (res) {
+        let data = JSON.parse(res.data)
+        this.$store.commit('setRunnerups', {
+          tid: id,
+          player_summaries: data.player_summaries,
+        })
+      }, function (res) {
+        $vue.$alert("Getting players failed. See console.")
+        console.error(res)
+      })
+    },
+
   },
 
   computed: {

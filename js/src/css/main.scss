@@ -67,7 +67,7 @@ body, html {
   flex-direction: column;
   flex-grow: 1;
   > * {
-    flex-grow: 1;
+    // flex-grow: 1;
   }
 }
 
@@ -382,8 +382,12 @@ form {
       p {
         opacity: 0;
         transition: 0.2s;
-
-        font-size: 1rem;
+        @media screen and ($desktop: $desktop-width) {
+          font-size: 1rem;
+        }
+        @media screen and ($device: $device-width) {
+           font-size: 0.2em;
+        }
         text-transform: uppercase;
         text-align: center;
         padding-top: 0.7em;

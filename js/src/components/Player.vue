@@ -53,13 +53,14 @@ export default {
   flex-grow: 1;
   flex-basis: 0;
   background-color: $bg-default-alt;
+  padding: 2%;
 
   .avatar {
     display: flex;
     justify-content: center;
     align-items: center;
 
-    padding: 0em 1em;
+    margin-right: 1em;
 
     img {
       display: inline-block;

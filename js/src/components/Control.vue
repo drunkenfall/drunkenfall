@@ -9,35 +9,31 @@
       {{match.title}} - Round {{round}} @ {{match.levelTitle}}
     </p>
 
-    <a @click="play" id="gogo">
+    <a @click="play" id="god">
       <div class="icon">
         <icon name="play"></icon>
       </div>
-      <div class="clear"></div>
     </a>
 
-    <div class="subheader" v-if="user.isCommentator && tournament.nextMatch && !tournament.isEnded">
-      <div v-if="!tournament.nextMatch.isScheduled">
+    <div class="subheader" v-if="match && match.isStarted">
+      <div v-if="!match.isScheduled">
         <p>
           Pause until
-          <span>{{tournament.nextMatch.title}}</span>
+          <span>{{match.title}}</span>
         </p>
         <div class="links">
-          <a @click="setTime(10)">10 min</a>
-          <a @click="setTime(7)">7 min</a>
-          <a @click="setTime(5)">5 min</a>
-          <a @click="setTime(3)">3 min</a>
+          <a @click="setTime(x)" v-for="x in pauses">{{x}} min</a>
         </div>
-        <div class="clear"></div>
       </div>
-      <div v-if="tournament.nextMatch.isScheduled">
-        <p class="center">
-          <span>{{tournament.nextMatch.title}}</span> scheduled at
-          {{tournament.nextMatch.scheduled.format("HH:mm")}}
-        </p>
-        <div class="clear"></div>
-      </div>
+      <p v-else>
+        Scheduled at {{match.scheduled.format("HH:mm")}}
+      </p>
     </div>
+
+    <template v-for="(p, x) in match.players">
+      <player :player="p" :match="match" :index="x"></player>
+    </template>
+
   </div>
 </div>
 
@@ -46,34 +42,37 @@
 <script>
 import DrunkenFallMixin from "../mixin"
 import TournamentControls from "./buttons/TournamentControls"
+import Player from './Player.vue'
 
 export default {
   name: 'Control',
   mixins: [DrunkenFallMixin],
   components: {
     TournamentControls,
+    Player,
   },
 
   data () {
     return {
       sending: false,
+      pauses: [2, 3, 5, 7, 10],
     }
   },
 
   computed: {
     match () {
       return this.tournament.nextMatch
-    }
+    },
   },
 
   methods: {
     play () {
       let $vue = this
 
-      let go = document.getElementById("gogo")
+      let go = document.getElementById("god")
       go.className = "disabled"
       setTimeout(function () {
-        let go = document.getElementById("gogo")
+        let go = document.getElementById("god")
         go.className = ""
       }, 3000)
 
@@ -97,7 +96,8 @@ export default {
   },
 
   created () {
-    // document.getElementsByTagName("body")[0].className = "scroll-less sidebar-less"
+    this.loadAll()
+
     this.api = this.$resource("/api", {}, {
       play: { method: "POST", url: "/api/tournaments/{id}/play/" },
       setTime: { method: "GET", url: "/api/tournaments/{id}/time/{time}" },
@@ -106,21 +106,21 @@ export default {
 }
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
 @import "../css/colors.scss";
 
 .content {
+  padding: 1em;
   .title {
-    @include display1();
+    @include headline();
     text-align: center;
-    margin: 5%;
   }
 
-  a {
+  #god {
     @include button();
 
     padding: 0.5em 0.7em;
-    font-size: 6em;
+    font-size: 3em;
     margin: 5%;
     display: block;
     font-weight: bold;
@@ -138,62 +138,47 @@ export default {
 
 .subheader {
   @include subheading();
-  width: 80%;
 
-  @media screen and ($desktop: $desktop-width) {
-    p {
-      float: left;
-    }
-    .links {
-      float: right;
-      a {
-        float: right;
-      }
-    }
-  }
-  @media screen and ($device: $device-width) {
-    & {
-      text-align: center;
-      padding: 0.5em;
-    }
-    .links {
-      a:last-child {
-        margin-bottom: 1em;
-      }
-    }
-  }
-
-  margin: 30px auto;
+  text-align: center;
+  display: flex;
+  flex-direction: row;
+  margin: 25px auto;
   background-color: $bg-default;
-  box-shadow: 2px 2px 3px rgba(0,0,0,0.3);
-  text-shadow: 2px 2px 3px rgba(0,0,0,0.5);
+  padding: 0.3em 0.5em;
 
   p {
     font-size: 2em;
     padding: 0.3em 0.5em;
-
-    span {
-      text-transform: capitalize;
-    }
+    text-align: center;
+    flex-grow: 1;
   }
 
   .links {
-    a, .action {
+    display: flex;
+    flex-basis: content;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-evenly;
+
+    a {
       @include button();
-      margin: 15px  !important;
       background-color: $button-bg;
       border-left: 3px solid $accent;
       color: $fg-default;
-      display: block;
       font-weight: bold;
-      padding: 7px 30px;
       text-align: center;
       text-decoration: none;
-      margin: 10px auto;
-      min-width: 60px;
+      width: 6em;
 
+      margin: 2%;
       padding: 0.5em 0.7em;
     }
+  }
+}
+
+.players {
+  img {
+    height: 5vh;
   }
 }
 
