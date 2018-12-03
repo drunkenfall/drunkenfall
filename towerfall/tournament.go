@@ -103,6 +103,13 @@ func (t *Tournament) PublishNext() error {
 	}
 
 	for _, p := range next.Players {
+		if p.Person == nil {
+			p.Person, err = globalDB.GetPerson(p.PersonID)
+			if err != nil {
+				return err
+			}
+		}
+
 		gp := GamePlayer{
 			TopName:    p.DisplayNames[0],
 			BottomName: p.DisplayNames[1],
