@@ -2,50 +2,44 @@ package towerfall
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"log"
-	"math/rand"
+	"sort"
 	"time"
 
-	"github.com/deckarep/golang-set"
-	"github.com/drunkenfall/drunkenfall/faking"
 	"github.com/gin-gonic/gin"
+	"github.com/pkg/errors"
 	"go.uber.org/zap"
 )
 
-var ErrPublishDisconnected = errors.New("not connected; will not publish")
+var (
+	ErrPublishDisconnected = errors.New("not connected; will not publish")
+	ErrAlreadyInTournament = errors.New("already in tournament")
+)
 
 // Tournament is the main container of data for this app.
 type Tournament struct {
-	Name        string       `json:"name"`
-	ID          string       `json:"id"`
-	Players     []Player     `json:"players"` // See getTournamentPlayerObject()
-	Winners     []Player     `json:"winners"`
-	Runnerups   []*Person    `json:"runnerups"`
-	Casters     []*Person    `json:"casters"`
-	Matches     []*Match     `json:"matches"`
-	Current     CurrentMatch `json:"current"`
-	Opened      time.Time    `json:"opened"`
-	Scheduled   time.Time    `json:"scheduled"`
-	Started     time.Time    `json:"started"`
-	Ended       time.Time    `json:"ended"`
-	Events      []*Event     `json:"events"`
-	Color       string       `json:"color"`
-	Levels      Levels       `json:"levels"`
-	Cover       string       `json:"cover"`
-	Length      int          `json:"length"`
-	FinalLength int          `json:"final_length"`
-	connected   bool
-	db          *Database
-	server      *Server
+	ID            uint            `json:"id"`
+	Name          string          `json:"name"`
+	Slug          string          `json:"slug"`
+	Players       []PlayerSummary `json:"players"`
+	Casters       []*Person       `json:"-" sql:"-"`
+	Matches       []*Match        `json:"-"`
+	Opened        time.Time       `json:"opened"`
+	Scheduled     time.Time       `json:"scheduled"`
+	Started       time.Time       `json:"started"`
+	QualifyingEnd time.Time       `json:"qualifying_end"`
+	Ended         time.Time       `json:"ended"`
+	Color         string          `json:"color"`
+	Cover         string          `json:"cover"`
+	Length        int             `json:"length"`
+	FinalLength   int             `json:"final_length"`
+	connected     bool
+	db            *Database
+	server        *Server
 }
 
-// CurrentMatch holds the pointers needed to find the current match
-type CurrentMatch int
-
-const minPlayers = 8
-const maxPlayers = 32
+const minPlayers = 12
 const matchLength = 10
 const finalLength = 20
 
@@ -53,10 +47,9 @@ const finalLength = 20
 func NewTournament(name, id, cover string, scheduledStart time.Time, c *gin.Context, server *Server) (*Tournament, error) {
 	t := Tournament{
 		Name:        name,
-		ID:          id,
+		Slug:        id,
 		Opened:      time.Now(),
 		Scheduled:   scheduledStart,
-		Levels:      NewLevels(),
 		Cover:       cover,
 		Length:      matchLength,
 		FinalLength: finalLength,
@@ -64,41 +57,8 @@ func NewTournament(name, id, cover string, scheduledStart time.Time, c *gin.Cont
 		server:      server,
 	}
 
-	t.SetMatchPointers()
-	t.LogEvent(
-		"new_tournament", "{name} ({id}) created",
-		"name", name,
-		"id", id,
-		"person", PersonFromSession(t.server, c))
-
-	t.Persist()
-	return &t, nil
-}
-
-// LoadTournament loads a tournament from persisted JSON data
-func LoadTournament(data []byte, db *Database) (t *Tournament, e error) {
-	t = &Tournament{}
-	err := json.Unmarshal(data, t)
-	if err != nil {
-		log.Print(err)
-		return t, err
-	}
-
-	t.db = db
-	t.server = db.Server
-
-	t.SetMatchPointers()
-	return
-}
-
-// Semi returns one of the two semi matches
-func (t *Tournament) Semi(index int) *Match {
-	return t.Matches[len(t.Matches)-3+index]
-}
-
-// Final returns the final match
-func (t *Tournament) Final() *Match {
-	return t.Matches[len(t.Matches)-1]
+	err := t.db.NewTournament(&t)
+	return &t, err
 }
 
 // Persist tells the database to save this tournament to disk
@@ -119,7 +79,9 @@ func (t *Tournament) Persist() error {
 // match is started, so t.NextMatch() can always safely be used.
 func (t *Tournament) PublishNext() error {
 	if !t.connected {
-		t.server.logger.Info("Not publishing disconnected tournament")
+		if t.server.config.Production {
+			t.server.log.Info("Not publishing disconnected tournament")
+		}
 		return ErrPublishDisconnected
 	}
 
@@ -133,7 +95,7 @@ func (t *Tournament) PublishNext() error {
 	}
 
 	msg := GameMatchMessage{
-		Tournament: t.ID,
+		Tournament: t.Slug,
 		Level:      next.realLevel(),
 		Length:     next.Length,
 		Ruleset:    next.Ruleset,
@@ -141,17 +103,16 @@ func (t *Tournament) PublishNext() error {
 	}
 
 	for _, p := range next.Players {
-		top, bot := transformName(p.Name())
 		gp := GamePlayer{
-			TopName:    top,
-			BottomName: bot,
+			TopName:    p.DisplayNames[0],
+			BottomName: p.DisplayNames[1],
 			Color:      p.NumericColor(),
 			ArcherType: p.Person.ArcherType,
 		}
 		msg.Players = append(msg.Players, gp)
 	}
 
-	t.server.logger.Info("Sending publish", zap.Any("match", msg))
+	t.server.log.Info("Sending publish", zap.Any("match", msg))
 	return t.server.publisher.Publish(gMatch, msg)
 }
 
@@ -161,7 +122,7 @@ func (t *Tournament) connect(connected bool) {
 		return
 	}
 
-	t.server.logger.Info(
+	t.server.log.Info(
 		"Tournament connection changed",
 		zap.Bool("connected", connected),
 	)
@@ -175,194 +136,132 @@ func (t *Tournament) JSON() (out []byte, err error) {
 
 // URL returns the URL for the tournament
 func (t *Tournament) URL() string {
-	out := fmt.Sprintf("/%s/", t.ID)
+	out := fmt.Sprintf("/%d/", t.ID)
 	return out
 }
 
-// LogEvent makes an event and stores it on the tournament object
-func (t *Tournament) LogEvent(kind, message string, items ...interface{}) {
-	ev, err := NewEvent(kind, message, items...)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	t.Events = append(t.Events, ev)
-}
-
 // AddPlayer adds a player into the tournament
-func (t *Tournament) AddPlayer(p *Player) error {
+func (t *Tournament) AddPlayer(p *PlayerSummary) error {
 	p.Person.Correct()
 
-	if err := t.CanJoin(p.Person); err != nil {
-		log.Print(err)
-		return err
+	if t.IsInTournament(p.Person) {
+		return ErrAlreadyInTournament
 	}
 
 	t.Players = append(t.Players, *p)
-
-	// If the tournament is already started, just add the player into the
-	// runnerups so that they will be placed at the end immediately.
-	if !t.Started.IsZero() {
-		t.Runnerups = append(t.Runnerups, p.Person)
-	}
-
-	t.LogEvent(
-		"player_join", "{nick} has joined",
-		"nick", p.Person.Nick,
-		"person", p.Person)
-
-	err := t.Persist()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return nil
-}
-
-func (t *Tournament) removePlayer(p Player) error {
-	for i := 0; i < len(t.Players); i++ {
-		r := t.Players[i]
-		if r.Person.ID == p.Person.ID {
-			t.Players = append(t.Players[:i], t.Players[i+1:]...)
-			break
-		}
-	}
-
-	t.LogEvent(
-		"player_remove", "{nick} has left",
-		"nick", p.Person.Nick,
-		"person", p.Person)
-
-	err := t.Persist()
-	return err
+	return t.db.AddPlayer(t, p)
 }
 
 // TogglePlayer toggles a player in a tournament
 func (t *Tournament) TogglePlayer(id string) error {
-	ps, _ := t.db.GetPerson(id)
-	p, err := t.getTournamentPlayerObject(ps)
-
+	p, err := t.db.GetPerson(id)
 	if err != nil {
-		// If there is an error, the player is not in the tournament and we should add them
-		p = NewPlayer(ps)
-		err = t.AddPlayer(p)
 		return err
 	}
 
-	// If there was no error, the player is in the tournament and we should remove them!
-	err = t.removePlayer(*p)
-	return err
+	// If the player is already in the tournament, it is time to remove them
+	if t.IsInTournament(p) {
+		ps, err := t.db.GetPlayerSummary(t, id)
+		if err != nil {
+			return err
+		}
+		return t.db.RemovePlayer(ps)
+	}
+
+	ps := NewPlayerSummary(p)
+	return t.AddPlayer(ps)
 }
 
 // SetCasters resets the casters to the input people
-func (t *Tournament) SetCasters(ids []string) {
+func (t *Tournament) SetCasters(ids []string) error {
 	t.Casters = make([]*Person, 0)
 	for _, id := range ids {
 		ps, _ := t.db.GetPerson(id)
 		t.Casters = append(t.Casters, ps)
 	}
 
-	t.Persist()
-}
-
-// ShufflePlayers will position players into matches
-func (t *Tournament) ShufflePlayers() {
-	// Shuffle all the players
-	slice := t.Players
-	for i := range slice {
-		j := rand.Intn(i + 1)
-		slice[i], slice[j] = slice[j], slice[i]
-	}
-
-	// Loop the players and set them into the matches. This exhausts the
-	// list before it leaves the playoffs.
-	for i, p := range slice {
-		m := t.Matches[i/4]
-		m.AddPlayer(p)
-	}
+	return t.Persist()
 }
 
 // StartTournament will generate the tournament.
 func (t *Tournament) StartTournament(c *gin.Context) error {
 	ps := len(t.Players)
-	if ps < minPlayers || ps > maxPlayers {
-		return fmt.Errorf("tournament needs %d or more players and %d or less, got %d", minPlayers, maxPlayers, ps)
+	if ps < minPlayers {
+		return fmt.Errorf("tournament needs %d or more players, got %d", minPlayers, ps)
 	}
 
 	if t.IsRunning() {
 		return errors.New("tournament is already running")
 	}
 
-	// If there are only eight players, we should skip doing playoffs and
-	// just do the semi and the finals. Everything above that needs
-	// playoff matches.
-	if ps != minPlayers {
-		// If there are more than eight then we add more playoffs until
-		// every player gets to play in the playoffs once.
-		for i := 0; i < ps; i += 4 {
-			match := NewMatch(t, playoff)
-			t.Matches = append(t.Matches, match)
+	// Set the two first matches
+	m1 := NewMatch(t, qualifying)
+	t.Matches = append(t.Matches, m1)
+
+	m2 := NewMatch(t, qualifying)
+	t.Matches = append(t.Matches, m2)
+
+	// Add the first 8 players, in modulated joining order (first to
+	// first match, second to second, third to first etc)
+	players, err := t.db.GetPlayerSummaries(t)
+	if err != nil {
+		return err
+	}
+
+	for i, p := range players[0:8] {
+		ps := p.Player()
+		err := t.Matches[i%2].AddPlayer(ps)
+		if err != nil {
+			return errors.WithStack(err)
 		}
 	}
 
-	// Set the semis and the final
-	t.Matches = append(t.Matches, NewMatch(t, semi))
-	t.Matches = append(t.Matches, NewMatch(t, semi))
-	t.Matches = append(t.Matches, NewMatch(t, final))
-
-	t.ShufflePlayers()
 	t.Started = time.Now()
 
 	// Get the first match and set the scheduled date to be now.
-	t.Matches[0].SetTime(c, 0)
-	t.LogEvent(
-		"start", "Tournament started",
-		"person", PersonFromSession(t.server, c))
+	err = t.Matches[0].SetTime(c, 0)
+	if err != nil {
+		return err
+	}
 
-	err := t.PublishNext()
+	err = t.PublishNext()
 	if err != nil && err != ErrPublishDisconnected {
 		return err
 	}
 	return t.Persist()
 }
 
-// Reshuffle shuffles the players of an already started tournament
-func (t *Tournament) Reshuffle(c *gin.Context) error {
-	if !t.IsRunning() || t.Matches[0].IsStarted() {
-		return errors.New("cannot reshuffle")
+// End marks the end of the tournament
+func (t *Tournament) End() error {
+	t.Ended = time.Now()
+
+	err := t.server.publisher.SendTournamentComplete(t)
+	if err != nil {
+		return err
 	}
 
-	// First we need to clear the player slots in the matches.
-	for x := 0; x < len(t.Matches)-3; x++ {
-		t.Matches[x].Players = nil
-		t.Matches[x].presentColors = mapset.NewSet()
-	}
+	return t.Persist()
+}
 
-	t.ShufflePlayers()
-	t.LogEvent(
-		"reshuffle", "Players reshuffled",
-		"person", PersonFromSession(t.server, c))
-	t.Persist()
-
-	return nil
+// EndQualifyingRounds marks when the qualifying rounds end
+func (t *Tournament) EndQualifyingRounds(ts time.Time) error {
+	t.QualifyingEnd = ts
+	return t.Persist()
 }
 
 // UsurpTournament adds a batch of eight random players
 func (t *Tournament) UsurpTournament() error {
-	t.server.DisableWebsocketUpdates()
-	t.db.LoadPeople()
-	rand.Seed(time.Now().UnixNano())
-	for x := 0; x < 8; x++ {
-		p := NewPlayer(t.db.People[rand.Intn(len(t.db.People))])
-		err := t.AddPlayer(p)
-		if err != nil {
-			x--
-		}
+	err := t.db.UsurpTournament(t, 8)
+	if err != nil {
+		return err
 	}
 
-	t.server.EnableWebsocketUpdates()
-	t.server.SendWebsocketUpdate("tournament", t)
-	return nil
+	err = t.server.SendPlayerSummariesUpdate(t)
+	if err != nil {
+		t.server.log.Error("Sending websocket update failed")
+	}
+
+	return err
 }
 
 // AutoplaySection runs through all the matches in the current section
@@ -370,275 +269,150 @@ func (t *Tournament) UsurpTournament() error {
 //
 // E.g. if we're in the playoffs, they will all be finished and we're
 // left at semi 1.
-func (t *Tournament) AutoplaySection() {
-	t.server.DisableWebsocketUpdates()
-
+func (t *Tournament) AutoplaySection() error {
 	if !t.IsRunning() {
-		t.StartTournament(nil)
-	}
-
-	m := t.Matches[t.Current]
-	kind := m.Kind
-
-	for kind == m.Kind {
-		m.Autoplay()
-
-		if int(t.Current) == len(t.Matches) {
-			// If we just finished the finals, then we should just exit
-			break
-		}
-
-		m = t.Matches[t.Current]
-	}
-
-	if kind == playoff {
-		needed := t.BackfillsNeeded()
-		if needed > 0 {
-			ids := make([]string, needed)
-			for x := 0; x < needed; x++ {
-				ids[x] = t.Runnerups[x].ID
-			}
-			t.BackfillSemis(nil, ids)
+		err := t.StartTournament(nil)
+		if err != nil {
+			return err
 		}
 	}
 
-	t.server.EnableWebsocketUpdates()
-	t.server.SendWebsocketUpdate("tournament", t)
-}
-
-// MatchIndex returns the index of the match
-func (t *Tournament) MatchIndex(m *Match) int {
-	var x int
-	var o *Match
-
-	for x, o = range t.Matches {
-		if o == m {
-			break
-		}
-	}
-
-	return x
-}
-
-// PopulateRunnerups fills a match with the runnerups with best scores
-func (t *Tournament) PopulateRunnerups(m *Match) error {
-	r, err := t.GetRunnerupPlayers()
+	m, err := t.CurrentMatch()
 	if err != nil {
 		return err
 	}
 
-	for i := 0; len(m.Players) < 4; i++ {
-		p := r[i]
-		m.AddPlayer(p)
-	}
-	return nil
-}
+	kind := m.Kind
 
-// GetRunnerupPlayers gets the runnerups for this tournament
-//
-// The returned list is sorted descending by score.
-func (t *Tournament) GetRunnerupPlayers() (ps []Player, err error) {
-	var l *Player
-	err = t.UpdatePlayers()
-	if err != nil {
-		return
-	}
-
-	rs := len(t.Runnerups)
-	p := make([]Player, 0, rs)
-	for _, r := range t.Runnerups {
-		l, err = t.getTournamentPlayerObject(r)
+	for kind == m.Kind {
+		err := m.Autoplay()
 		if err != nil {
-			return
+			return err
 		}
 
-		p = append(p, *l)
+		if kind == final {
+			// If we just finished the finals, then we should just exit
+			break
+		}
+
+		m, err = t.CurrentMatch()
+		if err != nil {
+			return err
+		}
 	}
-	bs := SortByRunnerup(p)
-	return bs, nil
+
+	return t.server.SendWebsocketUpdate("tournament", t)
 }
 
-// UpdatePlayers updates all the player objects with their scores from
-// all the matches they have participated in.
-func (t *Tournament) UpdatePlayers() error {
-	// Make sure all players have their score reset to nothing
-
-	for i := range t.Players {
-		t.Players[i].Reset()
-	}
-
-	for _, m := range t.Matches {
-		for _, p := range m.Players {
-			tp, err := t.getTournamentPlayerObject(p.Person)
-			if err != nil {
-				return err
-			}
-			tp.Update(p)
-		}
-	}
-
-	return nil
+// GetRunnerups gets the runnerups for this tournament
+//
+// The returned list is sorted descending by matches and ascending by
+// score.
+func (t *Tournament) GetRunnerups() ([]*PlayerSummary, error) {
+	return t.db.GetRunnerups(t)
 }
 
 // MovePlayers moves the winner(s) of a Match into the next bracket of matches
 // or into the Runnerup bracket.
 func (t *Tournament) MovePlayers(m *Match) error {
+	if m.Kind == qualifying {
+		// If we have not yet set the qualifying end, we will keep making
+		// matches and we have not passed it
+		if t.QualifyingEnd.IsZero() || time.Now().Before(t.QualifyingEnd) {
+			log.Print("Scheduling the next match")
+
+			nm := NewMatch(t, qualifying)
+			t.Matches = append(t.Matches, nm)
+			rups, err := t.GetRunnerups()
+			if err != nil {
+				return err
+			}
+
+			// The runnerups are in order for the next match - add them
+			for _, p := range rups {
+				err = nm.AddPlayer(p.Player())
+				if err != nil {
+					return errors.WithStack(err)
+				}
+			}
+
+			return nil
+		}
+
+		done, err := t.db.QualifyingMatchesDone(t)
+		if err != nil {
+			return errors.WithStack(err)
+		}
+		if done {
+			err = t.ScheduleEndgame()
+			if err != nil {
+				return errors.WithStack(err)
+			}
+		}
+	}
+
+	// For the playoffs, just place the winner into the final
 	if m.Kind == playoff {
-		err := t.movePlayoffPlayers(m)
+		p, err := t.db.GetWinner(m)
 		if err != nil {
 			return err
 		}
 
-		// If the next match is also a playoff and does not have enough players,
-		// fill it up with runnerups.
-		nm, err := t.NextMatch()
+		f, err := t.db.GetFinal(t)
 		if err != nil {
 			return err
 		}
-		if nm.Kind == playoff && len(nm.Players) < 4 {
-			log.Printf("Setting runnerups for %s", nm)
-			err := t.PopulateRunnerups(nm)
+
+		err = f.AddPlayer(*p)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// ScheduleEndgame makes the playoff matches and the final
+func (t *Tournament) ScheduleEndgame() error {
+	log.Print("Scheduling endgame")
+
+	// Get sorted list of players that made it to the playoffs
+	players, err := t.db.GetPlayoffPlayers(t)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	lp := len(players)
+	if lp != 16 {
+		return errors.New(fmt.Sprintf("Needed 16 players, got %d", lp))
+	}
+
+	// Bucket the players for inclusion in the playoffs
+	buckets, err := DividePlayoffPlayers(players)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	// Add four playoff matches
+	for x := 0; x < 4; x++ {
+		m := NewMatch(t, playoff)
+
+		// Add players to the match
+		for _, p := range buckets[x] {
+			err = m.AddPlayer(p.Player())
 			if err != nil {
 				return err
 			}
 		}
+
+		t.Matches = append(t.Matches, m)
 	}
 
-	// For the semis, just place the winner and silver into the final
-	if m.Kind == semi {
-		for i, p := range SortByKills(m.Players) {
-			if i < 2 {
-				t.Matches[len(t.Matches)-1].AddPlayer(p)
-			}
-		}
-	}
+	// Add the final, without players for now
+	m := NewMatch(t, final)
+	t.Matches = append(t.Matches, m)
 
 	return nil
-}
-
-func (t *Tournament) movePlayoffPlayers(m *Match) error {
-	ps := SortByKills(m.Players)
-	for i := 0; i < len(ps); i++ {
-		p := ps[i]
-		// If we are in a four-match playoff, both the winner and the second-place
-		// are to be sent to the semis.
-		// If there are more than four matches, just send the winner
-		if len(t.Matches)-3 <= 4 && i < 2 || i == 0 {
-			// This spreads the winners into the semis so that the winners do not
-			// face off immediately in the semis
-			offset := len(t.Matches) - 3 + ((i + m.Index) % 2)
-			log.Printf(
-				"Moving %s (pos %d in match %d) to %s",
-				p.Person.Name,
-				i,
-				m.Index,
-				t.Matches[offset].Title(),
-			)
-			err := t.Matches[offset].AddPlayer(p)
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			// If the player is also inside of the runnerups, move them from the
-			// runnerup roster since they now have advanced to the finals. This
-			// only happens for players that win the runnerup rounds.
-			t.removeFromRunnerups(p.Person)
-		} else {
-			// For everyone else, add them into the Runnerup bracket unless they are
-			// already in there.
-			found := false
-			for j := 0; j < len(t.Runnerups); j++ {
-				r := t.Runnerups[j]
-				if r.ID == p.Person.ID {
-					found = true
-					break
-				}
-			}
-			if !found {
-				t.Runnerups = append(t.Runnerups, p.Person)
-			}
-		}
-	}
-
-	return t.UpdateRunnerups()
-}
-
-// UpdateRunnerups updates the runnerup list
-func (t *Tournament) UpdateRunnerups() error {
-	// Get the runnerups and sort them into the Runnerup array
-	ps, err := t.GetRunnerupPlayers()
-	if err != nil {
-		return err
-	}
-	t.Runnerups = make([]*Person, 0)
-	for _, p := range ps {
-		t.Runnerups = append(t.Runnerups, p.Person)
-	}
-
-	return nil
-}
-
-// BackfillSemis takes a few Person IDs and shuffles those into the remaining slots
-// of the semi matches
-func (t *Tournament) BackfillSemis(c *gin.Context, ids []string) error {
-	// If we're on the last playoff, we should backfill the semis with runnerups
-	// until they have have full seats.
-	// The amount of players needed; 8 minus the current amount
-	offset := len(t.Matches) - 3
-	semiPlayers := t.BackfillsNeeded()
-	if len(ids) != semiPlayers {
-		return fmt.Errorf("Need %d players, got %d", semiPlayers, len(ids))
-	}
-
-	publish := true
-	if semiPlayers == 1 {
-		// If we only have one player to add, that means that the previous
-		// match already has four players and therefore the update message
-		// has already been sent
-		publish = false
-	}
-
-	added := make([]*Person, semiPlayers)
-	for x, id := range ids {
-		index := 0
-		if len(t.Matches[offset].Players) == 4 {
-			index = 1
-		}
-
-		ps, _ := t.db.GetPerson(id)
-		p, err := t.getTournamentPlayerObject(ps)
-		if err != nil {
-			return err
-		}
-
-		t.Matches[offset+index].AddPlayer(*p)
-		added[x] = ps
-		t.removeFromRunnerups(ps)
-	}
-
-	// If we haven't already sent a message about the next match to the
-	// game, it is high time to do so!
-	if publish {
-		err := t.PublishNext()
-		if err != nil && err != ErrPublishDisconnected {
-			t.server.logger.Info("Publishing next match failed", zap.Error(err))
-		}
-	}
-
-	t.LogEvent(
-		"backfill_semi", "Backfilling {count} semi players",
-		"count", semiPlayers,
-		"players", added,
-		"person", PersonFromSession(t.server, c))
-
-	return t.Persist()
-}
-
-// BackfillsNeeded returns the number of players needed to be backfilled
-func (t *Tournament) BackfillsNeeded() int {
-	offset := len(t.Matches) - 3
-	semiPlayers := 8 - (len(t.Matches[offset].Players) + len(t.Matches[offset+1].Players))
-	return semiPlayers
 }
 
 // NextMatch returns the next match
@@ -646,61 +420,13 @@ func (t *Tournament) NextMatch() (*Match, error) {
 	if !t.IsRunning() {
 		return nil, errors.New("tournament not running")
 	}
-	// If the first match hasn't ended yet, we can still consider the
-	// next match to be the first one.
-	if !t.Matches[0].IsStarted() {
-		log.Print("Returning first match as next match")
-		return t.Matches[0], nil
-	}
 
-	next := t.Current + 1
-	if int(next) >= len(t.Matches) {
-		log.Println("Match index out of bounds - returning final")
-		return t.Matches[len(t.Matches)-1], nil
-	}
-
-	m := t.Matches[next]
-	log.Printf("Returning %d as next match", m.Index)
-	return m, nil
+	return t.db.NextMatch(t)
 }
 
-// AwardMedals places the winning players in the Winners position
-func (t *Tournament) AwardMedals(c *gin.Context, m *Match) error {
-	if m.Kind != final {
-		return errors.New("awarding medals outside of the final")
-	}
-
-	ps := SortByKills(m.Players)
-	t.Winners = ps[0:3]
-
-	t.LogEvent(
-		"tournament_end",
-		"Tournament finished",
-		"person", PersonFromSession(t.server, c))
-
-	t.Ended = time.Now()
-	t.Persist()
-
-	return nil
-}
-
-// IsOpen returns boolean true if the tournament is open for registration
-func (t *Tournament) IsOpen() bool {
-	return !t.Opened.IsZero()
-}
-
-// IsJoinable returns boolean true if the tournament is joinable
-func (t *Tournament) IsJoinable() bool {
-	if len(t.Players) >= maxPlayers {
-		return false
-	}
-	return t.IsOpen() && t.Started.IsZero()
-}
-
-// IsStartable returns boolean true if the tournament can be started
-func (t *Tournament) IsStartable() bool {
-	p := len(t.Players)
-	return t.IsOpen() && t.Started.IsZero() && p >= 16 && p <= maxPlayers
+// CurrentMatch returns the current match
+func (t *Tournament) CurrentMatch() (*Match, error) {
+	return t.db.CurrentMatch(t)
 }
 
 // IsRunning returns boolean true if the tournament is running or not
@@ -708,75 +434,53 @@ func (t *Tournament) IsRunning() bool {
 	return !t.Started.IsZero() && t.Ended.IsZero()
 }
 
-// CanJoin checks if a player is allowed to join or is already in the tournament
-func (t *Tournament) CanJoin(ps *Person) error {
-	if len(t.Players) >= maxPlayers {
-		return errors.New("tournament is full")
+// IsInTournament checks if a player is allowed to join or is already in the tournament
+func (t *Tournament) IsInTournament(ps *Person) bool {
+	in, err := t.db.IsInTournament(t, ps)
+	if err != nil {
+		log.Printf("Getting tournament state failed: %+v", err)
+		return false
 	}
-	for _, p := range t.Players {
-		if p.Person.Nick == ps.Nick {
-			return errors.New("already in tournament")
-		}
-	}
-	return nil
-}
-
-// SetMatchPointers loops over all matches in the tournament and sets the tournament reference
-//
-// When loading tournaments from the database, these references will not be set.
-// This also sets *Match pointers for Player objects.
-func (t *Tournament) SetMatchPointers() error {
-	var m *Match
-
-	for i := range t.Matches {
-		m = t.Matches[i]
-		m.presentColors = mapset.NewSet()
-		m.tournament = t
-		for j := range m.Players {
-			m.Players[j].Match = m
-		}
-	}
-
-	return nil
+	return in
 }
 
 // GetCredits returns the credits object needed to display the credits roll.
 func (t *Tournament) GetCredits() (*Credits, error) {
-	if t.Ended.IsZero() {
-		return nil, errors.New("cannot roll credits for unfinished tournament")
-	}
+	// if t.Ended.IsZero() {
+	// 	return nil, errors.New("cannot roll credits for unfinished tournament")
+	// }
 
-	// TODO(thiderman): Many of these values are currently hardcoded or
-	// broadly grabs everything.
-	// We should move towards specifying these live when setting
-	// up the tournament itself.
+	// // TODO(thiderman): Many of these values are currently hardcoded or
+	// // broadly grabs everything.
+	// // We should move towards specifying these live when setting
+	// // up the tournament itself.
 
-	executive := t.db.GetSafePerson("1279099058796903") // thiderman
-	producers := []*Person{
-		t.db.GetSafePerson("10153943465786915"), // GoosE
-		t.db.GetSafePerson("10154542569541289"), // Queen Obscene
-		t.db.GetSafePerson("10153964695568099"), // Karl-Astrid
-		t.db.GetSafePerson("10153910124391516"), // Hest
-		t.db.GetSafePerson("10154040229117471"), // Skolpadda
-		t.db.GetSafePerson("10154011729888111"), // Moijra
-		t.db.GetSafePerson("10154296655435218"), // Dalan
-	}
+	// executive := t.db.GetSafePerson("1279099058796903") // thiderman
+	// producers := []*Person{
+	// 	t.db.GetSafePerson("10153943465786915"), // GoosE
+	// 	t.db.GetSafePerson("10154542569541289"), // Queen Obscene
+	// 	t.db.GetSafePerson("10153964695568099"), // Karl-Astrid
+	// 	t.db.GetSafePerson("10153910124391516"), // Hest
+	// 	t.db.GetSafePerson("10154040229117471"), // Skolpadda
+	// 	t.db.GetSafePerson("10154011729888111"), // Moijra
+	// 	t.db.GetSafePerson("10154296655435218"), // Dalan
+	// }
 
-	players := []*Person{
-		t.Winners[0].Person,
-		t.Winners[1].Person,
-		t.Winners[2].Person,
-	}
-	players = append(players, t.Runnerups...)
+	// players := []*Person{
+	// 	t.Winners[0].Person,
+	// 	t.Winners[1].Person,
+	// 	t.Winners[2].Person,
+	// }
+	// players = append(players, t.Runnerups...)
 
-	c := &Credits{
-		Executive:     executive,
-		Producers:     producers,
-		Players:       players,
-		ArchersHarmed: t.ArchersHarmed(),
-	}
+	// c := &Credits{
+	// 	Executive:     executive,
+	// 	Producers:     producers,
+	// 	Players:       players,
+	// 	ArchersHarmed: t.ArchersHarmed(),
+	// }
 
-	return c, nil
+	return &Credits{}, nil
 }
 
 // ArchersHarmed returns the amount of killed archers during the tournament
@@ -789,57 +493,28 @@ func (t *Tournament) ArchersHarmed() int {
 	return ret
 }
 
-// SetupFakeTournament creates a fake tournament
-func SetupFakeTournament(c *gin.Context, s *Server, req *NewRequest) *Tournament {
-	title, id := req.Name, req.ID
-
-	t, err := NewTournament(title, id, "", time.Now().Add(time.Hour), c, s)
-	if err != nil {
-		// TODO this is the least we can do
-		log.Printf("error creating tournament: %v", err)
-	}
-
-	// Fake between 14 and max_players players
-	for i := 0; i < rand.Intn(18)+14; i++ {
-		ps := &Person{
-			ID:              faking.FakeName(),
-			Name:            faking.FakeName(),
-			Nick:            faking.FakeNick(),
-			AvatarURL:       faking.FakeAvatar(),
-			ColorPreference: []string{RandomColor(Colors)},
-		}
-		p := NewPlayer(ps)
-		t.AddPlayer(p)
-	}
-
-	t.Persist()
-	return t
+// GetPlayerSummary returns the tournament-wide player object.
+func (t *Tournament) GetPlayerSummary(ps *Person) (*PlayerSummary, error) {
+	return t.db.GetPlayerSummary(t, ps.PersonID)
 }
 
-// getTournamentPlayerObject returns the tournament-wide player object.
-//
-// The need for this distinction is that the ones that are stored in t.Players
-// have scores from all the matches they have participated in, whereas the
-// ones started in m.Players are local to that match only. This is also why
-// the Match objects don't have pointers to their Player objects.
-func (t *Tournament) getTournamentPlayerObject(ps *Person) (p *Player, err error) {
-	for i := range t.Players {
-		p := &t.Players[i]
-		if ps.ID == p.Person.ID {
-			return p, nil
-		}
-	}
+// ByScheduleDate is a sort.Interface that sorts tournaments according
+// to when they were scheduled.
+type ByScheduleDate []*Tournament
 
-	err = fmt.Errorf("no player found for %s", ps)
-	return
+func (s ByScheduleDate) Len() int {
+	return len(s)
+}
+func (s ByScheduleDate) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+
+}
+func (s ByScheduleDate) Less(i, j int) bool {
+	return s[i].Scheduled.Before(s[j].Scheduled)
 }
 
-func (t *Tournament) removeFromRunnerups(p *Person) {
-	for j := 0; j < len(t.Runnerups); j++ {
-		r := t.Runnerups[j]
-		if r.ID == p.ID {
-			t.Runnerups = append(t.Runnerups[:j], t.Runnerups[j+1:]...)
-			break
-		}
-	}
+// SortByScheduleDate returns a list in order of schedule date
+func SortByScheduleDate(ps []*Tournament) []*Tournament {
+	sort.Sort(ByScheduleDate(ps))
+	return ps
 }

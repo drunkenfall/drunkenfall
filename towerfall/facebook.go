@@ -59,7 +59,10 @@ func (s *Server) handleFacebookLogin(c *gin.Context) {
 
 func (s *Server) handleFacebookCallback(c *gin.Context) {
 	var cb facebookCallback
-	c.Bind(&cb)
+	err := c.Bind(&cb)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	if cb.State != oauthStateString {
 		fmt.Printf("invalid oauth state, expected '%s', got '%s'\n", oauthStateString, cb.State)
@@ -115,14 +118,17 @@ func (s *Server) handleFacebookCallback(c *gin.Context) {
 		return
 	}
 
-	p := CreateFromFacebook(s, req)
+	p, err := CreateFromFacebook(s, req)
+	if err != nil {
+		log.Fatal(err)
+	}
 	err = p.StoreCookies(c)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	v := url.Values{}
-	v.Add("id", p.ID)
+	v.Add("id", p.PersonID)
 	v.Add("name", p.Name)
 	v.Add("nick", p.Nick)
 

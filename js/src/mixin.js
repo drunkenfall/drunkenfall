@@ -69,6 +69,44 @@ var DrunkenFallMixin = {
     lavaOrbImage () {
       return `/static/img/arrows/lavaOrb.png`
     },
+    loadAll () {
+      let $vue = this
+      let id = this.$route.params.tournament
+
+      this.$http.get(`/api/tournaments/${id}/matches/`).then(function (res) {
+        let data = JSON.parse(res.data)
+        this.$store.commit('setMatches', {
+          tid: id,
+          matches: data.matches,
+        })
+      }, function (res) {
+        $vue.$alert("Getting players failed. See console.")
+        console.error(res)
+      })
+
+      this.$http.get(`/api/tournaments/${id}/players/`).then(function (res) {
+        let data = JSON.parse(res.data)
+        this.$store.commit('setPlayerSummaries', {
+          tid: id,
+          player_summaries: data.player_summaries,
+        })
+      }, function (res) {
+        $vue.$alert("Getting players failed. See console.")
+        console.error(res)
+      })
+
+      this.$http.get(`/api/tournaments/${id}/runnerups/`).then(function (res) {
+        let data = JSON.parse(res.data)
+        this.$store.commit('setRunnerups', {
+          tid: id,
+          player_summaries: data.player_summaries,
+        })
+      }, function (res) {
+        $vue.$alert("Getting players failed. See console.")
+        console.error(res)
+      })
+    },
+
   },
 
   computed: {
@@ -106,7 +144,7 @@ var DrunkenFallMixin = {
       let ts = _.filter(this.tournaments, (t) => {
         return t.scheduled.year() === moment().year() && !t.isTest
       })
-      return _.sortBy(ts, 'scheduled')
+      return _.reverse(_.sortBy(ts, 'scheduled'))
     },
     user () {
       return this.$store.state.user
@@ -116,6 +154,9 @@ var DrunkenFallMixin = {
     },
     people () {
       return this.$store.state.people
+    },
+    playerSummaries () {
+      return this.$store.getters.playerSummaries(this.tournament.id)
     },
     combatants () {
       return _.sortBy(_.filter(this.stats, (p) => {
@@ -138,6 +179,9 @@ var DrunkenFallMixin = {
         return
       }
       return this.tournament.matches[this.$route.params.match]
+    },
+    matchesLoaded () {
+      return Object.keys(this.$store.state.matches).length !== 0
     },
     currentMatch () {
       // TODO(thiderman): This needs to be written as the kind that
@@ -190,7 +234,19 @@ var DrunkenFallMixin = {
       // If the fullscreen GET parameter is set, we should _not_ show
       // the sidebar at all.
       return this.$route.query.fullscreen === undefined
-    }
+    },
+    // If we are to mark One-Eye as disconnected or not depending on
+    // the websocket status
+    isConnected () {
+      if (!this.$store.state.tournamentsLoaded) {
+        // If we haven't loaded any tournaments yet, we're probably
+        // still setting up the websockets. If so, return a fake true
+        // so that we don't flicker for the first few milliseconds.
+        return true
+      }
+
+      return this.$store.getters.isConnected
+    },
   },
   watch: {
     tournament (val, old) {

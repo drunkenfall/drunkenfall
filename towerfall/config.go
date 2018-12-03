@@ -1,15 +1,20 @@
 package towerfall
 
 import (
-	"log"
-
 	"github.com/kelseyhightower/envconfig"
+	"go.uber.org/zap"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/facebook"
 )
 
 type Config struct {
-	DbPath string `default:"data/dev.db"`
+	Production bool `default:"true"`
+
+	DbPath    string `default:"data/dev.db"`
+	DbUser    string `default:"postgres"`
+	DbName    string `default:"drunkenfall"`
+	DbVerbose bool   `default:"false"`
+
 	// Pointing to the test app
 	FacebookID          string `default:"668534419991204"`
 	FacebookSecret      string `default:"e74696c890216108c69d55d0e1b7866f"`
@@ -19,15 +24,27 @@ type Config struct {
 	RabbitIncomingQueue string `default:"drunkenfall-app-dev"`
 	RabbitOutgoingQueue string `default:"drunkenfall-game-dev"`
 	oauthConf           *oauth2.Config
+	log                 *zap.Logger
 }
 
 func ParseConfig() *Config {
-	ret := Config{}
+	c := Config{}
 
-	envconfig.MustProcess("drunkenfall", &ret)
-	ret.parseOauth()
-	log.Printf("Configuration loaded: %+v", ret)
-	return &ret
+	envconfig.MustProcess("drunkenfall", &c)
+
+	if c.Production {
+		c.log, _ = zap.NewProduction()
+	} else {
+		c.log, _ = zap.NewDevelopment()
+	}
+
+	c.parseOauth()
+	return &c
+}
+
+// Print prints a visualization of what's going on
+func (c *Config) Print() {
+	c.log.Info("Configuration loaded", zap.Any("config", c))
 }
 
 func (c *Config) parseOauth() {

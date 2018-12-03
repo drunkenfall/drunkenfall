@@ -4,7 +4,6 @@ import moment from 'moment'
 import Event from './Event.js'
 import Player from './Player.js'
 import Person from './Person.js'
-import Match from './Match.js'
 import _ from 'lodash'
 
 export default class Tournament {
@@ -17,12 +16,9 @@ export default class Tournament {
     t.scheduled = moment(t.scheduled)
     t.started = moment(t.started)
     t.ended = moment(t.ended)
-
-    t.matches = _.map(t.matches, (m) => { return Match.fromObject(m, t) })
+    t.qualifyingEnded = moment(t.qualifying_end)
 
     t.players = _.map(t.players, Player.fromObject)
-    t.runnerups = _.map(t.runnerups, Person.fromObject)
-
     t.casters = _.map(t.casters, Person.fromObject)
 
     let events = t.events
@@ -44,9 +40,7 @@ export default class Tournament {
   }
 
   playerJoined (person) {
-    let p = _.find(this.players, function (p) {
-      return p.person.id === person.id
-    })
+    let p = store.getters.getPlayerSummary(this.id, person.id)
     return p !== undefined
   }
 
@@ -77,6 +71,10 @@ export default class Tournament {
 
   get isTest () {
     return !this.name.startsWith('DrunkenFall')
+  }
+
+  get matches () {
+    return store.getters.getMatches(this.id)
   }
 
   get betweenMatches () {
@@ -115,57 +113,50 @@ export default class Tournament {
     return this.isStarted && !this.isEnded
   }
 
-  get canShuffle () {
-    // We can only shuffle after the tournament has started (otherwise
-    // technically no matches exists, so nothing can be shuffled
-    // into), and before the first match has been started.
-    // let match = Match.fromObject(this.matches[0], this)
-    return this.isStarted && !this.matches[0].isStarted
-  }
-
   get isUsurpable () {
-    return this.players.length < 32
-  }
-
-  get shouldBackfill () {
-    let c = this.currentMatch
-    if (!c) {
-      return false
-    }
-
-    let ps = _.sumBy(this.semis, (m) => { return m.players.length })
-
-    if (c.kind === 'semi' && ps < 8) {
-      return true
-    }
-    return false
+    return true
+    // return this.players.length < 32
   }
 
   get currentMatch () {
-    return this.matches[this.current]
+    let started = _.filter(this.matches, 'isStarted')
+    let c = _.first(_.filter(started, (m) => !m.isEnded))
+    return c
   }
 
   // This is supposed to be used when you need the next match before
   // it is started. It returns the upcoming match if the current one
   // is ended.
-  get upcomingMatch () {
-    let m = this.matches[this.current]
-    if (m.isEnded) {
-      return this.matches[this.current + 1]
-    }
-    return m
+  get nextMatch () {
+    let n = _.first(_.filter(this.matches, 'canStart'))
+    return n
+  }
+
+  get nextNextMatch () {
+    let n = _.filter(this.matches, 'canStart')[1]
+    return n
+  }
+
+  get runnerups () {
+    return store.getters.runnerups(this.id)
   }
 
   get playoffs () {
-    return _.slice(this.matches, 0, this.matches.length - 3)
+    throw new Error("call to non-ported tournament.playoffs()")
+    // return _.slice(this.matches, 0, this.matches.length - 3)
   }
 
   get semis () {
-    let l = this.matches.length
-    return _.slice(this.matches, l - 3, l - 1)
+    throw new Error("call to non-ported tournament.semis()")
+    // let l = this.matches.length
+    // return _.slice(this.matches, l - 3, l - 1)
   }
 
   get final () {
     return this.matches[this.matches.length - 1]
+  }
+
+  get qualifyingOpen () {
+    return isGoZeroDateOrFalsy(this.qualifyingEnded)
   }
 }

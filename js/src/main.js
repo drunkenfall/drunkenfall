@@ -7,7 +7,6 @@ import Vue2Filters from 'vue2-filters'
 import Toast from 'vue-easy-toast'
 import vueHeadful from 'vue-headful'
 import * as Icon from 'vue-awesome'
-// import App from './App'
 import App from './DrunkenFall'
 
 import Sidebar from './components/Sidebar.vue'

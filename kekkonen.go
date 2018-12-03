@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"os"
+)
 
 var version, buildtime string
 
@@ -59,6 +62,8 @@ const kekkonen = `
 // Kekkonen kekkonen
 func Kekkonen() {
 	// Kekkonen
-	fmt.Println(kekkonen)
+	if os.Getenv("DRUNKENFALL_KEKKONEN") != "" {
+		fmt.Println(kekkonen)
+	}
 	fmt.Printf("\n\n                DrunkenFall %s (%s)\n\n\n", version, buildtime)
 }

@@ -1,121 +1,187 @@
 package towerfall
 
 import (
-	"encoding/json"
-	"errors"
 	"fmt"
 	"log"
-	"sort"
-	"strings"
-	"sync"
-	"time"
 
-	"github.com/boltdb/bolt"
+	"github.com/go-pg/pg"
+	"github.com/pkg/errors"
+	"go.uber.org/zap"
 )
 
-// Database is the persisting class
+var globalDB *Database
+
+var ErrNoTourmamentRunning = errors.New("no tournament is running")
+
 type Database struct {
-	DB            *bolt.DB
-	Server        *Server
-	Tournaments   []*Tournament
-	People        []*Person
-	tournamentRef map[string]*Tournament
+	Server       *Server
+	DB           *pg.DB
+	log          *zap.Logger
+	persistcalls int
 }
 
-var (
-	// TournamentKey defines the tournament buckets
-	TournamentKey = []byte("tournaments")
-	// PeopleKey defines the bucket of people
-	PeopleKey = []byte("people")
-	// MigrationKey defines the bucket of migration levels
-	MigrationKey = []byte("migration")
-)
+// NewDatabase sets up the database reader and writer
+func NewDatabase(c *Config) (*Database, error) {
+	zlog, _ := zap.NewDevelopment()
 
-var tournamentMutex = &sync.Mutex{}
-var personMutex = &sync.Mutex{}
+	pgdb := pg.Connect(&pg.Options{
+		User:     c.DbUser,
+		Database: c.DbName,
+	})
 
-// Used to signal that a current tournament was found and that the
-// scanner should stop iterating.
-var ErrTournamentFound = errors.New("found")
-
-// NewDatabase returns a new database object
-func NewDatabase(fn string) (*Database, error) {
-	// log.Printf("Opening database at '%s'", fn)
-	bolt, err := bolt.Open(fn, 0600, &bolt.Options{Timeout: 1 * time.Second})
-	if err != nil {
-		log.Fatal(err)
+	db := &Database{
+		DB:  pgdb,
+		log: zlog,
 	}
 
-	db := &Database{DB: bolt}
-	db.tournamentRef = make(map[string]*Tournament)
-	db.LoadPeople()
+	if c.DbVerbose {
+		zlog.Info("DRUNKENFALL_DBVERBOSE is set; enabling logger")
+		pgdb.OnQueryProcessed(func(event *pg.QueryProcessedEvent) {
+			query, err := event.FormattedQuery()
+			if err != nil {
+				panic(err)
+			}
+
+			log.Print(query)
+		})
+	}
+
+	globalDB = db
 
 	return db, nil
 }
 
-// LoadTournaments loads the tournaments from the database and into memory
-func (d *Database) LoadTournaments() error {
-	err := d.DB.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket(TournamentKey)
-		if b == nil {
-			// If there is no bucket, bail silently.
-			// This only really happens in tests.
-			return nil
-		}
-
-		err := b.ForEach(func(k []byte, v []byte) error {
-			t, err := LoadTournament(v, d)
-			if err != nil {
-				return err
-			}
-
-			tournamentMutex.Lock()
-			d.Tournaments = append(d.Tournaments, t)
-			d.tournamentRef[t.ID] = t
-			tournamentMutex.Unlock()
-			return nil
-		})
-
-		d.Tournaments = SortByScheduleDate(d.Tournaments)
-		return err
-	})
-
-	return err
+// SaveTournament stores the current state of the tournaments into the db
+func (d *Database) SaveTournament(t *Tournament) error {
+	d.persistcalls++
+	err := d.DB.Update(t)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return nil
 }
 
 // SaveTournament stores the current state of the tournaments into the db
-func (d *Database) SaveTournament(t *Tournament) error {
-	ret := d.DB.Update(func(tx *bolt.Tx) error {
-		b, err := tx.CreateBucketIfNotExists(TournamentKey)
-		if err != nil {
-			return err
-		}
+func (d *Database) NewTournament(t *Tournament) error {
+	return d.DB.Insert(t)
+}
 
-		json, _ := t.JSON()
-		err = b.Put([]byte(t.ID), json)
-		if err != nil {
-			log.Fatal(err)
-		}
+// AddPlayer adds a player object to the tournament
+func (d *Database) AddPlayer(t *Tournament, ps *PlayerSummary) error {
+	ps.TournamentID = t.ID
+	return d.DB.Insert(ps)
+}
 
-		return nil
-	})
+// RemovePlayer removes a player from a tourmament
+func (d *Database) RemovePlayer(ps *PlayerSummary) error {
+	return d.DB.Delete(ps)
+}
 
-	// If the tournament isn't already in the cache, we should add it
-	found := false
-	for _, ct := range d.Tournaments {
-		if ct.ID == t.ID {
-			found = true
-			break
-		}
+// AddPlayerToMatch adds a player object to a match
+func (d *Database) AddPlayerToMatch(m *Match, p *Player) error {
+	p.MatchID = m.ID
+
+	// Reset the scores.
+	// TODO(thiderman): Replace this
+	p.Shots = 0
+	p.Sweeps = 0
+	p.Kills = 0
+	p.Self = 0
+	p.MatchScore = 0
+	p.TotalScore = 0
+	return d.DB.Insert(p)
+}
+
+// AddMatch adds a match
+func (d *Database) AddMatch(t *Tournament, m *Match) error {
+	m.TournamentID = t.ID
+	return d.DB.Insert(m)
+}
+
+// IsInTournament returns if the player is in the tournament or not
+func (d *Database) IsInTournament(t *Tournament, p *Person) (bool, error) {
+	q := d.DB.Model(&PlayerSummary{}).Where("tournament_id = ?", t.ID)
+	count, err := q.Where("person_id = ?", p.PersonID).Count()
+	if err != nil {
+		return false, err
 	}
-	if !found {
-		log.Printf("Adding new tournament %s into the memory cache", t.ID)
-		d.Tournaments = append(d.Tournaments, t)
-		d.tournamentRef[t.ID] = t
+
+	return count == 1, nil
+}
+
+// SaveMatch saves a match
+func (d *Database) SaveMatch(m *Match) error {
+	err := d.DB.Update(m)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	return nil
+}
+
+// AddCommit adds a commit on a match
+func (d *Database) AddCommit(m *Match, c *Commit) error {
+	c.MatchID = m.ID
+	return d.DB.Insert(c)
+}
+
+// StoreMessage stores a message for a match
+func (d *Database) StoreMessage(m *Match, msg *Message) error {
+	msg.MatchID = m.ID
+
+	// Spin off as a goroutine, and print error if it fails; don't care
+	// what the caller thinks. Without this, this operation becomes
+	// crazy slow since we do it so often.
+	go func() {
+		err := d.DB.Insert(msg)
+		if err != nil {
+			log.Printf("Error when saving message: %+v", err)
+		}
+	}()
+
+	return nil
+}
+
+// UpdatePlayer updates one player instance
+func (d *Database) UpdatePlayer(m *Match, p *Player) error {
+	if p.ID == 0 {
+		panic(fmt.Sprintf("player id was zero: %+v", p))
 	}
 
-	go d.Server.SendWebsocketUpdate("tournament", t)
-	return ret
+	// Set the computed score on every update
+	p.TotalScore = p.Score()
+	err := d.DB.Update(p)
+	if err != nil {
+		return err
+	}
+
+	return d.UpdatePlayerSummary(m.Tournament, p)
+}
+
+// UpdatePlayerSummary updates the total player data for the tournament
+func (d *Database) UpdatePlayerSummary(t *Tournament, p *Player) error {
+	query := `UPDATE player_summaries ps
+   SET (shots, sweeps, kills, self, matches, total_score, skill_score)
+   =
+   (SELECT SUM(shots),
+           SUM(sweeps),
+           SUM(kills),
+           SUM(self),
+           COUNT(*),
+           SUM(total_score),
+           (SUM(total_score) / COUNT(*))
+      FROM players P
+      INNER JOIN matches M ON p.match_id = m.id
+      WHERE m.tournament_id = ?
+        AND m.started IS NOT NULL
+        AND person_id = ?)
+    WHERE person_id = ?
+      AND tournament_id = ?;`
+
+	_, err := d.DB.Exec(query, t.ID, p.PersonID, p.PersonID, t.ID)
+	if err != nil {
+		log.Printf("Summary update failed: %+v", err)
+	}
+	return err
 }
 
 // OverwriteTournament takes a new foreign Tournament{} object and replaces
@@ -123,82 +189,39 @@ func (d *Database) SaveTournament(t *Tournament) error {
 //
 // Used from the EditHandler()
 func (d *Database) OverwriteTournament(t *Tournament) error {
-	ret := d.DB.Update(func(tx *bolt.Tx) error {
-		b := tx.Bucket(TournamentKey)
-
-		json, err := t.JSON()
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		err = b.Put([]byte(t.ID), json)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		// Replace the tournament in the in-memory list
-		for j := 0; j < len(d.Tournaments); j++ {
-			ot := d.Tournaments[j]
-			if t.ID == ot.ID {
-				d.Tournaments = d.Tournaments[:j]
-				d.Tournaments = append(d.Tournaments, t)
-				d.Tournaments = append(d.Tournaments, d.Tournaments[j+1:]...)
-				break
-			}
-		}
-		// And lastly the reference
-		d.tournamentRef[t.ID] = t
-
-		return nil
-	})
-
-	return ret
+	return nil
 }
 
 // SavePerson stores a person into the DB
 func (d *Database) SavePerson(p *Person) error {
-	err := d.DB.Update(func(tx *bolt.Tx) error {
-		b, err := tx.CreateBucketIfNotExists(PeopleKey)
-		if err != nil {
-			return err
-		}
-
-		json, _ := p.JSON()
-		err = b.Put([]byte(p.ID), json)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		return nil
-	})
-
-	if err == nil {
-		d.LoadPeople()
-	}
-
-	return err
+	return d.DB.Update(p)
 }
 
 // GetPerson gets a Person{} from the DB
 func (d *Database) GetPerson(id string) (*Person, error) {
-	tx, err := d.DB.Begin(false)
-	if err != nil {
-		fmt.Println(err)
-		return nil, err
+	p := Person{
+		PersonID: id,
 	}
-	defer tx.Rollback()
+	err := d.DB.Select(&p)
 
-	b := tx.Bucket(PeopleKey)
-	if b == nil {
-		return nil, errors.New("database not initialized")
+	return &p, err
+}
+
+// GetRandomPerson gets a random Person{} from the DB
+func (d *Database) GetRandomPerson(used []string) (*Person, error) {
+	p := Person{}
+	q := d.DB.Model(&p).Where("NOT disabled").OrderExpr("random()")
+
+	if len(used) != 0 {
+		args := make([]interface{}, 0)
+		for _, u := range used {
+			args = append(args, u)
+		}
+		q = q.WhereIn("person_id NOT IN (?)", args...)
 	}
-	out := b.Get([]byte(id))
-	if out == nil {
-		return &Person{}, errors.New("user not found")
-	}
-	p := &Person{}
-	_ = json.Unmarshal(out, p)
-	return p, nil
+
+	err := q.First()
+	return &p, err
 }
 
 // GetSafePerson gets a Person{} from the DB, while being absolutely
@@ -212,129 +235,271 @@ func (d *Database) GetSafePerson(id string) *Person {
 
 // DisablePerson disables or re-enables a person
 func (d *Database) DisablePerson(id string) error {
-	p, err := d.GetPerson(id)
-	if err != nil {
-		return err
-	}
+	// p, err := d.getPerson(id)
+	// if err != nil {
+	// 	return err
+	// }
 
-	p.Disabled = !p.Disabled
-	d.SavePerson(p)
+	// p.Disabled = !p.Disabled
+	// d.SavePerson(p)
 
 	return nil
 }
 
-// LoadPeople loads the people from the database and into memory
-func (d *Database) LoadPeople() error {
-	d.People = make([]*Person, 0)
-	err := d.DB.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket(PeopleKey)
-		if b == nil {
-			return nil // Test setup - no profiles
-		}
-
-		err := b.ForEach(func(k []byte, v []byte) error {
-			p, err := LoadPerson(v)
-
-			// If the player is disabled, just skip them
-			if err == ErrPlayerDisabled {
-				return nil
-			}
-
-			if err != nil {
-				return err
-			}
-
-			personMutex.Lock()
-			d.People = append(d.People, p)
-			personMutex.Unlock()
-			return nil
-		})
-		return err
-	})
-
-	return err
+// GetPeople loads the people from the database
+func (d *Database) GetPeople() ([]*Person, error) {
+	ret := make([]*Person, 0)
+	err := d.DB.Model(&ret).Where("NOT disabled").Select()
+	return ret, err
 }
 
-// GetCurrentTournament gets the currently running tournament.
-//
-// Returns the first matching one, so if there are multiple they will
-// be shadowed.
-func (d *Database) GetCurrentTournament() (*Tournament, error) {
-	for _, t := range SortByScheduleDate(d.Tournaments) {
-		if t.IsRunning() {
-			return t, nil
-		}
+// GetPeopleInTournament gets the Person objects for the players that
+// have joined a tournament
+func (d *Database) GetPeopleById(ids ...string) ([]*Person, error) {
+	ret := make([]*Person, 0)
+	err := d.DB.Model(&ret).Where("person_id IN (?)", pg.In(ids)).Select()
+	return ret, err
+}
+
+// getTournament gets a tournament by slug
+func (d *Database) GetTournament(id uint) (*Tournament, error) {
+	t := Tournament{
+		db:     d,
+		server: d.Server,
 	}
-	return &Tournament{}, errors.New("no tournament is running")
+
+	q := d.DB.Model(&t).Column("tournament.*", "Matches", "Players")
+	err := q.Where("id = ?", id).First()
+	return &t, err
+}
+
+func (d *Database) GetTournaments() ([]*Tournament, error) {
+	ret := make([]*Tournament, 0)
+	q := d.DB.Model(&ret).Column("tournament.*", "Matches", "Players")
+	err := q.Order("scheduled DESC").Select()
+	return ret, err
+}
+
+// GetCurrentTournament gets the currently running tournament
+func (d *Database) GetCurrentTournament() (*Tournament, error) {
+	t := Tournament{
+		db:     d,
+		server: d.Server,
+	}
+
+	err := d.DB.Model(&t).Where("started IS NOT NULL").Where("ended IS NULL").Order("scheduled").First()
+	return &t, err
+}
+
+// GetMatch gets a match
+func (d *Database) GetMatch(id uint) (*Match, error) {
+	m := &Match{
+		ID: id,
+	}
+
+	err := d.DB.Select(&m)
+	return m, err
+}
+
+// GetMatches gets a slice of matches based on a kind
+func (d *Database) GetMatches(t *Tournament, kind string) ([]*Match, error) {
+	ret := []*Match{}
+
+	q := d.DB.Model(&ret).Column("match.*", "Players")
+
+	if kind != "all" {
+		q = q.Where("kind = ?", kind)
+	}
+
+	q = q.Where("tournament_id = ?", t.ID).Order("id ASC")
+	err := q.Select(&ret)
+
+	return ret, err
+}
+
+// GetFinal get the final of a tournament
+func (d *Database) GetFinal(t *Tournament) (*Match, error) {
+	ret := Match{
+		Tournament: t,
+	}
+
+	q := d.DB.Model(&ret).Column("match.*", "Players")
+	err := q.Where("tournament_id = ?", t.ID).Where("kind = ?", "final").First()
+
+	return &ret, err
+}
+
+// NextMatch the next playable match of a tournament
+func (d *Database) NextMatch(t *Tournament) (*Match, error) {
+	m := Match{
+		Tournament: t,
+	}
+
+	q := t.db.DB.Model(&m).Where("tournament_id = ? AND started IS NULL", t.ID)
+	q = q.Order("id").Limit(1)
+
+	err := q.Select()
+	if err != nil {
+		return nil, err
+	}
+
+	ps := []Player{}
+	q = t.db.DB.Model(&ps).Where("match_id = ?", m.ID)
+	err = q.Select()
+	m.Players = ps
+
+	return &m, err
+}
+
+// CurrentMatch the currently running match
+func (d *Database) CurrentMatch(t *Tournament) (*Match, error) {
+	m := Match{
+		Tournament: t,
+	}
+
+	q := t.db.DB.Model(&m).Where("tournament_id = ? AND ended IS NULL", t.ID)
+	q = q.Order("id").Limit(1)
+
+	err := q.Select()
+	if err != nil {
+		return nil, err
+	}
+
+	ps := []Player{}
+	q = t.db.DB.Model(&ps).Where("match_id = ?", m.ID)
+	err = q.Select()
+	m.Players = ps
+
+	return &m, err
+}
+
+// MatchMessages returns the messages from a match
+func (d *Database) MatchMessages(m *Match) ([]*Message, error) {
+	msgs := []*Message{}
+	q := d.DB.Model(&msgs).Where("match_id = ?", m.ID)
+	err := q.Select()
+
+	return msgs, errors.WithStack(err)
+}
+
+// QualifyingMatchesDone returns if we're done with the qualifiers
+func (d *Database) QualifyingMatchesDone(t *Tournament) (bool, error) {
+	m := Match{
+		Tournament: t,
+	}
+
+	// Get the count of the matches that have not ended
+	q := t.db.DB.Model(&m).Where("tournament_id = ?", t.ID)
+	q = q.Where("ended IS NULL")
+	q = q.Where("kind = ?", qualifying)
+
+	out, err := q.Count()
+	if err != nil {
+		return false, err
+	}
+
+	return out == 0, err
+}
+
+// GetRunnerups gets the next four runnerups, excluding those already
+// booked to matches
+func (d *Database) GetRunnerups(t *Tournament) ([]*PlayerSummary, error) {
+	ps := []*Player{}
+	subq := d.DB.Model(&ps).Column("person_id").Join("INNER JOIN matches m on m.id = match_id")
+	subq = subq.Where("m.ended IS NULL").Where("m.tournament_id = ?", t.ID)
+
+	ret := []*PlayerSummary{}
+	q := d.DB.Model(&ret).Where("tournament_id = ?", t.ID)
+	q = q.Where("person_id NOT IN (?)", subq)
+	q = q.Order("matches ASC", "skill_score DESC").Limit(4)
+
+	err := q.Select()
+	return ret, err
+}
+
+// GetAllRunnerups gets all the runnerups that aren't already booked
+// into matches
+func (d *Database) GetAllRunnerups(t *Tournament) ([]*PlayerSummary, error) {
+	ps := []*PlayerSummary{}
+	q := `SELECT * FROM player_summaries
+                WHERE id IN (SELECT id FROM runnerups(?))
+             ORDER BY matches ASC, skill_score DESC`
+	_, err := d.DB.Query(&ps, q, t.ID)
+	return ps, err
+}
+
+// GetWinner gets the winner of the match
+func (d *Database) GetWinner(m *Match) (*Player, error) {
+	p := Player{}
+	q := d.DB.Model(&p).Where("match_id = ?", m.ID).Order("kills DESC")
+	q = q.Column("player.*", "Person").Limit(1)
+	err := q.Select()
+	if err != nil {
+		return nil, err
+	}
+
+	if &p == nil {
+		return nil, errors.New("player was nil")
+	}
+
+	return &p, nil
+}
+
+// GetPlayoffPlayers gets the sixteen players that made it to the playoffs
+func (d *Database) GetPlayoffPlayers(t *Tournament) ([]*PlayerSummary, error) {
+	ret := []*PlayerSummary{}
+	q := d.DB.Model(&ret).Where("tournament_id = ?", t.ID)
+	q = q.Order("skill_score DESC").Limit(16)
+
+	err := q.Select()
+	return ret, err
+}
+
+// GetPlayerSummary gets a single player summary for a tourmanent
+func (d *Database) GetPlayerSummary(t *Tournament, pid string) (*PlayerSummary, error) {
+	ret := PlayerSummary{}
+	q := d.DB.Model(&ret).Column("player_summary.*", "Person")
+	q = q.Where("player_summary.person_id = ?", pid).Where("tournament_id = ?", t.ID)
+
+	err := q.Select(&ret)
+	return &ret, err
+}
+
+// GetPlayerSummaries gets all player summaries for a tourmanent
+func (d *Database) GetPlayerSummaries(t *Tournament) ([]*PlayerSummary, error) {
+	ret := []*PlayerSummary{}
+	q := d.DB.Model(&ret).Column("player_summary.*", "Person")
+	err := q.Where("player_summary.tournament_id = ?", t.ID).Order("id ASC").Select(&ret)
+	if err != nil {
+		return nil, err
+	}
+
+	return ret, err
+}
+
+// UsurpTournament adds testing players
+func (d *Database) UsurpTournament(t *Tournament, x int) error {
+	query := `INSERT INTO player_summaries (tournament_id, person_id)
+  SELECT ?, person_id FROM people
+   WHERE NOT disabled
+     AND person_id NOT IN (
+         SELECT person_id FROM player_summaries
+          WHERE tournament_id = ?)
+   ORDER BY random() LIMIT ?;`
+
+	_, err := d.DB.Exec(query, t.ID, t.ID, x)
+	if err != nil {
+		log.Printf("Usurping failed: %+v", err)
+	}
+	return err
 }
 
 // ClearTestTournaments deletes any tournament that doesn't begin with "DrunkenFall"
 func (d *Database) ClearTestTournaments() error {
-	err := d.DB.Update(func(tx *bolt.Tx) error {
-		b := tx.Bucket(TournamentKey)
-
-		err := b.ForEach(func(k []byte, v []byte) error {
-			t, err := LoadTournament(v, d)
-			if err != nil {
-				return err
-			}
-
-			if !strings.HasPrefix(t.Name, "DrunkenFall") {
-				log.Print("Deleting ", t.ID)
-				err := b.Delete([]byte(t.ID))
-				if err != nil {
-					return err
-				}
-			}
-			return nil
-
-		})
-		return err
-	})
-
-	d.Tournaments = make([]*Tournament, 0)
-	err = d.LoadTournaments()
-	if err != nil {
-		return err
-	}
-
-	d.Server.SendWebsocketUpdate("all", d.asMap())
-
-	return err
-}
-
-func (d *Database) asMap() map[string]*Tournament {
-	tournamentMutex.Lock()
-	out := make(map[string]*Tournament)
-	for _, t := range d.Tournaments {
-		out[t.ID] = t
-	}
-	tournamentMutex.Unlock()
-	return out
+	return nil
 }
 
 // Close closes the database
 func (d *Database) Close() error {
 	return d.DB.Close()
-}
-
-// ByScheduleDate is a sort.Interface that sorts tournaments according
-// to when they were scheduled.
-type ByScheduleDate []*Tournament
-
-func (s ByScheduleDate) Len() int {
-	return len(s)
-}
-func (s ByScheduleDate) Swap(i, j int) {
-	s[i], s[j] = s[j], s[i]
-
-}
-func (s ByScheduleDate) Less(i, j int) bool {
-	return s[i].Scheduled.Before(s[j].Scheduled)
-}
-
-// SortByScheduleDate returns a list in order of schedule date
-func SortByScheduleDate(ps []*Tournament) []*Tournament {
-	sort.Sort(ByScheduleDate(ps))
-	return ps
 }

@@ -7,7 +7,6 @@ import (
 	"syscall"
 
 	"github.com/drunkenfall/drunkenfall/towerfall"
-	"github.com/drunkenfall/drunkenfall/towerfall/migrations"
 )
 
 func main() {
@@ -15,27 +14,22 @@ func main() {
 
 	// Load the configuration
 	config := towerfall.ParseConfig()
+	config.Print()
 
 	// Instantiate the database
-	db, err := towerfall.NewDatabase(config.DbPath)
+	db, err := towerfall.NewDatabase(config)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	// Apply any applicable migrations
-	err = migrations.Migrate(db.DB)
-	if err != nil {
-		log.Fatal(err)
-	}
+	// err = migrations.Migrate(db.DB)
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 
 	// Create the server instance
 	s := towerfall.NewServer(config, db)
-
-	// Load tournaments from the database
-	err = db.LoadTournaments()
-	if err != nil {
-		log.Fatal(err)
-	}
 
 	// Start the live updater
 	listener, err := towerfall.NewListener(config, db)
@@ -50,7 +44,7 @@ func main() {
 	go func() {
 		<-c
 		log.Print("Catching SIGTERM, closing database...")
-		db.DB.Close()
+		db.Close()
 		log.Print("Done. Exiting.")
 		os.Exit(1)
 	}()

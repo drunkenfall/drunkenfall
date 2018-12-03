@@ -1,6 +1,8 @@
 package towerfall
 
-import "time"
+import (
+	"time"
+)
 
 // JSONMessage defines a message to be returned to the frontend
 type JSONMessage struct {
@@ -26,7 +28,7 @@ type UpdateMatchMessage struct {
 
 // TournamentList returns a list with tournaments
 type TournamentList struct {
-	Tournaments map[string]*Tournament `json:"tournaments"`
+	Tournaments []*Tournament `json:"tournaments"`
 }
 
 // UpdateStateMessage returns an update to the current match
@@ -48,12 +50,17 @@ type MatchUpdateMessage struct {
 // have indicated that the next round can start
 type StartPlayMessage struct{}
 
+// TournamentCompleteMessage is sent to the game whenever one of the shot girls
+// have indicated that the next round can start
+type TournamentCompleteMessage struct{}
+
 // Constant strings for use as kinds when communicating with the game
 const (
 	gMatch      = "match"
 	gConnect    = "game_connected"
 	gDisconnect = "game_disconnected"
 	gStartPlay  = "start_play"
+	gComplete   = "tournament_complete"
 )
 
 // GameMatchMessage is the message sent to the game about the
@@ -76,14 +83,18 @@ type GamePlayer struct {
 }
 
 type Message struct {
+	ID        uint
+	MatchID   uint
 	Type      string      `json:"type"`
-	Data      interface{} `json:"data"`
+	Data      interface{} `json:"data" sql:"-"`
+	JSON      string      `json:"-"`
 	Timestamp time.Time   `json:"timestamp"`
 }
 
 const EnvironmentKill = -1
 
 // Kill reasons
+// nolint
 const (
 	rArrow = iota
 	rExplosion
@@ -101,6 +112,7 @@ const (
 )
 
 // Arrows
+// nolint
 const (
 	aNormal = iota
 	aBomb
@@ -116,6 +128,7 @@ const (
 )
 
 // Message types
+// nolint
 const (
 	inKill       = "kill"
 	inRoundStart = "round_start"

@@ -1,8 +1,6 @@
 <template>
 <div v-if="userLoaded && user.isProducer && tournaments">
   <headful title="Superpowers - DrunkenFall"></headful>
-  <h1>Superpowers</h1>
-
   <div class="section">
     <h2>Tournaments</h2>
     <div class="links">
@@ -85,7 +83,7 @@ export default {
     reset () {
       let $vue = this
       console.log("Resetting match...", this.runningMatch)
-      this.api.reset(this.runningMatch.id, {}).then((res) => {
+      this.api.reset(this.runningMatch.matchID, {}).then((res) => {
         console.log("Match reset.", res)
       }, (res) => {
         $vue.$alert("Reset failed. See console.")
@@ -108,7 +106,7 @@ export default {
         return
       }
       let m = this.runningTournament.currentMatch
-      if (m.isEnded) {
+      if (m && m.isEnded) {
         return
       }
       return m

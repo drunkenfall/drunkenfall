@@ -1,91 +1,54 @@
 <template>
-<div v-if="tournament">
+
+<div v-if="tournament && matchesLoaded" class="main">
   <headful :title="tournament.subtitle + ' - DrunkenFall'"></headful>
   <tournament-controls />
 
-  <div class="subheader" v-if="user.isCommentator && tournament.upcomingMatch && !tournament.isEnded">
-    <div v-if="!tournament.upcomingMatch.isScheduled">
-      <p>
-        Pause until
-          <span>{{tournament.upcomingMatch.title}}</span>
-        </p>
-        <div class="links">
-          <a @click="setTime(10)">10 min</a>
-          <a @click="setTime(7)">7 min</a>
-          <a @click="setTime(5)">5 min</a>
-          <a @click="setTime(3)">3 min</a>
-        </div>
-        <div class="clear"></div>
-      </div>
-      <div v-if="tournament.upcomingMatch.isScheduled">
-        <p class="center">
-          <span>{{tournament.upcomingMatch.title}}</span> scheduled at
-          {{tournament.upcomingMatch.scheduled.format("HH:mm")}}
-        </p>
-        <div class="clear"></div>
+  <div class="overview">
+    <div class="ongoing">
+      <h1>Next up!</h1>
+
+      <match :match="match" class="match"></match>
+
+      <div class="logo">
+        <img :class="{ded: !isConnected}" alt="One-Eye" src="/static/img/oem.svg"/>
       </div>
     </div>
 
-    <div class="category playoffs">
-      <h2>Playoffs</h2>
-      <div class="matches">
-        <template v-for="m in tournament.playoffs">
-          <match-overview :match="m" :class="'match ' + m.kind"></match-overview>
-        </template>
-      </div>
-      <div class="clear"></div>
-    </div>
+    <div class="players" v-if="nextMatch">
+      <h1 v-if="tournament.qualifyingOpen">Next scheduled</h1>
+      <h1 v-else>Last qualifying</h1>
+      <template v-for="(p, x) in nextMatch.players">
+        <list-player :player="p" :match="tournament.nextNextMatch" :index="x"></list-player>
+      </template>
 
-    <div class="category semis">
-      <h2>Semi-finals</h2>
-      <div class="matches">
-        <template v-for="m in tournament.semis">
-          <match-overview :match="m" :class="'match ' + m.kind"></match-overview>
+      <div class="active" v-if="tournament.qualifyingOpen">
+        <h1>In queue</h1>
+        <template v-for="(p, x) in tournament.runnerups">
+          <list-player :player="p" :index="x"></list-player>
         </template>
-      </div>
-      <div class="clear"></div>
-    </div>
-    <div class="category final">
-      <h2>Final</h2>
-      <div class="matches">
-        <match-overview :match="tournament.final" class="match final"></match-overview>
       </div>
     </div>
   </div>
+</div>
+
 </template>
 
 <script>
-import MatchOverview from './MatchOverview'
 import DrunkenFallMixin from "../mixin"
 import TournamentControls from "./buttons/TournamentControls"
-import _ from 'lodash'
+import Match from "./Match"
+import ListPlayer from "./ListPlayer"
+// import _ from 'lodash'
 
 export default {
   name: 'TournamentOverview',
   mixins: [DrunkenFallMixin],
 
   components: {
-    MatchOverview,
     TournamentControls,
-  },
-
-  computed: {
-    canParticipants () {
-      return this.tournament.currentMatch.kind === 'playoff'
-    },
-    runnerups () {
-      let t = this.tournament
-
-      if (!t.runnerups) {
-        return []
-      }
-
-      return _.map(t.runnerups, (runnerup) => {
-        return _.find(t.players, function (p) {
-          return p.person.id === runnerup.id
-        })
-      })
-    },
+    Match,
+    ListPlayer,
   },
 
   methods: {
@@ -98,32 +61,22 @@ export default {
         console.error(err)
       })
     },
-    selectRunnerup (p) {
-      if (this.isSelected(p)) {
-        // TODO(thiderman): Doesn't work. Fuck this.
-        console.log("selected, to remove", this.selected)
-        this.selected = _.remove(this.selected, function (o) {
-          console.log(o.person.id, p.person.id)
-          return o.person.id === p.person.id
-        })
-        return
-      }
-
-      this.selected.push(p)
-    },
-    isSelected (p) {
-      return _.find(this.selected, p) !== undefined
-    },
-
     usurp () {
       this.tournament.usurp()
     },
   },
 
+  computed: {
+    match () {
+      return this.tournament.nextMatch
+    },
+    nextMatch () {
+      return this.tournament.nextNextMatch
+    },
+  },
+
   created () {
-    this.api = this.$resource("/api", {}, {
-      setTime: { method: "GET", url: "/api/tournaments/{id}/time/{time}" },
-    })
+    this.loadAll()
   },
 }
 </script>
@@ -131,149 +84,43 @@ export default {
 <style lang="scss" scoped>
 @import "../css/colors.scss";
 
-.tournament {
-  position: relative;
+.main {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  overflow: hidden;
 }
 
-@media screen and ($desktop: $desktop-width) {
-  .playoffs, .semis, .final {
-    width: 29%;
-    float: left;
-    margin-left: 3%;
-    position: relative;
+.overview {
+  display: flex;
+  flex-grow: 1;
+  justify-content: space-between;
+
+  .ongoing, .players {
+    padding: 0 5em;
   }
-}
 
-@media screen and ($device: $device-width) {
-  .playoffs, .semis, .final {
-    /* width: 90%; */
-    margin: 0 auto;
-  }
-}
+  .ongoing {
+    flex-basis: 60%;
 
-.category h3 {
-  text-align: center;
-  font-size: 200%;
-  margin: 4%;
-}
+    display: flex;
+    flex-direction: column;
 
-.match {
-  width: 100%;
-  display: block;
-  position: relative;
+    .match {
+      display: flex;
+      flex-grow: 1;
+      flex-direction: column;
+    }
 
-}
-
-.runnerups, .selected-runnerups {
-  width: 100%;
-  margin: 10px;
-  box-shadow: 2px 2px 3px rgba(0,0,0,0.3);
-
-  .runnerup {
-    padding: 0.1em 0.3em;
-    font-size: 24px;
-    color: #aaa;
-
-    p {
-      margin: 1px;
-      &.name {
-        float: left;
-        // font-weight: bold;
-      }
-      &.score {
-        float: right;
-      }
-      b {
-        text-shadow: 1px 1px 1px rgba(0,0,0,0.4);
+    .logo {
+      img {
+        height: 150px;
       }
     }
   }
 
-  .runnerup:nth-child(odd) {
-    background-color: $bg-default;
-  }
-  .runnerup:nth-child(even) {
-    background-color: #272727;
-  }
-}
-
-.selected-runnerups {
-  .runnerup:nth-child(odd) {
-    background-color: $bg-default;
-  }
-  .runnerup:nth-child(even) {
-    background-color: #394939;
-  }
-
-  .button {
-    width: 50px;
-    margin: 10px auto;
-    padding: 0.3em 0.5em;
-
-    cursor: pointer;
-    text-shadow: 1px 1px 1px rgba(0,0,0,0.4);
-    text-align: center;
-  }
-}
-
-.subheader {
-  @include subheading();
-  width: 80%;
-
-  @media screen and ($desktop: $desktop-width) {
-    p {
-      float: left;
-    }
-    .links {
-      float: right;
-      a {
-        float: right;
-      }
-    }
-  }
-  @media screen and ($device: $device-width) {
-    & {
-      text-align: center;
-      padding: 0.5em;
-    }
-    .links {
-      a:last-child {
-        margin-bottom: 1em;
-      }
-    }
-  }
-
-  margin: 30px auto;
-  background-color: $bg-default;
-  box-shadow: 2px 2px 3px rgba(0,0,0,0.3);
-  text-shadow: 2px 2px 3px rgba(0,0,0,0.5);
-
-  p {
-    font-size: 2em;
-    padding: 0.3em 0.5em;
-
-    span {
-      text-transform: capitalize;
-    }
-  }
-
-  .links {
-    a, .action {
-      @include button();
-      margin: 15px  !important;
-      background-color: $button-bg;
-      border-left: 3px solid $accent;
-      color: $fg-default;
-      display: block;
-      font-weight: bold;
-      padding: 7px 30px;
-      text-align: center;
-      text-decoration: none;
-      margin: 10px auto;
-      min-width: 60px;
-
-      padding: 0.5em 0.7em;
-    }
+  .players {
+    flex-basis: 35%;
   }
 }
 

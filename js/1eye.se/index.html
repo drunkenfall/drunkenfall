@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>1eye.se</title>
+
+    <meta charset="utf-8">
+    <meta name="description" content="One Eye Productions">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="shortcut icon" type="image/svg+xml" href="https://drunkenfall.com/static/img/oem.png"/>
+
+    <link href="https://fonts.googleapis.com/css?family=Lato:400,700|Teko:300,400,500" rel="stylesheet">
+    <style>
+      body, html {
+        background-color: #1e2124;
+        color: #fafafa;
+        font-family: 'Teko', sans-serif;
+        margin: 0;
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+
+        transition: 0.2s;
+        min-height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      #main {
+        display: flex;
+        height: 2em;
+        font-size: 10em;
+        width: 75%;
+        position: relative;
+      }
+      img {
+        height: 350px;
+        width: 350px;
+        margin-right: 2.5%;
+      }
+      .children {
+        flex-grow: 1;
+      }
+      p {
+        line-height: 20%;
+        white-space: nowrap;
+      }
+      .children p {
+        position: absolute;
+        top: 0;
+        opacity: 0;
+        transition: 0.75s;
+      }
+      .children p.active {
+        opacity: 1;
+      }
+    </style>
+    <script>
+      let pause = 1000
+      let duration = 6000
+
+      function loop () {
+        setTimeout(function () {
+          let prod = document.getElementById("productions");
+          prod.className = "";
+          setTimeout(function () {
+            let stud = document.getElementById("studios");
+            stud.className = "active";
+            setTimeout(function () {
+              stud.className = "";
+              setTimeout(function () {
+                let eye = document.getElementById("eye");
+                eye.className = "active";
+                setTimeout(function () {
+                  eye.className = "";
+                  setTimeout(function () {
+                    prod.className = "active";
+                    setTimeout(loop, duration);
+                  }, pause);
+                }, duration);
+              }, pause);
+            }, duration);
+          }, pause);
+        }, duration);
+      }
+      loop();
+    </script>
+  </head>
+  <body>
+    <div id="main">
+      <img alt="One-Eye" src="https://drunkenfall.com/static/img/oem.svg"/>
+      <div class="children">
+        <p id="productions" class="active">One Eye Productions</p>
+        <p id="studios">Live @ Kappa Bar</p>
+        <p id="eye">1-Eye Gaming</p>
+      </div>
+    </div>
+  </body>
+</html>

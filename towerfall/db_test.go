@@ -1,104 +1,103 @@
 package towerfall
 
 import (
-	"encoding/json"
 	"log"
 	"os"
+	"regexp"
+	"strings"
 	"testing"
 	"time"
 
-	"github.com/boltdb/bolt"
-	"github.com/stretchr/testify/assert"
+	"github.com/go-pg/pg"
+	"go.uber.org/zap"
 )
 
-// MockServer returns a Server{} a with clean test Database{}
-func MockServer(arg ...string) *Server {
-	var fn string
+func testDatabase(t *testing.T, c *Config) (*Database, func()) {
+	t.Helper()
 
-	os.Mkdir("test/", 0755)
-	if len(arg) != 0 {
-		fn = "test/" + arg[0] // Use existing
-	} else {
-		fn = "test/test.db"
-	}
-
-	conf := ParseConfig()
-	conf.DbPath = fn
-	conf.Port = 56513
-
-	os.Remove(fn) // Clean it out
-	db, err := NewDatabase(conf.DbPath)
-	if err != nil {
-		log.Fatal(err)
-	}
-	db.LoadTournaments()
-
-	s := NewServer(conf, db)
-	db.Server = s
-
-	return s
-}
-
-func TestSaveTournament(t *testing.T) {
-	assert := assert.New(t)
-	fn := "persist.db"
-	s := MockServer(fn)
-	db := s.DB
-
-	id := "1241234"
-	tm, err := NewTournament("hehe", id, "", time.Now().Add(time.Hour), nil, s)
-	assert.Nil(err)
-
-	db.SaveTournament(tm)
-	db.Close()
-
-	boltd, err := bolt.Open("test/"+fn, 0600, nil)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	ct := Tournament{}
-	boltd.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket(TournamentKey)
-		if b == nil {
-			t.Fatal("bucket not created")
-		}
-
-		data := b.Get([]byte(id))
-		err := json.Unmarshal(data, &ct)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		return nil
+	pgdb := pg.Connect(&pg.Options{
+		User:     "postgres",
+		Database: "test_drunkenfall",
 	})
 
-	assert.Equal(ct.Name, tm.Name)
-	assert.Equal(ct.ID, tm.ID)
-}
+	if c.DbVerbose {
+		t.Log("DRUNKENFALL_DBVERBOSE is set; enabling logger")
+		pgdb.OnQueryProcessed(func(event *pg.QueryProcessedEvent) {
+			query, err := event.FormattedQuery()
+			if err != nil {
+				panic(err)
+			}
 
-func TestGetCurrentTournament(t *testing.T) {
-	s := MockServer()
-	db := s.DB
-
-	_, err := NewTournament("not started", "not", "", time.Now().Add(time.Hour), nil, s)
-	tm2, err := NewTournament("started", "go", "", time.Now().Add(time.Hour), nil, s)
-
-	for i := 1; i <= 8; i++ {
-		p := testPerson(i)
-		err := tm2.AddPlayer(NewPlayer(p))
-		if err != nil {
-			log.Fatal(err)
-		}
-		tm2.db.SavePerson(p)
+			log.Printf("%s %s", time.Since(event.StartTime), query)
+		})
 	}
 
-	err = tm2.StartTournament(nil)
-	assert.NoError(t, err)
+	// If this is set, will reuse the same database for all the tests.
+	// This is significantly faster when running all of them since
+	// database setup/teardown takes a while.
+	if os.Getenv("DRUNKENFALL_DBFASTTEST") != "" {
+		zlog, _ := zap.NewDevelopment()
+		db := &Database{
+			DB:  pgdb,
+			log: zlog.With(zap.String("pgdb", "test_read")),
+		}
+		globalDB = db
+		return db, func() {}
+	}
 
-	t.Run("Get", func(t *testing.T) {
-		tm3, err := db.GetCurrentTournament()
-		assert.NoError(t, err)
-		assert.Equal(t, tm3.ID, tm2.ID)
+	name := strings.ToLower(t.Name())
+	name = regexp.MustCompile("[^_a-zA-Z0-9]+").ReplaceAllString(name, "_")
+
+	_, err := pgdb.Exec("DROP DATABASE IF EXISTS " + name + "")
+	if err != nil {
+		log.Fatalf("couldn't create database '%s': %+v", name, err)
+	}
+
+	_, err = pgdb.Exec("CREATE DATABASE " + name + " WITH TEMPLATE test_drunkenfall OWNER postgres")
+	if err != nil {
+		log.Fatalf("couldn't create database '%s': %+v", name, err)
+	}
+
+	err = pgdb.Close()
+	if err != nil {
+		log.Fatalf("couldn't close database '%s': %+v", name, err)
+	}
+
+	pgdb = pg.Connect(&pg.Options{
+		User:     "postgres",
+		Database: name,
 	})
+	if err != nil {
+		log.Fatalf("failed to open postgres session to '%s': %+v", name, err)
+	}
+
+	zlog, _ := zap.NewDevelopment()
+	db := &Database{
+		DB:  pgdb,
+		log: zlog.With(zap.String("pg", "test_read")),
+	}
+
+	globalDB = db
+
+	return db, func() {
+		err = db.Close()
+		if err != nil {
+			log.Fatalf("couldn't close database '%s': %+v", name, err)
+		}
+
+		pgdb := pg.Connect(&pg.Options{
+			User:     "postgres",
+			Database: "test_drunkenfall",
+		})
+
+		_, err = pgdb.Exec("DROP DATABASE " + name + "")
+		if err != nil {
+			log.Fatalf("couldn't drop database '%s': %+v", name, err)
+		}
+
+		err = pgdb.Close()
+		if err != nil {
+			log.Fatalf("couldn't close database '%s': %+v", name, err)
+		}
+	}
 }

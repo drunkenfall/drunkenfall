@@ -10,19 +10,6 @@ LDFLAGS = -ldflags "-X main.version=${VERSION} -X main.buildtime=${BUILDTIME}"
 
 export GOPATH := $(shell go env GOPATH)
 # export PATH := $(GOPATH)/bin:$(PATH)
-# gotype is disabled since it seems pointless and also produces 250 errors
-# about not finding dependencies that definitely exists.
-LINTER_ARGS = -j 4 \
-  --enable-gc \
-  --enable=gofmt \
-  --enable=misspell \
-  --enable=unparam \
-  --enable=unused \
-  --disable=errcheck \
-  --disable=gotype \
-  --deadline=10m \
-  --tests
-
 .DEFAULT_GOAL: all
 
 .PHONY: clean clobber download install install-linter test cover race lint npm npm-dist caddy
@@ -56,11 +43,10 @@ install:
 	go install -v ${LDFLAGS} ./...
 
 install-linter:
-	go get -v -u github.com/alecthomas/gometalinter
-	gometalinter --install
+	curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(GOPATH)/bin v1.12.2
 
 test:
-	GIN_MODE=test go test -v ./...
+	GIN_MODE=test go test -v ./towerfall
 
 cover:
 	go test -coverprofile=cover.out ./...
@@ -68,14 +54,17 @@ cover:
 race:
 	go test -race -v ./...
 
-lint: install-linter
-	gometalinter $(LINTER_ARGS) $(SOURCEDIR)
+lint:
+	golangci-lint run
 
 npm: js/package.json
 	cd js; npm install
 
-npm-start: npm
+npm-start:
 	cd js; PORT=42002 npm run dev
+
+npm-sass:
+	cd js; npm rebuild node-sass
 
 npm-dist: npm
 	cd js; npm run build
@@ -96,4 +85,32 @@ download-caddy:
 
 .PHONY: caddy
 caddy: download-caddy
-	sudo /home/thiderman/bin/caddy
+	sudo $(GOPATH)/bin/caddy
+
+.PHONY: caddy-local
+caddy-local: download-caddy
+	sudo $(GOPATH)/bin/caddy -conf Caddyfile.local
+
+.PHONY: postgres
+postgres:
+	docker-compose up postgres
+
+.PHONY: psql
+psql:
+	@psql --host localhost --user postgres drunkenfall
+
+.PHONY: reset-db
+reset-db:
+	[[ -n "$(DRUNKENFALL_RESET_DB)" ]] && \
+	psql --host localhost --user postgres drunkenfall < init-db.sql \
+    || echo "need to set DRUNKENFALL_RESET_DB"
+
+.PHONY: reset-test-db
+reset-test-db:
+	psql --host localhost --user postgres -c "DROP DATABASE test_drunkenfall"
+	psql --host localhost --user postgres -c "CREATE DATABASE test_drunkenfall"
+	psql --host localhost --user postgres test_drunkenfall < test-db.sql
+
+.PHONY: make-test-db
+make-test-db:
+	pg_dump --user postgres --host localhost drunkenfall > test-db.sql

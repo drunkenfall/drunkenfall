@@ -5,6 +5,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/streadway/amqp"
 )
 
@@ -25,17 +26,21 @@ func NewPublisher(conf *Config) (*Publisher, error) {
 	}
 
 	p.ch, err = p.conn.Channel()
-	failOnError(err, "Failed to open publishing channel")
+	if err != nil {
+		return &p, errors.New("Failed to open publishing channel")
+	}
 
 	p.outgoing, err = p.ch.QueueDeclare(
 		conf.RabbitOutgoingQueue, // name
-		false, // durable
-		false, // delete when unused
-		false, // exclusive
-		false, // no-wait
-		nil,   // arguments
+		false,                    // durable
+		false,                    // delete when unused
+		false,                    // exclusive
+		false,                    // no-wait
+		nil,                      // arguments
 	)
-	failOnError(err, "Failed to declare the outgoing queue")
+	if err != nil {
+		return &p, errors.New("Failed to declare the outgoing queue")
+	}
 
 	return &p, err
 }
@@ -44,9 +49,9 @@ func NewPublisher(conf *Config) (*Publisher, error) {
 // configured queue
 func (p *Publisher) Publish(kind string, data interface{}) error {
 	msg := Message{
-		kind,
-		data,
-		time.Now(),
+		Type:      kind,
+		Data:      data,
+		Timestamp: time.Now(),
 	}
 
 	body, err := json.Marshal(msg)
@@ -64,4 +69,9 @@ func (p *Publisher) Publish(kind string, data interface{}) error {
 			Body:        []byte(body),
 		})
 	return err
+}
+
+// SendTournamentComplete sends the tournament ended message
+func (p *Publisher) SendTournamentComplete(t *Tournament) error {
+	return p.Publish(gComplete, TournamentCompleteMessage{})
 }

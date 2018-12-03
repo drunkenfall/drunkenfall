@@ -5,6 +5,8 @@ import (
 	"sort"
 	"strings"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 type CompleteSnapshot map[string]*Snapshot
@@ -34,30 +36,42 @@ type PlayerSnapshot struct {
 // NewSnapshot returns a full snapshot
 func NewSnapshot(s *Server) CompleteSnapshot {
 	ss := make(map[string]*Snapshot)
-	s.DB.LoadPeople()
-	for _, p := range s.DB.People {
-		ss[p.ID] = &Snapshot{
+
+	ps, err := s.DB.GetPeople()
+	if err != nil {
+		s.log.Error("Getting people failed", zap.Error(err))
+		return nil
+	}
+
+	for _, p := range ps {
+		ss[p.PersonID] = &Snapshot{
 			Person:      p,
 			Tournaments: make(map[string]*PlayerSnapshot),
 		}
 	}
 
+	ts, err := s.DB.GetTournaments()
+	if err != nil {
+		s.log.Error("Getting tournaments failed", zap.Error(err))
+		return nil
+	}
+
 	// Calculate the per-tournament data points
-	for _, t := range s.DB.Tournaments {
+	for _, t := range ts {
 		if !strings.HasPrefix(t.Name, "DrunkenFall 2018") {
 			continue
 		}
-		tid := t.ID
+		tid := t.Slug
 		for _, m := range t.Matches {
 			for _, p := range m.Players {
 				if p.Person == nil {
 					continue
 				}
 
-				pid := p.Person.ID
+				pid := p.Person.PersonID
 				if _, ok := ss[pid]; !ok {
 					fmt.Println("Snapshot not set for player", p.Person)
-					ss[p.Person.ID] = &Snapshot{
+					ss[p.Person.PersonID] = &Snapshot{
 						Person:      p.Person,
 						Tournaments: make(map[string]*PlayerSnapshot),
 					}
@@ -79,10 +93,10 @@ func NewSnapshot(s *Server) CompleteSnapshot {
 		}
 
 		// Only do the winner calculations if someone actually won
-		if !t.Ended.IsZero() && len(t.Winners) > 0 {
-			winner := t.Winners[0].Person.ID
-			ss[winner].Tournaments[tid].Wins++
-		}
+		// if !t.Ended.IsZero() && len(t.Winners) > 0 {
+		// 	winner := t.Winners[0].Person.PersonID
+		// 	ss[winner].Tournaments[tid].Wins++
+		// }
 	}
 
 	// Summarize the per-tournament data points into the totals
@@ -114,7 +128,7 @@ func NewSnapshot(s *Server) CompleteSnapshot {
 		x++
 	}
 	for x, p := range SortByRank(ranked) {
-		ss[p.Person.ID].Rank = x + 1 // The +1 fixes zero-index.
+		ss[p.Person.PersonID].Rank = x + 1 // The +1 fixes zero-index.
 	}
 
 	return CompleteSnapshot(ss)

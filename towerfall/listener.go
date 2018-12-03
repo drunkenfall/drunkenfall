@@ -5,14 +5,10 @@ import (
 	"log"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/streadway/amqp"
+	"go.uber.org/zap"
 )
-
-func failOnError(err error, msg string) {
-	if err != nil {
-		log.Fatalf("%s: %s", msg, err)
-	}
-}
 
 type Listener struct {
 	DB       *Database
@@ -20,13 +16,15 @@ type Listener struct {
 	incoming amqp.Queue
 	ch       *amqp.Channel
 	msgs     <-chan amqp.Delivery
+	log      *zap.Logger
 }
 
 // NewListener sets up a new listener
 func NewListener(conf *Config, db *Database) (*Listener, error) {
 	var err error
 	l := Listener{
-		DB: db,
+		DB:  db,
+		log: conf.log,
 	}
 
 	l.conn, err = amqp.Dial(conf.RabbitURL)
@@ -35,28 +33,36 @@ func NewListener(conf *Config, db *Database) (*Listener, error) {
 	}
 
 	l.ch, err = l.conn.Channel()
-	failOnError(err, "Failed to open a channel")
+	if err != nil {
+		return nil, errors.New("Failed to open a channel")
+	}
 
 	l.incoming, err = l.ch.QueueDeclare(
 		conf.RabbitIncomingQueue, // name
-		false, // durable
-		false, // delete when unused
-		false, // exclusive
-		false, // no-wait
-		nil,   // arguments
+		false,                    // durable
+		false,                    // delete when unused
+		false,                    // exclusive
+		false,                    // no-wait
+		nil,                      // arguments
 	)
-	failOnError(err, "Failed to declare the incoming queue")
+
+	if err != nil {
+		return nil, errors.New("Failed to declare the incoming queue")
+	}
 
 	l.msgs, err = l.ch.Consume(
 		conf.RabbitIncomingQueue, // queue
-		"",    // consumer
-		true,  // auto-ack
-		false, // exclusive
-		false, // no-local
-		false, // no-wait
-		nil,   // args
+		"",                       // consumer
+		true,                     // auto-ack
+		false,                    // exclusive
+		false,                    // no-local
+		false,                    // no-wait
+		nil,                      // args
 	)
-	failOnError(err, "Failed to register the consumer")
+
+	if err != nil {
+		return nil, errors.New("Failed to register the consumer")
+	}
 
 	return &l, err
 }
@@ -110,5 +116,16 @@ func (l *Listener) handle(t *Tournament, body []byte) error {
 	}
 
 	// If it wasn't, then it's about a match
-	return t.Matches[t.Current].handleMessage(msg)
+	m, err := t.CurrentMatch()
+	if err != nil {
+		l.log.Info("Couldn't find current match", zap.Error(err))
+	}
+
+	err = m.handleMessage(msg)
+	if err != nil {
+		l.log.Info("Match handle failed", zap.Error(err))
+		return err
+	}
+
+	return nil
 }

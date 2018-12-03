@@ -4,6 +4,10 @@
 
 $sidebar-width: 220px;
 
+* {
+  box-sizing: border-box;
+}
+
 body, html {
   background-color: $bg-bottom;
   color: $fg-default;
@@ -42,6 +46,9 @@ body, html {
 #app {
   height: 100%;
   transition: 0.3s ease-in-out;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
 }
 
 .fade-enter-active, .fade-leave-active {
@@ -56,6 +63,12 @@ body, html {
     margin-left: $sidebar-width;
   }
   // transition: margin-left 0.5s ease-in-out;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  > * {
+    // flex-grow: 1;
+  }
 }
 
 body.red-pulse {
@@ -233,22 +246,21 @@ form {
 }
 
 .links {
-  margin-left: 1em;
   @include button();
 
   &.standalone a  {
     margin: 1em auto 0.2em;
-    font-size: 1.5em;
-    width: 15em;
+    // font-size: 1.5em;
+    // width: 15em;
   }
 
   a, input {
+    display: flex;
     position: relative;
     background-color: $button-bg;
     text-shadow: 2px 2px 2px rgba(0,0,0,0.3);
     // text-align: center;
     font-weight: bold;
-    display: block;
     margin-bottom: 0.5em;
     transition: 0.3s;
 
@@ -299,7 +311,7 @@ form {
 
     .icon {
       float: left;
-      width: 1em;
+      // width: 1em;
       text-align: center;
       background-color: $secondary;
 
@@ -314,14 +326,12 @@ form {
 
     p {
       display: inline-block;
-
     }
   }
 }
 
 .sidebar-less .sidebar-buttons {
   left: 0;
-
 }
 
 .sidebar-buttons {
@@ -329,21 +339,39 @@ form {
   transition: 0.3s, left 0.5s ease-in-out;
 
   .links {
+    display: flex;
     margin: 0px auto;
     background-color: $bg-default-alt;
-    height: 4.2rem;
-    padding: 0.75rem;
     box-shadow: 2px 2px 3px rgba(0,0,0,0.3);
+
+    @media screen and ($desktop: $desktop-width) {
+      padding: 1em;
+    }
+    @media screen and ($device: $device-width) {
+      padding: 0.6em;
+      justify-content: space-between;
+      align-items: space-between;
+    }
 
     .icon {
       opacity: 1;
       transition: 0.2s;
+      min-width: 2.75em;
     }
 
     > div {
-      float: left;
-      margin-left: 0.2em;
-      font-size: 1.5em;
+      // margin-left: 0.2em;
+      @media screen and ($desktop: $desktop-width) {
+        font-size: 1.5em;
+      }
+      @media screen and ($device: $device-width) {
+        font-size: 0.8em;
+      }
+
+      a {
+        margin-bottom: 0;
+        // margin-right: 1em;
+      }
 
       &:hover .icon {
         opacity: 0.15;
@@ -354,8 +382,12 @@ form {
       p {
         opacity: 0;
         transition: 0.2s;
-
-        font-size: 1rem;
+        @media screen and ($desktop: $desktop-width) {
+          font-size: 1rem;
+        }
+        @media screen and ($device: $device-width) {
+           font-size: 0.2em;
+        }
         text-transform: uppercase;
         text-align: center;
         padding-top: 0.7em;
@@ -371,11 +403,6 @@ form {
         opacity: 1;
       }
     }
-
-    .maybe-clear {
-      clear: both;
-    }
-
   }
 }
 

@@ -1,154 +1,69 @@
 <template>
-  <div v-if="tournament">
-    <header>
-      <div class="content">
-        <h2>
-          {{match.title}} / Round {{round}}
-        </h2>
-      </div>
-      <div class="clear"></div>
-    </header>
+<div v-if="match">
+  <template v-for="(p, x) in match.players">
+    <player :player="p" :match="match" :index="x"></player>
+  </template>
 
-    <div class="control" v-if="user.isJudge">
-      <template v-for="(player, index) in match.players" ref="players">
-        <control-player :index="index"></control-player>
-      </template>
+  <div class="details">
+    <div class="level">
+      <p class="title">
+        {{match.title}}
+      </p>
+      <p class="map">
+        {{match.levelTitle}}
+      </p>
     </div>
 
-    <footer v-if="user.isJudge">
-      <div class="content">
-        <h2>
-          Actions
-        </h2>
-      </div>
-      <div class="links" v-if="user.isJudge">
-        <a v-if="match.canStart && user.isCommentator" @click="start"
-           :class="{ disabled: tournament.shouldBackfill}">
-          <div class="icon positive">
-            <icon name="play"></icon>
-          </div>
-          <p>Start match</p>
-          <p class="tooltip">Semis need to be backfilled.</p>
-          <div class="clear"></div>
-        </a>
-
-        <a v-if="match.isRunning && match.canEnd" @click="end">
-          <div class="icon positive">
-            <icon name="check"></icon>
-          </div>
-          <p>End match</p>
-          <div class="clear"></div>
-        </a>
-
-        <a v-if="match.isRunning && !match.canEnd" @click="commit">
-          <div class="icon warning">
-            <icon name="gavel"></icon>
-          </div>
-          <p>End round</p>
-          <div class="clear"></div>
-        </a>
-      </div>
-      <div class="clear"></div>
-    </footer>
-
-    <div class="control" v-if="!user.isJudge">
-      <template v-if="!match.isStarted" v-for="(player, index) in match.players" ref="players">
-        <preview-player :index="index" :player="player" :match="match"></preview-player>
-      </template>
-
-      <template v-if="match.isStarted" v-for="(player, index) in match.players" ref="players">
-        <live-player :index="index" :player="player" :match="match"></live-player>
-      </template>
+    <div class="clock">
+      <span>Starts in</span>
+      <p>00:00</p>
     </div>
-
-    <div class="clear"></div>
   </div>
+</div>
 </template>
 
 <script>
-import ControlPlayer from './ControlPlayer.vue'
-import PreviewPlayer from './PreviewPlayer.vue'
-import LivePlayer from './LivePlayer.vue'
-import _ from 'lodash'
-import DrunkenFallMixin from "../mixin"
-
+import Player from './Player.vue'
 export default {
   name: 'Match',
-  mixins: [DrunkenFallMixin],
   components: {
-    ControlPlayer,
-    PreviewPlayer,
-    LivePlayer,
+    Player
   },
-
-  computed: {
-    players () {
-      return _.filter(this.$children, (o) => {
-        return o.$options._componentTag === "control-player"
-      })
-    }
-  },
-
-  methods: {
-    commit () {
-      let $vue = this
-      let data = _.map(this.players, (controlPlayer) => {
-        return _.pick(controlPlayer, ['ups', 'downs', 'shot', 'reason'])
-      })
-
-      let payload = { 'state': data }
-
-      let hasShots = _.some(data, ['shot', true])
-      let hasKills = _.sumBy(data, (o) => { return o.ups }) > 0
-      let hasSelfs = _.sumBy(data, (o) => { return o.downs }) < 0
-
-      if (!hasShots && !hasKills && !hasSelfs) {
-        console.log("Nothing to commit. Doing nothing.")
-        return
-      }
-
-      console.log(payload)
-      this.api.commit(this.match_id, payload).then(function (res) {
-        console.log("Round committed.")
-        _.each(this.players, (controlPlayer) => { controlPlayer.reset() })
-      }, function (res) {
-        $vue.$alert("Setting score failed. See console.")
-        console.error(res)
-      })
-    },
-    end () {
-      console.log("this has been disabled")
-    },
-    start () {
-      console.log("this has been disabled")
-    },
-    reset () {
-      console.log("this has been disabled")
-    },
-  },
-
-  created () {
-    document.getElementsByTagName("body")[0].className = "scroll-less"
-
-    this.api = this.$resource("/api", {}, {
-      commit: { method: "POST", url: "/api/tournaments/{id}/match/{index}/" },
-    })
+  props: {
+    match: {}
   },
 }
 </script>
 
-<style lang="scss" >
+<style lang="scss" scoped>
 @import "../css/colors.scss";
 
-.control {
-  height: 80vh;
-  padding: 0.8%;
-}
+.details {
+  display: flex;
+  flex-direction: row;
+  flex-grow: 1;
+  text-align: center;
+  flex-basis: 0;
+  justify-content: space-around;
+  align-items: center;
 
-.player {
-  @include display1();
-  height: 25%;
-  display: block;
+  .level {
+    font-size: 2em;
+    .title {
+      color: $fg-secondary;
+    }
+    .map {
+      font-size: 2em;
+    }
+  }
+  .clock {
+    p {
+      font-size: 4em;
+    }
+    span {
+      font-size: 2em;
+      color: $fg-secondary;
+    }
+  }
 }
-
 </style>

@@ -3,13 +3,12 @@ package towerfall
 import (
 	"fmt"
 	"log"
+	"math"
 	"math/rand"
-	"regexp"
 	"sort"
-	"strings"
 
 	"github.com/deckarep/golang-set"
-	"github.com/fatih/camelcase"
+	"github.com/pkg/errors"
 )
 
 // AllColors is a list of the available player colors
@@ -28,6 +27,18 @@ var AllColors = []interface{}{
 // Colors is the definitive set of all the colors
 var Colors = mapset.NewSetFromSlice(AllColors)
 
+const scoreMultiplier = 7
+const scoreSweep = (97 * scoreMultiplier)
+const scoreKill = (21 * scoreMultiplier)
+const scoreSelf = (-35 * scoreMultiplier) // Negative 1.66 times of a kill
+const scoreWinner = (350 * scoreMultiplier)
+const scoreSecond = (150 * scoreMultiplier)
+const scoreThird = (70 * scoreMultiplier)
+const scoreFourth = (30 * scoreMultiplier)
+
+const finalMultiplier = 2.5
+const finalExponential = 1.05
+
 // ScoreData is a structured Key/Value pair list for scores
 type ScoreData struct {
 	Key    string
@@ -35,20 +46,41 @@ type ScoreData struct {
 	Player *Player
 }
 
-// Player is a Participant that is actively participating in battles.
+// Player is a representation of one player in a match
 type Player struct {
+	ID             uint        `json:"id"`
+	MatchID        uint        `json:"match_id"`
+	PersonID       string      `sql:",pk" json:"person_id"`
 	Person         *Person     `json:"person"`
+	Nick           string      `json:"nick"`
 	Color          string      `json:"color"`
 	PreferredColor string      `json:"preferred_color"`
-	ArcherType     int         `json:"archer_type"`
-	Shots          int         `json:"shots"`
-	Sweeps         int         `json:"sweeps"`
-	Kills          int         `json:"kills"`
-	Self           int         `json:"self"`
-	Matches        int         `json:"matches"`
-	TotalScore     int         `json:"score"`
-	State          PlayerState `json:"state"`
-	Match          *Match      `json:"-"`
+	ArcherType     int         `json:"archer_type" sql:",notnull"`
+	Shots          int         `json:"shots" sql:",notnull"`
+	Sweeps         int         `json:"sweeps" sql:",notnull"`
+	Kills          int         `json:"kills" sql:",notnull"`
+	Self           int         `json:"self" sql:",notnull"`
+	MatchScore     int         `json:"match_score" sql:",notnull"`
+	TotalScore     int         `json:"total_score" sql:",notnull"`
+	State          PlayerState `json:"state" sql:"-"`
+	Match          *Match      `json:"-" sql:"-"`
+	DisplayNames   []string    `sql:",array" json:"display_names"`
+}
+
+// A PlayerSummary is a tournament-wide summary of the scores a player has
+type PlayerSummary struct {
+	ID uint `json:"id"`
+
+	TournamentID uint    `json:"-"`
+	PersonID     string  `json:"person_id"`
+	Person       *Person `json:"person"`
+	Shots        int     `json:"shots" sql:",notnull"`
+	Sweeps       int     `json:"sweeps" sql:",notnull"`
+	Kills        int     `json:"kills" sql:",notnull"`
+	Self         int     `json:"self" sql:",notnull"`
+	Matches      int     `json:"matches" sql:",notnull"`
+	TotalScore   int     `json:"score" sql:",notnull"`
+	SkillScore   int     `json:"skill_score" sql:",notnull"`
 }
 
 type PlayerState struct {
@@ -60,18 +92,23 @@ type PlayerState struct {
 	Speed     bool   `json:"speed"`
 	Alive     bool   `json:"alive"`
 	Lava      bool   `json:"lava"`
-	Killer    int    `json:"killer"`
+	Killer    int    `json:"killer" sql:",notnull"`
 }
 
 // NewPlayer returns a new instance of a player
 func NewPlayer(ps *Person) *Player {
 	p := &Player{
-		Person:     ps,
-		ArcherType: ps.ArcherType,
-		State:      NewPlayerState(),
+		PersonID:       ps.PersonID,
+		Person:         ps,
+		Nick:           ps.Nick,
+		ArcherType:     ps.ArcherType,
+		State:          NewPlayerState(),
+		PreferredColor: ps.PreferredColor,
+		DisplayNames:   ps.DisplayNames,
 	}
-	if len(ps.ColorPreference) > 0 {
-		p.PreferredColor = ps.ColorPreference[0]
+
+	if p.PreferredColor != "" {
+		p.PreferredColor = ps.PreferredColor
 	} else {
 		p.PreferredColor = RandomColor(Colors)
 	}
@@ -89,10 +126,20 @@ func NewPlayerState() PlayerState {
 	return ps
 }
 
+// NewPlayerSummary returns a new instance of a tournament player
+func NewPlayerSummary(ps *Person) *PlayerSummary {
+	p := &PlayerSummary{
+		PersonID: ps.PersonID,
+		Person:   ps,
+	}
+	return p
+}
+
 func (p *Player) String() string {
 	return fmt.Sprintf(
-		"<%s: %dsh %dsw %dk %ds>",
-		p.Name(),
+		"<(%d) %s: %dsh %dsw %dk %ds>",
+		p.ID,
+		p.Nick,
 		p.Shots,
 		p.Sweeps,
 		p.Kills,
@@ -102,7 +149,7 @@ func (p *Player) String() string {
 
 // Name returns the nickname
 func (p *Player) Name() string {
-	return p.Person.Nick
+	return p.Nick
 }
 
 // NumericColor is the numeric representation of the color the player has
@@ -114,23 +161,64 @@ func (p *Player) NumericColor() int {
 	}
 
 	// No color was found - this is a bug. Return default.
-	log.Printf("Player '%s' did not match a color for '%s'", p.Name(), p.Color)
+	log.Printf("Player '%s' did not match a color for '%s'", p.Nick, p.Color)
 	return 0
 }
 
 // Score calculates the score to determine runnerup positions.
-func (p *Player) Score() (out int) {
-	// This algorithm is probably flawed, but at least it should be able to
-	// determine who is the most entertaining.
-	// When executed, a sweep is basically 14 points since scoring a sweep
-	// also comes with a shot and three kills.
+func (p *PlayerSummary) Score() (out int) {
+	out += p.Sweeps * scoreSweep
+	out += p.Kills * scoreKill
+	out += p.Self * scoreSelf
 
-	out += p.Sweeps * 5
-	out += p.Shots * 3
-	out += p.Kills * 2
-	out += p.Self
+	// Negative score is not allowed
+	if out <= 0 {
+		out = 0
+	}
 
 	return
+}
+
+// Score calculates the score to determine runnerup positions.
+func (p *Player) Score() (out int) {
+	out += p.Sweeps * scoreSweep
+	out += p.Kills * scoreKill
+	out += p.Self * scoreSelf
+
+	// Negative score is not allowed
+	if out <= 0 {
+		out = 0
+	}
+
+	// Match score is added afterwards so that no one is stuck on 0.
+	out += p.MatchScore
+
+	return
+}
+
+// Summary resturns a Summary{} object for the player
+func (p *Player) Summary() PlayerSummary {
+	return PlayerSummary{
+		PersonID: p.PersonID,
+		Person:   p.Person,
+		Shots:    p.Shots,
+		Sweeps:   p.Sweeps,
+		Kills:    p.Kills,
+		Self:     p.Self,
+	}
+}
+
+// Player returns a new Player{} object from the summary
+func (p *PlayerSummary) Player() Player {
+	if p.Person == nil {
+		var err error
+		p.Person, err = globalDB.GetPerson(p.PersonID)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	return *NewPlayer(p.Person)
 }
 
 // ScoreData returns this players set of ScoreData
@@ -144,78 +232,28 @@ func (p *Player) ScoreData() []ScoreData {
 	return sd
 }
 
-// URL returns the URL to this player
-//
-// Used for action URLs
-func (p *Player) URL() string {
-	out := fmt.Sprintf(
-		"%s/%d",
-		p.Match.URL(),
-		p.Index(),
-	)
-	return out
-}
-
-// Classes returns the CSS color classes for the player
-func (p *Player) Classes() string {
-	if p.Match != nil && p.Match.IsEnded() {
-		ps := ByScore(p.Match.Players)
-		if ps[0].Name() == p.Name() {
-			// Always gold for the winner
-			return "gold"
-		} else if ps[1].Name() == p.Name() {
-			// Silver for the second, unless there is a short amount of playoffs
-			if p.Match.Kind != playoff || len(p.Match.tournament.Matches)-3 <= 4 {
-				return "silver"
-			}
-		} else if ps[2].Name() == p.Name() && p.Match.Kind == final {
-			return "bronze"
-		}
-
-		return "out"
-	}
-	return p.PreferredColor
-}
-
-// Index returns the index in the current match
-func (p *Player) Index() int {
-	if p.Match != nil {
-		for i, o := range p.Match.Players {
-			if p.Name() == o.Name() {
-				return i
-			}
-		}
-	}
-	return -1
-}
-
 // AddShot increases the shot count
 func (p *Player) AddShot() {
-	log.Printf("Adding shot to %s", p.Name())
 	p.Shots++
 }
 
 // RemoveShot decreases the shot count
 // Fails silently if shots are zero.
 func (p *Player) RemoveShot() {
-
 	if p.Shots == 0 {
-		log.Printf("Not removing shot from %s; already at zero", p.Name())
+		log.Printf("Not removing shot from %s; already at zero", p.Nick)
 		return
 	}
-	log.Printf("Removing shot from %s", p.Name())
 	p.Shots--
 }
 
 // AddSweep increases the sweep count
 func (p *Player) AddSweep() {
-	log.Printf("Adding sweep to %s", p.Name())
 	p.Sweeps++
 }
 
 // AddKills increases the kill count and adds a sweep if necessary
 func (p *Player) AddKills(kills int) {
-	log.Printf("Adding %d kills to %s", kills, p.Name())
 	p.Kills += kills
 	if kills == 3 {
 		p.AddSweep()
@@ -223,24 +261,22 @@ func (p *Player) AddKills(kills int) {
 }
 
 // RemoveKill decreases the kill count
-// Fails silently if kills are zero.
+// Doesn't to anything if kills are at zero.
 func (p *Player) RemoveKill() {
 	if p.Kills == 0 {
-		log.Printf("Not removing kill from %s; already at zero", p.Name())
+		log.Printf("Not removing kill from %s; already at zero", p.Nick)
 		return
 	}
-	log.Printf("Removing kill from %s", p.Name())
 	p.Kills--
 }
 
 // AddSelf increases the self count and decreases the kill
 func (p *Player) AddSelf() {
-	log.Printf("Adding self to %s", p.Name())
 	p.Self++
 	p.RemoveKill()
 }
 
-// Reset resets the stats on a Player to 0
+// Reset resets the stats on a PlayerSummary to 0
 //
 // It is to be run in Match.Start()
 func (p *Player) Reset() {
@@ -248,33 +284,11 @@ func (p *Player) Reset() {
 	p.Sweeps = 0
 	p.Kills = 0
 	p.Self = 0
-	p.Matches = 0
 	p.State = NewPlayerState()
 }
 
-// Update updates a player with the scores of another
-//
-// This is primarily used by the tournament score calculator
-func (p *Player) Update(other Player) {
-	p.Shots += other.Shots
-	p.Sweeps += other.Sweeps
-	p.Kills += other.Kills
-	p.Self += other.Self
-	p.TotalScore = p.Score()
-
-	// Every call to this method is per match. Count every call
-	// as if a match.
-	p.Matches++
-	// log.Printf("Updated player: %d, %d", p.TotalScore, p.Matches)
-}
-
-// HTML renders the HTML of a player
-func (p *Player) HTML() (out string) {
-	return
-}
-
 // ByColorConflict is a sort.Interface that sorts players by their score
-type ByColorConflict []Player
+type ByColorConflict []PlayerSummary
 
 func (s ByColorConflict) Len() int { return len(s) }
 
@@ -284,7 +298,7 @@ func (s ByColorConflict) Less(i, j int) bool {
 	if s[i].Person.Userlevel != s[j].Person.Userlevel {
 		return s[i].Person.Userlevel > s[j].Person.Userlevel
 	}
-	return s[i].Score() > s[j].Score()
+	return s[i].SkillScore > s[j].SkillScore
 }
 
 // ByScore is a sort.Interface that sorts players by their score
@@ -305,14 +319,14 @@ func (s ByScore) Less(i, j int) bool {
 
 // SortByColorConflicts returns a list in an unspecified order,
 // Probably by User level and then score.
-func SortByColorConflicts(ps []Player) (tmp []Player, err error) {
-	var tp *Player
-	tmp = make([]Player, len(ps))
+func SortByColorConflicts(m *Match, ps []Person) (tmp []PlayerSummary, err error) {
+	var tp *PlayerSummary
+	tmp = make([]PlayerSummary, len(ps))
 	for i, p := range ps {
 		// TODO(thiderman): This is not very elegant and should be replaced.
-		tp, err = p.Match.tournament.getTournamentPlayerObject(p.Person)
+		tp, err = m.Tournament.GetPlayerSummary(&p)
 		if err != nil {
-			return
+			return tmp, errors.WithStack(err)
 		}
 		tmp[i] = *tp
 	}
@@ -349,36 +363,6 @@ func SortByKills(ps []Player) []Player {
 	return tmp
 }
 
-// ByRunnerup is a sort.Interface that sorts players by their runnerup status
-//
-// This is almost exactly the same as score, but the number of matches a player
-// has played factors in, and players that have played less matches are sorted
-// favorably.
-type ByRunnerup []Player
-
-func (s ByRunnerup) Len() int {
-	return len(s)
-
-}
-func (s ByRunnerup) Swap(i, j int) {
-	s[i], s[j] = s[j], s[i]
-
-}
-func (s ByRunnerup) Less(i, j int) bool {
-	if s[i].Matches == s[j].Matches {
-		// Same as by kills
-		return s[i].Score() > s[j].Score()
-	}
-	// Lower is better - the ones that have not played should be at the top
-	return s[i].Matches < s[j].Matches
-}
-
-// SortByRunnerup returns a list in order of the kills the players have
-func SortByRunnerup(ps []Player) []Player {
-	sort.Sort(ByRunnerup(ps))
-	return ps
-}
-
 // RandomColor returns a random color from the ColorList
 func RandomColor(s mapset.Set) string {
 	colors := s.ToSlice()
@@ -393,123 +377,65 @@ func AvailableColors(m *Match) mapset.Set {
 	return ret
 }
 
-// transformName
-func transformName(name string) (string, string) {
-	name = strings.TrimSpace(name)
+// Reset resets the stats on a PlayerSummary to 0
+//
+// It is to be run in Match.Start()
+func (p *PlayerSummary) Reset() {
+	p.Shots = 0
+	p.Sweeps = 0
+	p.Kills = 0
+	p.Self = 0
+	p.Matches = 0
+}
 
-	rxp := regexp.MustCompile("[^0-9A-Za-z()]+")
-	// Run it twice so that double spaces are removed
-	name = rxp.ReplaceAllString(name, " ")
-	name = rxp.ReplaceAllString(name, " ")
+// Update updates a player with the scores of another
+//
+// This is primarily used by the tournament score calculator
+func (p *PlayerSummary) Update(other PlayerSummary) {
+	p.Shots += other.Shots
+	p.Sweeps += other.Sweeps
+	p.Kills += other.Kills
+	p.Self += other.Self
+	p.TotalScore = p.Score()
 
-	if strings.Contains(name, " ") {
-		spl := strings.Split(name, " ")
+	// Every call to this method is per match. Count every call
+	// as if a match.
+	p.Matches++
+	// log.Printf("Updated player: %d, %d", p.TotalScore, p.Matches)
+}
 
-		if len(spl) == 2 {
-			// Perfect - two spaces; just do it!
-			return spl[0], spl[1]
-		}
-
-		if (spl[0]) == "Mr" {
-			return spl[1], spl[2]
-		}
-
-		if len(spl) == 3 {
-			// Sigh.
-			if strings.HasPrefix(spl[2], "(") {
-				return spl[0], spl[1]
-			}
-
-			front := fmt.Sprintf("%s %s", spl[0], spl[1])
-			back := fmt.Sprintf("%s %s", spl[1], spl[2])
-			if len(front) >= len(spl[2]) {
-				return front, spl[2]
-			} else {
-				return spl[0], back
-			}
-		}
+// DividePlayoffPlayers divides the playoff players into four buckets based
+// on their score
+//
+// The input is expected to be sorted with score descending
+func DividePlayoffPlayers(ps []*PlayerSummary) ([][]*PlayerSummary, error) {
+	ret := [][]*PlayerSummary{
+		[]*PlayerSummary{},
+		[]*PlayerSummary{},
+		[]*PlayerSummary{},
+		[]*PlayerSummary{},
 	}
 
-	spl := camelcase.Split(name)
-	if len(spl) > 1 {
-		// Oh noes, CamelCase!
-		if len(spl) == 2 {
-			return spl[0], spl[1]
-		}
-
-		if spl[0] == "The" {
-			return fmt.Sprintf("%s %s", spl[0], spl[1]), spl[2]
-		}
+	for x, p := range ps {
+		ret[x%4] = append(ret[x%4], p)
 	}
 
-	prefixes := []string{
-		"The",
-		"El Grande",
-		"Sweet",
-		"Big",
-		"Strong",
-		"Boss",
-		"Master",
-		"Vicious",
-		"Vengeful",
-		"Sassy",
-		"Gay",
-		"Yaaas",
-		"Epic",
-		"Grandmaster",
-		"Ser",
-		"Jarl of",
-		"Bishop",
-		"Lady",
-		"Lord",
-		"Duke",
-		"Their Majesty",
-		"Royal",
-		"Brother",
-		"Sister",
-		"Governor",
-		"Papa",
-		"Monsieur",
-		"Madamoiselle",
-		"1337",
-		"Motherfuckin",
-		"Wannabe",
-		"Call Me",
-		"Mr.",
-		"Ms.",
+	return ret, nil
+}
+
+// FinalMultiplier returns the multiplier used for the winner scores
+// in the final
+//
+// The longer at tournament lasts, the more points you'll get for
+// winning the final.
+func FinalMultiplier(numMatches int) float64 {
+	// We only count extra when there has been more than 16 matches
+	x := numMatches - 16
+
+	// If there haven't been, just return the default
+	if x <= 0 {
+		return finalMultiplier
 	}
 
-	suffixes := []string{
-		"The Great",
-		"The Not So Great",
-		"K?",
-		"AS FUCK",
-		"The Goon",
-		"The Fucker",
-		"Fuck Yeah",
-		"for the win",
-		"for the lulz",
-		"The Supreme",
-		"Yaaaas",
-		"The Fabulous",
-		"The Gay",
-		"The Unicorn",
-		"The Wannabe",
-		"The Usurper",
-		"Esq.",
-		"2000",
-		"The Idiot",
-		"The Drunk",
-		"The Sober",
-		"Is Dead",
-		"Is Lame",
-		"Sucks",
-		"The Homeless",
-	}
-
-	// One-namer! Add a prefix or a suffix; 50% distrib
-	if rand.Intn(100) >= 50 {
-		return prefixes[rand.Intn(len(prefixes))], name
-	}
-	return name, suffixes[rand.Intn(len(suffixes))]
+	return finalMultiplier * math.Pow(finalExponential, float64(x))
 }

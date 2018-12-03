@@ -1,10 +1,10 @@
 import { isGoZeroDateOrFalsy } from '../util/date.js'
 import moment from 'moment'
 import _ from 'lodash'
-import Player from './Player.js'
+// import Player from './Player.js'
 // import Tournament from './Tournament.js'
 
-// import store from '../core/store.js'a
+import store from '../core/store.js'
 
 export default class Match {
   static fromObject (obj, t) {
@@ -14,9 +14,10 @@ export default class Match {
     m.started = moment(m.started)
     m.ended = moment(m.ended)
     m.scheduled = moment(m.scheduled)
-    m.players = _.map(m.players, Player.fromObject)
+    // m.players = _.map(m.players, Player.fromObject)
 
     m.endScore = m.length
+    m.commits = []
 
     // TODO(thiderman): There used to be this weird bug where some
     // matches are created without a length. This circumvents this in
@@ -27,25 +28,12 @@ export default class Match {
 
     if (t !== undefined) {
       m.tournament = t
-      m.tournament_id = t.id
     }
 
     return m
   }
 
-  // TODO(thiderman): This could somehow not be migrated to here from
-  // Match.vue. When moved, the request turns from a POST into a GET
-  // and the backend rightfully denies it. A thing for later, I guess.
-  // commit ($control, payload) {
-  //   this.api.commit(this.id, payload).then((res) => {
-  //     console.log("Round committed.")
-  //     _.each($control.players, (p) => { p.reset() })
-  //   }, (res) => {
-  //     console.error('error when setting score', res)
-  //   })
-  // }
-
-  get id () {
+  get matchID () {
     return {
       id: this.tournament_id,
       index: this.index,
@@ -59,8 +47,20 @@ export default class Match {
     if (this.kind === "final") {
       return "Final"
     }
-    let kind = this.kind + "s"
-    return _.capitalize(this.kind) + " " + this.relativeIndex + " / " + this.tournament[kind].length
+    return _.capitalize(this.kind) + " " + this.relativeIndex
+  }
+
+  get players () {
+    if (this._players && this._players.length !== 0) {
+      return this._players
+    }
+
+    let x = store.getters.matchPlayers(this.tournament_id, this.index)
+    return x
+  }
+
+  set players (v) {
+    this._players = _.sortBy(v, "id")
   }
 
   get relativeIndex () {
@@ -104,19 +104,6 @@ export default class Match {
 
   get isRunning () {
     return this.isStarted && !this.isEnded
-  }
-
-  get chartData () {
-    var out = []
-    for (var i = 0; i < this.players.length; i++) {
-      out.push([0])
-      _.forEach(this.commits, function (commit) {
-        let pastScore = _.last(out[i])
-        let roundScore = _.sum(commit.kills[i])
-        out[i].push(pastScore + roundScore)
-      })
-    }
-    return out
   }
 
   get levelTitle () {

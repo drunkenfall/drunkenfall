@@ -16,15 +16,16 @@ import (
 
 // A Person is someone having a role in the tournament
 type Person struct {
-	ID              string   `json:"id"`
-	Name            string   `json:"name"`
-	Nick            string   `json:"nick"`
-	ColorPreference []string `json:"color_preference"`
-	ArcherType      int      `json:"archer_type"`
-	FacebookID      string   `json:"facebook_id"`
-	AvatarURL       string   `json:"avatar_url"`
-	Userlevel       int      `json:"userlevel"`
-	Disabled        bool     `json:"disabled"`
+	PersonID       string   `json:"id" sql:",pk"`
+	Name           string   `json:"name"`
+	Nick           string   `json:"nick"`
+	PreferredColor string   `json:"preferred_color"`
+	ArcherType     int      `json:"archer_type"`
+	FacebookID     string   `json:"facebook_id"`
+	AvatarURL      string   `json:"avatar_url"`
+	Userlevel      int      `json:"userlevel"`
+	Disabled       bool     `json:"disabled"`
+	DisplayNames   []string `sql:",array" json:"display_names"`
 }
 
 // Credits represents the data structure needed to display the credits
@@ -45,6 +46,7 @@ const (
 
 // Archer types. These decide which version of the character you are
 // playing as. Secret is selectable but never used.
+// nolint
 const (
 	atNormal = iota
 	atAlternate
@@ -85,9 +87,9 @@ func (p *Person) Score() *ScoreSummary {
 }
 
 // CreateFromFacebook adds a new player via Facebook login
-func CreateFromFacebook(s *Server, req *FacebookAuthResponse) *Person {
+func CreateFromFacebook(s *Server, req *FacebookAuthResponse) (*Person, error) {
 	p := &Person{
-		ID:         req.ID,
+		PersonID:   req.ID,
 		FacebookID: req.ID,
 		Name:       req.Name,
 		Userlevel:  PermissionPlayer,
@@ -95,9 +97,8 @@ func CreateFromFacebook(s *Server, req *FacebookAuthResponse) *Person {
 
 	p.PrefillNickname()
 
-	s.DB.SavePerson(p)
-
-	return p
+	err := s.DB.SavePerson(p)
+	return p, err
 }
 
 // PrefillNickname makes a suggestion to the nick based on the person
@@ -153,12 +154,7 @@ func (p *Person) UpdatePerson(r *SettingsPostRequest) {
 	p.Name = r.Name
 	p.Nick = r.Nick
 	p.ArcherType = r.ArcherType
-	p.ColorPreference = []string{r.Color}
-}
-
-// PreferredColor returns the preferred color
-func (p *Person) PreferredColor() string {
-	return p.ColorPreference[0]
+	p.PreferredColor = r.Color
 }
 
 // Correct sets a name and a color if they are missing
@@ -173,9 +169,9 @@ func (p *Person) Correct() {
 		log.Printf("Corrected nick for %s", p)
 	}
 
-	if len(p.ColorPreference) == 0 {
-		// Grab a random color and insert it into the preference.
-		p.ColorPreference = append(p.ColorPreference, RandomColor(Colors))
+	if p.PreferredColor == "" {
+		// Grab a random color
+		p.PreferredColor = RandomColor(Colors)
 		log.Printf("Corrected color for %s", p)
 	}
 }
@@ -191,7 +187,7 @@ func (p *Person) StoreCookies(c *gin.Context) error {
 	http.SetCookie(c.Writer, cookie)
 
 	session := sessions.Default(c)
-	session.Set("user", p.ID)
+	session.Set("user", p.PersonID)
 	session.Set("userlevel", p.Userlevel)
 	err := session.Save()
 	if err != nil {
@@ -215,9 +211,7 @@ func (p *Person) RemoveCookies(c *gin.Context) error {
 	session := sessions.Default(c)
 	session.Delete("user")
 	session.Delete("userlevel")
-	session.Save()
-
-	return nil
+	return session.Save()
 }
 
 // PersonFromSession returns the Person{} object attached to the session

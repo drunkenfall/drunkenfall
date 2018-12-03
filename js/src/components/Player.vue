@@ -1,17 +1,30 @@
 <template>
-  <div :class="'player ' + classes">
-    <img :src="avatar" :alt="display_name"/>
-    <p>{{display_name}}</p>
+
+  <div class="player" v-if="summary">
+    <div class="avatar">
+      <img :alt="player.nick" :src="person.avatar"/>
+    </div>
+
+    <div class="name">
+      <span :class="player.color">{{player.nick}}</span>
+    </div>
+
+    <div class="points">
+      {{summary.score}} pts, {{summary.matches}}m
+    </div>
   </div>
+
 </template>
 
 <script>
+import DrunkenFallMixin from "../mixin"
+
 export default {
   name: 'Player',
+  mixins: [DrunkenFallMixin],
 
   props: {
     player: Object,
-    match: {},
     index: 0
   },
 
@@ -19,31 +32,16 @@ export default {
     avatar () {
       return this.player.avatar
     },
-    display_name () {
-      return this.player.person.nick
+    person () {
+      return this.$store.getters.getPerson(this.player.person_id)
     },
-    classes () {
-      if (this.match.isEnded) {
-        // TODO(thiderman): This makes the old tournaments work
-        // again. They lack color, but hey.
-        if (!this.match.kill_order) {
-          return this.player.color
-        }
-
-        if (this.index === this.match.kill_order[0]) {
-          return 'gold'
-        } else if (this.index === this.match.kill_order[1]) {
-          return 'silver'
-        } else if (this.index === this.match.kill_order[2] && this.match.kind === 'final') {
-          return 'bronze'
-        }
-
-        return 'out'
-      }
-
-      return this.player.color
-    }
-  }
+    summary () {
+      return this.$store.getters.getPlayerSummary(
+        this.tournament.id,
+        this.player.person_id,
+      )
+    },
+  },
 }
 </script>
 
@@ -51,27 +49,44 @@ export default {
 @import "../css/colors.scss";
 
 .player {
-  &.gold, &.silver, &.bronze {
-    p {
-      color: #fff !important;
+  display: flex;
+  flex-grow: 1;
+  flex-basis: 0;
+  background-color: $bg-default-alt;
+  padding: 2%;
+
+  .avatar {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    margin-right: 1em;
+
+    img {
+      display: inline-block;
+      height: 11vh;
+      width:  11vh;
+      object-fit: cover;
+      border-radius: 100%;
     }
   }
-
-  img {
-    display: inline-block;
-    height: 38px;
-    width: 38px;
-    object-fit: cover;
-    border-radius: 100%;
-    float: left;
-    margin-left: 5px;
+  .name {
+    display: flex;
+    align-items: center;
+    font-size: 6.5vh;
+    flex-grow: 1;
+  }
+  .points {
+    display: flex;
+    align-items: center;
+    font-size: 5vh;
+    padding-right: 1em;
   }
 }
 
 .player:nth-child(even) {
+  background-color: $bg-default;
   img {
-    float: right;
-    margin-right: 5px;
   }
 }
 

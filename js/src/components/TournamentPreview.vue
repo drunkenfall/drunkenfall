@@ -1,8 +1,9 @@
 <template>
-  <div v-if="tournament" class="preview">
-    <headful :title="tournament.subtitle + ' - DrunkenFall'"></headful>
-    <tournament-controls />
+<div v-if="tournament" class="preview">
+  <headful :title="tournament.subtitle + ' - DrunkenFall'"></headful>
+  <tournament-controls />
 
+  <div class="content">
     <h1>
       {{tournament.name}}
     </h1>
@@ -20,6 +21,7 @@
           <p>Join the showdown</p>
           <div class="clear"></div>
         </a>
+
         <a v-else @click="join">
           <div class="icon warning">
             <icon name="times"></icon>
@@ -32,7 +34,7 @@
 
     <div class="players">
       <transition-group name="list" tag="div">
-        <div v-for="player in tournament.players" v-bind:key="player.person.id" class="player">
+        <div v-for="player in summaries" v-bind:key="player.person.id" class="player">
           <img :alt="player.person.nick" :src="player.avatar"/>
         </div>
       </transition-group>
@@ -41,8 +43,8 @@
 
     <div class="protector">
       <!-- <div class="super-ribbon">
-        drunkenfall.com
-      </div> -->
+           drunkenfall.com
+           </div> -->
 
       <div class="ribbon">
         <strong v-if="tournament.isToday" class="ribbon-content">
@@ -53,15 +55,16 @@
         </strong>
       </div>
     </div>
-
-
   </div>
+</div>
+
 </template>
 
 <script>
 import {Countdown} from '../models/Timer.js'
 import DrunkenFallMixin from "../mixin"
 import TournamentControls from "./buttons/TournamentControls"
+import _ from 'lodash'
 
 export default {
   name: 'TournamentPreview',
@@ -94,6 +97,9 @@ export default {
     isJoined () {
       return this.tournament.playerJoined(this.user)
     },
+    summaries () {
+      return _.reverse(this.playerSummaries)
+    },
   },
 
   watch: {
@@ -106,6 +112,7 @@ export default {
   },
 
   created () {
+    let $vue = this
     this.api = this.$resource("/api", {}, {
       join: { method: "GET", url: "/api/tournaments/{id}/join/" },
     })
@@ -114,6 +121,18 @@ export default {
       console.log("starting clock")
       this.countdown.start(this.tournament.scheduled)
     }
+
+    let id = this.tournament.id
+    this.$http.get(`/api/tournaments/${id}/players/`).then(function (res) {
+      let data = JSON.parse(res.data)
+      this.$store.commit('setPlayerSummaries', {
+        tid: id,
+        player_summaries: data.player_summaries,
+      })
+    }, function (res) {
+      $vue.$alert("Getting players failed. See console.")
+      console.error(res)
+    })
   }
 }
 </script>
@@ -124,6 +143,10 @@ export default {
 
 .preview {
   max-height: 920px;
+}
+
+.content {
+  padding: 1em;
 }
 
 h1 {
@@ -192,10 +215,11 @@ h2 {
 
 .players {
   text-align: center;
-  width: 80%;
-  margin: 4em auto;
+  margin: 2em auto;
 
   @media screen and ($desktop: $desktop-width) {
+  width: 80%;
+
     .player {
       display: inline-block;
       width: 130px;
@@ -225,14 +249,14 @@ h2 {
   @media screen and ($device: $device-width) {
     .player {
       display: inline-block;
-      width: 5em;
-      margin-top: -30px;
+      width: 2.75em;
+      margin-top: -15px;
 
       img {
         object-fit: cover;
         border-radius: 100%;
-        width:  6em;
-        height: 6em;
+        width:  3em;
+        height: 3em;
 
         box-shadow: -1px -1px 6px rgba(0,0,0,0.5);
         background-color: rgba(10,12,14,0.3);
