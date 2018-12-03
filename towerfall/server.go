@@ -237,6 +237,12 @@ func (s *Server) StartTournamentHandler(c *gin.Context) {
 		return
 	}
 
+	err = s.SendTournamentUpdate(tm)
+	if err != nil {
+		tlog.Info("Could not send tournament update", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+	}
+
 	tlog.Info("Tournament started")
 	c.JSON(http.StatusOK, gin.H{"redirect": tm.URL()})
 }
@@ -543,6 +549,13 @@ func (s *Server) SetTimeHandler(c *gin.Context) {
 	if err != nil {
 		mlog.Error("Couldn't set time", zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Database error setting time"})
+		return
+	}
+
+	err = s.SendMatchesUpdate(t)
+	if err != nil {
+		mlog.Error("Couldn't send time websocket update", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
 

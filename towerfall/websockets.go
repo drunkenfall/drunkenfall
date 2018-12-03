@@ -26,6 +26,11 @@ type websocketMessage struct {
 	Data interface{} `json:"data"`
 }
 
+type wsTournament struct {
+	TournamentID uint        `json:"tournament_id"`
+	Tournament   *Tournament `json:"tournament"`
+}
+
 type wsPlayerSummaries struct {
 	TournamentID    uint             `json:"tournament_id"`
 	PlayerSummaries []*PlayerSummary `json:"player_summaries"`
@@ -92,6 +97,14 @@ func (s *Server) SendWebsocketUpdate(kind string, data interface{}) error {
 	}(kind, data)
 
 	return nil
+}
+
+// SendTournamentUpdate sends an update about the tournament
+func (s *Server) SendTournamentUpdate(t *Tournament) error {
+	return s.SendWebsocketUpdate(wTournament, wsTournament{
+		TournamentID: t.ID,
+		Tournament:   t,
+	})
 }
 
 // SendPlayerSummariesUpdate sends an update to the player summaries
