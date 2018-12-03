@@ -337,17 +337,12 @@ func (d *Database) NextMatch(t *Tournament) (*Match, error) {
 	}
 
 	q := t.db.DB.Model(&m).Where("tournament_id = ? AND started IS NULL", t.ID)
-	q = q.Order("id").Limit(1)
+	q = q.Order("id").Limit(1).Column("match.*", "Players")
 
 	err := q.Select()
 	if err != nil {
 		return nil, err
 	}
-
-	ps := []Player{}
-	q = t.db.DB.Model(&ps).Where("match_id = ?", m.ID)
-	err = q.Select()
-	m.Players = ps
 
 	return &m, err
 }
