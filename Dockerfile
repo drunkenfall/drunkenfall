@@ -27,7 +27,6 @@ COPY js/index.html ./js/
 
 COPY Makefile ./
 
-COPY websockets/ ./websockets/
 COPY faking/ ./faking/
 COPY towerfall/ ./towerfall/
 COPY js/src ./js/src/
