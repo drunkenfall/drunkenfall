@@ -25,6 +25,7 @@ func NewDatabase(c *Config) (*Database, error) {
 	zlog, _ := zap.NewDevelopment()
 
 	pgdb := pg.Connect(&pg.Options{
+		Addr:     c.DbHost,
 		User:     c.DbUser,
 		Database: c.DbName,
 	})

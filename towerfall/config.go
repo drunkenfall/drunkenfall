@@ -10,7 +10,7 @@ import (
 type Config struct {
 	Production bool `default:"true"`
 
-	DbPath    string `default:"data/dev.db"`
+	DbHost    string `default:"postgres:5432"`
 	DbUser    string `default:"postgres"`
 	DbName    string `default:"drunkenfall"`
 	DbVerbose bool   `default:"false"`
