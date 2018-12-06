@@ -299,12 +299,10 @@ func (d *Database) GetCurrentTournament() (*Tournament, error) {
 
 // GetMatch gets a match
 func (d *Database) GetMatch(id uint) (*Match, error) {
-	m := &Match{
-		ID: id,
-	}
-
-	err := d.DB.Select(&m)
-	return m, err
+	m := Match{}
+	q := d.DB.Model(&m).Where("match.id = ?", id).Column("match.*", "Players")
+	err := q.Select()
+	return &m, err
 }
 
 // GetMatches gets a slice of matches based on a kind
