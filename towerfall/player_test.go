@@ -6,10 +6,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func emptyPlayer() Player {
-	return *NewPlayer(randomPerson())
-}
-
 func TestFinalMultiplier(t *testing.T) {
 	assert.Equal(t, 2.5, FinalMultiplier(15))
 	assert.Equal(t, 2.5, FinalMultiplier(16))

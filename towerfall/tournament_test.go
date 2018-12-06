@@ -89,11 +89,11 @@ func testTournament(t *testing.T, server *Server, count int) (tm *Tournament) {
 			t.Fatalf("adding player failed: %+v", err)
 			return
 		}
+	}
 
-		// XXX: If we don't add the person to the database anything that tries to
-		// grab from it will fail. Backfilling from the semis is one of those
-		// cases. That should be refactored away and this should be removed.
-		// tm.db.SavePerson(p)
+	err = tm.Persist()
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	return
