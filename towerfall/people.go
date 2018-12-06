@@ -23,7 +23,7 @@ type Person struct {
 	FacebookID     string   `json:"facebook_id"`
 	AvatarURL      string   `json:"avatar_url"`
 	Userlevel      int      `json:"userlevel"`
-	Disabled       bool     `json:"disabled"`
+	Disabled       bool     `json:"disabled" sql:",notnull"`
 	DisplayNames   []string `sql:",array" json:"display_names"`
 }
 
