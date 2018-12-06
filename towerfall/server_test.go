@@ -16,6 +16,8 @@ func MockServer(t *testing.T) (*Server, func()) {
 	conf.DbName = "test_drunkenfall"
 	conf.Port = 56513
 
+	usedPeople = make([]string, 0)
+
 	db, serverTeardown := testDatabase(t, conf)
 
 	s := NewServer(conf, db)
