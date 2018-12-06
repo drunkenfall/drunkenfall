@@ -3,7 +3,6 @@ package towerfall
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -62,14 +61,6 @@ type score map[int]string
 type ScoreSummary struct {
 	Totals      score
 	Tournaments map[string]score
-}
-
-func (p *Person) String() string {
-	return fmt.Sprintf(
-		"<Player %s (%s)>",
-		p.Name,
-		p.Nick,
-	)
 }
 
 // JSON returns the person as a JSON representation
@@ -166,13 +157,13 @@ func (p *Person) Correct() {
 	if p.Nick == "" {
 		// Pick the first name, just to have something
 		p.Nick = strings.Split(p.Name, " ")[0]
-		log.Printf("Corrected nick for %s", p)
+		log.Printf("Corrected nick for %s", p.Name)
 	}
 
 	if p.PreferredColor == "" {
 		// Grab a random color
 		p.PreferredColor = RandomColor(Colors)
-		log.Printf("Corrected color for %s", p)
+		log.Printf("Corrected color for %s", p.Name)
 	}
 }
 
