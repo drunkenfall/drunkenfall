@@ -31,24 +31,23 @@ var ErrPublishIncompleteMatch = errors.New("cannot publish match without four pl
 // Match.Commits is a list of one commit per round and represents the
 // changeset of what happened in the match.
 type Match struct {
-	ID           uint          `json:"id"`
-	TournamentID uint          `json:"tournament_id"`
-	Tournament   *Tournament   `json:"-" sql:"-"`
-	Players      []Player      `json:"players"`
-	Casters      []*Person     `json:"casters" sql:"-"`
-	Kind         string        `json:"kind"`
-	Index        int           `json:"index" sql:",notnull"`
-	Length       int           `json:"length"`
-	Pause        time.Duration `json:"pause"`
-	Scheduled    time.Time     `json:"scheduled"`
-	Started      time.Time     `json:"started"`
-	Ended        time.Time     `json:"ended"`
-	// KillOrder     []int         `json:"kill_order"`
-	Rounds        []Round   `json:"-" sql:"-"`
-	Commits       []Commit  `json:"commits"`
-	Messages      []Message `json:"messages"`
-	Level         string    `json:"level"`
-	Ruleset       string    `json:"ruleset"`
+	ID            uint          `json:"id"`
+	TournamentID  uint          `json:"tournament_id"`
+	Tournament    *Tournament   `json:"-" sql:"-"`
+	Players       []*Player     `json:"players"`
+	Casters       []*Person     `json:"casters" sql:"-"`
+	Kind          string        `json:"kind"`
+	Index         int           `json:"index" sql:",notnull"`
+	Length        int           `json:"length"`
+	Pause         time.Duration `json:"pause"`
+	Scheduled     time.Time     `json:"scheduled"`
+	Started       time.Time     `json:"started"`
+	Ended         time.Time     `json:"ended"`
+	Rounds        []Round       `json:"-" sql:"-"`
+	Commits       []Commit      `json:"commits"`
+	Messages      []Message     `json:"messages"`
+	Level         string        `json:"level"`
+	Ruleset       string        `json:"ruleset"`
 	currentRound  Round
 	presentColors mapset.Set
 }
@@ -147,7 +146,7 @@ func (m *Match) AddPlayer(p Player) error {
 		return err
 	}
 
-	m.Players = append(m.Players, p)
+	m.Players = append(m.Players, &p)
 
 	// If we're adding the fourth player, it's time to check if there
 	// are conflicts to correct
@@ -172,18 +171,18 @@ func (m *Match) AddPlayer(p Player) error {
 }
 
 // UpdatePlayer updates a player for the given match
-func (m *Match) UpdatePlayer(p Player) error {
+func (m *Match) UpdatePlayer(p *Player) error {
 	for i, o := range m.Players {
 		if o.Name() == p.Name() {
 			m.Players[i] = p
 		}
 	}
-	return globalDB.UpdatePlayer(m, &p)
+	return globalDB.UpdatePlayer(m, p)
 }
 
 // CorrectFuckingColorConflicts corrects color conflicts :@ 😠
 func (m *Match) CorrectFuckingColorConflicts() error {
-	var player Player
+	var player *Player
 	var err error
 	// Make a map of conflicting players keyed on the color
 	pairs := make(map[string][]Person)
@@ -401,7 +400,7 @@ func (m *Match) EndRound() error {
 
 			// This updates both the shot count and the sweep count (because
 			// kills == 3 catches the sweep as well)
-			err := globalDB.UpdatePlayer(m, &m.Players[i])
+			err := globalDB.UpdatePlayer(m, m.Players[i])
 			if err != nil {
 				return err
 			}
@@ -432,6 +431,10 @@ func (m *Match) EndRound() error {
 // StartRound sets the initial state of player arrows.
 func (m *Match) StartRound(sr StartRoundMessage) error {
 	for i, as := range sr.Arrows {
+		if m.Players[i].State == nil {
+			m.Players[i].State = NewPlayerState()
+		}
+
 		m.Players[i].State.Arrows = as
 		m.Players[i].State.Alive = true
 		m.Players[i].State.Hat = true
@@ -486,17 +489,17 @@ func (m *Match) Kill(km KillMessage) error {
 		m.Players[km.Player].AddSelf()
 		m.currentRound.AddSelf(km.Player)
 
-		return globalDB.UpdatePlayer(m, &m.Players[km.Player])
+		return globalDB.UpdatePlayer(m, m.Players[km.Player])
 	} else if km.Killer == km.Player {
 		m.Players[km.Player].AddSelf()
 		m.currentRound.AddSelf(km.Player)
 
-		return globalDB.UpdatePlayer(m, &m.Players[km.Killer])
+		return globalDB.UpdatePlayer(m, m.Players[km.Killer])
 	}
 
 	m.Players[km.Killer].AddKills(1)
 	m.currentRound.AddKill(km.Killer)
-	return globalDB.UpdatePlayer(m, &m.Players[km.Killer])
+	return globalDB.UpdatePlayer(m, m.Players[km.Killer])
 }
 
 // Start starts the match
@@ -560,7 +563,7 @@ func (m *Match) End(c *gin.Context) error {
 
 		m.Players[k].MatchScore = int(float64(scores[x]) * multiplier)
 
-		err := globalDB.UpdatePlayer(m, &m.Players[k])
+		err := globalDB.UpdatePlayer(m, m.Players[k])
 		if err != nil {
 			return err
 		}

@@ -361,7 +361,7 @@ func (d *Database) CurrentMatch(t *Tournament) (*Match, error) {
 		return nil, err
 	}
 
-	ps := []Player{}
+	ps := []*Player{}
 	q = t.db.DB.Model(&ps).Where("match_id = ?", m.ID)
 	err = q.Select()
 	m.Players = ps

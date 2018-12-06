@@ -48,29 +48,28 @@ type ScoreData struct {
 
 // Player is a representation of one player in a match
 type Player struct {
-	ID             uint        `json:"id"`
-	MatchID        uint        `json:"match_id"`
-	PersonID       string      `sql:",pk" json:"person_id"`
-	Person         *Person     `json:"person"`
-	Nick           string      `json:"nick"`
-	Color          string      `json:"color"`
-	PreferredColor string      `json:"preferred_color"`
-	ArcherType     int         `json:"archer_type" sql:",notnull"`
-	Shots          int         `json:"shots" sql:",notnull"`
-	Sweeps         int         `json:"sweeps" sql:",notnull"`
-	Kills          int         `json:"kills" sql:",notnull"`
-	Self           int         `json:"self" sql:",notnull"`
-	MatchScore     int         `json:"match_score" sql:",notnull"`
-	TotalScore     int         `json:"total_score" sql:",notnull"`
-	State          PlayerState `json:"state" sql:"-"`
-	Match          *Match      `json:"-" sql:"-"`
-	DisplayNames   []string    `sql:",array" json:"display_names"`
+	ID             uint         `json:"id"`
+	MatchID        uint         `sql:",pk" json:"match_id"`
+	PersonID       string       `json:"person_id"`
+	Person         *Person      `json:"person"`
+	Nick           string       `json:"nick"`
+	Color          string       `json:"color"`
+	PreferredColor string       `json:"preferred_color"`
+	ArcherType     int          `json:"archer_type" sql:",notnull"`
+	Shots          int          `json:"shots" sql:",notnull"`
+	Sweeps         int          `json:"sweeps" sql:",notnull"`
+	Kills          int          `json:"kills" sql:",notnull"`
+	Self           int          `json:"self" sql:",notnull"`
+	MatchScore     int          `json:"match_score" sql:",notnull"`
+	TotalScore     int          `json:"total_score" sql:",notnull"`
+	State          *PlayerState `json:"state"`
+	Match          *Match       `json:"-" sql:"-"`
+	DisplayNames   []string     `sql:",array" json:"display_names"`
 }
 
 // A PlayerSummary is a tournament-wide summary of the scores a player has
 type PlayerSummary struct {
-	ID uint `json:"id"`
-
+	ID           uint    `json:"id"`
 	TournamentID uint    `json:"-"`
 	PersonID     string  `json:"person_id"`
 	Person       *Person `json:"person"`
@@ -84,6 +83,8 @@ type PlayerSummary struct {
 }
 
 type PlayerState struct {
+	ID        uint   `json:"id"`
+	PlayerID  uint   `json:"-"`
 	Arrows    Arrows `json:"arrows"`
 	Shield    bool   `json:"shield"`
 	Wings     bool   `json:"wings"`
@@ -116,8 +117,8 @@ func NewPlayer(ps *Person) *Player {
 	return p
 }
 
-func NewPlayerState() PlayerState {
-	ps := PlayerState{
+func NewPlayerState() *PlayerState {
+	ps := &PlayerState{
 		Arrows: make(Arrows, 0),
 		Alive:  true,
 		Hat:    true,
@@ -137,9 +138,10 @@ func NewPlayerSummary(ps *Person) *PlayerSummary {
 
 func (p *Player) String() string {
 	return fmt.Sprintf(
-		"<(%d) %s: %dsh %dsw %dk %ds>",
+		"<(%d) %s %s: %dsh %dsw %dk %ds>",
 		p.ID,
 		p.Nick,
+		p.Color,
 		p.Shots,
 		p.Sweeps,
 		p.Kills,
@@ -219,6 +221,19 @@ func (p *PlayerSummary) Player() Player {
 	}
 
 	return *NewPlayer(p.Person)
+}
+
+// getPerson gets the Person for a player
+func (p *Player) getPerson() *Person {
+	var err error
+	if p.Person == nil {
+		p.Person, err = globalDB.GetPerson(p.PersonID)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	return p.Person
 }
 
 // ScoreData returns this players set of ScoreData
@@ -335,7 +350,7 @@ func SortByColorConflicts(m *Match, ps []Person) (tmp []PlayerSummary, err error
 }
 
 // ByKills is a sort.Interface that sorts players by their kills
-type ByKills []Player
+type ByKills []*Player
 
 func (s ByKills) Len() int {
 	return len(s)
@@ -356,8 +371,8 @@ func (s ByKills) Less(i, j int) bool {
 }
 
 // SortByKills returns a list in order of the kills the players have
-func SortByKills(ps []Player) []Player {
-	tmp := make([]Player, len(ps))
+func SortByKills(ps []*Player) []*Player {
+	tmp := make([]*Player, len(ps))
 	copy(tmp, ps)
 	sort.Sort(ByKills(tmp))
 	return tmp
