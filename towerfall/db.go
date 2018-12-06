@@ -90,6 +90,11 @@ func (d *Database) AddPlayerToMatch(m *Match, p *Player) error {
 	p.Self = 0
 	p.MatchScore = 0
 	p.TotalScore = 0
+
+	if p.State == nil {
+		p.State = NewPlayerState()
+	}
+
 	return d.DB.Insert(p)
 }
 
