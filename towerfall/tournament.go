@@ -34,6 +34,7 @@ type Tournament struct {
 	Cover         string          `json:"cover"`
 	Length        int             `json:"length"`
 	FinalLength   int             `json:"final_length"`
+	currentMatch  *Match
 	connected     bool
 	db            *Database
 	server        *Server
@@ -433,7 +434,18 @@ func (t *Tournament) NextMatch() (*Match, error) {
 
 // CurrentMatch returns the current match
 func (t *Tournament) CurrentMatch() (*Match, error) {
-	return t.db.CurrentMatch(t)
+	var err error
+
+	// Use the cache on the tournament - if the match is set, just return that one.
+	// If not, grab it
+	if t.currentMatch == nil {
+		t.currentMatch, err = t.db.CurrentMatch(t)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return t.currentMatch, nil
 }
 
 // IsRunning returns boolean true if the tournament is running or not
