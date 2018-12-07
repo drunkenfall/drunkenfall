@@ -83,7 +83,9 @@ export default class Tournament {
     } else if (this.isStarted && !this.matches[0].isStarted) {
       return true
     }
-    return this.currentMatch.isEnded && !this.upcomingMatch.isStarted
+
+    // If there are no matches that are currently running, we are inbetween matches
+    return _.filter(this.matches, 'isRunning').length === 0
   }
 
   get endedRecently () {
@@ -119,8 +121,7 @@ export default class Tournament {
   }
 
   get currentMatch () {
-    let started = _.filter(this.matches, 'isStarted')
-    let c = _.first(_.filter(started, (m) => !m.isEnded))
+    let c = _.first(_.filter(this.matches, (m) => !m.isEnded))
     return c
   }
 
@@ -142,8 +143,8 @@ export default class Tournament {
   }
 
   get playoffs () {
-    throw new Error("call to non-ported tournament.playoffs()")
-    // return _.slice(this.matches, 0, this.matches.length - 3)
+    // throw new Error("call to non-ported tournament.playoffs()")
+    return _.slice(this.matches, 0, this.matches.length - 5)
   }
 
   get semis () {

@@ -25,16 +25,14 @@ export default {
   },
   computed: {
     tournament () {
-      if (this.$route.params.tournament) {
-        return this.tournaments[this.$route.params.tournament]
-      }
-      return this.trackingTournament
+      return this.tournaments[this.$route.params.tournament]
     },
     match () {
       return this.tournament.currentMatch
     }
   },
   created () {
+    this.loadAll()
     document.getElementsByTagName("body")[0].className = "scroll-less sidebar-less"
   },
 }

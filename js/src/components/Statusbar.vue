@@ -1,7 +1,7 @@
 <template>
-<div v-if="tournament">
+<div v-if="tournament && players && loaded">
   <div class="statusbar">
-    <div v-for="(p, idx) in match.players" class="player">
+    <div v-for="(p, idx) in players" class="player" v-if="p.state && p.person">
       <div class="avatar">
         <img :alt="p.person.nick" :src="p.person.avatar" :class="{dead: !p.state.alive}"/>
         <div :class="{dead: !p.state.alive}">
@@ -27,7 +27,7 @@
                 <span v-if="p.state.killer === -1">
                   the level, lol
                 </span>
-                <span v-else-if="p.state.killer !== idx" :class="match.players[p.state.killer].color">
+                <span v-else-if="p.state.killer !== idx" :class="players[p.state.killer].color">
                   {{match.players[p.state.killer].displayName}}
                 </span>
                 <span v-else>
@@ -76,28 +76,35 @@
 
 <script>
 import DrunkenFallMixin from "../mixin"
-import NextScreen from './NextScreen'
+// import Player from "../models/Player"
 
 export default {
   name: 'Statusbar',
   mixins: [DrunkenFallMixin],
-  components: {
-    NextScreen,
+  created () {
+    document.getElementsByTagName("body")[0].className = "scroll-less sidebar-less"
   },
   computed: {
     tournament () {
-      return this.runningTournament
+      return this.tournaments[this.$route.params.tournament]
     },
     match () {
-      return this.tournament.matches[this.tournament.current]
+      return this.tournament.currentMatch
+    },
+    loaded () {
+      return this.$store.state.initialLoaded
+    },
+    players () {
+      return this.match.players
     }
-  },
-  created () {
-    document.getElementsByTagName("body")[0].className = "scroll-less sidebar-less"
   },
   methods: {
     bulletClass (player, playerIndex, n) {
       let c = this.match.endScore === 20 ? "final " : ""
+
+      if (playerIndex === 0) {
+        // console.log("bulletclass", n, player, this.match)
+      }
 
       if (n === this.match.endScore && player.kills > this.match.endScore) {
         return c + 'overkill'

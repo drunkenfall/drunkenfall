@@ -1,5 +1,5 @@
 <template>
-<div v-if="tournament">
+<div v-if="tournament && winner">
   <headful :title="tournament.subtitle + ' - Summary'"></headful>
 
   <div class="players">
@@ -14,7 +14,8 @@
 
 <script>
 import DrunkenFallMixin from "../mixin"
-import Person from '../models/Person.js'
+// import Person from '../models/Person.js'
+import _ from 'lodash'
 
 export default {
   name: 'TournamentSummary',
@@ -22,13 +23,10 @@ export default {
 
   computed: {
     tournament () {
-      if (this.$route.params.tournament) {
-        return this.tournaments[this.$route.params.tournament]
-      }
-      return this.trackingTournament
+      return this.tournaments[this.$route.params.tournament]
     },
     winner () {
-      return Person.fromObject(this.tournament.winners[0].person)
+      return _.sortBy(this.tournament.final.players, 'kills')[0]
     }
   },
 }

@@ -1,7 +1,7 @@
 import { isGoZeroDateOrFalsy } from '../util/date.js'
 import moment from 'moment'
 import _ from 'lodash'
-// import Player from './Player.js'
+import Player from './Player.js'
 // import Tournament from './Tournament.js'
 
 import store from '../core/store.js'
@@ -14,7 +14,6 @@ export default class Match {
     m.started = moment(m.started)
     m.ended = moment(m.ended)
     m.scheduled = moment(m.scheduled)
-    // m.players = _.map(m.players, Player.fromObject)
 
     m.endScore = m.length
     m.commits = []
@@ -47,7 +46,7 @@ export default class Match {
     if (this.kind === "final") {
       return "Final"
     }
-    return _.capitalize(this.kind) + " " + this.relativeIndex
+    return _.capitalize(this.kind) // + " " + this.relativeIndex
   }
 
   get players () {
@@ -60,12 +59,12 @@ export default class Match {
   }
 
   set players (v) {
-    this._players = _.sortBy(v, "id")
+    this._players = _.map(_.sortBy(v, "id"), Player.fromObject)
   }
 
   get relativeIndex () {
-    if (this.kind === "semi") {
-      return this.index - this.tournament.playoffs.length + 1
+    if (this.kind === "playoff") {
+      // return this.index - (this.tournament.matches.length -)
     }
     return this.index + 1
   }

@@ -15,7 +15,7 @@
       </div>
     </a>
 
-    <div class="subheader" v-if="match && match.isStarted">
+    <div class="subheader" v-if="match && !match.isStarted">
       <div v-if="!match.isScheduled">
         <p>
           Pause until
@@ -61,7 +61,7 @@ export default {
 
   computed: {
     match () {
-      return this.tournament.nextMatch
+      return this.tournament.currentMatch
     },
   },
 

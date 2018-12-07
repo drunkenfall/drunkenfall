@@ -17,10 +17,12 @@ const store = new Vuex.Store({ // eslint-disable-line
     tournaments: {},
     user: new Person(),
     tournamentsLoaded: false,
+    initialLoaded: false,
     userLoaded: false,
     stats: undefined,
     people: undefined,
     playerSummaries: {},
+    playerStates: {},
     runnerups: {},
     matches: {},
     credits: {},
@@ -44,8 +46,35 @@ const store = new Vuex.Store({ // eslint-disable-line
     },
     updatePlayer (state, data) {
       let t = state.tournaments[data.tournament]
-      t.matches[data.match].players[data.player].state = data.state
+      let m = t.currentMatch
+      console.log("updateplayer tournament", t)
+      console.log("updateplayer currentmatch", m)
+      m.players[data.player].state = data.state
       Vue.set(state.tournaments, t.id, t)
+    },
+    setInitial (state, data) {
+      let t = Tournament.fromObject(data.tournament, data.$vue)
+      Vue.set(state.tournaments, t.id, t)
+
+      Vue.set(state.playerSummaries, t.id, _.map(data.player_summaries, (p) => {
+        return Player.fromObject(p)
+      }))
+
+      Vue.set(state.runnerups, t.id, _.map(data.player_summaries, (p) => {
+        return Player.fromObject(p)
+      }))
+
+      Vue.set(state.matches, t.id, _.map(data.matches, (m) => {
+        return Match.fromObject(m)
+      }))
+
+      let sts = {}
+      _.forEach(data.player_states, (st) => {
+        sts[st.index] = st
+      })
+      state.playerStates = sts
+
+      state.initialLoaded = true
     },
     setPlayerSummaries (state, data) {
       Vue.set(state.playerSummaries, data.tid, _.map(data.player_summaries, (p) => {
@@ -93,8 +122,10 @@ const store = new Vuex.Store({ // eslint-disable-line
     // default handler called for all methods
 
     SOCKET_ONMESSAGE (state, res) {
+      console.debug("Incoming websocket update", state, res)
+
       let data = res.data
-      let t, ps, ms
+      let t, ps, ms, m
 
       switch (res.type) {
         case 'all':
@@ -111,9 +142,7 @@ const store = new Vuex.Store({ // eslint-disable-line
           break
 
         case 'player':
-          t = state.tournaments[data.tournament]
-          t.matches[data.match].players[data.player].state = data.state
-          Vue.set(state.tournaments, t.id, t)
+          Vue.set(state.playerStates, data.state.index, data.state)
           break
 
         case 'player_summaries':
@@ -128,6 +157,12 @@ const store = new Vuex.Store({ // eslint-disable-line
             return Player.fromObject(p)
           })
           Vue.set(state.runnerups, data.tournament_id, ps)
+          break
+
+        case 'match':
+          t = state.tournaments[data.tournament]
+          m = Match.fromObject(data.match)
+          Vue.set(state.matches[t.id], m.index, m)
           break
 
         case 'matches':
@@ -152,10 +187,10 @@ const store = new Vuex.Store({ // eslint-disable-line
             return Player.fromObject(p)
           })
 
-          Vue.set(state.tournaments, t.id, t)
           Vue.set(state.runnerups, t.id, rups)
           Vue.set(state.matches, t.id, ms)
           Vue.set(state.playerSummaries, t.id, ps)
+          Vue.set(state.tournaments, t.id, t)
           break
 
         default:
@@ -197,9 +232,13 @@ const store = new Vuex.Store({ // eslint-disable-line
       }
 
       let m = t.find(m => m.index === idx)
-      return _.sortBy(m.players, "id")
+      return _.map(_.sortBy(m.players, "id"), Player.fromObject)
     },
     getPerson: (state, getters) => (id) => {
+      if (state.people === undefined) {
+        return
+      }
+
       return state.people[id]
     },
     getPlayerSummary: (state, getters) => (tid, id) => {
@@ -209,6 +248,9 @@ const store = new Vuex.Store({ // eslint-disable-line
         return
       }
       return ps.find(s => s.person_id === id)
+    },
+    getPlayerState: (state, getters) => (idx) => {
+      return state.playerStates[idx]
     },
     getMatches: (state, getters) => (id) => {
       return state.matches[id]
