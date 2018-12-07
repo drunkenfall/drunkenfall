@@ -1,5 +1,5 @@
 <template>
-<div class="sidebar-buttons" v-if="tournament && user && user.isJudge && showSidebar">
+<div class="sidebar-buttons" v-if="tournament && user && user.isJudge && showSidebar && !isHud">
   <div class="links">
     <button-link
       :to="{ name: 'tournament', params: { tournament: tournament.id }}"

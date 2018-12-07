@@ -228,6 +228,9 @@ var DrunkenFallMixin = {
 
       return this.$store.getters.isConnected
     },
+    isHud () {
+      return this.$route.name === "hud" || this.$route.name === "hud-focused"
+    },
   },
   watch: {
     tournament (val, old) {

@@ -12,7 +12,7 @@
     </h3>
 
 
-    <div id="join" v-if="userLoaded && user.authenticated">
+    <div id="join" v-if="userLoaded && user.authenticated && !isHud">
       <div class="links standalone">
         <a v-if="!isJoined" @click="join">
           <div class="icon positive">
