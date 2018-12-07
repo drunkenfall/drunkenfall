@@ -115,6 +115,9 @@ func (l *Listener) handle(t *Tournament, body []byte) error {
 		return nil
 	}
 
+	// Set connection to true so that if the game restarts we can assume we can send messages
+	t.connect(true)
+
 	// If it wasn't, then it's about a match
 	m, err := t.CurrentMatch()
 	if err != nil {

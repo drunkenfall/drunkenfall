@@ -17,7 +17,7 @@ const (
 	qualifying = "qualifying"
 	playoff    = "playoff"
 	final      = "final"
-	special    = "kind"
+	// special    = "kind"
 )
 
 var ErrPublishIncompleteMatch = errors.New("cannot publish match without four players")
@@ -43,12 +43,12 @@ type Match struct {
 	Scheduled     time.Time     `json:"scheduled"`
 	Started       time.Time     `json:"started"`
 	Ended         time.Time     `json:"ended"`
-	Rounds        []Round       `json:"-" sql:"-"`
+	Rounds        []*Round      `json:"-" sql:"-"`
 	Commits       []Commit      `json:"commits"`
-	Messages      []Message     `json:"messages"`
+	Messages      []Message     `json:"-"`
 	Level         string        `json:"level"`
 	Ruleset       string        `json:"ruleset"`
-	currentRound  Round
+	currentRound  *Round
 	presentColors mapset.Set
 }
 
@@ -63,18 +63,18 @@ type Round struct {
 // A Commit is a flat and SQL-friendly representation of a Round
 type Commit struct {
 	MatchID uint
-	P1up    int
-	P1down  int
-	P1shot  bool
-	P2up    int
-	P2down  int
-	P2shot  bool
-	P3up    int
-	P3down  int
-	P3shot  bool
-	P4up    int
-	P4down  int
-	P4shot  bool
+	P1up    int  `sql:",notnull"`
+	P1down  int  `sql:",notnull"`
+	P1shot  bool `sql:",notnull"`
+	P2up    int  `sql:",notnull"`
+	P2down  int  `sql:",notnull"`
+	P2shot  bool `sql:",notnull"`
+	P3up    int  `sql:",notnull"`
+	P3down  int  `sql:",notnull"`
+	P3shot  bool `sql:",notnull"`
+	P4up    int  `sql:",notnull"`
+	P4down  int  `sql:",notnull"`
+	P4shot  bool `sql:",notnull"`
 
 	Committed time.Time
 	started   bool
@@ -82,18 +82,13 @@ type Commit struct {
 
 // NewMatch creates a new Match
 func NewMatch(t *Tournament, kind string) *Match {
-	index := len(t.Matches)
 	m := Match{
-		Index:      index,
-		Kind:       kind,
-		Tournament: t,
-		Length:     t.Length,
-		Pause:      time.Minute * 5,
-		Rounds:     make([]Round, 0),
-		currentRound: Round{
-			Kills: [][]int{{0, 0}, {0, 0}, {0, 0}, {0, 0}},
-			Shots: []bool{false, false, false, false},
-		},
+		Kind:         kind,
+		Tournament:   t,
+		Length:       t.Length,
+		Pause:        time.Minute * 5,
+		Rounds:       make([]*Round, 0),
+		currentRound: NewRound(),
 	}
 	m.presentColors = mapset.NewSet()
 
@@ -141,9 +136,9 @@ func (m *Match) AddPlayer(p Player) error {
 	// TODO(thiderman): This entire function should be refactored to
 	// take a Person or a PlayerSummary instead
 	p.ID = 0
-	err := globalDB.AddPlayerToMatch(m, &p)
+	err := globalDB.AddPlayerToMatch(m, &p, len(m.Players))
 	if err != nil {
-		return err
+		return errors.WithStack(err)
 	}
 
 	m.Players = append(m.Players, &p)
@@ -162,7 +157,7 @@ func (m *Match) AddPlayer(p Player) error {
 		if len(m.presentColors.ToSlice()) != 4 {
 			if err := m.CorrectFuckingColorConflicts(); err != nil {
 				log.Print("Correcting color conflicts failed")
-				return err
+				return errors.WithStack(err)
 			}
 		}
 	}
@@ -197,7 +192,7 @@ func (m *Match) CorrectFuckingColorConflicts() error {
 					// from the databas.
 					p.Person, err = globalDB.GetPerson(p.PersonID)
 					if err != nil {
-						return err
+						return errors.WithStack(err)
 					}
 				}
 				pairs[c] = append(pairs[c], *p.Person)
@@ -273,8 +268,7 @@ func (m *Match) Commit(round Round) {
 				m.Players[i].AddShot()
 			}
 		}
-		m.Rounds = append(m.Rounds, round)
-		// m.KillOrder = m.MakeKillOrder()
+		m.Rounds = append(m.Rounds, &round)
 	}
 
 	_ = m.Tournament.Persist()
@@ -324,7 +318,7 @@ func (m *Match) handleMessage(msg Message) error {
 
 		nm, err := m.Tournament.NextMatch()
 		if err != nil {
-			return err
+			return errors.WithStack(err)
 		}
 
 		return nm.Start(nil)
@@ -372,16 +366,13 @@ func (m *Match) handleMessage(msg Message) error {
 }
 
 // sendPlayerUpdate sends a status update for a single player
-func (m *Match) sendPlayerUpdate(idx int) error {
-	return m.Tournament.server.SendWebsocketUpdate(
-		"player",
-		PlayerStateUpdateMessage{
-			m.Tournament.Slug,
-			m.Index,
-			idx,
-			m.Players[idx].State,
-		},
-	)
+func (m *Match) sendPlayerUpdate(st *PlayerState) error {
+	return m.Tournament.server.SendPlayerUpdate(m, st)
+}
+
+// sendMatchUpdate sends a status update for the entire match
+func (m *Match) sendMatchUpdate() error {
+	return m.Tournament.server.SendMatchUpdate(m)
 }
 
 // EndRound is similar to Commit, but does not alter the score other
@@ -402,7 +393,7 @@ func (m *Match) EndRound() error {
 			// kills == 3 catches the sweep as well)
 			err := globalDB.UpdatePlayer(m, m.Players[i])
 			if err != nil {
-				return err
+				return errors.WithStack(err)
 			}
 		}
 	}
@@ -413,17 +404,14 @@ func (m *Match) EndRound() error {
 	commit := m.currentRound.asCommit()
 	err := globalDB.AddCommit(m, &commit)
 	if err != nil {
-		return err
+		return errors.WithStack(err)
 	}
 
 	m.Rounds = append(m.Rounds, m.currentRound)
 	// m.KillOrder = m.MakeKillOrder()
 
 	// Reset the Round object
-	m.currentRound = Round{
-		Kills: [][]int{{0, 0}, {0, 0}, {0, 0}, {0, 0}},
-		Shots: []bool{false, false, false, false},
-	}
+	m.currentRound = NewRound()
 
 	return nil
 }
@@ -431,75 +419,154 @@ func (m *Match) EndRound() error {
 // StartRound sets the initial state of player arrows.
 func (m *Match) StartRound(sr StartRoundMessage) error {
 	for i, as := range sr.Arrows {
-		if m.Players[i].State == nil {
-			m.Players[i].State = NewPlayerState()
+		st, err := globalDB.GetPlayerState(m, i)
+		if err != nil {
+			return errors.WithStack(err)
 		}
 
-		m.Players[i].State.Arrows = as
-		m.Players[i].State.Alive = true
-		m.Players[i].State.Hat = true
-		m.Players[i].State.Lava = false
-		m.Players[i].State.Killer = -2
+		st.Arrows = as
+		st.Alive = true
+		st.Hat = true
+		st.Speed = false
+		st.Invisible = false
+		st.Lava = false
+		st.Killer = -2
+
+		// TODO(thiderman): Make into multi-update query
+		err = globalDB.SetPlayerState(st)
+		if err != nil {
+			return errors.WithStack(err)
+		}
+
+		err = m.sendPlayerUpdate(st)
+		if err != nil {
+			return errors.WithStack(err)
+		}
 	}
+
 	m.currentRound.started = true
 	return m.Tournament.Persist()
 }
 
 // ArrowUpdate updates the arrow state for a player
 func (m *Match) ArrowUpdate(am ArrowMessage) error {
-	m.Players[am.Player].State.Arrows = am.Arrows
-	return m.sendPlayerUpdate(am.Player)
+	st, err := globalDB.GetPlayerState(m, am.Player)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	st.Arrows = am.Arrows
+	err = globalDB.SetPlayerState(st)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	return m.sendPlayerUpdate(st)
 }
 
 // ShieldUpdate updates the shield state for a player
 func (m *Match) ShieldUpdate(sm ShieldMessage) error {
-	m.Players[sm.Player].State.Shield = sm.State
+	st, err := globalDB.GetPlayerState(m, sm.Player)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	st.Shield = sm.State
+
+	err = globalDB.SetPlayerState(st)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
 	if !m.currentRound.started {
 		// log.Print("Skipping update of non-started round")
 		return nil
 	}
 
-	return m.sendPlayerUpdate(sm.Player)
+	return m.sendPlayerUpdate(st)
 }
 
 // WingsUpdate updates the wings state for a player
 func (m *Match) WingsUpdate(wm WingsMessage) error {
-	m.Players[wm.Player].State.Wings = wm.State
+	st, err := globalDB.GetPlayerState(m, wm.Player)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	st.Wings = wm.State
+
+	err = globalDB.SetPlayerState(st)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
 	if !m.currentRound.started {
 		// log.Print("Skipping update of non-started round")
 		return nil
 	}
 
-	return m.sendPlayerUpdate(wm.Player)
+	return m.sendPlayerUpdate(st)
 }
 
 // LavaOrb sets or unsets the lava for a player
 func (m *Match) LavaOrb(lm LavaOrbMessage) error {
-	m.Players[lm.Player].State.Lava = lm.State
+	st, err := globalDB.GetPlayerState(m, lm.Player)
+	if err != nil {
+		return errors.WithStack(err)
+	}
 
-	return m.sendPlayerUpdate(lm.Player)
+	st.Lava = lm.State
+
+	err = globalDB.SetPlayerState(st)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	return m.sendPlayerUpdate(st)
 }
 
 // Kill records a Kill
 func (m *Match) Kill(km KillMessage) error {
-	m.Players[km.Player].State.Alive = false
-	m.Players[km.Player].State.Killer = km.Killer
+	st, err := globalDB.GetPlayerState(m, km.Player)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	st.Alive = false
+	st.Killer = km.Killer
+
+	err = globalDB.SetPlayerState(st)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	err = m.sendPlayerUpdate(st)
+	if err != nil {
+		return errors.WithStack(err)
+	}
 
 	if km.Killer == EnvironmentKill {
 		m.Players[km.Player].AddSelf()
 		m.currentRound.AddSelf(km.Player)
 
-		return globalDB.UpdatePlayer(m, m.Players[km.Player])
+		err = globalDB.UpdatePlayer(m, m.Players[km.Player])
 	} else if km.Killer == km.Player {
 		m.Players[km.Player].AddSelf()
 		m.currentRound.AddSelf(km.Player)
 
-		return globalDB.UpdatePlayer(m, m.Players[km.Killer])
+		err = globalDB.UpdatePlayer(m, m.Players[km.Killer])
+	} else {
+		m.Players[km.Killer].AddKills(1)
+		m.currentRound.AddKill(km.Killer)
+
+		err = globalDB.UpdatePlayer(m, m.Players[km.Killer])
 	}
 
-	m.Players[km.Killer].AddKills(1)
-	m.currentRound.AddKill(km.Killer)
-	return globalDB.UpdatePlayer(m, m.Players[km.Killer])
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	return m.sendMatchUpdate()
 }
 
 // Start starts the match
@@ -518,16 +585,13 @@ func (m *Match) Start(c *gin.Context) error {
 	// Set the casters
 	m.Casters = m.Tournament.Casters
 
-	// Increment the current match, but only if we're not at the first.
-	// if m.Index != 0 {
-	// 	log.Printf("Increasing current from %d", m.Tournament.Current)
-	// 	m.Tournament.Current++
-	// } else {
-	// 	log.Print("Not increasing current when starting first match")
-	// }
-
 	m.Started = time.Now()
-	return globalDB.SaveMatch(m)
+	err := globalDB.SaveMatch(m)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	return m.sendMatchUpdate()
 }
 
 // End signals that the match has ended
@@ -565,23 +629,23 @@ func (m *Match) End(c *gin.Context) error {
 
 		err := globalDB.UpdatePlayer(m, m.Players[k])
 		if err != nil {
-			return err
+			return errors.WithStack(err)
 		}
 	}
 
 	m.Ended = time.Now()
 	err := globalDB.SaveMatch(m)
 	if err != nil {
-		return err
+		return errors.WithStack(err)
 	}
 
 	if m.Kind == final {
 		if err := m.Tournament.End(); err != nil {
-			return err
+			return errors.WithStack(err)
 		}
 	} else {
 		if err := m.Tournament.MovePlayers(m); err != nil {
-			return err
+			return errors.WithStack(err)
 		}
 	}
 
@@ -602,7 +666,7 @@ func (m *Match) Reset() error {
 	}
 
 	// And remove all the rounds
-	m.Rounds = make([]Round, 0)
+	m.Rounds = make([]*Round, 0)
 
 	// And reset the start time
 	m.Started = time.Time{}
@@ -616,7 +680,7 @@ func (m *Match) Autoplay() error {
 		err := m.Start(nil)
 		if err != nil {
 			log.Printf("Failed to start match: %+v", err)
-			return err
+			return errors.WithStack(err)
 		}
 	}
 	for !m.CanEnd() {
@@ -708,29 +772,6 @@ func (m *Match) Duration() time.Duration {
 	return m.Ended.Sub(m.Started)
 }
 
-// NewMatchCommit makes a new MatchCommit object from a CommitRequest
-func NewMatchCommit(c CommitRequest) Round {
-	states := c.State
-	m := Round{
-		[][]int{
-			{states[0].Ups, states[0].Downs},
-			{states[1].Ups, states[1].Downs},
-			{states[2].Ups, states[2].Downs},
-			{states[3].Ups, states[3].Downs},
-		},
-		[]bool{
-			states[0].Shot,
-			states[1].Shot,
-			states[2].Shot,
-			states[3].Shot,
-		},
-		time.Now(),
-		false,
-	}
-
-	return m
-}
-
 // IsShotUpdate returns true if the only thing that happened was shots
 func (r *Round) IsShotUpdate() bool {
 	for _, y := range r.Kills {
@@ -748,6 +789,14 @@ func (r *Round) IsShotUpdate() bool {
 	}
 
 	return false
+}
+
+// NewRound makes a new round
+func NewRound() *Round {
+	return &Round{
+		Kills: [][]int{{0, 0}, {0, 0}, {0, 0}, {0, 0}},
+		Shots: []bool{false, false, false, false},
+	}
 }
 
 // NewAutoplayRound fakes player activity in a round

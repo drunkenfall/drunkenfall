@@ -3,6 +3,7 @@ package towerfall
 import (
 	"encoding/json"
 
+	"github.com/pkg/errors"
 	"go.uber.org/zap"
 )
 
@@ -10,7 +11,9 @@ const (
 	wTournament      = "tournament"
 	wPlayerSummaries = "player_summaries"
 	wRunnerups       = "runnerups"
-	wMatch           = "matches"
+	wPlayer          = "player"
+	wMatch           = "match"
+	wMatches         = "matches"
 	wMatchEnd        = "match_end"
 )
 
@@ -94,6 +97,12 @@ func (s *Server) SendWebsocketUpdate(kind string, data interface{}) error {
 			s.log.Error("Broadcast failed", zap.Error(err))
 			return
 		}
+
+		s.log.Info(
+			"Websocket update",
+			zap.String("type", kind),
+			zap.Any("data", data),
+		)
 	}(kind, data)
 
 	return nil
@@ -133,6 +142,38 @@ func (s *Server) SendRunnerupsUpdate(t *Tournament) error {
 	})
 }
 
+// SendPlayerUpdate sends a status update for a single player
+func (s *Server) SendPlayerUpdate(m *Match, st *PlayerState) error {
+	return s.SendWebsocketUpdate(
+		wPlayer,
+		PlayerStateUpdateMessage{m.Tournament.ID, m.Index, st},
+	)
+}
+
+// SendMatchUpdate sends a status update for the entire match
+func (s *Server) SendMatchUpdate(m *Match) error {
+	// TODO(thiderman): This is terrible
+	// Load the match from the database to avoid caching problems
+	lm, err := globalDB.GetMatch(m.ID)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	sts, err := globalDB.GetPlayerStates(lm)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	return s.SendWebsocketUpdate(
+		wMatch,
+		MatchUpdateMessage{
+			m.Tournament.ID,
+			lm,
+			sts,
+		},
+	)
+}
+
 // SendMatchesUpdate sends an update about the matches
 func (s *Server) SendMatchesUpdate(t *Tournament) error {
 	ms, err := s.DB.GetMatches(t, "all")
@@ -140,7 +181,7 @@ func (s *Server) SendMatchesUpdate(t *Tournament) error {
 		return err
 	}
 
-	return s.SendWebsocketUpdate(wMatch, wsMatches{
+	return s.SendWebsocketUpdate(wMatches, wsMatches{
 		TournamentID: t.ID,
 		Matches:      ms,
 	})

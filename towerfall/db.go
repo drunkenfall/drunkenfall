@@ -1,6 +1,7 @@
 package towerfall
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 
@@ -79,8 +80,9 @@ func (d *Database) RemovePlayer(ps *PlayerSummary) error {
 }
 
 // AddPlayerToMatch adds a player object to a match
-func (d *Database) AddPlayerToMatch(m *Match, p *Player) error {
+func (d *Database) AddPlayerToMatch(m *Match, p *Player, idx int) error {
 	p.MatchID = m.ID
+	p.Index = idx
 
 	// Reset the scores.
 	// TODO(thiderman): Replace this
@@ -138,9 +140,18 @@ func (d *Database) StoreMessage(m *Match, msg *Message) error {
 	// what the caller thinks. Without this, this operation becomes
 	// crazy slow since we do it so often.
 	go func() {
-		err := d.DB.Insert(msg)
+		out, err := json.Marshal(msg.Data)
+		if err != nil {
+			log.Printf("Error when marshalling JSON: %+v", err)
+			return
+		}
+
+		msg.JSON = string(out)
+
+		err = d.DB.Insert(msg)
 		if err != nil {
 			log.Printf("Error when saving message: %+v", err)
+			return
 		}
 	}()
 
@@ -267,8 +278,9 @@ func (d *Database) GetPeopleById(ids ...string) ([]*Person, error) {
 	return ret, err
 }
 
-// getTournament gets a tournament by slug
+// GetTournament gets a tournament by id, or returns the cached one if there is one
 func (d *Database) GetTournament(id uint) (*Tournament, error) {
+	// if d.tournament == nil {
 	t := Tournament{
 		db:     d,
 		server: d.Server,
@@ -276,13 +288,22 @@ func (d *Database) GetTournament(id uint) (*Tournament, error) {
 
 	q := d.DB.Model(&t).Column("tournament.*", "Matches", "Players")
 	err := q.Where("id = ?", id).First()
-	return &t, err
+	if err != nil {
+		return nil, err
+	}
+
+	return &t, nil
+
+	// 	d.tournament = &t
+	// }
+
+	// return d.tournament, nil
 }
 
 func (d *Database) GetTournaments() ([]*Tournament, error) {
 	ret := make([]*Tournament, 0)
 	q := d.DB.Model(&ret).Column("tournament.*", "Matches", "Players")
-	err := q.Order("scheduled DESC").Select()
+	err := q.Order("opened DESC").Select()
 	return ret, err
 }
 
@@ -293,15 +314,24 @@ func (d *Database) GetCurrentTournament() (*Tournament, error) {
 		server: d.Server,
 	}
 
-	err := d.DB.Model(&t).Where("started IS NOT NULL").Where("ended IS NULL").Order("scheduled").First()
+	err := d.DB.Model(&t).Where("started IS NOT NULL").Where("ended IS NULL").Order("opened DESC").First()
 	return &t, err
 }
 
 // GetMatch gets a match
 func (d *Database) GetMatch(id uint) (*Match, error) {
 	m := Match{}
-	q := d.DB.Model(&m).Where("match.id = ?", id).Column("match.*", "Players")
+	q := d.DB.Model(&m).Where("match.id = ?", id)
 	err := q.Select()
+	if err != nil {
+		return nil, err
+	}
+
+	ps := []*Player{}
+	q = d.DB.Model(&ps).Where("match_id = ?", id).Order("index")
+	err = q.Select()
+	m.Players = ps
+
 	return &m, err
 }
 
@@ -309,7 +339,7 @@ func (d *Database) GetMatch(id uint) (*Match, error) {
 func (d *Database) GetMatches(t *Tournament, kind string) ([]*Match, error) {
 	ret := []*Match{}
 
-	q := d.DB.Model(&ret).Column("match.*", "Players")
+	q := d.DB.Model(&ret)
 
 	if kind != "all" {
 		q = q.Where("kind = ?", kind)
@@ -317,6 +347,20 @@ func (d *Database) GetMatches(t *Tournament, kind string) ([]*Match, error) {
 
 	q = q.Where("tournament_id = ?", t.ID).Order("id ASC")
 	err := q.Select(&ret)
+	if err != nil {
+		return ret, err
+	}
+
+	// XXX(thiderman): This is terrible, but without it the ordering of the players is wrong again
+	for x, m := range ret {
+		ps := []*Player{}
+		q = d.DB.Model(&ps).Where("match_id = ?", m.ID).Order("index")
+		err = q.Select()
+		if err != nil {
+			return ret, err
+		}
+		ret[x].Players = ps
+	}
 
 	return ret, err
 }
@@ -340,12 +384,17 @@ func (d *Database) NextMatch(t *Tournament) (*Match, error) {
 	}
 
 	q := t.db.DB.Model(&m).Where("tournament_id = ? AND started IS NULL", t.ID)
-	q = q.Order("id").Limit(1).Column("match.*", "Players")
+	q = q.Order("id").Limit(1).Column("match.*")
 
 	err := q.Select()
 	if err != nil {
 		return nil, err
 	}
+
+	ps := []*Player{}
+	q = d.DB.Model(&ps).Where("match_id = ?", m.ID).Order("index")
+	err = q.Select()
+	m.Players = ps
 
 	return &m, err
 }
@@ -353,7 +402,8 @@ func (d *Database) NextMatch(t *Tournament) (*Match, error) {
 // CurrentMatch the currently running match
 func (d *Database) CurrentMatch(t *Tournament) (*Match, error) {
 	m := Match{
-		Tournament: t,
+		Tournament:   t,
+		currentRound: NewRound(),
 	}
 
 	q := t.db.DB.Model(&m).Where("tournament_id = ? AND ended IS NULL", t.ID)
@@ -365,7 +415,7 @@ func (d *Database) CurrentMatch(t *Tournament) (*Match, error) {
 	}
 
 	ps := []*Player{}
-	q = t.db.DB.Model(&ps).Where("match_id = ?", m.ID)
+	q = t.db.DB.Model(&ps).Where("match_id = ?", m.ID).Order("index ASC")
 	err = q.Select()
 	m.Players = ps
 
@@ -476,6 +526,35 @@ func (d *Database) GetPlayerSummaries(t *Tournament) ([]*PlayerSummary, error) {
 	return ret, err
 }
 
+// GetPlayerState gets the player state for a player
+func (d *Database) GetPlayerState(m *Match, idx int) (*PlayerState, error) {
+	sts, err := d.GetPlayerStates(m)
+	if err != nil {
+		return nil, err
+	}
+	return sts[idx], err
+}
+
+// GetPlayerStates gets the players for all players in a match
+func (d *Database) GetPlayerStates(m *Match) ([]*PlayerState, error) {
+	st := []*PlayerState{}
+	q := d.DB.Model(&st)
+
+	args := make([]interface{}, 0)
+	for _, p := range m.Players {
+		args = append(args, p.ID)
+	}
+
+	q = q.WhereIn("player_id IN (?)", args...)
+	err := q.Order("index ASC").Select(&st)
+	return st, err
+}
+
+// SetPlayerState gets the player state for a player
+func (d *Database) SetPlayerState(st *PlayerState) error {
+	return d.DB.Update(st)
+}
+
 // UsurpTournament adds testing players
 func (d *Database) UsurpTournament(t *Tournament, x int) error {
 	query := `INSERT INTO player_summaries (tournament_id, person_id)
@@ -495,7 +574,8 @@ func (d *Database) UsurpTournament(t *Tournament, x int) error {
 
 // ClearTestTournaments deletes any tournament that doesn't begin with "DrunkenFall"
 func (d *Database) ClearTestTournaments() error {
-	return nil
+	_, err := d.DB.Model(&Tournament{}).Where("name NOT LIKE 'DrunkenFall%'").Delete()
+	return err
 }
 
 // Close closes the database

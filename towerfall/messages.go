@@ -5,10 +5,15 @@ import (
 )
 
 type PlayerStateUpdateMessage struct {
-	Tournament string       `json:"tournament"`
+	Tournament uint         `json:"tournament"`
 	Match      int          `json:"match"`
-	Player     int          `json:"player"`
 	State      *PlayerState `json:"state"`
+}
+
+type MatchUpdateMessage struct {
+	Tournament uint           `json:"tournament"`
+	Match      *Match         `json:"match"`
+	Players    []*PlayerState `json:"player_states"`
 }
 
 // StartPlayMessage is sent to the game whenever one of the shot girls
@@ -48,8 +53,8 @@ type GamePlayer struct {
 }
 
 type Message struct {
-	ID        uint
-	MatchID   uint
+	ID        uint        `json:"id"`
+	MatchID   uint        `json:"match_id"`
 	Type      string      `json:"type"`
 	Data      interface{} `json:"data" sql:"-"`
 	JSON      string      `json:"-"`
