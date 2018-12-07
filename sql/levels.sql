@@ -73,7 +73,11 @@ LANGUAGE plpgsql;
 
 -- Sets a level and a ruleset on a match when we are inserting it
 CREATE OR REPLACE FUNCTION match_insert() RETURNS trigger AS $$
+  DECLARE index INTEGER;
   BEGIN
+   SELECT COUNT(*) FROM matches WHERE tournament_id = NEW.tournament_id INTO index;
+
+   NEW.index = index;
    NEW.level = random_level(NEW.tournament_id, NEW.kind);
    NEW.ruleset = level_rules(NEW.kind);
    RETURN NEW;
