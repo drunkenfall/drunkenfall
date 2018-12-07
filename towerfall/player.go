@@ -51,6 +51,7 @@ type Player struct {
 	ID             uint         `json:"id"`
 	MatchID        uint         `sql:",pk" json:"match_id"`
 	PersonID       string       `json:"person_id"`
+	Index          int          `json:"index" sql:",notnull"`
 	Person         *Person      `json:"person"`
 	Nick           string       `json:"nick"`
 	Color          string       `json:"color"`
@@ -84,15 +85,16 @@ type PlayerSummary struct {
 
 type PlayerState struct {
 	ID        uint   `json:"id"`
-	PlayerID  uint   `json:"-"`
-	Arrows    Arrows `json:"arrows"`
-	Shield    bool   `json:"shield"`
-	Wings     bool   `json:"wings"`
-	Hat       bool   `json:"hat"`
-	Invisible bool   `json:"invisible"`
-	Speed     bool   `json:"speed"`
-	Alive     bool   `json:"alive"`
-	Lava      bool   `json:"lava"`
+	PlayerID  uint   `json:"player_id"`
+	Index     int    `json:"index" sql:",notnull"`
+	Arrows    Arrows `json:"arrows" sql:",array"`
+	Shield    bool   `json:"shield" sql:",notnull"`
+	Wings     bool   `json:"wings" sql:",notnull"`
+	Hat       bool   `json:"hat" sql:",notnull"`
+	Invisible bool   `json:"invisible" sql:",notnull"`
+	Speed     bool   `json:"speed" sql:",notnull"`
+	Alive     bool   `json:"alive" sql:",notnull"`
+	Lava      bool   `json:"lava" sql:",notnull"`
 	Killer    int    `json:"killer" sql:",notnull"`
 }
 
