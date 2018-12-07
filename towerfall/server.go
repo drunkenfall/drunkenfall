@@ -150,7 +150,64 @@ func (s *Server) TournamentHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"tournament": tm})
+	tlog := s.log.With(
+		zap.String("path", c.Request.URL.Path),
+		zap.String("tournament", tm.Slug),
+	)
+
+	ms, err := s.DB.GetMatches(tm, "all")
+
+	if err != nil {
+		tlog.Error("Couldn't get matches", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Couldn't get matches",
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	var rups []*PlayerSummary
+	var ps []*PlayerSummary
+	var sts []*PlayerState
+
+	// These are only really needed when the tournament is running
+	if tm.IsRunning() {
+		rups, err = s.DB.GetAllRunnerups(tm)
+		if err != nil {
+			tlog.Info("Could not get summaries", zap.Error(err))
+			c.JSON(http.StatusInternalServerError, gin.H{"message": "could not get summaries"})
+			return
+		}
+
+		ps, err = s.DB.GetPlayerSummaries(tm)
+		if err != nil {
+			tlog.Info("Could not get summaries", zap.Error(err))
+			c.JSON(http.StatusInternalServerError, gin.H{"message": "could not get summaries"})
+			return
+		}
+
+		m, err := tm.CurrentMatch()
+		if err != nil {
+			tlog.Info("Could not get current match", zap.Error(err))
+			c.JSON(http.StatusInternalServerError, gin.H{"message": "could not get summaries"})
+			return
+		}
+
+		sts, err = s.DB.GetPlayerStates(m)
+		if err != nil {
+			tlog.Info("Could not get player states", zap.Error(err))
+			c.JSON(http.StatusInternalServerError, gin.H{"message": "could not get summaries"})
+			return
+		}
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"tournament":       tm,
+		"matches":          ms,
+		"runnerups":        rups,
+		"player_summaries": ps,
+		"player_states":    sts,
+	})
 }
 
 // TournamentListHandler returns a list of all tournaments
@@ -818,7 +875,7 @@ func (s *Server) BuildRouter(ws *melody.Melody) *gin.Engine {
 	api.POST("/user/settings/", s.SettingsHandler)
 	api.GET("/fake/name/", s.FakeNameHandler)
 	api.GET("/tournaments/", s.TournamentListHandler)
-	// api.GET("/tournaments/:id", s.TournamentHandler)
+	api.GET("/tournaments/:id/", s.TournamentHandler)
 	api.GET("/facebook/login", s.handleFacebookLogin)
 	api.GET("/facebook/oauth2callback", s.handleFacebookCallback)
 

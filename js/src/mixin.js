@@ -73,36 +73,17 @@ var DrunkenFallMixin = {
       let $vue = this
       let id = this.$route.params.tournament
 
-      this.$http.get(`/api/tournaments/${id}/matches/`).then(function (res) {
+      this.$http.get(`/api/tournaments/${id}/`).then(function (res) {
         let data = JSON.parse(res.data)
-        this.$store.commit('setMatches', {
-          tid: id,
+        this.$store.commit('setInitial', {
+          tournament: data.tournament,
           matches: data.matches,
-        })
-      }, function (res) {
-        $vue.$alert("Getting players failed. See console.")
-        console.error(res)
-      })
-
-      this.$http.get(`/api/tournaments/${id}/players/`).then(function (res) {
-        let data = JSON.parse(res.data)
-        this.$store.commit('setPlayerSummaries', {
-          tid: id,
+          runnerups: data.runnerups,
           player_summaries: data.player_summaries,
+          player_states: data.player_states,
         })
       }, function (res) {
-        $vue.$alert("Getting players failed. See console.")
-        console.error(res)
-      })
-
-      this.$http.get(`/api/tournaments/${id}/runnerups/`).then(function (res) {
-        let data = JSON.parse(res.data)
-        this.$store.commit('setRunnerups', {
-          tid: id,
-          player_summaries: data.player_summaries,
-        })
-      }, function (res) {
-        $vue.$alert("Getting players failed. See console.")
+        $vue.$alert("Getting initial state failed failed. See console.")
         console.error(res)
       })
     },
