@@ -99,18 +99,21 @@ postgres:
 psql:
 	@psql --host localhost --user postgres drunkenfall
 
+DB := ./data/db.sql
+
 .PHONY: reset-db
 reset-db:
-	[[ -n "$(DRUNKENFALL_RESET_DB)" ]] && \
-	psql --host localhost --user postgres drunkenfall < init-db.sql \
-    || echo "need to set DRUNKENFALL_RESET_DB"
+	test -n "$(DRUNKENFALL_RESET_DB)"
+	psql --host localhost --user postgres -c "DROP DATABASE drunkenfall"
+	psql --host localhost --user postgres -c "CREATE DATABASE drunkenfall"
+	psql --host localhost --user postgres drunkenfall < $(DB)
 
 .PHONY: reset-test-db
 reset-test-db:
 	psql --host localhost --user postgres -c "DROP DATABASE test_drunkenfall"
 	psql --host localhost --user postgres -c "CREATE DATABASE test_drunkenfall"
-	psql --host localhost --user postgres test_drunkenfall < test-db.sql
+	psql --host localhost --user postgres test_drunkenfall < $(DB)
 
 .PHONY: make-test-db
 make-test-db:
-	pg_dump --user postgres --host localhost drunkenfall > test-db.sql
+	pg_dump --user postgres --host localhost drunkenfall > $(DB)

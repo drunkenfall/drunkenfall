@@ -8,7 +8,4 @@
 *.json
 /*.env
 /vendor
-
-towerfall/migrations/*/in/*
-towerfall/migrations/*/out/*
-*test-db.sql
+/data/
