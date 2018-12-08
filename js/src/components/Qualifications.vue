@@ -17,7 +17,7 @@
 
       <div class="scores">
         {{p.skill_score}}pts,
-        {{p.matches}}m
+        <span>{{p.matches}}m</span>
       </div>
     </div>
   </div>
@@ -96,6 +96,10 @@ export default {
     .scores {
       padding: 1.6vh;
       font-size: 3vh;
+
+      span {
+        opacity: 0.6;
+      }
     }
   }
 }
