@@ -97,7 +97,7 @@ export default {
   },
 
   watch: {
-    tournament (nt, ot) {
+    match (nt, ot) {
       if (nt) {
         console.log("starting clocks")
         this.countdown.start(this.match.scheduled)
