@@ -90,7 +90,8 @@ func (t *Tournament) PublishNext() error {
 		return err
 	}
 
-	if len(next.Players) != 4 {
+	// If it is a special match, allow less than four players
+	if len(next.Players) != 4 && next.Kind != special {
 		return ErrPublishIncompleteMatch
 	}
 
