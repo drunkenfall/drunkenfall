@@ -494,11 +494,34 @@ func (d *Database) GetWinner(m *Match) (*Player, error) {
 	return &p, nil
 }
 
+// GetSilver gets the winner of the match
+func (d *Database) GetSilver(m *Match) (*Player, error) {
+	p := Player{}
+	q := d.DB.Model(&p).Where("match_id = ?", m.ID).Order("kills DESC")
+	q = q.Column("player.*", "Person").Offset(1).Limit(1)
+	err := q.Select()
+	if err != nil {
+		return nil, err
+	}
+
+	if &p == nil {
+		return nil, errors.New("player was nil")
+	}
+
+	return &p, nil
+}
+
 // GetPlayoffPlayers gets the sixteen players that made it to the playoffs
 func (d *Database) GetPlayoffPlayers(t *Tournament) ([]*PlayerSummary, error) {
+	limit := 16
+	if len(t.Players) < limit {
+		log.Print("Backing down to two-match playoffs")
+		limit = 8
+	}
+
 	ret := []*PlayerSummary{}
 	q := d.DB.Model(&ret).Where("tournament_id = ?", t.ID)
-	q = q.Order("skill_score DESC").Limit(16)
+	q = q.Order("skill_score DESC").Limit(limit)
 
 	err := q.Select()
 	return ret, err

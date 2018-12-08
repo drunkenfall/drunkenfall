@@ -302,6 +302,118 @@ func TestFullTournament(t *testing.T) {
 	})
 }
 
+func TestFullTournamentWithLessThan16Players(t *testing.T) {
+	players := 12
+	s, teardown := MockServer(t)
+	defer teardown()
+
+	tm := testTournament(t, s, players)
+
+	t.Run("Starting", func(t *testing.T) {
+		err := tm.StartTournament(nil)
+		if !assert.NoError(t, err) {
+			t.Fatal(err)
+		}
+	})
+
+	t.Run("Matches set", func(t *testing.T) {
+		assert.Equal(t, 2, len(tm.Matches))
+	})
+
+	t.Run("Players set in matches", func(t *testing.T) {
+		assert.Equal(t, 4, len(tm.Matches[0].Players))
+		assert.Equal(t, 4, len(tm.Matches[1].Players))
+	})
+
+	matches := 16
+	for x := 0; x < matches; x++ {
+		t.Run(fmt.Sprintf("Match %d", x+1), func(t *testing.T) { runTestMatch(t, tm, x, false) })
+	}
+
+	t.Run("Schedule qualifying end", func(t *testing.T) {
+		err := tm.EndQualifyingRounds(time.Now())
+		assert.NoError(t, err)
+	})
+
+	// Run the last two matches
+	runTestMatch(t, tm, matches, false)
+	runTestMatch(t, tm, matches+1, false)
+
+	t.Run("All qualifying matches ended", func(t *testing.T) {
+		ret, err := tm.db.QualifyingMatchesDone(tm)
+		assert.NoError(t, err)
+		assert.True(t, ret)
+	})
+
+	t.Run("Two playoffs and a funeral", func(t *testing.T) {
+		playoffs, err := tm.db.GetMatches(tm, playoff)
+		assert.NoError(t, err)
+		assert.Equal(t, 2, len(playoffs))
+
+		t.Run("Players scheduled for playoffs", func(t *testing.T) {
+			for _, m := range playoffs {
+				log.Printf("%+v", m)
+				assert.Equal(t, 4, len(m.Players))
+				assert.Equal(t, 20, m.Length)
+				assert.Equal(t, "A", m.Ruleset)
+			}
+		})
+
+		t.Run("Final scheduled", func(t *testing.T) {
+			finals, err := tm.db.GetMatches(tm, final)
+			assert.NoError(t, err)
+
+			if !assert.Equal(t, 1, len(finals)) {
+				t.Fatal("final not set")
+			}
+
+			f := finals[0]
+			assert.Equal(t, f.Level, "cataclysm")
+			assert.Equal(t, f.Ruleset, "B")
+			assert.Equal(t, f.Length, 20)
+		})
+	})
+
+	t.Run("First playoff", func(t *testing.T) {
+		runTestMatch(t, tm, matches+2, false)
+
+		finals, err := tm.db.GetMatches(tm, final)
+		assert.NoError(t, err)
+		if !assert.Equal(t, 1, len(finals)) {
+			t.Fatal("no final set")
+		}
+
+		t.Run("Two players sent to finals", func(t *testing.T) {
+			assert.Equal(t, 2, len(finals[0].Players))
+		})
+	})
+
+	t.Run("Second playoff", func(t *testing.T) {
+		runTestMatch(t, tm, matches+3, false)
+
+		finals, err := tm.db.GetMatches(tm, final)
+		assert.NoError(t, err)
+		if !assert.Equal(t, 1, len(finals)) {
+			t.Fatal("no final set")
+		}
+
+		t.Run("All players sent to finals", func(t *testing.T) {
+			assert.Equal(t, 4, len(finals[0].Players))
+		})
+	})
+
+	t.Run("Fhfppfphiinhnallehheh", func(t *testing.T) {
+		// TODO(thiderman): Figure out why this is 4 and not 3
+		runTestMatch(t, tm, matches+4, false)
+	})
+
+	t.Run("Tournament end state", func(t *testing.T) {
+		t.Run("End is set", func(t *testing.T) {
+			assert.NotZero(t, tm.Ended)
+		})
+	})
+}
+
 func TestDoubleStartIsForbidden(t *testing.T) {
 	assert := assert.New(t)
 	s, teardown := MockServer(t)

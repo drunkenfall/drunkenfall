@@ -429,12 +429,16 @@ func DividePlayoffPlayers(ps []*PlayerSummary) ([][]*PlayerSummary, error) {
 	ret := [][]*PlayerSummary{
 		[]*PlayerSummary{},
 		[]*PlayerSummary{},
-		[]*PlayerSummary{},
-		[]*PlayerSummary{},
 	}
 
+	if len(ps) == 16 {
+		ret = append(ret, []*PlayerSummary{})
+		ret = append(ret, []*PlayerSummary{})
+	}
+
+	mod := len(ret)
 	for x, p := range ps {
-		ret[x%4] = append(ret[x%4], p)
+		ret[x%mod] = append(ret[x%mod], p)
 	}
 
 	return ret, nil

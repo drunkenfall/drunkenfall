@@ -374,6 +374,18 @@ func (t *Tournament) MovePlayers(m *Match) error {
 		if err != nil {
 			return err
 		}
+
+		// If we're running a short tournament, also add the second place
+		if len(t.Players) < 16 {
+			p, err := t.db.GetSilver(m)
+			if err != nil {
+				return err
+			}
+			err = f.AddPlayer(*p)
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	return nil
@@ -390,8 +402,8 @@ func (t *Tournament) ScheduleEndgame() error {
 	}
 
 	lp := len(players)
-	if lp != 16 {
-		return errors.New(fmt.Sprintf("Needed 16 players, got %d", lp))
+	if lp < 8 {
+		return errors.New(fmt.Sprintf("Needed at least 8 players, got %d", lp))
 	}
 
 	// Bucket the players for inclusion in the playoffs
@@ -400,8 +412,10 @@ func (t *Tournament) ScheduleEndgame() error {
 		return errors.WithStack(err)
 	}
 
-	// Add four playoff matches
-	for x := 0; x < 4; x++ {
+	matches := len(buckets)
+
+	// Add playoff matches
+	for x := 0; x < matches; x++ {
 		m := NewMatch(t, playoff)
 
 		// Add players to the match
