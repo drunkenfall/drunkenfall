@@ -124,7 +124,7 @@ export default {
       return this.trackingTournament
     },
     match () {
-      return this.tournament.matches[this.tournament.current]
+      return this.tournament.currentMatch
     }
   },
   methods: {
@@ -149,6 +149,8 @@ export default {
     },
   },
   created () {
+    this.loadAll()
+
     document.getElementsByTagName("body")[0].className = "scroll-less sidebar-less"
     this.api = this.$resource("/api", {}, {
       start: { method: "GET", url: "/api/simulator/start/{id}" },
@@ -164,7 +166,7 @@ export default {
 $stream-sidebar: 580px;
 $bottom: 75px;
 $chromakey: #0f0;
-$chromakey: #212;
+/* $chromakey: #212; */
 
 #live {
   height: 100%;
