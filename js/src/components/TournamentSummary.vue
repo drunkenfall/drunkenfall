@@ -26,7 +26,7 @@ export default {
       return this.tournaments[this.$route.params.tournament]
     },
     winner () {
-      return _.sortBy(this.tournament.final.players, 'kills')[0]
+      return _.reverse(_.sortBy(this.tournament.final.players, 'kills'))[0]
     }
   },
 }
