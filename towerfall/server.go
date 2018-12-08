@@ -293,7 +293,7 @@ func (s *Server) StartTournamentHandler(c *gin.Context) {
 		return
 	}
 
-	err = s.SendTournamentUpdate(tm)
+	err = s.SendMatchEndUpdate(tm)
 	if err != nil {
 		tlog.Info("Could not send tournament update", zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
