@@ -251,6 +251,11 @@ func (p *Player) ScoreData() []ScoreData {
 
 // AddShot increases the shot count
 func (p *Player) AddShot() {
+	if p.Match.Kind == qualifying {
+		log.Printf("Not adding shot to '%s' during qualifying match", p.Nick)
+		return
+	}
+
 	p.Shots++
 }
 
@@ -258,7 +263,7 @@ func (p *Player) AddShot() {
 // Fails silently if shots are zero.
 func (p *Player) RemoveShot() {
 	if p.Shots == 0 {
-		log.Printf("Not removing shot from %s; already at zero", p.Nick)
+		log.Printf("Not removing shot from '%s'; already at zero", p.Nick)
 		return
 	}
 	p.Shots--
@@ -281,7 +286,7 @@ func (p *Player) AddKills(kills int) {
 // Doesn't to anything if kills are at zero.
 func (p *Player) RemoveKill() {
 	if p.Kills == 0 {
-		log.Printf("Not removing kill from %s; already at zero", p.Nick)
+		log.Printf("Not removing kill from '%s'; already at zero", p.Nick)
 		return
 	}
 	p.Kills--
