@@ -107,6 +107,8 @@ export default {
   },
 
   created () {
+    this.loadAll()
+
     this.api = this.$resource("/api", {}, {
       setTime: { method: "GET", url: "/api/tournaments/{id}/time/{time}" },
     })
