@@ -166,20 +166,19 @@ func (s *Server) TournamentHandler(c *gin.Context) {
 		return
 	}
 
+	ps, err := s.DB.GetPlayerSummaries(tm)
+	if err != nil {
+		tlog.Info("Could not get summaries", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "could not get summaries"})
+		return
+	}
+
 	var rups []*PlayerSummary
-	var ps []*PlayerSummary
 	var sts []*PlayerState
 
 	// These are only really needed when the tournament is running
 	if tm.IsRunning() {
 		rups, err = s.DB.GetAllRunnerups(tm)
-		if err != nil {
-			tlog.Info("Could not get summaries", zap.Error(err))
-			c.JSON(http.StatusInternalServerError, gin.H{"message": "could not get summaries"})
-			return
-		}
-
-		ps, err = s.DB.GetPlayerSummaries(tm)
 		if err != nil {
 			tlog.Info("Could not get summaries", zap.Error(err))
 			c.JSON(http.StatusInternalServerError, gin.H{"message": "could not get summaries"})
