@@ -49,7 +49,7 @@ export default class Match {
     if (this.kind === "special") {
       return "YaLo Winnah"
     }
-    return _.capitalize(this.kind) // + " " + this.relativeIndex
+    return _.capitalize(this.kind) + " " + this.relativeIndex
   }
 
   get players () {
@@ -67,8 +67,18 @@ export default class Match {
 
   get relativeIndex () {
     if (this.kind === "playoff") {
-      // return this.index - (this.tournament.matches.length -)
+      let quals = _.filter(store.state.matches[this.tournament_id], (m) => {
+        return m.kind === "qualifying"
+      })
+
+      let totalPlayoffs = _.filter(store.state.matches[this.tournament_id], (m) => {
+        return m.kind === "playoff"
+      })
+
+      let index = this.index - quals.length + 1
+      return `${index} / ${totalPlayoffs.length}`
     }
+
     return this.index + 1
   }
 
