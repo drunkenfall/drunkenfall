@@ -47,7 +47,7 @@ export default class Match {
       return "Final"
     }
     if (this.kind === "special") {
-      reutrn "YaLo Winnah"
+      return "YaLo Winnah"
     }
     return _.capitalize(this.kind) // + " " + this.relativeIndex
   }
