@@ -10,8 +10,12 @@
 
       <match :match="match" class="match"></match>
 
-      <div class="logo">
+      <div class="logo subtitle-logo">
         <img :class="{ded: !isConnected}" alt="One-Eye" src="/static/img/oem.svg"/>
+        <div class="text">
+          <p class="header">DrunkenFall</p>
+          <p class="subtitle" :class="tournament.color">{{tournament.subtitle}}</p>
+        </div>
       </div>
     </div>
 
@@ -96,7 +100,7 @@ export default {
   flex-grow: 1;
   justify-content: space-between;
 
-  .ongoing, .players {
+  .players {
     padding: 0 5em;
   }
 
@@ -107,6 +111,7 @@ export default {
     flex-direction: column;
 
     .match {
+      padding: 0 5em;
       display: flex;
       flex-grow: 1;
       flex-direction: column;
@@ -115,6 +120,11 @@ export default {
     .logo {
       img {
         height: 150px;
+
+        &.ded {
+          -webkit-filter: grayscale(100%) brightness(75%);
+          filter: grayscale(100%) brightness(75%);
+        }
       }
     }
   }
