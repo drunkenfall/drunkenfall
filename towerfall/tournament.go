@@ -395,6 +395,31 @@ func (t *Tournament) MovePlayers(m *Match) error {
 func (t *Tournament) ScheduleEndgame() error {
 	log.Print("Scheduling endgame")
 
+	// First, add the yalo match
+	yalo := NewMatch(t, special)
+	yasa, err := globalDB.GetPerson("10153861129901027")
+	if err != nil {
+		return err
+	}
+	yasa.DisplayNames = []string{"NOT", "GUD"}
+
+	thiderman, err := globalDB.GetPerson("1279099058796903")
+	if err != nil {
+		return err
+	}
+
+	thiderman.DisplayNames = []string{"NOT", "GUD"}
+
+	err = yalo.AddPlayer(*NewPlayer(yasa))
+	if err != nil {
+		return err
+	}
+	err = yalo.AddPlayer(*NewPlayer(thiderman))
+	if err != nil {
+		return err
+	}
+	t.Matches = append(t.Matches, yalo)
+
 	// Get sorted list of players that made it to the playoffs
 	players, err := t.db.GetPlayoffPlayers(t)
 	if err != nil {

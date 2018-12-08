@@ -17,7 +17,7 @@ const (
 	qualifying = "qualifying"
 	playoff    = "playoff"
 	final      = "final"
-	// special    = "kind"
+	special    = "special"
 )
 
 var ErrPublishIncompleteMatch = errors.New("cannot publish match without four players")
