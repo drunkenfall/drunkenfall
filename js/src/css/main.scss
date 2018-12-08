@@ -36,6 +36,7 @@ body, html {
     #sidebar {
       left: -$sidebar-width;
       box-shadow: none;
+      display: none;
     }
     #app > .sidebared {
       margin-left: 0;

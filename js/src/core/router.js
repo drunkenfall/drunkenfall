@@ -19,6 +19,7 @@ import Statusbar from '../components/Statusbar.vue'
 import Stream from '../components/Stream'
 import TournamentList from '../components/TournamentList.vue'
 import TournamentView from '../components/Tournament.vue'
+import Qualifications from '../components/Qualifications.vue'
 
 import DrunkenFallNew from '../components/new/DrunkenFall.vue'
 import GroupNew from '../components/new/Group.vue'
@@ -117,6 +118,11 @@ var router = new Router({
       path: '/tournaments/:tournament/endqualifying/',
       name: 'endqualifying',
       component: EndQualifying
+    },
+    {
+      path: '/tournaments/:tournament/qualifications',
+      name: 'qualifications',
+      component: Qualifications
     },
     {
       path: '/live/:tournament',
