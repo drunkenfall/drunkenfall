@@ -17,6 +17,9 @@ services:
     # volumes:
     #   - ./data/:/drunkenfall/:rw
 
+  frontend:
+    build: js/
+
   rabbitmq:
     image: "rabbitmq:3-management"
     hostname: "rabbitmq"

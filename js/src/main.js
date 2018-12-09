@@ -8,6 +8,9 @@ import Toast from 'vue-easy-toast'
 import vueHeadful from 'vue-headful'
 import * as Icon from 'vue-awesome'
 import App from './DrunkenFall'
+import {version} from './version'
+
+console.log(`DrunkenFall ${version}`)
 
 import Sidebar from './components/Sidebar.vue'
 

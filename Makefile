@@ -4,7 +4,7 @@ SOURCES := $(shell find $(SOURCEDIR) -name '*.go')
 BINARY = drunkenfall
 
 VERSION = $(shell git describe --always --tags)
-BUILDTIME = `date +%FT%T%z` # ISO-8601
+BUILDTIME = `date +%FT%T%z`
 
 LDFLAGS = -ldflags "-w -X main.version=${VERSION} -X main.buildtime=${BUILDTIME}"
 
@@ -61,6 +61,14 @@ npm-sass:
 .PHONY: npm-dist
 npm-dist: npm
 	cd js; npm run build
+
+.PHONY: frontend
+frontend:
+	echo "export const version = '$(VERSION) ($(BUILDTIME))'" > js/src/version.js
+	docker-compose build frontend
+	rm -rf dist/
+	docker cp $(shell docker create drunkenfall_frontend:latest):/dist ./dist
+	docker rm $(shell docker container ls -a | grep frontend | cut -f1 -d" ")
 
 .PHONY: vendor
 vendor:
