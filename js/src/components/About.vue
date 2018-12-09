@@ -80,7 +80,7 @@ export default {
     flex-direction: column;
   }
 
-  transition: 1.5s;
+  /* transition: 1.5s; */
   opacity: 0;
 
   &.loaded {

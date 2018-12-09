@@ -121,7 +121,6 @@ export default {
 @import "../../css/colors.scss";
 h1 {
   font-size: 3em;
-  transition: 0.3s;
 }
 
 #colors {
