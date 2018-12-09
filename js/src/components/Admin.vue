@@ -1,5 +1,5 @@
 <template>
-<div v-if="userLoaded && user.isProducer && tournaments">
+<div v-if="userLoaded && user.isProducer && tournaments" class="admin">
   <headful title="Superpowers - DrunkenFall"></headful>
   <div class="section">
     <h2>Tournaments</h2>
@@ -129,6 +129,10 @@ export default {
 
 <style lang="scss">
 @import "../css/colors.scss";
+
+.admin {
+  flex-direction: row !important;
+}
 
 .tournament {
   margin: 0.5em;
