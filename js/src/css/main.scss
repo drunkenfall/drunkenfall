@@ -44,7 +44,7 @@ body, html {
   }
 }
 
-#app {
+#drunkenfall {
   height: 100%;
   transition: 0.3s ease-in-out;
   display: flex;
@@ -59,7 +59,7 @@ body, html {
   opacity: 0;
 }
 
-#app > .sidebared {
+#drunkenfall > .sidebared {
   @media screen and (min-device-width: 769px) {
     margin-left: $sidebar-width;
   }

@@ -36,4 +36,4 @@ var Root = Vue.extend(App)
 new Root({ // eslint-disable-line
   router: router,
   store: store,
-}).$mount("#app")
+}).$mount("#drunkenfall")
