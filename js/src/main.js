@@ -10,7 +10,10 @@ import * as Icon from 'vue-awesome'
 import App from './DrunkenFall'
 import {version} from './version'
 
-console.log(`DrunkenFall ${version}`)
+// Print version info, but only in prod
+if (window.location.host === 'drunkenfall.com') {
+  console.log(`DrunkenFall ${version}`)
+}
 
 import Sidebar from './components/Sidebar.vue'
 
