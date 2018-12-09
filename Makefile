@@ -6,13 +6,17 @@ BINARY = drunkenfall
 VERSION = $(shell git describe --always --tags)
 BUILDTIME = `date +%FT%T%z` # ISO-8601
 
-LDFLAGS = -ldflags "-X main.version=${VERSION} -X main.buildtime=${BUILDTIME}"
+LDFLAGS = -ldflags "-w -X main.version=${VERSION} -X main.buildtime=${BUILDTIME}"
 
 export GOPATH := $(shell go env GOPATH)
 .DEFAULT_GOAL: $(BINARY)
 
 check: test lint
 
+# The CGO and GOOS are needed for it to statically link so that it is runnable in Docker
+.PHONY: install
+install:
+	CGO_ENABLED=0 GOOS=linux go install -v ${LDFLAGS} ./...
 
 BINARY = drunkenfall
 $(BINARY): $(SOURCES)

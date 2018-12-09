@@ -1,19 +1,21 @@
 version: '3'
 services:
   drunkenfall:
-    build: .
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile.go
     ports:
      - "42001:42001"
     environment:
-      DRUNKENFALL_DB_PATH: /drunkenfall/production.db
+      DRUNKENFALL_DBHOST: postgres:5432
       DRUNKENFALL_PORT: 42001
       DRUNKENFALL_FACEBOOK_ID: 668534419991204
       DRUNKENFALL_FACEBOOK_SECRET: e74696c890216108c69d55d0e1b7866f
       DRUNKENFALL_FACEBOOK_CALLBACK: http://dev.drunkenfall.com/api/facebook/oauth2callback
       DRUNKENFALL_RABBIT_INCOMING_QUEUE: drunkenfall-app-dev
       DRUNKENFALL_RABBIT_OUTGOING_QUEUE: drunkenfall-game-dev
-    volumes:
-      - ./data/:/drunkenfall/:rw
+    # volumes:
+    #   - ./data/:/drunkenfall/:rw
 
   rabbitmq:
     image: "rabbitmq:3-management"
