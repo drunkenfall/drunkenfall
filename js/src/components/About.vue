@@ -3,44 +3,41 @@
   <headful title="DrunkenFall"></headful>
   <div id="start" :class="{loaded: !loading}">
     <div class="main">
-      <div class="logo">
-        <img alt="DrunkenFall" src="/static/img/oem-text.svg"/>
+      <div class="hero">
+        <div class="image"></div>
+        <div class="logo">
+          <img alt="DrunkenFall" src="/static/img/oem-text.svg"/>
+        </div>
       </div>
 
       <div class="about">
-        <h1>Wait, what's this?</h1>
-        <p>
-          DrunkenFall is a monthly video game tournament showdown of
-          archery skills. We play
-          <a href="http://www.towerfall-game.com" target="_blank">TowerFall</a>
-          with hardcore tournament rules, and we top that off with
-          punishments whenever you lose a point or otherwise embarrass
-          yourself.
-        </p>
+        <div class="text">
+          <h1>TowerFall tournaments</h1>
+          <p>
+            DrunkenFall is a video game tournament showdown of archery skills! We play
+            <a href="http://www.towerfall-game.com" target="_blank">TowerFall</a> with hardcore
+            tournament rules, and we top that off with punishments whenever you lose a point or
+            otherwise embarrass yourself.
+          </p>
 
-        <p>
-          Our events are streamed on
-          <a href="https://twitch.tv/drunkenfallofficial">our Twitch
-            channel</a>, and you are most welcome to come shout at the
-          players and pressure them to make more mistakes.
-        </p>
+          <p>
+            Our events are streamed on <a href="https://twitch.tv/drunkenfallofficial">our Twitch
+            channel</a>, and you are most welcome to come shout at the players and pressure them to
+            make more mistakes.
+          </p>
+        </div>
 
-        <h1>Why would you do this?</h1>
-        <p>
-          It is awesome fun! We've been at it for years; starting at
-          Christmas Day 2013 and escalating ever since! We started out
-          with just holding a semblance of a tournament with pen and
-          paper, and now we have a streaming platform with an app that
-          helps us keep track of who fights who!
-        </p>
-
-        <h1>Can I join?</h1>
-        <p>
-          Oh, we thought you'd never ask! Our motto has always been '<i>the more the
-          merrier</i>', and that will always stay true!
-        </p>
+        <div class="video">
+          <h1>Trailer video</h1>
+          <iframe
+            src="https://www.youtube.com/embed/-VZN6F0eo8c"
+            frameborder="0"
+            allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen></iframe>
+        </div>
       </div>
     </div>
+
     <div class="schedule" v-if="nextTournament">
       <router-link :to="{ name: 'tournament', params: {'tournament': nextTournament.id}}" class="next">
         <div class="title">Next event</div>
@@ -48,9 +45,6 @@
         <div class="subtitle">{{nextTournament.subtitle}}</div>
         <div class="date">{{nextTournament.scheduled.format("MMMM Do")}}</div>
       </router-link>
-      <!-- <div class="upcoming">
-      <h2>Future events</h2>
-      </div> -->
     </div>
   </div>
 </div>
@@ -80,7 +74,6 @@ export default {
     flex-direction: column;
   }
 
-  /* transition: 1.5s; */
   opacity: 0;
 
   &.loaded {
@@ -88,23 +81,65 @@ export default {
   }
 
   .main {
-    padding: 3% 5%;
-    .logo {
-      display: flex;
+    width: 100%;
 
-      .name {
-        font-size: 9em;
+    .hero {
+      height: 33vh;
+      position: relative;
+
+      .image {
+        height: 100%;
+        width: 100%;
+        background-image: url("/static/img/hero.jpg");
+        filter: grayscale(66%) brightness(50%);
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: cover;
+      }
+
+      .logo {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+
         display: flex;
+        justify-content: center;
         align-items: center;
-        div {
-          margin-left: 0.2em;
+
+        img {
+          filter: drop-shadow(3px 3px 3px rgba(0,0,0,0.9));
+          width: 75%;
+
+          @media screen and ($desktop: $desktop-width) {
+            max-width: 50vw;
+          }
         }
       }
+
     }
 
     .about {
+      display: flex;
+      padding: 1% 3%;
+
+      @media screen and ($desktop: $desktop-width) {
+        >div {
+          width: 50%;
+          padding: 1%;
+        }
+      }
+
+      @media screen and ($device: $device-width) {
+        flex-direction: column;
+      }
+
+      iframe {
+        width: 100%;
+        height: 30vh;
+      }
       h1 {
-        margin-top: 1em;
         text-align: left;
       }
       p {
