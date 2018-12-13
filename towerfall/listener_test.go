@@ -1,24 +1,18 @@
 package towerfall
 
-import (
-	"testing"
+// func testListener(t *testing.T) (*Listener, *Tournament, func()) {
+// 	s, teardown := MockServer(t)
+// 	db := s.DB
 
-	"github.com/stretchr/testify/assert"
-)
+// 	l, err := NewListener(s.config, db)
+// 	assert.NoError(t, err)
 
-func testListener(t *testing.T) (*Listener, *Tournament, func()) {
-	s, teardown := MockServer(t)
-	db := s.DB
+// 	tm := testTournament(t, s, 12)
+// 	err = tm.StartTournament(nil)
+// 	assert.NoError(t, err)
 
-	l, err := NewListener(s.config, db)
-	assert.NoError(t, err)
-
-	tm := testTournament(t, s, 12)
-	err = tm.StartTournament(nil)
-	assert.NoError(t, err)
-
-	return l, tm, teardown
-}
+// 	return l, tm, teardown
+// }
 
 // TODO(thiderman): Fix this and re-add it with a test that checks the database rather than just
 // talking with the Match object
@@ -59,8 +53,8 @@ func testListener(t *testing.T) (*Listener, *Tournament, func()) {
 // 	})
 // }
 
-func verifyMessages(t *testing.T, m *Match, x int) {
-	ret, err := globalDB.MatchMessages(m)
-	assert.NoError(t, err)
-	assert.Equal(t, x, len(ret))
-}
+// func verifyMessages(t *testing.T, m *Match, x int) {
+// 	ret, err := globalDB.MatchMessages(m)
+// 	assert.NoError(t, err)
+// 	assert.Equal(t, x, len(ret))
+// }

@@ -225,19 +225,6 @@ func (p *PlayerSummary) Player() Player {
 	return *NewPlayer(p.Person)
 }
 
-// getPerson gets the Person for a player
-func (p *Player) getPerson() *Person {
-	var err error
-	if p.Person == nil {
-		p.Person, err = globalDB.GetPerson(p.PersonID)
-		if err != nil {
-			log.Fatal(err)
-		}
-	}
-
-	return p.Person
-}
-
 // ScoreData returns this players set of ScoreData
 func (p *Player) ScoreData() []ScoreData {
 	sd := []ScoreData{
