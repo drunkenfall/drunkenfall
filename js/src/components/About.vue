@@ -68,6 +68,14 @@ export default {
 <style lang="scss" scoped>
 @import "../css/colors.scss";
 
+@keyframes logo-rotate {
+  0% {   transform: rotate(0deg);}
+  33% {  transform: rotate(0deg);}
+  50% {  transform: rotate(-3deg);}
+  75% {  transform: rotate(2deg);}
+  100% { transform: rotate(0deg);}
+}
+
 #start {
   display: flex;
   @media screen and ($device: $device-width) {
@@ -86,6 +94,7 @@ export default {
     .hero {
       height: 33vh;
       position: relative;
+      box-shadow: 10px 5px 10px rgba(0,0,0,0.3);
 
       .image {
         height: 100%;
@@ -109,6 +118,7 @@ export default {
         align-items: center;
 
         img {
+          animation: logo-rotate 133.4s infinite;
           filter: drop-shadow(3px 3px 3px rgba(0,0,0,0.9));
           width: 75%;
 
