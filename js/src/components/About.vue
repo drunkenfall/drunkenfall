@@ -70,6 +70,7 @@ export default {
 
 @keyframes logo-rotate {
   0% {   transform: rotate(0deg);}
+  11% {  transform: rotate(1deg);}
   33% {  transform: rotate(0deg);}
   50% {  transform: rotate(-3deg);}
   75% {  transform: rotate(2deg);}
