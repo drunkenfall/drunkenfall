@@ -7,25 +7,42 @@
     </div>
   </router-link>
 
-  <div @click="toggle" class="hamburger">
-    <icon name="bars" />
-  </div>
-
-  <div class="blocks" @click="toggle" :class="{visible: hamburgerActive}">
+  <div class="blocks">
     <router-link class="action" :to="{ name: 'tournaments'}">
-      <div class="icon">🔥</div>
-      <p>Tournaments</p>
+      <div class="icon">
+        <icon name="gamepad"></icon>
+      </div>
+      <p>Tournament</p>
     </router-link>
 
     <router-link class="action" :to="{ name: 'archers'}">
-      <div class="icon">🏹</div>
-      <p>Archers</p>
+      <div class="icon">
+        <icon name="trophy"></icon>
+      </div>
+      <p>Leaderboard</p>
     </router-link>
 
-    <router-link v-if="user.isProducer" class="action" :to="{ name: 'admin'}">
-      <div class="icon">💪</div>
-      <p>Superpowers</p>
+    <router-link class="action" :to="{ name: 'rules'}">
+      <div class="icon">
+        <icon name="list"></icon>
+      </div>
+      <p>Rules</p>
     </router-link>
+
+    <router-link class="action" :to="{ name: 'about'}">
+      <div class="icon">
+        <icon name="question"></icon>
+      </div>
+      <p>About</p>
+    </router-link>
+
+    <!-- <router-link v-if="user.isProducer" class="action" :to="{ name: 'admin'}">
+    <div class="icon">
+      <icon name="balance-scale"></icon>
+    </div>
+    <p>Superpowers</p>
+    </router-link> -->
+
   </div>
 
   <div v-if="userLoaded && user.authenticated" class="user">
@@ -54,8 +71,6 @@
       </a>
     </div>
   </div>
-
-  <div class="clear"></div>
 </div>
 
 </template>
@@ -72,16 +87,7 @@ export default {
     Person,
   },
 
-  data () {
-    return {
-      hamburgerActive: false,
-    }
-  },
-
   methods: {
-    toggle () {
-      this.hamburgerActive = !this.hamburgerActive
-    },
     viewing (names) {
       // Returns true if currently viewing any of the route names.
       return _.includes(names, this.$route.name)
@@ -146,9 +152,6 @@ export default {
 
   display: flex;
   flex-direction: column;
-  /* flex-grow: 1; */
-  justify-content: space-between;
-  align-items: space-between;
 
   /* Real devices */
   @media screen and ($desktop: $desktop-width) {
@@ -159,6 +162,9 @@ export default {
     z-index: 100;
     font-size: 1.3em;
     width: $sidebar-width;
+
+    justify-content: space-between;
+    align-items: space-between;
 
     .hamburger {
       display: none;
@@ -182,7 +188,7 @@ export default {
     .blocks {
       display: flex;
       flex-direction: column;
-      justify-content: flex-start;
+      justify-content: space-around;
       flex-grow: 1;
 
       .action {
@@ -190,13 +196,19 @@ export default {
         transition: 0.2s;
         text-shadow: 2px 2px 3px rgba(0,0,0,0.3);
         color: #888;
+        flex-grow: 1;
+        min-height: 100px;
 
         width: 100%;
         text-align: center;
-        padding: 2rem 0;
         box-shadow: none;
 
-        &.router-link-active {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+
+        &.router-link-exact-active {
           background-color: rgba(0,0,0,0.2);
           color: $fg-default;
           .icon {
@@ -205,11 +217,10 @@ export default {
         }
 
         .icon {
-          font-size: 3em;
+          font-size: 2em;
           text-shadow: 3px 3px 5px rgba(0,0,0,0.5);
         }
         p {
-          margin-top: 1em;
           font-weight: 100;
           font-size: 0.8em;
           text-transform: uppercase;
@@ -222,58 +233,72 @@ export default {
   @media screen and ($device: $device-width) {
     position: relative;
     width: 100%;
-    min-height: 3em;
-    transform: 0.3s;
+    height: 130px;
+    min-height: 130px;
     flex-direction: row;
     flex-wrap: wrap;
+    justify-content: space-between;
 
-    .visible {
-      min-height: 5em;
-    }
-
-    .logo, .hamburger, .user {
-      width: 33%;
+    .logo, .user {
+      width: 50%;
       display: flex;
-      justify-content: center;
+      justify-content: space-between;
       align-items: center;
-      margin: 0.5em 0;
-    }
-
-    .hamburger {
-      font-size: 1.5em;
-      order: 1;
-      cursor: pointer;
+      padding: 0 0.5em;
     }
 
     .logo {
-      order: 2;
+      order: 1;
 
       img {
         margin: 0 auto;
         height: 2em;
+        transform: rotate(90deg);
+        transition: 0.7s ease-in-out;
       }
     }
 
     .user {
-      order: 3;
+      order: 2;
+      justify-content: flex-end;
     }
 
     .blocks {
       order: 4;
       transform: 0.3s;
-      display: none;
-      opacity: 0;
 
-      &.visible {
-        opacity: 1;
+      background-color: rgba(0,0,0,0.1);
+      box-shadow: 2px 2px 3px rgba(0,0,0,0.3);
+
+      font-family: "Lato";
+      font-size: 10px;
+
+      display: flex;
+      width: 100%;
+      justify-content: space-around;
+      align-items: center;
+      text-align: center;
+
+      border-top: 1px solid rgba(255,255,255,0.1);
+
+      .action {
+        flex-grow: 1;
+        flex-basis: 0;
+        opacity: 0.6;
+        height: 100%;
         display: flex;
-        width: 100%;
-        justify-content: center;
+        flex-direction: column;
         align-items: center;
+        justify-content: center;
+        text-align: center;
 
-        .action {
-          flex-grow: 1;
-          text-align: center;
+        &.router-link-exact-active {
+          opacity: 1;
+          background-color: rgba(0,0,0,0.2);
+          color: $accent;
+          .icon {
+            color: $accent;
+          }
         }
       }
     }

@@ -1,30 +1,6 @@
 <template>
 <div v-if="userLoaded && user.isProducer && tournaments" class="admin">
   <headful title="Superpowers - DrunkenFall"></headful>
-  <div class="section">
-    <h2>Tournaments</h2>
-    <div class="links">
-      <button-link
-        :to="{ name: 'new'}"
-        :icon="'plus'"
-        :iconClass="'positive'"
-        :label="'New tournament'" />
-
-      <button-link
-        :func="clear"
-        :cls="{ disabled: !canClear}"
-        :icon="'trash'"
-        :iconClass="'danger'"
-        :label="'Clear tests'" />
-
-    </div>
-
-    <div class="tournament" v-for="t in tournaments">
-      <router-link :to="{ name: 'tournament', params: {'tournament': t.id}}">
-        {{t.name}}
-      </router-link>
-    </div>
-  </div>
 
   <div class="section">
     <h2>Users</h2>
@@ -49,6 +25,30 @@
     </div>
   </div>
 
+  <div class="section">
+    <h2>Tournaments</h2>
+    <div class="links">
+      <button-link
+        :to="{ name: 'new'}"
+        :icon="'plus'"
+        :iconClass="'positive'"
+        :label="'New tournament'" />
+
+      <button-link
+        :func="clear"
+        :cls="{ disabled: !canClear}"
+        :icon="'trash'"
+        :iconClass="'danger'"
+        :label="'Clear tests'" />
+
+    </div>
+
+    <div class="tournament" v-for="t in tournaments">
+      <router-link :to="{ name: 'tournament', params: {'tournament': t.id}}">
+        {{t.name}}
+      </router-link>
+    </div>
+  </div>
 </div>
 </template>
 
@@ -131,7 +131,7 @@ export default {
 @import "../css/colors.scss";
 
 .admin {
-  flex-direction: row !important;
+  flex-direction: column !important;
 }
 
 .tournament {

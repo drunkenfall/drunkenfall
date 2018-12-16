@@ -80,6 +80,11 @@ var router = new Router({
       component: Admin,
     },
     {
+      path: '/rules',
+      name: 'rules',
+      component: Admin,
+    },
+    {
       path: '/admin/disable',
       name: 'disable',
       component: Disable,
