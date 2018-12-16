@@ -85,7 +85,7 @@ download-caddy:
 	cd $(GOPATH)/src/github.com/mholt/caddy/caddy; go run build.go
 
 .PHONY: caddy
-caddy: download-caddy
+caddy:
 	sudo $(GOPATH)/bin/caddy
 
 .PHONY: caddy-local
@@ -106,7 +106,7 @@ DBPARAMS := --host localhost --user postgres
 .PHONY: reset-db
 reset-db:
 	test -n "$(DRUNKENFALL_RESET_DB)"
-	psql  -c "DROP DATABASE drunkenfall"
+	psql $(DBPARAMS) -c "DROP DATABASE drunkenfall"
 	psql $(DBPARAMS) -c "CREATE DATABASE drunkenfall"
 	psql $(DBPARAMS) drunkenfall < $(DB)
 
