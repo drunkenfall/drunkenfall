@@ -48,7 +48,7 @@ CREATE OR REPLACE FUNCTION update_summary(tid INTEGER, pid TEXT) RETURNS void AS
            SUM(p.shots),
            COUNT(*),
            calculate_score(tid, pid, SUM(p.kills)::INTEGER, SUM(p.sweeps)::INTEGER, SUM(p.self)::INTEGER),
-           (calculate_score(tid, pid, SUM(p.kills)::INTEGER, SUM(p.sweeps)::INTEGER, SUM(p.self)::INTEGER) / COUNT(*))
+          (calculate_score(tid, pid, SUM(p.kills)::INTEGER, SUM(p.sweeps)::INTEGER, SUM(p.self)::INTEGER) / COUNT(*))
       FROM players p
       INNER JOIN matches m ON p.match_id = m.id
       WHERE m.tournament_id = tid
