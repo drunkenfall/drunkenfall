@@ -10,14 +10,6 @@
   revision = "81f07040d2feb7dad8817c9fe3d8effe9ca784c6"
 
 [[projects]]
-  digest = "1:0f98f59e9a2f4070d66f0c9c39561f68fcd1dc837b22a852d28d0003aebd1b1e"
-  name = "github.com/boltdb/bolt"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "2f1ce7a837dcb8da3ec595b1dac9d0632f0f99e8"
-  version = "v1.3.1"
-
-[[projects]]
   digest = "1:a2c1d0e43bd3baaa071d1b9ed72c27d78169b2b269f71c105ac4ba34b1be4a39"
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
@@ -142,6 +134,17 @@
   pruneopts = "UT"
   revision = "f611eb38b3875cc3bd991ca91c51d06446afa14c"
   version = "v1.3.0"
+
+[[projects]]
+  digest = "1:2d0b44ee6208d256e29f55764db1fa41e3ae33fac6cef138acae6a79c3bd748e"
+  name = "github.com/magefile/mage"
+  packages = [
+    "mg",
+    "sh",
+  ]
+  pruneopts = "UT"
+  revision = "aedfce64c122eef47009b7f80c9771044753215d"
+  version = "v1.8.0"
 
 [[projects]]
   digest = "1:d4d17353dbd05cb52a2a52b7fe1771883b682806f68db442b436294926bbfafb"
@@ -330,7 +333,6 @@
   analyzer-version = 1
   input-imports = [
     "github.com/StefanSchroeder/Golang-Roman",
-    "github.com/boltdb/bolt",
     "github.com/deckarep/golang-set",
     "github.com/gin-contrib/sessions",
     "github.com/gin-contrib/sessions/cookie",
@@ -338,6 +340,8 @@
     "github.com/gin-gonic/gin",
     "github.com/go-pg/pg",
     "github.com/kelseyhightower/envconfig",
+    "github.com/magefile/mage/mg",
+    "github.com/magefile/mage/sh",
     "github.com/mitchellh/mapstructure",
     "github.com/nu7hatch/gouuid",
     "github.com/olahol/melody",

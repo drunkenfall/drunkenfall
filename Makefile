@@ -30,22 +30,6 @@ $(BINARY)-start: $(BINARY)
 dist: $(BINARY)
 	cd js; npm run build
 
-.PHONY: install-linter
-install-linter:
-	curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(GOPATH)/bin v1.12.2
-
-.PHONY: test
-test:
-	GIN_MODE=test go test -v ./towerfall
-
-.PHONY: cover
-cover:
-	go test -coverprofile=cover.out ./...
-
-.PHONY: lint
-lint:
-	golangci-lint run
-
 .PHONY: npm
 npm: js/package.json
 	cd js; npm install
@@ -53,10 +37,6 @@ npm: js/package.json
 .PHONY: npm-start
 npm-start:
 	cd js; PORT=42002 npm run dev
-
-.PHONY: npm-sass
-npm-sass:
-	cd js; npm rebuild node-sass
 
 .PHONY: npm-dist
 npm-dist: npm
@@ -95,10 +75,6 @@ caddy-local: download-caddy
 .PHONY: postgres
 postgres:
 	docker-compose up postgres
-
-.PHONY: psql
-psql:
-	@psql --host localhost --user postgres drunkenfall
 
 DB := ./data/db.sql
 DBPARAMS := --host localhost --user postgres
