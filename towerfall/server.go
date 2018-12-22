@@ -11,12 +11,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/drunkenfall/drunkenfall/faking"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-contrib/zap"
 	"github.com/gin-gonic/gin"
 	"github.com/olahol/melody"
+	"gitlab.com/one-eye/drunkenfall/faking"
 	"go.uber.org/zap"
 )
 

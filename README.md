@@ -35,9 +35,9 @@ Please ensure it is installed on your system before proceeding with the followin
 instructions.
 
 ```sh
-$ git clone git@github.com:drunkenfall/drunkenfall.git $(go env GOPATH)/src/github.com/drunkenfall/drunkenfall
+$ git clone git@gitlab.com:one-eye/drunkenfall.git $(go env GOPATH)/src/gitlab.com/one-eye/drunkenfall
 
-Cloning into '.../src/github.com/drunkenfall/drunkenfall'...
+Cloning into '.../src/gitlab.com/one-eye/drunkenfall'...
 remote: Enumerating objects: 108, done.
 remote: Counting objects: 100% (108/108), done.
 remote: Compressing objects: 100% (73/73), done.
@@ -45,10 +45,10 @@ remote: Total 6899 (delta 54), reused 71 (delta 35), pack-reused 6791
 Receiving objects: 100% (6899/6899), 20.12 MiB | 11.57 MiB/s, done.
 Resolving deltas: 100% (5171/5171), done.
 
-$ cd $(go env GOPATH)/src/github.com/drunkenfall/drunkenfall
+$ cd $(go env GOPATH)/src/gitlab.com/one-eye/drunkenfall
 $ dep ensure -v
 
-Root project is "github.com/drunkenfall/drunkenfall"
+Root project is "gitlab.com/one-eye/drunkenfall"
  3 transitively valid internal packages
  19 external packages imported from 16 projects
 (0)   ✓ select (root)
@@ -81,12 +81,12 @@ on how to get it up and running. However, adjust the `git clone` command like
 so:
 
 ```sh
-git clone git@github.com:<YOUR GITHUB USERNAME>/drunkenfall.git $(go env GOPATH)/src/github.com/drunkenfall/drunkenfall
+git clone git@gitlab.com:<YOUR GITHUB USERNAME>/drunkenfall.git $(go env GOPATH)/src/gitlab.com/one-eye/drunkenfall
 ```
 
 This will ensure your fork is used but checked out in the right part of your
 GOPATH, so you don't get any import path issues. It's advisable to then add
-`git@github.com/drunkenfall/drunkenfall` as a remote to your clone in order
+`git@gitlab.com/one-eye/drunkenfall` as a remote to your clone in order
 to be able to regularly update your copy of the repository. Github [provides
 documentation](https://help.github.com/articles/configuring-a-remote-for-a-fork/)
 on how to do so.
@@ -96,8 +96,8 @@ on how to do so.
 First run:
 
 ```sh
-export DF_DB_PATH=$(go env GOPATH)/src/github.com/drunkenfall/drunkenfall/data/test.db
-mkdir $(go env GOPATH)/src/github.com/drunkenfall/drunkenfall/data && touch $DF_DB_PATH
+export DF_DB_PATH=$(go env GOPATH)/src/gitlab.com/one-eye/drunkenfall/data/test.db
+mkdir $(go env GOPATH)/src/gitlab.com/one-eye/drunkenfall/data && touch $DF_DB_PATH
 ```
 
 Then, in separate terminals, run each of:

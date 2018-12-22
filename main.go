@@ -6,7 +6,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/drunkenfall/drunkenfall/towerfall"
+	"gitlab.com/one-eye/drunkenfall/towerfall"
 )
 
 func main() {

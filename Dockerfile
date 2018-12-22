@@ -1,6 +1,6 @@
 FROM golang:alpine as builder
 
-ENV DF_ROOT=/go/src/github.com/drunkenfall/drunkenfall/
+ENV DF_ROOT=/go/src/gitlab.com/one-eye/drunkenfall/
 WORKDIR $DF_ROOT
 
 RUN apk --no-cache add curl alpine-sdk

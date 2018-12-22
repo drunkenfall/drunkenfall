@@ -16,7 +16,7 @@ import (
 // Cracklib is a random-pop interface to the cracklib wordlist
 type Cracklib []string
 
-var avatardir = os.ExpandEnv("$GOPATH/src/github.com/drunkenfall/drunkenfall/js/static/avatars/fake/")
+var avatardir = os.ExpandEnv("$GOPATH/src/gitlab.com/one-eye/drunkenfall/js/static/avatars/fake/")
 var avatars []os.FileInfo
 
 // ai is the avatar index of the current avatar
