@@ -118,7 +118,7 @@ purposes. Once it is installed run the following
 mage code:lint
 ```
 
-This will use the [`.golangici-pedantic.yaml`](.golangci-pedantic.yaml) which
+This will use the [`.golangci-pedantic.yaml`](.golangci-pedantic.yaml) which
 encodes all the linters we expect to pass during CI.
 
 In order to help you out during development it's advisable to hookup
